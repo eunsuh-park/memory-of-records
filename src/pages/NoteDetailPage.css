@@ -1,0 +1,7 @@
+/* NoteDetailPage 페이지 스타일 */
+
+.note-detail-page {
+  min-height: calc(100vh - 200px);
+  padding: 2rem 0;
+}
+

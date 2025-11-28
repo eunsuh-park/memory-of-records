@@ -1,0 +1,95 @@
+/* SideMenu 스타일 */
+
+.side-menu {
+  /* 사이드 메뉴를 왼쪽에 고정 */
+  width: 250px;
+  min-height: 100%;
+  background-color: #f9f9f9;
+  border-right: 1px solid #e0e0e0;
+  padding: 2rem 0;
+}
+
+.side-nav {
+  position: sticky;
+  top: 80px; /* TopNavigation 높이만큼 여유 */
+}
+
+.side-menu-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 1.5rem 1.5rem 1.5rem;
+  color: #333;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #333;
+}
+
+.period-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.period-item {
+  margin: 0;
+}
+
+.period-link {
+  /* 시기 링크 스타일 */
+  display: block;
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+  color: #666;
+  transition: all 0.3s;
+  border-left: 3px solid transparent;
+}
+
+.period-link:hover {
+  /* 호버 시 배경색 변경 */
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.period-link.active {
+  /* 활성화된 시기 스타일 */
+  background-color: #fff;
+  color: #333;
+  border-left-color: #333;
+  font-weight: 600;
+}
+
+.period-label {
+  /* 시기 라벨 (예: "Elementary School") */
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.period-years {
+  /* 시기 연도 (예: "2005-2010") */
+  display: block;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.period-link.active .period-years {
+  color: #666;
+}
+
+/* 반응형 디자인 - 모바일에서는 상단으로 이동 */
+@media (max-width: 768px) {
+  .side-menu {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .side-nav {
+    position: relative;
+    top: 0;
+  }
+
+  .period-link {
+    padding: 0.75rem 1rem;
+  }
+}
+

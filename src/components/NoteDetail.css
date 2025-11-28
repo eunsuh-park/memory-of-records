@@ -1,0 +1,153 @@
+/* NoteDetail 컴포넌트 스타일 */
+
+.note-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.note-error {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+/* 노트 헤더 */
+.note-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.note-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.note-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #666;
+}
+
+.note-period {
+  font-weight: 600;
+}
+
+.note-separator {
+  color: #ccc;
+}
+
+.note-year {
+  color: #999;
+}
+
+/* 노트 본문 */
+.note-content {
+  margin-bottom: 3rem;
+  line-height: 1.8;
+}
+
+.note-text {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 2rem;
+}
+
+.note-text p {
+  margin-bottom: 1rem;
+}
+
+/* 노트 이미지 */
+.note-images {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.note-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 노트 네비게이션 */
+.note-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.note-nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.nav-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-button:hover {
+  background-color: #f5f5f5;
+  border-color: #333;
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.back-button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #333;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.back-button:hover {
+  background-color: #555;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .note-detail {
+    padding: 1rem;
+  }
+
+  .note-title {
+    font-size: 2rem;
+  }
+
+  .note-nav-buttons {
+    flex-direction: column;
+  }
+
+  .nav-button {
+    width: 100%;
+  }
+}
+
