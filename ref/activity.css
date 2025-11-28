@@ -1,0 +1,107 @@
+/* Activity Detail View */
+/* Common styles (padding, margin-top) are handled by .detail-view and .detail-content in detail-content.css */
+
+.activity-image-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.activity-detail-image {
+    flex: 0 0 auto;
+    width: 50%;
+    max-width: 400px;
+}
+
+.activity-detail-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    object-fit: cover;
+}
+
+.activity-placeholder-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: var(--light-bg);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activity-nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--border-color);
+    background-color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.activity-nav-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.activity-nav-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.activity-nav-btn-placeholder {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.activity-detail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-detail-source {
+    font-size: 0.95rem;
+    color: var(--text-color-light);
+    font-weight: 400;
+}
+
+/* .activity-detail-description common styles are handled by .detail-description in detail-content.css */
+/* Note: Date is displayed in detail-header component via .detail-header-title-date */
+
+@media (max-width: 1024px) and (min-width: 769px) {
+    .activity-image-container {
+        gap: 1rem;
+    }
+}
+
+/* Responsive for activity detail */
+@media (max-width: 768px) {
+    /* Additional responsive styles can be added here if needed */
+    .activity-image-container {
+        gap: 1rem;
+    }
+
+    #activity-section {
+        padding: 0 !important;
+    }
+    /* 모바일에서 좌우 패딩 제거. */
+
+
+}
+

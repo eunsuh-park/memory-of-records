@@ -1,13 +1,18 @@
 /**
- * Story 페이지 (블로그 스타일)
- * 블로그 리스트를 표시하는 페이지입니다.
- * 최대 3-6개 포스트 미리보기를 표시합니다.
+ * Story 페이지 (Gallery 형식)
+ * activity 페이지의 gallery 형식을 참고하여 재구성했습니다.
  */
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { storyPosts } from '../data/storyData';
 import './Story.css';
 
 function Story() {
+  const navigate = useNavigate();
+
+  const handleStoryClick = (storyId) => {
+    navigate(`/story/${storyId}`);
+  };
+
   return (
     <div className="story-page">
       <main className="story-main">
@@ -17,20 +22,50 @@ function Story() {
           <p className="story-subtitle">프로젝트에 대한 이야기들</p>
         </header>
 
-        {/* 블로그 포스트 리스트 */}
-        <div className="story-posts">
+        {/* Gallery 형식의 스토리 리스트 */}
+        <div className="gallery-grid">
           {storyPosts.map((post) => (
-            <article key={post.id} className="story-post-card">
-              {/* 포스트 카드 클릭 시 상세 페이지로 이동 */}
-              <Link to={`/story/${post.id}`} className="story-post-link">
-                <h2 className="story-post-title">{post.title}</h2>
-                <h3 className="story-post-subtitle">{post.subtitle}</h3>
-                <p className="story-post-preview">{post.preview}</p>
-                <div className="story-post-meta">
-                  <span className="story-post-date">{post.publishDate}</span>
+            <div
+              key={post.id}
+              className="gallery-item"
+              data-story-id={post.id}
+              onClick={() => handleStoryClick(post.id)}
+            >
+              <div className="gallery-item-image-container">
+                <div className="gallery-item-front">
+                  <div className="gallery-item-image">
+                    {post.image ? (
+                      <>
+                        <img src={post.image} alt={post.title} />
+                        <div className="gallery-item-overlay"></div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="gallery-item-placeholder">
+                          <div className="gallery-placeholder-icon">
+                            <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>
+                              <title>pic_2_fill</title>
+                              <g id="pic_2_fill" fill='none'>
+                                <path d='M24 0v24H0V0zM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z'/>
+                                <path fill='#D8D8D8FF' d='M20 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2H4v14h.929l9.308-9.308a1.25 1.25 0 0 1 1.768 0L20 13.686zM7.5 7a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3'/>
+                              </g>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="gallery-item-overlay"></div>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </Link>
-            </article>
+                <div className="gallery-item-back">
+                  <div className="gallery-item-title-date">
+                    <div className="gallery-item-date">{post.publishDate}</div>
+                  </div>
+                  <div className="gallery-item-source">{post.subtitle}</div>
+                </div>
+              </div>
+              <div className="gallery-item-title">{post.title}</div>
+            </div>
           ))}
         </div>
       </main>

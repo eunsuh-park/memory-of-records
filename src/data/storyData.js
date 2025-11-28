@@ -55,3 +55,21 @@ export const getStoryById = (id) => {
   return storyPosts.find(post => post.id === parseInt(id)) || null;
 };
 
+/**
+ * 이전/다음 스토리 포스트를 찾는 함수
+ * @param {number} id - 현재 포스트 ID
+ * @returns {Object} { prev: 이전 포스트 또는 null, next: 다음 포스트 또는 null }
+ */
+export const getAdjacentStories = (id) => {
+  const currentIndex = storyPosts.findIndex(post => post.id === parseInt(id));
+  
+  if (currentIndex === -1) {
+    return { prev: null, next: null };
+  }
+  
+  return {
+    prev: currentIndex > 0 ? storyPosts[currentIndex - 1] : null,
+    next: currentIndex < storyPosts.length - 1 ? storyPosts[currentIndex + 1] : null
+  };
+};
+

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publications - DaLI Lab @ KAIST</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="../../shared/assets/images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../shared/assets/images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../shared/assets/images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="../../shared/assets/images/favicon_io/site.webmanifest">
+    <link rel="shortcut icon" href="../../shared/assets/images/favicon_io/favicon.ico">
+    <!-- Global and Component Styles -->
+    <link rel="stylesheet" href="../../shared/styles/global.css">
+    <link rel="stylesheet" href="../../shared/styles/css/nav.css">
+    <link rel="stylesheet" href="../../shared/styles/css/footer.css">
+    <link rel="stylesheet" href="../../shared/styles/css/sidebar.css">
+    <link rel="stylesheet" href="../../shared/styles/css/page-header.css">
+    <link rel="stylesheet" href="../../shared/styles/css/go-top.css">
+    <link rel="stylesheet" href="../../shared/styles/css/main-content.css">
+    <link rel="stylesheet" href="../../shared/styles/css/detail-content.css">
+    <link rel="stylesheet" href="../../shared/styles/css/back-button.css">
+    <link rel="stylesheet" href="../../shared/styles/css/detail-header.css">
+    <!-- Page-specific Styles for publications.html -->
+    <link rel="stylesheet" href="../../shared/styles/css/publication-cards.css">
+    <link rel="stylesheet" href="../../shared/styles/css/publications.css">
+    <link rel="stylesheet" href="../../shared/styles/css/chips.css">
+    <link rel="stylesheet" href="../../shared/styles/css/action-button.css">
+    <link rel="stylesheet" href="../../shared/styles/css/quick-scroll-menu.css">
+</head>
+<body class="publications-page">
+    <div id="nav-placeholder"></div>
+
+    <main>
+        <section class="section">
+    <div class="page-header">
+        <h2>Publications</h2>
+        <ul class="sidebar-menu">
+            <!-- Years will be dynamically loaded from datatable.csv -->
+        </ul>
+        <ul class="quick-scroll-menu" aria-label="Quick scroll menu">
+            <!-- Years will be dynamically loaded from datatable.csv -->
+        </ul>
+    </div>
+            <div class="page-layout">
+                <div class="main-content" id="publications-content">
+                    <!-- Publications will be dynamically loaded from datatable.csv -->
+                </div>
+                <div class="main-content detail-view" id="publication-detail" style="display: none;">
+                    <div id="publication-detail-header"></div>
+                    <div class="detail-content publication-detail-content" id="publication-detail-info"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="../../shared/utils/path-resolver.js"></script>
+    <script src="../../shared/ui/nav/nav.js"></script>
+    <script src="../../shared/ui/footer/footer.js"></script>
+    <script src="../../shared/ui/back-button/back-button.js"></script>
+    <script src="../../shared/ui/detail-header/detail-header.js"></script>
+    <script src="../../shared/ui/action-button/action-button.js"></script>
+    <script src="../../app/script.js"></script>
+    <script src="publications-data.js"></script>
+    <script src="publications.js"></script>
+</body>
+</html>
+

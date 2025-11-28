@@ -32,19 +32,10 @@ function TopNavigation() {
         {/* 네비게이션 메뉴 */}
         <ul className="nav-menu">
           <li>
-            {/* 메인 페이지로 이동 */}
-            <Link 
-              to="/" 
-              className={isActive('/') ? 'active' : ''}
-            >
-              메인
-            </Link>
-          </li>
-          <li>
             {/* Timeline 페이지로 이동 */}
             <Link 
               to="/timeline" 
-              className={isActive('/timeline') ? 'active' : ''}
+              className={location.pathname.startsWith('/timeline') ? 'active' : ''}
             >
               Timeline
             </Link>

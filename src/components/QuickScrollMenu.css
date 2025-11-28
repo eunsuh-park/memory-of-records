@@ -1,0 +1,83 @@
+/* Quick Scroll Menu - ref/quick-scroll-menu.css 참고 */
+
+.quick-scroll-menu {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 1100;
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: auto;
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.quick-scroll-menu--hidden {
+  display: none !important;
+}
+
+.quick-scroll-item {
+  margin: 0;
+  padding: 0;
+}
+
+.quick-scroll-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Pretendard', 'Roboto', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #333;
+  text-decoration: none;
+  line-height: 1;
+  background: transparent;
+}
+
+.quick-scroll-link:hover {
+  background-color: #f0f0f0;
+}
+
+.quick-scroll-link.active {
+  background-color: #333;
+  color: #fff;
+  border-color: #333;
+}
+
+/* Tablet & Mobile */
+@media (max-width: 1023px) {
+  .quick-scroll-menu {
+    display: flex;
+  }
+
+  .detail-view-open .quick-scroll-menu {
+    transform: translateX(120px);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .quick-scroll-menu {
+    bottom: 20px;
+  }
+}
+
