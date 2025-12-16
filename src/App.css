@@ -7,10 +7,57 @@
   flex-direction: column;
 }
 
+.main-wrapper {
+  /* 메인 콘텐츠 래퍼 */
+  flex: 1;
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
 .app-main {
   /* 메인 콘텐츠 영역 - 헤더와 푸터 사이 */
   flex: 1;
   width: 100%;
+  height: fit-content;
+  vertical-align: bottom;
+}
+
+/* main 양끝에 그라데이션 div - StoryDetail 페이지에서만 표시 */
+.main-side-gradient {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+/* StoryDetail 페이지에서만 그라데이션 표시 */
+body.story-detail-page-active .main-side-gradient {
+  display: block;
+}
+
+.main-side-left {
+  left: 0;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.75) 5px,
+    rgba(0, 0, 0, 0.1) 5px,
+    rgba(0, 0, 0, 0.75) 10px
+  );
+}
+
+.main-side-right {
+  right: 0;
+  background: repeating-linear-gradient(
+    to left,
+    rgba(0, 0, 0, 0.75) 5px,
+    rgba(0, 0, 0, 0.1) 5px,
+    rgba(0, 0, 0, 0.75) 10px
+  );
 }
 
 /* 전역 스타일 - 기본 설정 */

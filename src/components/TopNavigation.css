@@ -1,23 +1,58 @@
 /* TopNavigation 스타일 */
 
 .top-navigation {
-  /* 헤더를 페이지 상단에 고정 */
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
+  /* 헤더를 페이지 하단에 고정 */
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #FFD966;
+  border: none;
+  border-radius: 999px;
   z-index: 100;
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(180, 160, 100, 0.3);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  max-width: 1200px;
+  width: calc(100% - 3rem);
+}
+
+/* 상세 페이지에서 네비게이션 숨김 */
+body.story-detail-page-active .top-navigation {
+  transform: translateX(-50%) translateY(calc(100% + 1.5rem));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 상세 페이지에서 하단 영역 hover 시 네비게이션 표시 */
+body.story-detail-page-active::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: 99;
+  pointer-events: none;
+}
+
+body.story-detail-page-active:hover::after {
+  pointer-events: auto;
+}
+
+body.story-detail-page-active:hover .top-navigation,
+body.story-detail-page-active .top-navigation:hover {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .nav-container {
-  /* 컨테이너 최대 너비와 중앙 정렬 */
-  max-width: 1200px;
-  margin: 0 auto;
+  /* 컨테이너 스타일 */
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: fit-content;
 }
 
 .logo {
@@ -47,19 +82,28 @@
   text-decoration: none;
   color: #666;
   font-weight: 500;
-  transition: color 0.3s;
-  padding: 0.5rem 0;
+  transition: background-color 0.3s, color 0.3s;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
 }
 
 .nav-menu li a:hover {
-  /* 호버 시 색상 변경 */
+  /* 호버 시 배경색 변경 */
   color: #333;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.nav-menu li a:focus {
+  /* 포커스 시 배경색 변경 */
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.3);
+  outline: none;
 }
 
 .nav-menu li a.active {
   /* 활성화된 메뉴 스타일 */
   color: #333;
-  border-bottom: 2px solid #333;
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 /* 반응형 디자인 - 모바일 */

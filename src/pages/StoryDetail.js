@@ -5,10 +5,18 @@
 import { getStoryById, getAdjacentStories } from '../data/storyData.js';
 import { router } from '../router.js';
 import './StoryDetail.css';
+import image1 from '../assets/KakaoTalk_20251216_202813467_01.jpg';
+import image2 from '../assets/KakaoTalk_20251216_202813467_02.jpg';
+import image3 from '../assets/KakaoTalk_20251216_204415732_01.jpg';
+import image4 from '../assets/KakaoTalk_20251216_204415732_02.jpg';
+import image5 from '../assets/KakaoTalk_20251216_204415732_03.jpg';
 
 export function renderStoryDetail(id) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
+
+  // 상세 페이지 클래스 추가 (네비게이션 숨김용)
+  document.body.classList.add('story-detail-page-active');
 
   const post = getStoryById(id);
   
@@ -26,6 +34,20 @@ export function renderStoryDetail(id) {
 
   const { prev, next } = getAdjacentStories(id);
 
+  // 각 포스트에 맞는 이미지 할당
+  let imageSrc = null;
+  if (post.id === 1) {
+    imageSrc = image1;
+  } else if (post.id === 2) {
+    imageSrc = image2;
+  } else if (post.id === 3) {
+    imageSrc = image3;
+  } else if (post.id === 4) {
+    imageSrc = image4;
+  } else if (post.id === 5) {
+    imageSrc = image5;
+  }
+
   const placeholderIconSvg = `
     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>
       <title>pic_2_fill</title>
@@ -37,86 +59,85 @@ export function renderStoryDetail(id) {
   `;
 
   mainContent.innerHTML = `
-    <article class="story-detail-page">
-      <div class="story-detail-container">
-        <div class="story-detail-header-section">
+    <div class="story-detail-container">
+      <div class="story-detail-main">
+        <div class="story-detail-left">
+          <div class="story-image-container">
+            <div class="story-detail-image">
+              ${imageSrc ? `
+                <img src="${imageSrc}" alt="${post.title}" />
+              ` : `
+                <div class="story-placeholder-image">
+                  <div class="gallery-placeholder-icon">
+                    ${placeholderIconSvg}
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+
+        <div class="story-detail-spine"></div>
+
+        <div class="story-detail-right">
           <button class="story-back-button" aria-label="Story 목록으로 돌아가기">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
+
           <div class="story-detail-header">
             <h1 class="story-detail-title">${post.title}</h1>
-            <div class="story-detail-title-date">${post.publishDate}</div>
+            ${post.subtitle ? `
+              <div class="story-detail-subtitle">${post.subtitle}</div>
+            ` : ''}
+            <div class="story-detail-date">${post.publishDate}</div>
           </div>
-        </div>
 
-        <div class="story-image-container">
-          ${prev ? `
-            <button class="story-nav-btn story-prev-btn" aria-label="Previous story">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          ` : '<div class="story-nav-btn-placeholder"></div>'}
-          
-          <div class="story-detail-image">
-            ${post.image ? `
-              <img src="${post.image}" alt="${post.title}" />
-            ` : `
-              <div class="story-placeholder-image">
-                <div class="gallery-placeholder-icon">
-                  ${placeholderIconSvg}
-                </div>
-              </div>
-            `}
+          <div class="story-detail-content">
+            ${post.content.split('\n').map(paragraph => 
+              paragraph ? `<p>${paragraph}</p>` : '<br>'
+            ).join('')}
           </div>
-          
-          ${next ? `
-            <button class="story-nav-btn story-next-btn" aria-label="Next story">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          ` : '<div class="story-nav-btn-placeholder"></div>'}
-        </div>
-
-        ${post.subtitle ? `
-          <div class="story-detail-meta">
-            <div class="story-detail-source">${post.subtitle}</div>
-          </div>
-        ` : ''}
-
-        <div class="story-detail-content">
-          ${post.content.split('\n').map(paragraph => 
-            paragraph ? `<p>${paragraph}</p>` : '<br>'
-          ).join('')}
         </div>
       </div>
-    </article>
+    </div>
   `;
 
   // 이벤트 리스너
   const backButton = mainContent.querySelector('.story-back-button');
   if (backButton) {
-    backButton.addEventListener('click', () => {
+    backButton.addEventListener('click', (e) => {
+      e.stopPropagation(); // 오른쪽 페이지 클릭 이벤트 전파 방지
       router.navigate('/story');
     });
   }
 
-  const prevButton = mainContent.querySelector('.story-prev-btn');
-  if (prevButton && prev) {
-    prevButton.addEventListener('click', () => {
-      router.navigate(`/story/${prev.id}`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 왼쪽 페이지 클릭 시 이전 페이지로 이동 또는 안내
+  const leftPage = mainContent.querySelector('.story-detail-left');
+  if (leftPage) {
+    leftPage.style.cursor = 'pointer';
+    leftPage.addEventListener('click', () => {
+      if (prev) {
+        router.navigate(`/story/${prev.id}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        alert('첫 페이지입니다');
+      }
     });
   }
 
-  const nextButton = mainContent.querySelector('.story-next-btn');
-  if (nextButton && next) {
-    nextButton.addEventListener('click', () => {
-      router.navigate(`/story/${next.id}`);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 오른쪽 페이지 클릭 시 다음 페이지로 이동 또는 안내
+  const rightPage = mainContent.querySelector('.story-detail-right');
+  if (rightPage) {
+    rightPage.style.cursor = 'pointer';
+    rightPage.addEventListener('click', () => {
+      if (next) {
+        router.navigate(`/story/${next.id}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        alert('마지막 페이지입니다');
+      }
     });
   }
 }

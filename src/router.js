@@ -56,6 +56,11 @@ class Router {
       return;
     }
 
+    // 상세 페이지가 아닐 때 클래스 제거
+    if (!path.startsWith('/story/')) {
+      document.body.classList.remove('story-detail-page-active');
+    }
+
     // 네비게이션 업데이트
     const { renderTopNavigation } = await import('./components/TopNavigation.js');
     renderTopNavigation();

@@ -66,14 +66,7 @@
   padding: 1.5rem;
   text-decoration: none;
   color: inherit;
-  transition: all 0.3s;
   text-align: center;
-}
-
-.year-stat-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-  border-color: #333;
 }
 
 .year-stat-card h2 {
@@ -89,55 +82,145 @@
   margin: 0;
 }
 
-/* 노트 리스트 (Timeline과 동일한 스타일 재사용) */
-.notes-list {
+/* Gallery 스타일 */
+.gallery-grid {
   display: grid;
-  gap: 1.5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 48px;
+  padding-top: 0;
+  height: fit-content;
 }
 
-.note-card {
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
+.gallery-item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: 8px;
-  padding: 1.5rem;
-  transition: all 0.3s;
+  background-color: white;
+  cursor: pointer;
+  overflow: hidden;
+  height: fit-content;
 }
 
-.note-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+.gallery-item-image-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
 }
 
-.note-card-link {
-  text-decoration: none;
-  color: inherit;
+.gallery-item-front,
+.gallery-item-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 180px;
+}
+
+.gallery-item-front {
+  opacity: 1;
+  z-index: 2;
+  border-radius: 8px;
+}
+
+.gallery-item-back {
+  opacity: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 1rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+  color: white;
+  text-align: right;
+  gap: 0.5rem;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.gallery-item-image {
+  position: relative;
+  width: 100%;
+  height: 180px;
+}
+
+.gallery-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
-.note-card-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.note-card-meta {
-  margin-bottom: 1rem;
-}
-
-.note-card-period {
-  font-size: 0.9rem;
-  color: #999;
-  padding: 0.25rem 0.75rem;
+.gallery-item-placeholder {
+  width: 100%;
+  height: 100%;
   background-color: #f5f5f5;
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
-.note-card-preview {
+.gallery-placeholder-icon {
+  width: 40%;
+  max-width: 120px;
+  pointer-events: none;
+}
+
+.gallery-placeholder-icon svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  pointer-events: none;
+}
+
+.gallery-item-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0);
+  pointer-events: none;
+}
+
+.gallery-item-title {
   font-size: 1rem;
-  color: #666;
-  line-height: 1.6;
-  margin: 0;
+  font-weight: 500;
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 0.75rem 0rem;
+  color: #333;
+  line-height: 1.3;
+  text-align: left;
+  background-color: white;
+  flex-shrink: 0;
+}
+
+.gallery-item-title-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.gallery-item-date {
+  font-size: 0.85rem;
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.2;
+  font-weight: 300;
+}
+
+.gallery-item-source {
+  font-size: 0.9rem;
+  line-height: 1.25;
+  font-family: 'Pretendard', "Roboto", sans-serif;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .no-notes {
@@ -147,6 +230,13 @@
 }
 
 /* 반응형 디자인 */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: calc(64px + 2.5rem);
+  }
+}
+
 @media (max-width: 768px) {
   .year-container {
     flex-direction: column;
@@ -162,6 +252,61 @@
 
   .year-stats {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr 1fr;
+    padding-top: 0 !important;
+    gap: 0;
+  }
+  
+  .gallery-item {
+    border-bottom: 1px solid #333;
+    border-radius: 0px !important;
+  }
+
+  .gallery-item:nth-child(odd) {
+    border-right: 1px solid #333;
+  }
+
+  .gallery-item:nth-child(even) {
+    border-right: none;
+  }
+
+  .gallery-item-image img {
+    border-radius: 0px !important;
+  }
+  
+  .gallery-item-image-container .gallery-item-front {
+    opacity: 1;
+    z-index: 2;
+    border-radius: 0px !important;
+  }
+
+  .gallery-item-image-container .gallery-item-back {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+    opacity: 0;
+    z-index: 3;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 0.75rem;
+    color: white;
+    text-align: right;
+    border-radius: 0px !important;
+  }
+
+  .gallery-item-title {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+
+  .gallery-item-date {
+    font-size: 0.85rem;
+    line-height: 1.25;
+    font-weight: 300;
   }
 }
 

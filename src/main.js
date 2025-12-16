@@ -21,7 +21,11 @@ function initApp() {
   app.innerHTML = `
     <div class="app">
       <div id="top-navigation"></div>
-      <main class="app-main" id="main-content"></main>
+      <div class="main-wrapper">
+        <div class="main-side-gradient main-side-left"></div>
+        <main class="app-main" id="main-content"></main>
+        <div class="main-side-gradient main-side-right"></div>
+      </div>
       <div id="footer"></div>
     </div>
   `;

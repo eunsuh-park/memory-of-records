@@ -11,6 +11,7 @@ export const storyPosts = [
     content: "이 프로젝트를 시작하게 된 배경과 목적에 대한 내용입니다. 추후 상세 내용이 추가될 예정입니다.",
     publishDate: "2024-01-01",
     preview: "프로젝트를 시작하게 된 배경과 목적을 설명합니다...",
+    image: "KakaoTalk_20251216_202813467_01.jpg", // 첫 번째 이미지
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ export const storyPosts = [
     content: "과거 노트들을 어떻게 정리하고 관리하는지에 대한 나만의 원칙들을 공유합니다.",
     publishDate: "2024-01-15",
     preview: "노트 정리를 위한 나만의 원칙들을 소개합니다...",
+    image: "KakaoTalk_20251216_202813467_02.jpg", // 두 번째 이미지
   },
   {
     id: 3,

@@ -5,6 +5,11 @@
 import { storyPosts } from '../data/storyData.js';
 import { router } from '../router.js';
 import './Story.css';
+import image1 from '../assets/KakaoTalk_20251216_202813467_01.jpg';
+import image2 from '../assets/KakaoTalk_20251216_202813467_02.jpg';
+import image3 from '../assets/KakaoTalk_20251216_204415732_01.jpg';
+import image4 from '../assets/KakaoTalk_20251216_204415732_02.jpg';
+import image5 from '../assets/KakaoTalk_20251216_204415732_03.jpg';
 
 export function renderStory() {
   const mainContent = document.getElementById('main-content');
@@ -23,12 +28,23 @@ export function renderStory() {
   mainContent.innerHTML = `
     <div class="story-page">
       <main class="story-main">
-        <header class="story-header">
-          <h1>Story</h1>
-        </header>
-
         <div class="gallery-grid">
-          ${storyPosts.map(post => `
+          ${storyPosts.map((post, index) => {
+            // 각 포스트에 순서대로 이미지 할당
+            let imageSrc = null;
+            if (post.id === 1) {
+              imageSrc = image1;
+            } else if (post.id === 2) {
+              imageSrc = image2;
+            } else if (post.id === 3) {
+              imageSrc = image3;
+            } else if (post.id === 4) {
+              imageSrc = image4;
+            } else if (post.id === 5) {
+              imageSrc = image5;
+            }
+            
+            return `
             <div
               class="gallery-item"
               data-story-id="${post.id}"
@@ -36,8 +52,8 @@ export function renderStory() {
               <div class="gallery-item-image-container">
                 <div class="gallery-item-front">
                   <div class="gallery-item-image">
-                    ${post.image ? `
-                      <img src="${post.image}" alt="${post.title}" />
+                    ${imageSrc ? `
+                      <img src="${imageSrc}" alt="${post.title}" />
                       <div class="gallery-item-overlay"></div>
                     ` : `
                       <div class="gallery-item-placeholder">
@@ -58,7 +74,8 @@ export function renderStory() {
               </div>
               <div class="gallery-item-title">${post.title}</div>
             </div>
-          `).join('')}
+          `;
+          }).join('')}
         </div>
       </main>
     </div>
