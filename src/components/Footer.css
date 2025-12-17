@@ -1,12 +1,10 @@
 /* Footer 스타일 */
 
-.footer {
+footer {
   /* 푸터를 페이지 하단에 배치 */
   margin-top: auto;
-  background-color: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
   padding: 2rem 0;
-  height: 100px;
+  height:80px;
 }
 
 .footer-container {
@@ -21,14 +19,7 @@
   align-items: center;
 }
 
-.footer p {
-  margin: 0.5rem 0;
+footer p {
   color: #666;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
-
-.footer-subtitle {
-  font-size: 0.8rem;
-  color: #999;
-}
-

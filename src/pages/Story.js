@@ -2,18 +2,71 @@
  * Story 페이지 (Gallery 형식)
  */
 
-import { storyPosts } from '../data/storyData.js';
 import { router } from '../router.js';
 import './Story.css';
-import image1 from '../assets/KakaoTalk_20251216_202813467_01.jpg';
-import image2 from '../assets/KakaoTalk_20251216_202813467_02.jpg';
-import image3 from '../assets/KakaoTalk_20251216_204415732_01.jpg';
-import image4 from '../assets/KakaoTalk_20251216_204415732_02.jpg';
-import image5 from '../assets/KakaoTalk_20251216_204415732_03.jpg';
+import { fetchNotionPages, convertNotionPageToStoryPost } from '../utils/notion.js';
 
-export function renderStory() {
+export async function renderStory() {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
+
+  // 로딩 상태 표시
+  mainContent.innerHTML = `
+    <div class="story-page">
+      <main class="story-main">
+        <div class="gallery-grid">
+          <div style="text-align: center; padding: 2rem;">로딩 중...</div>
+        </div>
+      </main>
+    </div>
+  `;
+
+  // 노션 데이터 가져오기
+  let notionPosts = [];
+  try {
+    console.log('노션 데이터 가져오기 시작...');
+    const notionPages = await fetchNotionPages();
+    console.log('가져온 노션 페이지:', notionPages);
+    
+    if (notionPages && notionPages.length > 0) {
+      console.log('노션 페이지 변환 시작...');
+      notionPosts = notionPages.map(page => {
+        const post = convertNotionPageToStoryPost(page);
+        console.log('변환된 포스트:', post);
+        return post;
+      });
+      
+      console.log('변환된 노션 포스트 개수:', notionPosts.length);
+      
+      // 노션 페이지에서 이미지 추출 (페이지 내용 가져오기)
+      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../utils/notion.js');
+      for (let i = 0; i < notionPosts.length; i++) {
+        if (!notionPosts[i].image && notionPosts[i].notionId) {
+          try {
+            const blocks = await fetchNotionPageContent(notionPosts[i].notionId);
+            const imageUrl = extractFirstImageFromBlocks(blocks);
+            if (imageUrl) {
+              notionPosts[i].image = imageUrl;
+              console.log(`이미지 추출 성공 (${notionPosts[i].title}):`, imageUrl);
+            }
+          } catch (error) {
+            console.warn(`이미지 추출 실패 (${notionPosts[i].notionId}):`, error);
+          }
+        }
+      }
+    } else {
+      console.warn('노션 페이지가 없습니다.');
+    }
+  } catch (error) {
+    console.error('노션 데이터 로딩 실패:', error);
+    console.error('에러 스택:', error.stack);
+  }
+
+  console.log('최종 노션 포스트:', notionPosts);
+  
+  // 노션 데이터만 사용
+  const posts = notionPosts;
+  console.log('최종 포스트 목록:', posts);
 
   const placeholderIconSvg = `
     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>
@@ -25,35 +78,31 @@ export function renderStory() {
     </svg>
   `;
 
+  // 노션 ID를 사용하거나 기존 ID 사용
   mainContent.innerHTML = `
     <div class="story-page">
       <main class="story-main">
         <div class="gallery-grid">
-          ${storyPosts.map((post, index) => {
-            // 각 포스트에 순서대로 이미지 할당
-            let imageSrc = null;
-            if (post.id === 1) {
-              imageSrc = image1;
-            } else if (post.id === 2) {
-              imageSrc = image2;
-            } else if (post.id === 3) {
-              imageSrc = image3;
-            } else if (post.id === 4) {
-              imageSrc = image4;
-            } else if (post.id === 5) {
-              imageSrc = image5;
-            }
+          ${posts.map((post, index) => {
+            // 노션에서 가져온 이미지 URL 사용, 없으면 플레이스홀더
+            const imageSrc = post.image || null;
             
             return `
             <div
               class="gallery-item"
-              data-story-id="${post.id}"
+              data-story-id="${post.notionId || post.id}"
+              data-story-index="${index}"
             >
               <div class="gallery-item-image-container">
                 <div class="gallery-item-front">
                   <div class="gallery-item-image">
                     ${imageSrc ? `
-                      <img src="${imageSrc}" alt="${post.title}" />
+                      <img 
+                        src="${imageSrc}" 
+                        alt="${post.title}"
+                        loading="lazy"
+                        decoding="async"
+                      />
                       <div class="gallery-item-overlay"></div>
                     ` : `
                       <div class="gallery-item-placeholder">
@@ -69,7 +118,7 @@ export function renderStory() {
                   <div class="gallery-item-title-date">
                     <div class="gallery-item-date">${post.publishDate}</div>
                   </div>
-                  <div class="gallery-item-source">${post.subtitle}</div>
+                  <div class="gallery-item-source">${post.subtitle || ''}</div>
                 </div>
               </div>
               <div class="gallery-item-title">${post.title}</div>

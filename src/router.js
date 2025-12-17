@@ -18,7 +18,7 @@ class Router {
       { path: '/year', handler: () => renderYear(null) },
       { path: '/year/:year', handler: (params) => renderYear(parseInt(params.year)) },
       { path: '/story', handler: renderStory },
-      { path: '/story/:id', handler: (params) => renderStoryDetail(parseInt(params.id)) },
+      { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(parseInt(params.id)) },
     ];
   }
@@ -62,8 +62,8 @@ class Router {
     }
 
     // 네비게이션 업데이트
-    const { renderTopNavigation } = await import('./components/TopNavigation.js');
-    renderTopNavigation();
+    const { renderNavigation } = await import('./components/TopNavigation.js');
+    renderNavigation();
 
     // 경로 매칭
     for (const route of this.routes) {

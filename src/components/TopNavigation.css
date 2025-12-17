@@ -1,6 +1,6 @@
-/* TopNavigation 스타일 */
+/* Navigation 스타일 */
 
-.top-navigation {
+.navigation {
   /* 헤더를 페이지 하단에 고정 */
   position: fixed;
   bottom: 1.5rem;
@@ -9,42 +9,16 @@
   background-color: #FFD966;
   border: none;
   border-radius: 999px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(180, 160, 100, 0.3);
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(167, 121, 71, 0.3);
   transition: transform 0.3s ease, opacity 0.3s ease;
   max-width: 1200px;
   width: calc(100% - 3rem);
 }
 
-/* 상세 페이지에서 네비게이션 숨김 */
-body.story-detail-page-active .top-navigation {
-  transform: translateX(-50%) translateY(calc(100% + 1.5rem));
-  opacity: 0;
-  pointer-events: none;
-}
 
-/* 상세 페이지에서 하단 영역 hover 시 네비게이션 표시 */
-body.story-detail-page-active::after {
-  content: '';
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100px;
-  z-index: 99;
-  pointer-events: none;
-}
 
-body.story-detail-page-active:hover::after {
-  pointer-events: auto;
-}
-
-body.story-detail-page-active:hover .top-navigation,
-body.story-detail-page-active .top-navigation:hover {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-}
+/* 상세 페이지에서 네비게이션은 항상 숨김 상태 유지 */
 
 .nav-container {
   /* 컨테이너 스타일 */
@@ -60,12 +34,15 @@ body.story-detail-page-active .top-navigation:hover {
   color: inherit;
   font-size: 1.5rem;
   font-weight: bold;
+  display: flex;
+  align-items: center;
 }
 
-.logo-text {
-  /* 로고 텍스트 스타일 - 추후 이미지로 대체 가능 */
-  color: #333;
-  font-size: 20px;
+.logo-image {
+  height: auto;
+  max-height: 40px;
+  width: auto;
+  display: block;
 }
 
 .nav-menu {

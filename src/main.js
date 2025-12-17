@@ -4,7 +4,7 @@
  */
 
 import { router } from './router.js';
-import { renderTopNavigation } from './components/TopNavigation.js';
+import { renderNavigation } from './components/TopNavigation.js';
 import { renderFooter } from './components/Footer.js';
 import './index.css';
 import './App.css';
@@ -20,18 +20,16 @@ function initApp() {
   // 앱 구조 생성
   app.innerHTML = `
     <div class="app">
-      <div id="top-navigation"></div>
+      <div id="navigation"></div>
       <div class="main-wrapper">
-        <div class="main-side-gradient main-side-left"></div>
         <main class="app-main" id="main-content"></main>
-        <div class="main-side-gradient main-side-right"></div>
       </div>
       <div id="footer"></div>
     </div>
   `;
 
   // 네비게이션과 푸터 렌더링
-  renderTopNavigation();
+  renderNavigation();
   renderFooter();
 
   // 라우터 초기화

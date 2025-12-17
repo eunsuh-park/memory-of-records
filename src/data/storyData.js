@@ -1,8 +1,36 @@
 /**
  * Story (블로그) 데이터 구조
- * 블로그 스타일의 글들을 저장합니다.
+ * 노션 DB에서 데이터를 가져오며, 폴백으로 사용되는 정적 데이터입니다.
  */
 
+// 노션 데이터 캐시
+let notionPostsCache = null;
+
+/**
+ * 노션 데이터를 가져와서 캐시에 저장
+ */
+export async function loadNotionPosts() {
+  try {
+    const { fetchNotionPages, convertNotionPageToStoryPost } = await import('../utils/notion.js');
+    const notionPages = await fetchNotionPages();
+    if (notionPages && notionPages.length > 0) {
+      notionPostsCache = notionPages.map(page => convertNotionPageToStoryPost(page));
+      return notionPostsCache;
+    }
+  } catch (error) {
+    console.error('노션 데이터 로딩 실패:', error);
+  }
+  return null;
+}
+
+/**
+ * 현재 사용 가능한 포스트 목록 반환 (노션 우선, 없으면 정적 데이터)
+ */
+export function getStoryPosts() {
+  return notionPostsCache || storyPosts;
+}
+
+// 정적 데이터 (폴백용)
 export const storyPosts = [
   {
     id: 1,
@@ -50,28 +78,62 @@ export const storyPosts = [
 
 /**
  * ID로 특정 스토리 포스트를 찾는 함수
- * @param {number} id - 포스트 ID
+ * @param {string|number} id - 포스트 ID (노션 ID 또는 숫자 ID)
  * @returns {Object|null} 포스트 객체 또는 null
  */
 export const getStoryById = (id) => {
-  return storyPosts.find(post => post.id === parseInt(id)) || null;
+  const posts = getStoryPosts();
+  console.log('getStoryById 호출, ID:', id, '타입:', typeof id);
+  console.log('사용 가능한 포스트:', posts.map(p => ({ id: p.id, notionId: p.notionId })));
+  
+  // 노션 ID로 먼저 찾기 (하이픈 포함 UUID)
+  let post = posts.find(post => post.notionId === id);
+  
+  // 없으면 숫자 ID로 찾기
+  if (!post) {
+    const numId = parseInt(id);
+    if (!isNaN(numId)) {
+      post = posts.find(post => post.id === numId || post.id === id);
+    } else {
+      // 문자열 ID로 찾기
+      post = posts.find(post => String(post.id) === String(id));
+    }
+  }
+  
+  console.log('찾은 포스트:', post);
+  return post || null;
 };
 
 /**
  * 이전/다음 스토리 포스트를 찾는 함수
- * @param {number} id - 현재 포스트 ID
+ * @param {string|number} id - 현재 포스트 ID (노션 ID 또는 숫자 ID)
  * @returns {Object} { prev: 이전 포스트 또는 null, next: 다음 포스트 또는 null }
  */
 export const getAdjacentStories = (id) => {
-  const currentIndex = storyPosts.findIndex(post => post.id === parseInt(id));
+  const posts = getStoryPosts();
+  
+  // 노션 ID로 먼저 찾기
+  let currentIndex = posts.findIndex(post => post.notionId === id);
+  
+  // 없으면 숫자 ID로 찾기
+  if (currentIndex === -1) {
+    const numId = parseInt(id);
+    if (!isNaN(numId)) {
+      currentIndex = posts.findIndex(post => post.id === numId || post.id === id);
+    } else {
+      currentIndex = posts.findIndex(post => String(post.id) === String(id));
+    }
+  }
+  
+  console.log('getAdjacentStories, ID:', id, '인덱스:', currentIndex);
   
   if (currentIndex === -1) {
     return { prev: null, next: null };
   }
   
   return {
-    prev: currentIndex > 0 ? storyPosts[currentIndex - 1] : null,
-    next: currentIndex < storyPosts.length - 1 ? storyPosts[currentIndex + 1] : null
+    prev: currentIndex > 0 ? posts[currentIndex - 1] : null,
+    next: currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null
   };
 };
 

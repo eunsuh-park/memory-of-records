@@ -10,7 +10,7 @@ export function renderFooter() {
   if (!container) return;
 
   container.innerHTML = `
-    <footer class="footer">
+    <footer>
       <div class="footer-container">
         <p>© 2024 Memory of Records. All rights reserved.</p>
         <p class="footer-subtitle">과거의 기록을 현재로 가져오기</p>
