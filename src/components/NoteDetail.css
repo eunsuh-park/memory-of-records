@@ -6,6 +6,21 @@
   padding: 2rem;
 }
 
+/* 노트 표지 이미지 */
+.note-cover-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.note-cover-image-detail {
+  max-width: 100%;
+  height: auto;
+  max-height: 500px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  object-fit: contain;
+}
+
 .note-error {
   text-align: center;
   padding: 3rem;

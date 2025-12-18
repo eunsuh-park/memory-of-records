@@ -6,6 +6,7 @@
 import { getNotesByPeriod, periodOptions } from '../data/notesData.js';
 import { renderSideMenu } from '../components/SideMenu.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
+import { getCoverImagePath } from '../utils/coverImage.js';
 import './Timeline.css';
 
 export function renderTimeline(period = 'elementary') {
@@ -47,21 +48,48 @@ export function renderTimeline(period = 'elementary') {
 
         ${periodNotes.length > 0 ? `
           <div class="notes-list">
-            ${periodNotes.map(note => `
+            ${periodNotes.map(note => {
+              const coverImagePath = getCoverImagePath(note);
+              return `
               <article class="note-card">
                 <a href="/note/${note.id}" class="note-card-link" data-link>
-                  <h2 class="note-card-title">${note.title}</h2>
-                  <div class="note-card-meta">
-                    <span class="note-card-year">${note.year}년</span>
-                  </div>
-                  <p class="note-card-preview">
-                    ${note.content.length > 100 
-                      ? note.content.substring(0, 100) + '...' 
-                      : note.content}
-                  </p>
+                  ${coverImagePath ? `
+                    <div class="note-cover-container">
+                      <img 
+                        src="${coverImagePath}" 
+                        alt="${note.title} 표지" 
+                        class="note-cover-image"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                      />
+                      <div class="note-card-fallback" style="display: none;">
+                        <h2 class="note-card-title">${note.title}</h2>
+                        <div class="note-card-meta">
+                          <span class="note-card-year">${note.year}년</span>
+                        </div>
+                        <p class="note-card-preview">
+                          ${note.content.length > 100 
+                            ? note.content.substring(0, 100) + '...' 
+                            : note.content}
+                        </p>
+                      </div>
+                    </div>
+                  ` : `
+                    <div class="note-card-fallback">
+                      <h2 class="note-card-title">${note.title}</h2>
+                      <div class="note-card-meta">
+                        <span class="note-card-year">${note.year}년</span>
+                      </div>
+                      <p class="note-card-preview">
+                        ${note.content.length > 100 
+                          ? note.content.substring(0, 100) + '...' 
+                          : note.content}
+                      </p>
+                    </div>
+                  `}
                 </a>
               </article>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
         ` : `
           <div class="no-notes">

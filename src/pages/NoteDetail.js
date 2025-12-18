@@ -5,6 +5,7 @@
 
 import { getNoteById, getAdjacentNotes } from '../data/notesData.js';
 import { router } from '../router.js';
+import { getCoverImagePath } from '../utils/coverImage.js';
 import './NoteDetailPage.css';
 import '../components/NoteDetail.css';
 
@@ -29,10 +30,21 @@ export function renderNoteDetail(id) {
   }
 
   const { prev, next } = getAdjacentNotes(id);
+  const coverImagePath = getCoverImagePath(note);
 
   mainContent.innerHTML = `
     <div class="note-detail-page">
       <article class="note-detail">
+        ${coverImagePath ? `
+          <div class="note-cover-section">
+            <img 
+              src="${coverImagePath}" 
+              alt="${note.title} 표지" 
+              class="note-cover-image-detail"
+              onerror="this.style.display='none';"
+            />
+          </div>
+        ` : ''}
         <header class="note-header">
           <h1 class="note-title">${note.title}</h1>
           <div class="note-meta">
