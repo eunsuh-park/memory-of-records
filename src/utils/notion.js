@@ -7,6 +7,9 @@
 const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
 const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
 
+// 노션 데이터 캐시
+let notionPostsCache = null;
+
 /**
  * 노션 API 요청 헤더
  */
@@ -16,6 +19,56 @@ function getNotionHeaders() {
     'Notion-Version': '2022-06-28',
     'Content-Type': 'application/json',
   };
+}
+
+/**
+ * 노션 연결 상태를 테스트하는 함수
+ * @returns {Promise<boolean>} 연결 성공 여부
+ */
+export async function testNotionConnection() {
+  const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
+  const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
+  
+  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) {
+    console.warn('⚠️ 노션 연결 실패: API 키 또는 데이터베이스 ID가 설정되지 않았습니다.');
+    console.warn('   .env 파일에 VITE_NOTION_API_KEY와 VITE_NOTION_DATABASE_ID를 설정해주세요.');
+    return false;
+  }
+
+  try {
+    const apiUrl = import.meta.env.DEV 
+      ? `/api/notion/v1/databases/${NOTION_DATABASE_ID}`
+      : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}`;
+    
+    const headers = import.meta.env.DEV 
+      ? {
+          'Content-Type': 'application/json',
+        }
+      : getNotionHeaders();
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: headers,
+    });
+
+    if (response.ok) {
+      console.log('✅ 노션 DB 연결 성공!');
+      const data = await response.json();
+      console.log('📊 데이터베이스 정보:', {
+        title: data.title?.[0]?.plain_text || '제목 없음',
+        id: data.id,
+      });
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error('❌ 노션 연결 실패:', response.status, response.statusText);
+      console.error('   오류 상세:', errorText);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ 노션 연결 오류:', error.message);
+    return false;
+  }
 }
 
 /**
@@ -250,5 +303,91 @@ export function convertNotionBlocksToHTML(blocks, excludeImages = false) {
         return '';
     }
   }).join('\n');
+}
+
+/**
+ * 노션 데이터를 가져와서 캐시에 저장
+ * @returns {Promise<Array|null>} 캐시된 포스트 배열 또는 null
+ */
+export async function loadNotionPosts() {
+  try {
+    const notionPages = await fetchNotionPages();
+    if (notionPages && notionPages.length > 0) {
+      notionPostsCache = notionPages.map(page => convertNotionPageToStoryPost(page));
+      return notionPostsCache;
+    }
+  } catch (error) {
+    console.error('노션 데이터 로딩 실패:', error);
+  }
+  return null;
+}
+
+/**
+ * 현재 사용 가능한 포스트 목록 반환 (노션 데이터만)
+ * @returns {Array} 포스트 배열
+ */
+export function getStoryPosts() {
+  return notionPostsCache || [];
+}
+
+/**
+ * ID로 특정 스토리 포스트를 찾는 함수
+ * @param {string|number} id - 포스트 ID (노션 ID 또는 숫자 ID)
+ * @returns {Object|null} 포스트 객체 또는 null
+ */
+export function getStoryById(id) {
+  const posts = getStoryPosts();
+  console.log('getStoryById 호출, ID:', id, '타입:', typeof id);
+  console.log('사용 가능한 포스트:', posts.map(p => ({ id: p.id, notionId: p.notionId })));
+  
+  // 노션 ID로 먼저 찾기 (하이픈 포함 UUID)
+  let post = posts.find(post => post.notionId === id);
+  
+  // 없으면 숫자 ID로 찾기
+  if (!post) {
+    const numId = parseInt(id);
+    if (!isNaN(numId)) {
+      post = posts.find(post => post.id === numId || post.id === id);
+    } else {
+      // 문자열 ID로 찾기
+      post = posts.find(post => String(post.id) === String(id));
+    }
+  }
+  
+  console.log('찾은 포스트:', post);
+  return post || null;
+}
+
+/**
+ * 이전/다음 스토리 포스트를 찾는 함수
+ * @param {string|number} id - 현재 포스트 ID (노션 ID 또는 숫자 ID)
+ * @returns {Object} { prev: 이전 포스트 또는 null, next: 다음 포스트 또는 null }
+ */
+export function getAdjacentStories(id) {
+  const posts = getStoryPosts();
+  
+  // 노션 ID로 먼저 찾기
+  let currentIndex = posts.findIndex(post => post.notionId === id);
+  
+  // 없으면 숫자 ID로 찾기
+  if (currentIndex === -1) {
+    const numId = parseInt(id);
+    if (!isNaN(numId)) {
+      currentIndex = posts.findIndex(post => post.id === numId || post.id === id);
+    } else {
+      currentIndex = posts.findIndex(post => String(post.id) === String(id));
+    }
+  }
+  
+  console.log('getAdjacentStories, ID:', id, '인덱스:', currentIndex);
+  
+  if (currentIndex === -1) {
+    return { prev: null, next: null };
+  }
+  
+  return {
+    prev: currentIndex > 0 ? posts[currentIndex - 1] : null,
+    next: currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null
+  };
 }
 

@@ -2,10 +2,9 @@
  * StoryDetail 페이지
  */
 
-import { getStoryById, getAdjacentStories, loadNotionPosts } from '../data/storyData.js';
 import { router } from '../router.js';
 import './StoryDetail.css';
-import { fetchNotionPageContent, convertNotionBlocksToHTML } from '../utils/notion.js';
+import { fetchNotionPageContent, convertNotionBlocksToHTML, getStoryById, getAdjacentStories, loadNotionPosts } from '../utils/notion.js';
 import image1 from '../assets/KakaoTalk_20251216_202813467_01.jpg';
 import image2 from '../assets/KakaoTalk_20251216_202813467_02.jpg';
 import image3 from '../assets/KakaoTalk_20251216_204415732_01.jpg';

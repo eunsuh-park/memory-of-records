@@ -6,11 +6,12 @@
 import { router } from './router.js';
 import { renderNavigation } from './components/TopNavigation.js';
 import { renderFooter } from './components/Footer.js';
+import { testNotionConnection } from './utils/notion.js';
 import './index.css';
 import './App.css';
 
 // 앱 초기화
-function initApp() {
+async function initApp() {
   const app = document.getElementById('app');
   if (!app) {
     console.error('App container not found');
@@ -31,6 +32,10 @@ function initApp() {
   // 네비게이션과 푸터 렌더링
   renderNavigation();
   renderFooter();
+
+  // 노션 DB 자동 연결 테스트
+  console.log('🔗 노션 DB 연결 확인 중...');
+  await testNotionConnection();
 
   // 라우터 초기화
   router.init();
