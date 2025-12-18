@@ -51,8 +51,9 @@ export function getCoverImagePath(note) {
     const yearLastTwo = String(year).slice(-2);
     const noteIndexInYear = getNoteIndexInYear(note);
     const noteNumber = noteIndexInYear + 1; // 1부터 시작
-    // Vite에서 assets 폴더의 이미지는 상대 경로로 접근
-    return new URL(`../assets/cover/${folder}/note-cover_${yearLastTwo}_${noteNumber}.png`, import.meta.url).href;
+    // Vite에서 이미지 경로: public 폴더는 /로 시작, src/assets는 import 필요
+    // 일단 상대 경로로 시도하고, 필요하면 public 폴더로 옮겨야 함
+    return `/cover/${folder}/note-cover_${yearLastTwo}_${noteNumber}.png`;
   }
 
   // 2010-2016, 2017-2022, 2023- 기간: note_XX.png 형식
@@ -74,7 +75,7 @@ export function getCoverImagePath(note) {
     return null;
   }
 
-  return new URL(`../assets/cover/${folder}/note_${noteNumber}.png`, import.meta.url).href;
+  return `/cover/${folder}/note_${noteNumber}.png`;
 }
 
 /**
@@ -101,7 +102,7 @@ export function getBackCoverImagePath(note) {
     const yearLastTwo = String(year).slice(-2);
     const noteIndexInYear = getNoteIndexInYear(note);
     const noteNumber = noteIndexInYear + 1;
-    return new URL(`../assets/cover/${folder}/note-back_${yearLastTwo}_${noteNumber}.png`, import.meta.url).href;
+    return `/cover/${folder}/note-back_${yearLastTwo}_${noteNumber}.png`;
   }
 
   const noteIndexInPeriod = getNoteIndexInPeriod(note);
@@ -117,6 +118,6 @@ export function getBackCoverImagePath(note) {
     return null;
   }
 
-  return new URL(`../assets/cover/${folder}/note_${noteNumber}_back.png`, import.meta.url).href;
+  return `/cover/${folder}/note_${noteNumber}_back.png`;
 }
 

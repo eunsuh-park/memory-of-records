@@ -6,7 +6,7 @@
 import { getNotesByPeriod, periodOptions } from '../data/notesData.js';
 import { renderSideMenu } from '../components/SideMenu.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
-import { getCoverImagePath } from '../utils/coverImage.js';
+import { getCoverImagePath, getBackCoverImagePath } from '../utils/coverImage.js';
 import './Timeline.css';
 
 export function renderTimeline(period = 'elementary') {
@@ -50,6 +50,7 @@ export function renderTimeline(period = 'elementary') {
           <div class="notes-list">
             ${periodNotes.map(note => {
               const coverImagePath = getCoverImagePath(note);
+              const backCoverImagePath = getBackCoverImagePath(note);
               return `
               <article class="note-card">
                 <a href="/note/${note.id}" class="note-card-link" data-link>
@@ -58,9 +59,15 @@ export function renderTimeline(period = 'elementary') {
                       <img 
                         src="${coverImagePath}" 
                         alt="${note.title} 표지" 
-                        class="note-cover-image"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                        class="note-cover-image note-cover-front"
                       />
+                      ${backCoverImagePath ? `
+                      <img 
+                        src="${backCoverImagePath}" 
+                        alt="${note.title} 뒷표지" 
+                        class="note-cover-image note-cover-back"
+                      />
+                      ` : ''}
                       <div class="note-card-fallback" style="display: none;">
                         <h2 class="note-card-title">${note.title}</h2>
                         <div class="note-card-meta">
