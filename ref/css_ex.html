@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Grid Effect</title>
+  <link rel="stylesheet" href="css_ex.css">
+</head>
+<body>
+  <!-- 전체 화면 그리드 -->
+  <div class="fullscreen-grid" id="fullscreenGrid">
+    <svg class="fullscreen-grid-lines" id="fullscreenGridLines"></svg>
+  </div>
+  
+  <div class="card">
+    <div class="card__img">
+      <img src="https://blog.codepen.io/wp-content/uploads/2012/06/Button-Fill-Black-Large.png" alt="Card Image">
+      <div class="card__grid-effect" id="gridEffect">
+        <svg class="card__grid-effect-lines" id="gridLines"></svg>
+      </div>
+    </div>
+  </div>
+  <script>
+    // 전체 화면 그리드 설정 (40x40 = 1600개)
+    const fullscreenGrid = document.getElementById('fullscreenGrid');
+    const fullscreenGridLines = document.getElementById('fullscreenGridLines');
+    const fullscreenGridSize = 40;
+    const fullscreenTiles = [];
+    let fullscreenHoveredTiles = new Set();
+
+    // 카드 내부 그리드 설정 (30x30 = 900개)
+    const gridEffect = document.getElementById('gridEffect');
+    const gridLines = document.getElementById('gridLines');
+    const gridSize = 30;
+    const tiles = [];
+    let hoveredTiles = new Set();
+
+    // SVG 크기 및 viewBox 설정 함수
+    function updateSVGSize(element, svg) {
+      const rect = element.getBoundingClientRect();
+      svg.setAttribute('width', rect.width);
+      svg.setAttribute('height', rect.height);
+      svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+    }
+    
+    // 전체 화면 그리드 초기화
+    function initFullscreenGrid() {
+      updateSVGSize(fullscreenGrid, fullscreenGridLines);
+      
+      // 전체 화면 타일 생성
+      for (let row = 0; row < fullscreenGridSize; row++) {
+        for (let col = 0; col < fullscreenGridSize; col++) {
+          const tile = document.createElement('a');
+          tile.href = '#';
+          tile.className = 'grid-tile';
+          tile.dataset.row = row;
+          tile.dataset.col = col;
+          fullscreenTiles.push(tile);
+          fullscreenGrid.appendChild(tile);
+        }
+      }
+    }
+    
+    initFullscreenGrid();
+    updateSVGSize(gridEffect, gridLines);
+    window.addEventListener('resize', () => {
+      updateSVGSize(fullscreenGrid, fullscreenGridLines);
+      updateSVGSize(gridEffect, gridLines);
+    });
+
+    // 카드 내부 타일 생성
+    for (let row = 0; row < gridSize; row++) {
+      for (let col = 0; col < gridSize; col++) {
+        const tile = document.createElement('a');
+        tile.href = '#';
+        tile.className = 'card__grid-effect-tile';
+        tile.dataset.row = row;
+        tile.dataset.col = col;
+        tiles.push(tile);
+        gridEffect.appendChild(tile);
+      }
+    }
+
+    // 타일 위치 계산 함수 (범용)
+    function getTilePosition(tile, container) {
+      const rect = container.getBoundingClientRect();
+      const tileRect = tile.getBoundingClientRect();
+      return {
+        x: tileRect.left - rect.left + tileRect.width / 2,
+        y: tileRect.top - rect.top + tileRect.height / 2,
+        row: parseInt(tile.dataset.row),
+        col: parseInt(tile.dataset.col)
+      };
+    }
+
+    // 인접한 hover된 타일 찾기 (범용)
+    function findAdjacentHoveredTiles(currentTile, tilesArray, hoveredSet, size) {
+      const currentRow = parseInt(currentTile.dataset.row);
+      const currentCol = parseInt(currentTile.dataset.col);
+      const adjacent = [];
+
+      // 상하좌우 및 대각선 인접 타일 확인
+      const directions = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],           [0, 1],
+        [1, -1],  [1, 0],  [1, 1]
+      ];
+
+      directions.forEach(([dr, dc]) => {
+        const newRow = currentRow + dr;
+        const newCol = currentCol + dc;
+        if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
+          const index = newRow * size + newCol;
+          const adjacentTile = tilesArray[index];
+          if (adjacentTile && hoveredSet.has(adjacentTile)) {
+            adjacent.push(adjacentTile);
+          }
+        }
+      });
+
+      return adjacent;
+    }
+
+    // 선 그리기 (범용)
+    function drawLines(tilesArray, hoveredSet, container, svg, size, lineClass) {
+      // 기존 선 제거
+      svg.innerHTML = '';
+
+      if (hoveredSet.size < 2) return;
+
+      const positions = Array.from(hoveredSet).map(tile => ({
+        tile,
+        pos: getTilePosition(tile, container)
+      }));
+
+      // 각 hover된 타일과 인접한 hover된 타일들 사이에 선 그리기
+      const drawnLines = new Set(); // 중복 선 방지
+      positions.forEach(({ tile, pos }) => {
+        const adjacent = findAdjacentHoveredTiles(tile, tilesArray, hoveredSet, size);
+        adjacent.forEach(adjTile => {
+          // 중복 선 방지를 위한 키 생성
+          const tileId = tile.dataset.row + ',' + tile.dataset.col;
+          const adjId = adjTile.dataset.row + ',' + adjTile.dataset.col;
+          const lineKey = tileId < adjId ? tileId + '-' + adjId : adjId + '-' + tileId;
+          
+          if (!drawnLines.has(lineKey)) {
+            drawnLines.add(lineKey);
+            const adjPos = getTilePosition(adjTile, container);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', pos.x);
+            line.setAttribute('y1', pos.y);
+            line.setAttribute('x2', adjPos.x);
+            line.setAttribute('y2', adjPos.y);
+            line.setAttribute('class', lineClass);
+            svg.appendChild(line);
+          }
+        });
+      });
+    }
+
+    // 전체 화면 타일 이벤트 리스너
+    fullscreenTiles.forEach(tile => {
+      tile.addEventListener('mouseenter', () => {
+        tile.classList.add('hovered');
+        fullscreenHoveredTiles.add(tile);
+        requestAnimationFrame(() => {
+          drawLines(fullscreenTiles, fullscreenHoveredTiles, fullscreenGrid, fullscreenGridLines, fullscreenGridSize, 'fullscreen-grid-line');
+        });
+      });
+
+      tile.addEventListener('mouseleave', () => {
+        tile.classList.remove('hovered');
+        fullscreenHoveredTiles.delete(tile);
+        requestAnimationFrame(() => {
+          drawLines(fullscreenTiles, fullscreenHoveredTiles, fullscreenGrid, fullscreenGridLines, fullscreenGridSize, 'fullscreen-grid-line');
+        });
+      });
+    });
+
+    // 카드 내부 타일 이벤트 리스너
+    tiles.forEach(tile => {
+      tile.addEventListener('mouseenter', () => {
+        tile.classList.add('hovered');
+        hoveredTiles.add(tile);
+        requestAnimationFrame(() => {
+          drawLines(tiles, hoveredTiles, gridEffect, gridLines, gridSize, 'card__grid-effect-line');
+        });
+      });
+
+      tile.addEventListener('mouseleave', () => {
+        tile.classList.remove('hovered');
+        hoveredTiles.delete(tile);
+        requestAnimationFrame(() => {
+          drawLines(tiles, hoveredTiles, gridEffect, gridLines, gridSize, 'card__grid-effect-line');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

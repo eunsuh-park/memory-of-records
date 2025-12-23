@@ -1,36 +1,80 @@
 /* Timeline 페이지 스타일 */
 
+/* Timeline 페이지 전용 스타일 오버라이드 */
+.main-wrapper.timeline-active,
+#main-content.timeline-active,
+.app-main.timeline-active {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+}
+
+/* 배경색 전환 애니메이션 */
+body.timeline-active {
+  background-color: #f8f5f0;
+  transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.timeline-active.period-elementary {
+  background-color: #fff9e6;
+}
+
+body.timeline-active.period-middle-high {
+  background-color: #e8f4f8;
+}
+
+body.timeline-active.period-university {
+  background-color: #f0e8f5;
+}
+
+body.timeline-active.period-after-graduation {
+  background-color: #f5f0e8;
+}
+
 .timeline-page {
-  min-height: calc(100vh - 200px);
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: hidden;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  box-sizing: border-box;
+}
+
+.timeline-page::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .timeline-container {
   display: flex;
-  max-width: 1400px;
-  margin: 0 auto;
+  height: 100%;
+  max-height: 100%;
+  width: fit-content;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .timeline-main {
-  flex: 1;
-  padding: 2rem;
+  display: flex;
+  height: 100%;
+  width: fit-content;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.timeline-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #e0e0e0;
-}
-
-.timeline-header h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.timeline-years {
-  font-size: 1.2rem;
-  color: #666;
+.timeline-period-section {
+  height: 100vh; /* 섹션 높이를 뷰포트 높이로 설정 */
+  width: fit-content; /* 섹션 너비를 콘텐츠에 맞게 설정 */
+  min-width: 100vw; /* 최소 너비는 뷰포트 너비 */
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  box-sizing: border-box;
 }
 
 /* 노트 리스트 */
@@ -38,7 +82,33 @@
   display: flex;
   flex-direction: row;
   gap: 1.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  height: 100%;
+  align-items: center;
+  width: fit-content;
+  padding: 0 2rem;
+  box-sizing: border-box;
+  /* 스크롤바 스타일링 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.notes-list::-webkit-scrollbar {
+  height: 8px;
+}
+
+.notes-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notes-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.notes-list::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .note-card {
@@ -47,7 +117,12 @@
   border-radius: 8px;
   padding: 0;
   transition: all 0.3s;
-  overflow: hidden;
+  overflow: visible;
+  flex-shrink: 0;
+  height: 60vh; /* 노트 높이를 뷰포트 높이의 60%로 고정 */
+  width: auto; /* 너비는 이미지 비율에 맞춰 자동 조정 */
+  display: flex;
+  align-items: flex-end; /* 컨테이너 내에서 하단 정렬 */
 }
 
 .note-card:hover {
@@ -57,7 +132,8 @@
 .note-card-link {
   text-decoration: none;
   color: inherit;
-  display: block;
+  display: flex;
+  align-items: flex-end; /* 하단 정렬 */
   width: 100%;
   height: 100%;
 }
@@ -65,27 +141,28 @@
 /* 노트 표지 컨테이너 */
 .note-cover-container {
   position: relative;
-  width: 100%;
-  height: 240px;
+  width: fit-content; /* 이미지 너비에 맞춰 자동 조정 */
+  height: 100%;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   background-color: #f5f5f5;
+  display: flex;
+  align-items: flex-end; /* 이미지를 하단 정렬 */
+  justify-content: center;
 }
 
 .note-cover-image {
-  width: 100%;
-  height: 240px;
+  width: auto; /* 너비는 이미지 비율에 맞춰 자동 조정 */
+  height: 100%; /* 높이는 컨테이너 높이에 맞춤 (통일된 높이: 60vh) */
   display: block;
-  object-fit: cover;
-  object-position: center;
+  object-fit: contain; /* 이미지 비율 유지 */
+  object-position: bottom; /* 하단 정렬 */
   transition: opacity 0.3s ease;
 }
 
 .note-cover-front {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  position: relative; /* 컨테이너 크기 결정을 위해 relative로 변경 */
+  width: auto;
   height: 100%;
   opacity: 1;
   z-index: 2;
@@ -93,12 +170,13 @@
 
 .note-cover-back {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
+  width: auto;
   height: 100%;
   opacity: 0;
   z-index: 1;
+  pointer-events: none; /* hover 시에도 앞 이미지를 클릭할 수 있도록 */
 }
 
 .note-card:hover .note-cover-front {
@@ -155,12 +233,15 @@
     padding: 1rem;
   }
 
-  .timeline-header h1 {
-    font-size: 2rem;
+  .notes-list {
+    flex-direction: row;
+    overflow-x: scroll;
   }
 
-  .notes-list {
-    flex-direction: column;
+  .note-card {
+    width: 100%;
+    flex: 1 1 100%;
+    min-width: auto;
   }
 
   .note-cover-container {

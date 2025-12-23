@@ -4,16 +4,16 @@
  */
 
 import { periodOptions } from '../data/notesData.js';
+import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
 import '../components/SideMenu.css';
 
-export function renderSideMenu(selectedPeriod, onPeriodChange) {
+export function renderSideMenu(selectedPeriod, onPeriodChange, totalNotesCount, notesCountByPeriod) {
   const container = document.getElementById('side-menu');
   if (!container) return;
 
   container.innerHTML = `
     <aside class="side-menu">
       <nav class="side-nav">
-        <h2 class="side-menu-title">시기별 노트</h2>
         <ul class="period-list">
           ${periodOptions.map(period => `
             <li class="period-item">
@@ -31,5 +31,22 @@ export function renderSideMenu(selectedPeriod, onPeriodChange) {
       </nav>
     </aside>
   `;
+
+  // 가장 긴 메뉴 항목의 너비에 맞춰 모든 항목의 너비 통일
+  setTimeout(() => {
+    const links = container.querySelectorAll('.period-link');
+    if (links.length > 0) {
+      let maxWidth = 0;
+      links.forEach(link => {
+        const width = link.getBoundingClientRect().width;
+        if (width > maxWidth) {
+          maxWidth = width;
+        }
+      });
+      links.forEach(link => {
+        link.style.width = `${maxWidth}px`;
+      });
+    }
+  }, 0);
 }
 

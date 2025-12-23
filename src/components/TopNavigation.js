@@ -37,15 +37,6 @@ export function renderNavigation() {
               Story
             </a>
           </li>
-          <li>
-            <a 
-              href="/year" 
-              class="${currentPath.startsWith('/year') ? 'active' : ''}"
-              data-link
-            >
-              Year
-            </a>
-          </li>
         </ul>
       </div>
     </nav>

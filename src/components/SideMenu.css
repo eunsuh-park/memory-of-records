@@ -1,32 +1,35 @@
 /* SideMenu 스타일 */
 
 .side-menu {
-  /* 사이드 메뉴를 왼쪽에 고정 */
-  width: 250px;
-  min-height: 100%;
-  background-color: #f9f9f9;
-  border-right: 1px solid #e0e0e0;
-  padding: 2rem 0;
+  /* 사이드 메뉴를 상단에 고정 및 가운데 정렬 */
+  position: fixed;
+  top: 48px; /* 상단에서 48px 여백 */
+  left: 50%;
+  transform: translateX(-50%); /* 가로만 중앙 정렬 */
+  background-color: #fff;
+  border: none;
+  border-radius: 999px;
+  z-index: 1001;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  width: auto;
 }
 
 .side-nav {
-  position: sticky;
-  top: 80px; /* TopNavigation 높이만큼 여유 */
-}
-
-.side-menu-title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin: 0 1.5rem 1.5rem 1.5rem;
-  color: #333;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #333;
+  position: relative;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .period-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .period-item {
@@ -35,61 +38,113 @@
 
 .period-link {
   /* 시기 링크 스타일 */
-  display: block;
-  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
   text-decoration: none;
-  color: #666;
-  transition: all 0.3s;
-  border-left: 3px solid transparent;
+  color: #333;
+  background-color: transparent;
+  font-weight: 400;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease-in-out, width 0.3s ease, font-weight 0.3s ease;
+  border-radius: 999px;
+  line-height: 100%;
+  text-align: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: visible;
 }
 
-.period-link:hover {
-  /* 호버 시 배경색 변경 */
-  background-color: #f0f0f0;
+.period-link:hover:not(.active) {
+  /* 호버 시 배경색 변경 (active가 아닐 때만) */
   color: #333;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .period-link.active {
   /* 활성화된 시기 스타일 */
-  background-color: #fff;
   color: #333;
-  border-left-color: #333;
+  background-color: rgba(0, 0, 0, 0.1);
   font-weight: 600;
+}
+
+.period-link.active:hover {
+  /* active 상태에서 호버 시에도 동일한 스타일 유지 (애니메이션을 위해 명시) */
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .period-label {
   /* 시기 라벨 (예: "Elementary School") */
   display: block;
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 100%;
+  text-align: center;
+  transition: font-weight 0.3s ease;
+}
+
+.period-link.active .period-label {
+  font-weight: 600;
 }
 
 .period-years {
   /* 시기 연도 (예: "2005-2010") */
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #666;
+  line-height: 100%;
+  text-align: center;
+  margin-top: 0;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.3s ease-in-out, font-weight 0.3s ease;
   display: block;
-  font-size: 0.85rem;
-  color: #999;
 }
 
 .period-link.active .period-years {
-  color: #666;
+  max-height: 2rem;
+  opacity: 1;
+  margin-top: 0.4rem;
+  font-weight: 500;
 }
 
-/* 반응형 디자인 - 모바일에서는 상단으로 이동 */
+
+/* 반응형 디자인 - 모바일 */
 @media (max-width: 768px) {
   .side-menu {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e0e0e0;
+    max-width: calc(100% - 3rem);
+    width: calc(100% - 3rem);
+    top: 48px; /* 상단에서 48px 여백 */
+    left: 50%;
+    transform: translateX(-50%); /* 가로만 중앙 정렬 */
+    padding: 0.75rem 1rem;
   }
 
   .side-nav {
-    position: relative;
-    top: 0;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .period-list {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
   }
 
   .period-link {
-    padding: 0.75rem 1rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    width: auto !important; /* 모바일에서는 자동 너비 */
+  }
+
+  .period-label {
+    font-size: 0.8rem;
+  }
+
+  .period-years {
+    font-size: 0.7rem;
   }
 }
 

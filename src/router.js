@@ -4,7 +4,6 @@
 
 import { renderHome } from './pages/Home.js';
 import { renderTimeline } from './pages/Timeline.js';
-import { renderYear } from './pages/Year.js';
 import { renderStory } from './pages/Story.js';
 import { renderStoryDetail } from './pages/StoryDetail.js';
 import { renderNoteDetail } from './pages/NoteDetail.js';
@@ -15,8 +14,6 @@ class Router {
       { path: '/', handler: renderHome },
       { path: '/timeline', handler: () => renderTimeline(null) },
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
-      { path: '/year', handler: () => renderYear(null) },
-      { path: '/year/:year', handler: (params) => renderYear(parseInt(params.year)) },
       { path: '/story', handler: renderStory },
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(parseInt(params.id)) },
@@ -43,6 +40,10 @@ class Router {
   }
 
   navigate(path) {
+    // 같은 경로로 이동하는 경우 아무것도 하지 않음
+    if (window.location.pathname === path) {
+      return;
+    }
     window.history.pushState({}, '', path);
     this.handleRoute();
   }
@@ -59,6 +60,14 @@ class Router {
     // 상세 페이지가 아닐 때 클래스 제거
     if (!path.startsWith('/story/')) {
       document.body.classList.remove('story-detail-page-active');
+    }
+
+    // Timeline 페이지가 아닐 때 사이드바 제거
+    if (!path.startsWith('/timeline')) {
+      const sideMenu = document.getElementById('side-menu');
+      if (sideMenu) {
+        sideMenu.remove();
+      }
     }
 
     // 네비게이션 업데이트

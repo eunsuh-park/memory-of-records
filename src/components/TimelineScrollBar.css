@@ -1,0 +1,78 @@
+/* TimelineScrollBar 스타일 */
+
+.timeline-scrollbar {
+  position: fixed;
+  bottom: calc(1.5rem + 90px); /* 네비게이션 위에 배치 (네비게이션 높이 + 여유 공간) */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  width: 80%;
+  max-width: 800px;
+  padding: 0 2rem;
+  box-sizing: border-box;
+}
+
+.scrollbar-track {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  cursor: pointer;
+  padding: 14px 0;
+  touch-action: none;
+}
+
+.scrollbar-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+
+.scrollbar-mark {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  transition: opacity 0.2s ease;
+}
+
+.scrollbar-mark:last-child {
+  border-right: none;
+}
+
+.scrollbar-indicator {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  width: 16px;
+  height: 16px;
+  background-color: #333;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 0.1s ease;
+  z-index: 2;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.scrollbar-indicator:active {
+  cursor: grabbing;
+  transition: none;
+}
+
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+  .timeline-scrollbar {
+    width: calc(100% - 3rem);
+    max-width: none;
+    bottom: calc(1.5rem + 100px);
+    padding: 0 1rem;
+  }
+}
+
