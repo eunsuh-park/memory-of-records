@@ -29,8 +29,14 @@ class Router {
       return pathname;
     }
     // base 경로가 있으면 제거
-    if (pathname.startsWith(BASE_URL)) {
-      return pathname.slice(BASE_URL.length - 1) || '/';
+    // BASE_URL은 항상 '/'로 끝나므로, 마지막 '/'를 제거한 길이만큼 슬라이스
+    const basePathWithoutTrailingSlash = BASE_URL.endsWith('/') 
+      ? BASE_URL.slice(0, -1) 
+      : BASE_URL;
+    
+    if (pathname.startsWith(basePathWithoutTrailingSlash)) {
+      const actualPath = pathname.slice(basePathWithoutTrailingSlash.length) || '/';
+      return actualPath;
     }
     return pathname;
   }
@@ -147,11 +153,12 @@ class Router {
   render404() {
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
+      const homePath = BASE_URL === '/' ? '/' : BASE_URL.slice(0, -1) + '/';
       mainContent.innerHTML = `
         <div style="text-align: center; padding: 4rem;">
           <h1>404 - 페이지를 찾을 수 없습니다</h1>
           <p>요청하신 페이지가 존재하지 않습니다.</p>
-          <a href="/" data-link>홈으로 돌아가기</a>
+          <a href="${homePath}" data-link>홈으로 돌아가기</a>
         </div>
       `;
     }

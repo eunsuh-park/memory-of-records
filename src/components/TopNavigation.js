@@ -14,8 +14,15 @@ function getActualPath(pathname) {
   if (BASE_URL === '/') {
     return pathname;
   }
-  if (pathname.startsWith(BASE_URL)) {
-    return pathname.slice(BASE_URL.length - 1) || '/';
+  // base 경로가 있으면 제거
+  // BASE_URL은 항상 '/'로 끝나므로, 마지막 '/'를 제거한 길이만큼 슬라이스
+  const basePathWithoutTrailingSlash = BASE_URL.endsWith('/') 
+    ? BASE_URL.slice(0, -1) 
+    : BASE_URL;
+  
+  if (pathname.startsWith(basePathWithoutTrailingSlash)) {
+    const actualPath = pathname.slice(basePathWithoutTrailingSlash.length) || '/';
+    return actualPath;
   }
   return pathname;
 }

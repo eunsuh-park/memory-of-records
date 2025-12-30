@@ -10,6 +10,9 @@ import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
 import './Timeline.css';
 
+// base 경로 가져오기
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
 // 스크롤 위치 저장을 위한 전역 변수
 let savedScrollPosition = null;
 let currentPeriod = null; // 현재 선택된 period 추적
@@ -519,7 +522,9 @@ function updateActiveMenu(activePeriodId) {
   });
 
   // URL 업데이트 (히스토리 변경 없이)
-  const newUrl = `/timeline/${activePeriodId}`;
+  // base 경로를 포함한 전체 경로 생성
+  const path = `/timeline/${activePeriodId}`;
+  const newUrl = BASE_URL === '/' ? path : BASE_URL.slice(0, -1) + path;
   if (window.location.pathname !== newUrl) {
     window.history.replaceState({}, '', newUrl);
   }
