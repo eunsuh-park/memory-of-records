@@ -6,6 +6,8 @@
 // 환경 변수에서 노션 설정 가져오기
 const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
 const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
+// 프록시 API URL (프로덕션에서 CORS 문제 해결을 위해 사용)
+const NOTION_PROXY_URL = import.meta.env.VITE_NOTION_PROXY_URL || '';
 
 // 노션 데이터 캐시
 let notionPostsCache = null;
@@ -36,11 +38,13 @@ export async function testNotionConnection() {
   }
 
   try {
-    const apiUrl = import.meta.env.DEV 
-      ? `/api/notion/v1/databases/${NOTION_DATABASE_ID}`
+    // 개발 환경 또는 프록시 URL이 설정된 경우 프록시 사용
+    const useProxy = import.meta.env.DEV || NOTION_PROXY_URL;
+    const apiUrl = useProxy
+      ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}`;
     
-    const headers = import.meta.env.DEV 
+    const headers = useProxy
       ? {
           'Content-Type': 'application/json',
         }
@@ -88,12 +92,13 @@ export async function fetchNotionPages() {
   }
 
   try {
-    // 개발 환경에서는 프록시를 통해 호출, 프로덕션에서는 직접 호출
-    const apiUrl = import.meta.env.DEV 
-      ? `/api/notion/v1/databases/${NOTION_DATABASE_ID}/query`
+    // 개발 환경 또는 프록시 URL이 설정된 경우 프록시 사용
+    const useProxy = import.meta.env.DEV || NOTION_PROXY_URL;
+    const apiUrl = useProxy
+      ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}/query`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`;
     
-    const headers = import.meta.env.DEV 
+    const headers = useProxy
       ? {
           'Content-Type': 'application/json',
         }
@@ -143,12 +148,13 @@ export async function fetchNotionPageContent(pageId) {
   }
 
   try {
-    // 개발 환경에서는 프록시를 통해 호출, 프로덕션에서는 직접 호출
-    const apiUrl = import.meta.env.DEV
-      ? `/api/notion/v1/blocks/${pageId}/children`
+    // 개발 환경 또는 프록시 URL이 설정된 경우 프록시 사용
+    const useProxy = import.meta.env.DEV || NOTION_PROXY_URL;
+    const apiUrl = useProxy
+      ? (NOTION_PROXY_URL || '/api/notion') + `/v1/blocks/${pageId}/children`
       : `https://api.notion.com/v1/blocks/${pageId}/children`;
     
-    const headers = import.meta.env.DEV
+    const headers = useProxy
       ? {}
       : getNotionHeaders();
     
