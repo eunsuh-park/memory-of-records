@@ -44,6 +44,7 @@ jobs:
           VITE_BASE_PATH: ${{ steps.set-base.outputs.base }}
           VITE_NOTION_API_KEY: ${{ secrets.VITE_NOTION_API_KEY }}
           VITE_NOTION_DATABASE_ID: ${{ secrets.VITE_NOTION_DATABASE_ID }}
+          VITE_NOTION_PROXY_URL: ${{ secrets.VITE_NOTION_PROXY_URL }}
         run: npm run build
       
       - name: Create 404.html for SPA routing
