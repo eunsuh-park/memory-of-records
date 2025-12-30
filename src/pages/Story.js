@@ -38,43 +38,54 @@ export async function renderStory() {
 
   // 노션 데이터 가져오기
   let notionPosts = [];
-  try {
-    console.log('노션 데이터 가져오기 시작...');
-    const notionPages = await fetchNotionPages();
-    console.log('가져온 노션 페이지:', notionPages);
-    
-    if (notionPages && notionPages.length > 0) {
-      console.log('노션 페이지 변환 시작...');
-      notionPosts = notionPages.map(page => {
-        const post = convertNotionPageToStoryPost(page);
-        console.log('변환된 포스트:', post);
-        return post;
-      });
+  let hasNotionConfig = false;
+  
+  // 환경 변수 확인
+  const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
+  const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
+  hasNotionConfig = !!(NOTION_API_KEY && NOTION_DATABASE_ID);
+  
+  if (hasNotionConfig) {
+    try {
+      console.log('노션 데이터 가져오기 시작...');
+      const notionPages = await fetchNotionPages();
+      console.log('가져온 노션 페이지:', notionPages);
       
-      console.log('변환된 노션 포스트 개수:', notionPosts.length);
-      
-      // 노션 페이지에서 이미지 추출 (페이지 내용 가져오기)
-      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../utils/notion.js');
-      for (let i = 0; i < notionPosts.length; i++) {
-        if (!notionPosts[i].image && notionPosts[i].notionId) {
-          try {
-            const blocks = await fetchNotionPageContent(notionPosts[i].notionId);
-            const imageUrl = extractFirstImageFromBlocks(blocks);
-            if (imageUrl) {
-              notionPosts[i].image = imageUrl;
-              console.log(`이미지 추출 성공 (${notionPosts[i].title}):`, imageUrl);
+      if (notionPages && notionPages.length > 0) {
+        console.log('노션 페이지 변환 시작...');
+        notionPosts = notionPages.map(page => {
+          const post = convertNotionPageToStoryPost(page);
+          console.log('변환된 포스트:', post);
+          return post;
+        });
+        
+        console.log('변환된 노션 포스트 개수:', notionPosts.length);
+        
+        // 노션 페이지에서 이미지 추출 (페이지 내용 가져오기)
+        const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../utils/notion.js');
+        for (let i = 0; i < notionPosts.length; i++) {
+          if (!notionPosts[i].image && notionPosts[i].notionId) {
+            try {
+              const blocks = await fetchNotionPageContent(notionPosts[i].notionId);
+              const imageUrl = extractFirstImageFromBlocks(blocks);
+              if (imageUrl) {
+                notionPosts[i].image = imageUrl;
+                console.log(`이미지 추출 성공 (${notionPosts[i].title}):`, imageUrl);
+              }
+            } catch (error) {
+              console.warn(`이미지 추출 실패 (${notionPosts[i].notionId}):`, error);
             }
-          } catch (error) {
-            console.warn(`이미지 추출 실패 (${notionPosts[i].notionId}):`, error);
           }
         }
+      } else {
+        console.warn('노션 페이지가 없습니다.');
       }
-    } else {
-      console.warn('노션 페이지가 없습니다.');
+    } catch (error) {
+      console.error('노션 데이터 로딩 실패:', error);
+      console.error('에러 스택:', error.stack);
     }
-  } catch (error) {
-    console.error('노션 데이터 로딩 실패:', error);
-    console.error('에러 스택:', error.stack);
+  } else {
+    console.warn('Notion API 설정이 없습니다. Story 페이지를 표시할 수 없습니다.');
   }
 
   console.log('최종 노션 포스트:', notionPosts);
@@ -82,6 +93,46 @@ export async function renderStory() {
   // 노션 데이터만 사용
   const posts = notionPosts;
   console.log('최종 포스트 목록:', posts);
+  
+  // 환경 변수가 없거나 포스트가 없을 때 안내 메시지 표시
+  if (!hasNotionConfig || posts.length === 0) {
+    const emptyMessage = !hasNotionConfig
+      ? `
+        <div class="story-empty-message">
+          <h2>Story 페이지를 사용하려면 Notion API 설정이 필요합니다</h2>
+          <p>GitHub Pages에서 Story 페이지를 사용하려면 환경 변수를 설정해야 합니다.</p>
+          <div class="story-empty-instructions">
+            <h3>설정 방법:</h3>
+            <ol>
+              <li>GitHub 저장소의 <strong>Settings</strong> → <strong>Secrets and variables</strong> → <strong>Actions</strong>로 이동</li>
+              <li>다음 환경 변수를 추가하세요:
+                <ul>
+                  <li><code>VITE_NOTION_API_KEY</code>: Notion API 키</li>
+                  <li><code>VITE_NOTION_DATABASE_ID</code>: Notion 데이터베이스 ID</li>
+                </ul>
+              </li>
+              <li>변경사항을 커밋하고 푸시하면 자동으로 재배포됩니다</li>
+            </ol>
+            <p class="story-empty-note">자세한 설정 방법은 <code>NOTION_SETUP_GUIDE.md</code> 파일을 참고하세요.</p>
+          </div>
+        </div>
+      `
+      : `
+        <div class="story-empty-message">
+          <h2>아직 Story가 없습니다</h2>
+          <p>Notion 데이터베이스에 Story를 추가하면 여기에 표시됩니다.</p>
+        </div>
+      `;
+    
+    mainContent.innerHTML = `
+      <div class="story-page">
+        <main class="story-main">
+          ${emptyMessage}
+        </main>
+      </div>
+    `;
+    return;
+  }
 
   const placeholderIconSvg = `
     <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>

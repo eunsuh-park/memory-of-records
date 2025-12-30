@@ -225,6 +225,77 @@
   }
 }
 
+/* 빈 상태 메시지 스타일 */
+.story-empty-message {
+  text-align: center;
+  padding: 4rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.story-empty-message h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.story-empty-message > p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.story-empty-instructions {
+  text-align: left;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.story-empty-instructions h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.story-empty-instructions ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.story-empty-instructions li {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.story-empty-instructions ul {
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.story-empty-instructions code {
+  background-color: #f0f0f0;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #d63384;
+}
+
+.story-empty-note {
+  font-size: 0.9rem;
+  color: #888;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1024px) and (min-width: 769px) {
   .gallery-grid {

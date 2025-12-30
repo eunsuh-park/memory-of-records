@@ -67,7 +67,13 @@ https://www.notion.so/workspace/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ## 3. 환경 변수 설정
 
-### 3-1. .env 파일 생성
+환경 변수 설정은 **로컬 개발 환경**과 **GitHub Pages 배포 환경**에서 각각 설정해야 합니다.
+
+---
+
+### 3-1. 로컬 개발 환경 설정 (.env 파일)
+
+#### 3-1-1. .env 파일 생성
 프로젝트 루트 디렉토리에 `.env` 파일을 생성합니다.
 
 **Windows:**
@@ -83,7 +89,7 @@ cp .env.example .env
 
 또는 직접 `.env` 파일을 생성할 수 있습니다.
 
-### 3-2. .env 파일에 값 입력
+#### 3-1-2. .env 파일에 값 입력
 `.env` 파일을 열고 다음 형식으로 입력합니다:
 
 ```env
@@ -97,11 +103,91 @@ VITE_NOTION_API_KEY=secret_abc123def456ghi789jkl012mno345pqr678stu901vwx234
 VITE_NOTION_DATABASE_ID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 ```
 
-### 3-3. 주의사항
+#### 3-1-3. 로컬 환경 주의사항
 - ✅ `.env` 파일은 **절대 Git에 커밋하지 마세요!**
 - ✅ `.gitignore`에 `.env`가 포함되어 있는지 확인하세요
 - ✅ 공백이나 따옴표 없이 값만 입력하세요
 - ✅ 개발 서버를 재시작해야 환경 변수가 적용됩니다
+
+---
+
+### 3-2. GitHub Pages 배포 환경 설정 (GitHub Secrets)
+
+GitHub Pages에 배포할 때는 GitHub Secrets를 사용하여 환경 변수를 설정해야 합니다.
+
+#### 3-2-1. GitHub 저장소 페이지 접속
+1. 웹 브라우저에서 GitHub에 로그인
+2. 배포할 저장소 페이지로 이동 (예: `https://github.com/사용자명/memory-of-records`)
+
+#### 3-2-2. Settings 페이지로 이동
+1. 저장소 페이지 상단의 탭 메뉴에서 **"Settings"** 클릭
+   - ⚠️ Settings 탭이 보이지 않으면 저장소에 대한 관리자 권한이 있는지 확인하세요
+
+#### 3-2-3. Secrets and variables 메뉴 찾기
+1. Settings 페이지 왼쪽 사이드바에서 **"Secrets and variables"** 섹션 찾기
+2. **"Actions"** 클릭
+   - 경로: `Settings` → `Secrets and variables` → `Actions`
+
+#### 3-2-4. 첫 번째 Secret 추가 (VITE_NOTION_API_KEY)
+1. **"New repository secret"** 버튼 클릭
+   - 페이지 오른쪽 상단에 위치
+2. **"Name"** 필드에 다음을 입력:
+   ```
+   VITE_NOTION_API_KEY
+   ```
+   - ⚠️ 정확히 이 이름으로 입력해야 합니다 (대소문자 구분)
+3. **"Secret"** 필드에 Notion API 키 붙여넣기:
+   ```
+   secret_여기에_복사한_API_키_붙여넣기
+   ```
+   - 예시: `secret_abc123def456ghi789jkl012mno345pqr678stu901vwx234`
+4. **"Add secret"** 버튼 클릭
+   - ✅ "Secret VITE_NOTION_API_KEY created" 메시지가 표시되면 성공
+
+#### 3-2-5. 두 번째 Secret 추가 (VITE_NOTION_DATABASE_ID)
+1. 다시 **"New repository secret"** 버튼 클릭
+2. **"Name"** 필드에 다음을 입력:
+   ```
+   VITE_NOTION_DATABASE_ID
+   ```
+3. **"Secret"** 필드에 Notion 데이터베이스 ID 붙여넣기:
+   ```
+   여기에_데이터베이스_ID_붙여넣기
+   ```
+   - 예시: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`
+4. **"Add secret"** 버튼 클릭
+   - ✅ "Secret VITE_NOTION_DATABASE_ID created" 메시지가 표시되면 성공
+
+#### 3-2-6. 추가된 Secrets 확인
+Secrets 목록에 다음 두 항목이 표시되는지 확인:
+- ✅ `VITE_NOTION_API_KEY` (값은 마스킹되어 표시됨)
+- ✅ `VITE_NOTION_DATABASE_ID` (값은 마스킹되어 표시됨)
+
+#### 3-2-7. Secrets 적용을 위한 재배포
+1. 저장소의 **"Actions"** 탭으로 이동
+2. 최근 워크플로우 실행을 확인하거나
+3. 코드를 커밋하고 푸시하여 자동 배포 트리거
+   ```bash
+   git add .
+   git commit -m "Update: GitHub Secrets 설정 완료"
+   git push
+   ```
+4. Actions 탭에서 배포 진행 상황 확인
+   - ✅ 빌드가 성공하면 Secrets가 적용된 것입니다
+
+#### 3-2-8. GitHub Secrets 주의사항
+- ✅ Secret 이름은 정확히 `VITE_NOTION_API_KEY`와 `VITE_NOTION_DATABASE_ID`로 입력해야 합니다
+- ✅ Secret 값에는 공백이나 따옴표를 포함하지 마세요
+- ✅ Secret을 추가한 후에는 값을 다시 볼 수 없으므로, 안전한 곳에 별도로 보관하세요
+- ✅ Secret을 수정하려면 기존 Secret을 삭제하고 새로 추가해야 합니다
+- ✅ Secret을 삭제하려면 Secret 이름 옆의 휴지통 아이콘을 클릭하세요
+
+#### 3-2-9. 문제 해결
+**Secret이 적용되지 않는 경우:**
+1. Secret 이름이 정확한지 확인 (`VITE_NOTION_API_KEY`, `VITE_NOTION_DATABASE_ID`)
+2. Actions 탭에서 최근 워크플로우 실행 로그 확인
+3. 빌드 단계에서 환경 변수가 제대로 전달되는지 확인
+4. 코드를 다시 푸시하여 재배포 시도
 
 ---
 
@@ -229,6 +315,7 @@ npm run dev
 
 연동 완료를 위해 다음 항목을 확인하세요:
 
+### 로컬 개발 환경
 - [ ] 노션 Integration 생성 완료
 - [ ] API Key 복사 및 저장 완료
 - [ ] 데이터베이스 ID 확인 완료
@@ -238,6 +325,15 @@ npm run dev
 - [ ] 개발 서버 재시작 완료
 - [ ] 브라우저 콘솔에서 연결 성공 메시지 확인
 - [ ] Story 페이지에서 데이터 표시 확인
+
+### GitHub Pages 배포 환경
+- [ ] GitHub 저장소 Settings 페이지 접속 완료
+- [ ] Secrets and variables > Actions 메뉴 접근 완료
+- [ ] `VITE_NOTION_API_KEY` Secret 추가 완료
+- [ ] `VITE_NOTION_DATABASE_ID` Secret 추가 완료
+- [ ] 코드 커밋 및 푸시 완료
+- [ ] GitHub Actions 워크플로우 실행 확인
+- [ ] 배포된 사이트에서 Story 페이지 확인
 
 ---
 
