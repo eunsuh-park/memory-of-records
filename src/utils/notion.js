@@ -38,8 +38,17 @@ export async function testNotionConnection() {
   }
 
   try {
-    // 개발 환경 또는 프록시 URL이 설정된 경우 프록시 사용
-    const useProxy = import.meta.env.DEV || NOTION_PROXY_URL;
+    // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
+    const isDev = import.meta.env.DEV;
+    const useProxy = isDev || NOTION_PROXY_URL;
+    
+    if (!isDev && !NOTION_PROXY_URL) {
+      console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
+      console.error('   CORS 문제를 해결하기 위해 프록시 서버가 필요합니다.');
+      console.error('   NOTION_PROXY_SETUP.md 파일을 참고하여 프록시를 설정하세요.');
+      return false;
+    }
+    
     const apiUrl = useProxy
       ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}`;
@@ -92,8 +101,16 @@ export async function fetchNotionPages() {
   }
 
   try {
-    // 개발 환경 또는 프록시 URL이 설정된 경우 프록시 사용
-    const useProxy = import.meta.env.DEV || NOTION_PROXY_URL;
+    // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
+    const isDev = import.meta.env.DEV;
+    const useProxy = isDev || NOTION_PROXY_URL;
+    
+    if (!isDev && !NOTION_PROXY_URL) {
+      console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
+      console.error('   CORS 문제를 해결하기 위해 프록시 서버가 필요합니다.');
+      return [];
+    }
+    
     const apiUrl = useProxy
       ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}/query`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`;
@@ -148,8 +165,15 @@ export async function fetchNotionPageContent(pageId) {
   }
 
   try {
-    // 개발 환경 또는 프록시 URL이 설정된 경우 프록시 사용
-    const useProxy = import.meta.env.DEV || NOTION_PROXY_URL;
+    // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
+    const isDev = import.meta.env.DEV;
+    const useProxy = isDev || NOTION_PROXY_URL;
+    
+    if (!isDev && !NOTION_PROXY_URL) {
+      console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
+      return null;
+    }
+    
     const apiUrl = useProxy
       ? (NOTION_PROXY_URL || '/api/notion') + `/v1/blocks/${pageId}/children`
       : `https://api.notion.com/v1/blocks/${pageId}/children`;

@@ -4,7 +4,42 @@ GitHub Pages에서 Notion API를 사용할 때 발생하는 CORS 문제를 해�
 
 ## 문제 상황
 
-브라우저에서 직접 Notion API를 호출하면 CORS(Cross-Origin Resource Sharing) 정책에 의해 차단됩니다. GitHub Pages는 정적 사이트만 호스팅하므로 서버 사이드 프록시가 필요합니다.
+### CORS 오류가 발생하는 이유
+
+브라우저에서 직접 Notion API를 호출하면 다음과 같은 CORS 오류가 발생합니다:
+
+```
+Access to fetch at 'https://api.notion.com/v1/databases/...' from origin 'https://eunsuh-park.github.io' 
+has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
+No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+**왜 이런 오류가 발생하나요?**
+
+1. **CORS (Cross-Origin Resource Sharing) 정책**
+   - 브라우저는 보안상의 이유로 다른 도메인(origin)의 리소스에 접근하는 것을 제한합니다
+   - GitHub Pages (`https://eunsuh-park.github.io`)에서 Notion API (`https://api.notion.com`)를 직접 호출하면 다른 도메인이므로 CORS 정책이 적용됩니다
+
+2. **Notion API의 CORS 설정**
+   - Notion API는 서버 사이드에서만 사용하도록 설계되어 있습니다
+   - 브라우저에서 직접 호출할 수 있도록 CORS 헤더를 제공하지 않습니다
+   - 따라서 `Access-Control-Allow-Origin` 헤더가 없어서 브라우저가 요청을 차단합니다
+
+3. **GitHub Pages의 제한**
+   - GitHub Pages는 정적 사이트만 호스팅합니다 (HTML, CSS, JavaScript 파일)
+   - 서버 사이드 코드를 실행할 수 없어서 프록시 서버를 만들 수 없습니다
+
+### 해결 방법
+
+**서버 사이드 프록시가 필요합니다:**
+- 프록시 서버가 Notion API를 호출하고 결과를 반환합니다
+- 프록시 서버는 CORS 헤더를 설정하여 브라우저의 요청을 허용합니다
+- 브라우저는 프록시 서버를 통해 Notion API에 접근하므로 CORS 문제가 발생하지 않습니다
+
+**프록시 서버 옵션:**
+- ✅ Vercel Functions (추천 - 가장 간단)
+- ✅ Netlify Functions
+- ✅ 별도의 백엔드 서버 (Node.js, Python 등)
 
 ## 해결 방법: Vercel Functions 사용
 
