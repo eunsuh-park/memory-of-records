@@ -3,14 +3,16 @@
 .navigation {
   /* 헤더를 페이지 하단에 고정 */
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   background-color: #FFD966;
   border: none;
-  border-radius: 999px;
+  border-top-left-radius: 48px;
+  border-top-right-radius: 48px;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(167, 121, 71, 0.3);
   transition: transform 0.3s ease, opacity 0.3s ease;
   max-width: 1200px;
   width: calc(100% - 3rem);
