@@ -30,19 +30,31 @@ function getNotionHeaders() {
 export async function testNotionConnection() {
   const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
   const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
+  const NOTION_PROXY_URL_ENV = import.meta.env.VITE_NOTION_PROXY_URL;
+  
+  // 디버깅: 환경 변수 확인
+  console.log('🔍 환경 변수 확인:', {
+    hasApiKey: !!NOTION_API_KEY,
+    hasDatabaseId: !!NOTION_DATABASE_ID,
+    hasProxyUrl: !!NOTION_PROXY_URL_ENV,
+    proxyUrl: NOTION_PROXY_URL_ENV || '(없음)',
+    allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
+  });
   
   if (!NOTION_API_KEY || !NOTION_DATABASE_ID) {
     console.warn('⚠️ 노션 연결 실패: API 키 또는 데이터베이스 ID가 설정되지 않았습니다.');
     console.warn('   .env 파일에 VITE_NOTION_API_KEY와 VITE_NOTION_DATABASE_ID를 설정해주세요.');
+    console.warn('   또는 GitHub Secrets에 설정하고 재배포하세요.');
     return false;
   }
 
   try {
     // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
     const isDev = import.meta.env.DEV;
-    const useProxy = isDev || NOTION_PROXY_URL;
+    const proxyUrl = NOTION_PROXY_URL_ENV || NOTION_PROXY_URL;
+    const useProxy = isDev || proxyUrl;
     
-    if (!isDev && !NOTION_PROXY_URL) {
+    if (!isDev && !proxyUrl) {
       console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
       console.error('   CORS 문제를 해결하기 위해 프록시 서버가 필요합니다.');
       console.error('   NOTION_PROXY_SETUP.md 파일을 참고하여 프록시를 설정하세요.');
@@ -50,13 +62,13 @@ export async function testNotionConnection() {
     }
     
     const apiUrl = useProxy
-      ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}`
+      ? (proxyUrl || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}`;
     
     console.log('🔗 Notion API 호출:', {
       isDev,
       useProxy,
-      proxyUrl: NOTION_PROXY_URL,
+      proxyUrl: proxyUrl || '(없음)',
       apiUrl,
     });
     
