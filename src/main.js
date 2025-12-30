@@ -12,36 +12,77 @@ import './App.css';
 
 // 앱 초기화
 async function initApp() {
-  const app = document.getElementById('app');
-  if (!app) {
-    console.error('App container not found');
-    return;
-  }
+  try {
+    console.log('🚀 앱 초기화 시작...');
+    
+    const app = document.getElementById('app');
+    if (!app) {
+      console.error('❌ App container not found');
+      return;
+    }
 
-  // 앱 구조 생성
-  app.innerHTML = `
-    <div class="app">
-      <div id="navigation"></div>
-      <div class="main-wrapper">
-        <main class="app-main" id="main-content"></main>
+    // 앱 구조 생성
+    app.innerHTML = `
+      <div class="app">
+        <div id="navigation"></div>
+        <div class="main-wrapper">
+          <main class="app-main" id="main-content"></main>
+        </div>
+        <div id="footer"></div>
       </div>
-      <div id="footer"></div>
-    </div>
-  `;
+    `;
 
-  // 네비게이션과 푸터 렌더링
-  renderNavigation();
-  renderFooter();
+    // 네비게이션과 푸터 렌더링
+    try {
+      renderNavigation();
+      renderFooter();
+      console.log('✅ 네비게이션과 푸터 렌더링 완료');
+    } catch (error) {
+      console.error('❌ 네비게이션/푸터 렌더링 오류:', error);
+    }
 
-  // 노션 DB 자동 연결 테스트
-  console.log('🔗 노션 DB 연결 확인 중...');
-  await testNotionConnection();
+    // 노션 DB 자동 연결 테스트 (에러가 발생해도 앱은 계속 실행)
+    try {
+      console.log('🔗 노션 DB 연결 확인 중...');
+      await testNotionConnection();
+    } catch (error) {
+      console.warn('⚠️ 노션 DB 연결 실패 (앱은 계속 실행됩니다):', error);
+    }
 
-  // 라우터 초기화
-  router.init();
+    // 라우터 초기화
+    try {
+      router.init();
+      console.log('✅ 라우터 초기화 완료');
+    } catch (error) {
+      console.error('❌ 라우터 초기화 오류:', error);
+      throw error;
+    }
 
-  // 초기 라우트 렌더링
-  router.handleRoute();
+    // 초기 라우트 렌더링
+    try {
+      router.handleRoute();
+      console.log('✅ 초기 라우트 렌더링 완료');
+    } catch (error) {
+      console.error('❌ 라우트 렌더링 오류:', error);
+    }
+    
+    console.log('✅ 앱 초기화 완료');
+  } catch (error) {
+    console.error('❌ 앱 초기화 중 치명적 오류:', error);
+    const app = document.getElementById('app');
+    if (app) {
+      app.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <h1>앱 로딩 오류</h1>
+          <p>애플리케이션을 초기화하는 중 오류가 발생했습니다.</p>
+          <p style="color: #999; font-size: 12px;">${error.message}</p>
+          <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">
+            페이지 새로고침
+          </button>
+        </div>
+      `;
+    }
+  }
 }
 
 // DOM 로드 완료 후 앱 초기화

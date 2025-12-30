@@ -6,11 +6,25 @@
 import '../components/TopNavigation.css';
 import logo from '../logo.png';
 
+// base 경로 가져오기
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
+// base 경로를 제거한 실제 경로 반환
+function getActualPath(pathname) {
+  if (BASE_URL === '/') {
+    return pathname;
+  }
+  if (pathname.startsWith(BASE_URL)) {
+    return pathname.slice(BASE_URL.length - 1) || '/';
+  }
+  return pathname;
+}
+
 export function renderNavigation() {
   const container = document.getElementById('navigation');
   if (!container) return;
 
-  const currentPath = window.location.pathname;
+  const currentPath = getActualPath(window.location.pathname);
 
   container.innerHTML = `
     <nav class="navigation">

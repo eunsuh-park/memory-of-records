@@ -20,6 +20,7 @@ export function renderTimelineScrollBar(totalNotesCount, notesCountByPeriod) {
 
   // 전체 노트 개수와 period별 노트 개수로 눈금 생성 (노트 1개당 1개 눈금)
   let marksHTML = '';
+  let noteIndex = 0; // 전체 노트 인덱스 추적
   if (totalNotesCount > 0 && notesCountByPeriod) {
     let currentPosition = 0;
     const widthPerNote = 100 / totalNotesCount; // 각 노트의 너비 비율
@@ -29,10 +30,11 @@ export function renderTimelineScrollBar(totalNotesCount, notesCountByPeriod) {
       if (count > 0) {
         const color = periodColors[period.value] || '#f5f5f5';
         
-        // 각 노트마다 눈금 생성
+        // 각 노트마다 눈금 생성 (data-note-index 추가)
         for (let i = 0; i < count; i++) {
-          marksHTML += `<div class="scrollbar-mark" style="left: ${currentPosition}%; width: ${widthPerNote}%; background-color: ${color};"></div>`;
+          marksHTML += `<div class="scrollbar-mark" data-note-index="${noteIndex}" style="left: ${currentPosition}%; width: ${widthPerNote}%; background-color: ${color};"></div>`;
           currentPosition += widthPerNote;
+          noteIndex++;
         }
       }
     });

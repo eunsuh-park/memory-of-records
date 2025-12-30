@@ -1,19 +1,19 @@
 /**
- * SideMenu 컴포넌트
- * Timeline 페이지에서 사용하는 사이드 메뉴입니다.
+ * SubMenu 컴포넌트
+ * Timeline 페이지에서 사용하는 서브 메뉴입니다.
  */
 
 import { periodOptions } from '../data/notesData.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
-import '../components/SideMenu.css';
+import '../components/SubMenu.css';
 
-export function renderSideMenu(selectedPeriod, onPeriodChange, totalNotesCount, notesCountByPeriod) {
-  const container = document.getElementById('side-menu');
+export function renderSubMenu(selectedPeriod, onPeriodChange, totalNotesCount, notesCountByPeriod) {
+  const container = document.getElementById('sub-menu');
   if (!container) return;
 
   container.innerHTML = `
-    <aside class="side-menu">
-      <nav class="side-nav">
+    <aside class="sub-menu">
+      <nav class="sub-nav">
         <ul class="period-list">
           ${periodOptions.map(period => `
             <li class="period-item">

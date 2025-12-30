@@ -8,6 +8,9 @@ import { renderStory } from './pages/Story.js';
 import { renderStoryDetail } from './pages/StoryDetail.js';
 import { renderNoteDetail } from './pages/NoteDetail.js';
 
+// base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
 class Router {
   constructor() {
     this.routes = [
@@ -18,6 +21,18 @@ class Router {
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(parseInt(params.id)) },
     ];
+  }
+
+  // base 경로를 제거한 실제 경로 반환
+  getActualPath(pathname) {
+    if (BASE_URL === '/') {
+      return pathname;
+    }
+    // base 경로가 있으면 제거
+    if (pathname.startsWith(BASE_URL)) {
+      return pathname.slice(BASE_URL.length - 1) || '/';
+    }
+    return pathname;
   }
 
   init() {
@@ -40,16 +55,20 @@ class Router {
   }
 
   navigate(path) {
+    // base 경로를 포함한 전체 경로 생성
+    const fullPath = BASE_URL === '/' ? path : BASE_URL.slice(0, -1) + path;
+    
     // 같은 경로로 이동하는 경우 아무것도 하지 않음
-    if (window.location.pathname === path) {
+    if (window.location.pathname === fullPath) {
       return;
     }
-    window.history.pushState({}, '', path);
+    window.history.pushState({}, '', fullPath);
     this.handleRoute();
   }
 
   async handleRoute() {
-    const path = window.location.pathname;
+    // base 경로를 제거한 실제 경로 사용
+    const path = this.getActualPath(window.location.pathname);
     const mainContent = document.getElementById('main-content');
     
     if (!mainContent) {
@@ -62,11 +81,17 @@ class Router {
       document.body.classList.remove('story-detail-page-active');
     }
 
-    // Timeline 페이지가 아닐 때 사이드바 제거
+    // Timeline 페이지가 아닐 때 서브 메뉴 제거
     if (!path.startsWith('/timeline')) {
-      const sideMenu = document.getElementById('side-menu');
-      if (sideMenu) {
-        sideMenu.remove();
+      const subMenu = document.getElementById('sub-menu');
+      if (subMenu) {
+        subMenu.remove();
+      }
+      
+      // Timeline 페이지가 아닐 때 TimelineScrollBar 제거
+      const timelineScrollBar = document.getElementById('timeline-scrollbar');
+      if (timelineScrollBar) {
+        timelineScrollBar.remove();
       }
     }
 

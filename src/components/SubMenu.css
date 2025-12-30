@@ -1,7 +1,7 @@
-/* SideMenu 스타일 */
+/* SubMenu 스타일 */
 
-.side-menu {
-  /* 사이드 메뉴를 상단에 고정 및 가운데 정렬 */
+.sub-menu {
+  /* 서브 메뉴를 상단에 고정 및 가운데 정렬 */
   position: fixed;
   top: 48px; /* 상단에서 48px 여백 */
   left: 50%;
@@ -14,7 +14,7 @@
   width: auto;
 }
 
-.side-nav {
+.sub-nav {
   position: relative;
   top: 0;
   display: flex;
@@ -47,7 +47,7 @@
   background-color: transparent;
   font-weight: 400;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease-in-out, width 0.3s ease, font-weight 0.3s ease;
+  transition: background-color 0.3s ease-in-out, width 0.3s ease;
   border-radius: 999px;
   line-height: 100%;
   text-align: center;
@@ -66,7 +66,6 @@
   /* 활성화된 시기 스타일 */
   color: #333;
   background-color: rgba(0, 0, 0, 0.1);
-  font-weight: 600;
 }
 
 .period-link.active:hover {
@@ -113,7 +112,7 @@
 
 /* 반응형 디자인 - 모바일 */
 @media (max-width: 768px) {
-  .side-menu {
+  .sub-menu {
     max-width: calc(100% - 3rem);
     width: calc(100% - 3rem);
     top: 48px; /* 상단에서 48px 여백 */
@@ -122,7 +121,7 @@
     padding: 0.75rem 1rem;
   }
 
-  .side-nav {
+  .sub-nav {
     justify-content: center;
     gap: 0.75rem;
   }

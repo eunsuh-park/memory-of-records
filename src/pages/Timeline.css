@@ -63,27 +63,15 @@ body.timeline-active.period-after-graduation {
   width: fit-content;
   padding: 0;
   box-sizing: border-box;
-}
-
-.timeline-period-section {
-  height: 100vh; /* 섹션 높이를 뷰포트 높이로 설정 */
-  width: fit-content; /* 섹션 너비를 콘텐츠에 맞게 설정 */
-  min-width: 100vw; /* 최소 너비는 뷰포트 너비 */
-  display: flex;
   align-items: center;
-  flex-shrink: 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  box-sizing: border-box;
 }
 
-/* 노트 리스트 */
+/* 노트 리스트 (모든 노트가 하나의 리스트로 합쳐짐) */
 .notes-list {
   display: flex;
   flex-direction: row;
   gap: 1.5rem;
   flex-wrap: nowrap;
-  overflow-x: auto;
   height: 100%;
   align-items: center;
   width: fit-content;
@@ -116,17 +104,51 @@ body.timeline-active.period-after-graduation {
   border: none;
   border-radius: 8px;
   padding: 0;
-  transition: all 0.3s;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   overflow: visible;
   flex-shrink: 0;
   height: 60vh; /* 노트 높이를 뷰포트 높이의 60%로 고정 */
   width: auto; /* 너비는 이미지 비율에 맞춰 자동 조정 */
   display: flex;
   align-items: flex-end; /* 컨테이너 내에서 하단 정렬 */
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 노트 placeholder (첫 번째/마지막 노트 앞뒤의 빈 공간) */
+.note-placeholder {
+  flex-shrink: 0;
+  height: 60vh;
+  width: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .note-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 노트 상태별 스타일 */
+.note-card.note-focus {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.note-card.note-adjacent {
+  opacity: 0.75;
+  transform: scale(0.9);
+}
+
+.note-card.note-adjacent-adjacent {
+  opacity: 0.4;
+  transform: scale(0.8);
+  filter: saturate(0.4); /* 채도 40% */
+}
+
+.note-card.note-outer {
+  opacity: 0.25;
+  transform: scale(0.75);
+  filter: saturate(0); /* 채도 0% (흑백) */
 }
 
 .note-card-link {
@@ -179,11 +201,12 @@ body.timeline-active.period-after-graduation {
   pointer-events: none; /* hover 시에도 앞 이미지를 클릭할 수 있도록 */
 }
 
-.note-card:hover .note-cover-front {
+/* hover 시 뒷면 보여주기는 focus 상태의 노트에만 적용 */
+.note-card.note-focus:hover .note-cover-front {
   opacity: 0;
 }
 
-.note-card:hover .note-cover-back {
+.note-card.note-focus:hover .note-cover-back {
   opacity: 1;
 }
 

@@ -4,7 +4,7 @@
  */
 
 import { periodOptions } from '../data/notesData.js';
-import { renderSideMenu } from '../components/SideMenu.js';
+import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
@@ -12,6 +12,10 @@ import './Timeline.css';
 
 // 스크롤 위치 저장을 위한 전역 변수
 let savedScrollPosition = null;
+let currentPeriod = null; // 현재 선택된 period 추적
+let isScrollingToTarget = false; // 타겟으로 스크롤 중인지 추적
+let currentFocusedNoteId = null; // 현재 포커스된 노트 ID
+let allNotesData = []; // 전체 노트 데이터 (순서대로)
 
 export function renderTimeline(period = 'elementary') {
   const mainContent = document.getElementById('main-content');
@@ -19,18 +23,47 @@ export function renderTimeline(period = 'elementary') {
 
   const selectedPeriod = period || 'elementary';
   
-  // 현재 페이지가 이미 timeline인지 확인하여 스크롤 위치 저장
+  // period가 변경되었는지 확인
+  const periodChanged = currentPeriod !== null && currentPeriod !== selectedPeriod;
+  
+  // 이미 timeline 페이지가 존재하는지 확인
   const existingTimelinePage = document.querySelector('.timeline-page');
-  if (existingTimelinePage) {
-    savedScrollPosition = existingTimelinePage.scrollLeft;
+  
+  // 이미 timeline 페이지가 존재하고 period만 변경되는 경우, DOM 재생성 없이 스크롤만 변경
+  if (existingTimelinePage && periodChanged) {
+    // 서브메뉴로 이동할 경우: 해당 period의 첫 번째 노트에 포커스
+    const firstNoteOfPeriod = document.querySelector(`.note-card[data-period="${selectedPeriod}"]`);
+    if (firstNoteOfPeriod) {
+      const firstNoteId = firstNoteOfPeriod.getAttribute('data-note-id');
+      if (firstNoteId) {
+        focusNote(firstNoteId);
+      }
+    }
+    
+    // 서브 메뉴 active 상태 업데이트 (스크롤 애니메이션 시작 전에 즉시 업데이트)
+    const notesCountByPeriod = {};
+    periodOptions.forEach(periodOption => {
+      const notes = getNotesFromCoverImages(periodOption.value);
+      notesCountByPeriod[periodOption.value] = notes.length;
+    });
+    renderSubMenu(selectedPeriod, null, Object.values(notesCountByPeriod).reduce((sum, count) => sum + count, 0), notesCountByPeriod);
+    
+    // 배경색 업데이트
+    updateBackgroundColor(selectedPeriod);
+    
+    // 현재 period 업데이트
+    currentPeriod = selectedPeriod;
+    
+    return; // DOM 재생성 없이 종료
   }
 
-  // 사이드 메뉴를 body 레벨에 추가 (fixed 위치용)
-  let sideMenuContainer = document.getElementById('side-menu');
-  if (!sideMenuContainer) {
-    sideMenuContainer = document.createElement('aside');
-    sideMenuContainer.id = 'side-menu';
-    document.body.appendChild(sideMenuContainer);
+  // 새로운 timeline 페이지로 들어오는 경우에만 DOM 생성
+  // 서브 메뉴를 body 레벨에 추가 (fixed 위치용)
+  let subMenuContainer = document.getElementById('sub-menu');
+  if (!subMenuContainer) {
+    subMenuContainer = document.createElement('aside');
+    subMenuContainer.id = 'sub-menu';
+    document.body.appendChild(subMenuContainer);
   }
 
   // 타임라인 스크롤바를 body 레벨에 추가 (fixed 위치용)
@@ -56,6 +89,17 @@ export function renderTimeline(period = 'elementary') {
       <div id="quick-scroll-menu"></div>
     </div>
   `;
+  
+  // DOM 생성 직후 scroll-snap을 즉시 비활성화하여 브라우저의 자동 snap 동작 방지
+  const timelinePage = document.querySelector('.timeline-page');
+  if (timelinePage) {
+    timelinePage.style.scrollSnapType = 'none';
+  }
+  
+  // DOM 교체 전에 현재 스크롤 위치 저장 (다른 페이지에서 돌아올 때만)
+  if (existingTimelinePage && !periodChanged) {
+    savedScrollPosition = existingTimelinePage.scrollLeft;
+  }
 
   // 전체 노트 개수 및 period별 노트 개수 계산
   const notesCountByPeriod = {};
@@ -65,55 +109,69 @@ export function renderTimeline(period = 'elementary') {
   });
   const totalNotesCount = Object.values(notesCountByPeriod).reduce((sum, count) => sum + count, 0);
 
-  renderSideMenu(selectedPeriod, null, totalNotesCount, notesCountByPeriod);
+  renderSubMenu(selectedPeriod, null, totalNotesCount, notesCountByPeriod);
   renderTimelineScrollBar(totalNotesCount, notesCountByPeriod);
 
   const timelineMain = document.getElementById('timeline-main');
   if (!timelineMain) return;
 
-  // 모든 시기별로 섹션 생성 (cover 폴더의 실제 이미지 파일 기반)
-  timelineMain.innerHTML = periodOptions.map(periodOption => {
+  // 전체 노트 데이터 수집 (순서대로)
+  allNotesData = [];
+  periodOptions.forEach(periodOption => {
     const periodNotes = getNotesFromCoverImages(periodOption.value);
-    const isSelected = selectedPeriod === periodOption.value;
+    periodNotes.forEach(note => {
+      allNotesData.push({
+        ...note,
+        period: periodOption.value
+      });
+    });
+  });
 
-    return `
-      <section 
-        id="${periodOption.value}"
-        class="timeline-period-section"
-      >
-        ${periodNotes.length > 0 ? `
-          <div class="notes-list">
-            ${periodNotes.map(note => {
-              return `
-              <article class="note-card">
-                <div class="note-card-link">
-                  <div class="note-cover-container">
-                    <img 
-                      src="${note.coverPath}" 
-                      alt="노트 표지" 
-                      class="note-cover-image note-cover-front"
-                      onerror="this.style.display='none';"
-                    />
-                    <img 
-                      src="${note.backCoverPath}" 
-                      alt="노트 뒷표지" 
-                      class="note-cover-image note-cover-back"
-                      onerror="this.style.display='none';"
-                    />
-                  </div>
-                </div>
-              </article>
-            `;
-            }).join('')}
+  // 모든 노트를 하나의 리스트로 합치기
+  const allNotesHTML = [];
+  const firstNoteId = allNotesData.length > 0 ? allNotesData[0].id : null;
+  const lastNoteId = allNotesData.length > 0 ? allNotesData[allNotesData.length - 1].id : null;
+  
+  // 첫 번째 노트 앞에 placeholder 추가
+  if (firstNoteId) {
+    allNotesHTML.push('<div class="note-placeholder"></div>');
+  }
+
+  // 모든 노트 추가
+  allNotesData.forEach(note => {
+    allNotesHTML.push(`
+      <article class="note-card" data-note-id="${note.id}" data-period="${note.period}">
+        <div class="note-card-link">
+          <div class="note-cover-container">
+            <img 
+              src="${note.coverPath}" 
+              alt="노트 표지" 
+              class="note-cover-image note-cover-front"
+              onerror="this.style.display='none';"
+            />
+            <img 
+              src="${note.backCoverPath}" 
+              alt="노트 뒷표지" 
+              class="note-cover-image note-cover-back"
+              onerror="this.style.display='none';"
+            />
           </div>
-        ` : `
-          <div class="no-notes">
-            <p>이 시기에 해당하는 노트가 없습니다.</p>
-          </div>
-        `}
-      </section>
-    `;
-  }).join('');
+        </div>
+      </article>
+    `);
+  });
+
+  // 마지막 노트 뒤에 placeholder 추가
+  if (lastNoteId) {
+    allNotesHTML.push('<div class="note-placeholder"></div>');
+  }
+
+  // 하나의 notes-list로 모든 노트 렌더링
+  timelineMain.innerHTML = `
+    <div class="notes-list">
+      ${allNotesHTML.join('')}
+    </div>
+  `;
 
   // QuickScrollMenu 아이템 생성
   const quickScrollItems = periodOptions.map(option => {
@@ -131,55 +189,27 @@ export function renderTimeline(period = 'elementary') {
     const timelinePage = document.querySelector('.timeline-page');
     if (!timelinePage) return;
     
-    const targetElement = document.getElementById(selectedPeriod);
-    if (!targetElement) return;
-    
-    // 이미 스크롤 위치가 저장되어 있고 (기존 페이지에서 이동), 해당 period가 이미 보이는 경우 스크롤하지 않음
-    if (savedScrollPosition !== null) {
-      const targetLeft = targetElement.offsetLeft;
-      const targetRight = targetLeft + targetElement.offsetWidth;
-      const savedRight = savedScrollPosition + timelinePage.clientWidth;
-      
-      // 저장된 스크롤 위치에서 대상 period가 이미 보이는 경우, 저장된 위치로 복원
-      if (targetLeft >= savedScrollPosition && targetRight <= savedRight) {
-        timelinePage.scrollLeft = savedScrollPosition;
-        savedScrollPosition = null;
+    // 서브메뉴로 이동할 경우: 해당 period의 첫 번째 노트에 포커스
+    const firstNoteOfPeriod = document.querySelector(`.note-card[data-period="${selectedPeriod}"]`);
+    if (firstNoteOfPeriod) {
+      const firstNoteId = firstNoteOfPeriod.getAttribute('data-note-id');
+      if (firstNoteId) {
+        focusNote(firstNoteId);
         return;
       }
     }
     
-    // 다른 period로 이동 또는 초기 로드
-    let targetScrollLeft;
-    
-    // elementary이고 초기 로드인 경우 첫 번째 노트로 스크롤
-    if (selectedPeriod === 'elementary' && savedScrollPosition === null) {
-      const notesList = targetElement.querySelector('.notes-list');
-      if (notesList && notesList.children.length > 0) {
-        const firstNote = notesList.children[0];
-        const timelinePageRect = timelinePage.getBoundingClientRect();
-        const notesListRect = notesList.getBoundingClientRect();
-        const noteRect = firstNote.getBoundingClientRect();
-        const paddingLeft = 32; // notes-list의 padding-left (2rem = 32px)
-        const notesListScrollLeft = notesListRect.left - timelinePageRect.left + timelinePage.scrollLeft;
-        const noteLeftInNotesList = noteRect.left - notesListRect.left;
-        targetScrollLeft = notesListScrollLeft + noteLeftInNotesList - paddingLeft;
-      } else {
-        targetScrollLeft = targetElement.offsetLeft;
-      }
-    } else {
-      // 다른 경우 섹션 시작 위치로 스크롤
-      targetScrollLeft = targetElement.offsetLeft;
-    }
-    
-    timelinePage.scrollTo({
-      left: targetScrollLeft,
-      behavior: 'smooth'
-    });
-    
     savedScrollPosition = null;
+    currentPeriod = selectedPeriod;
   }, 100);
 
-  // Intersection Observer를 사용하여 스크롤 위치에 따라 사이드바 메뉴 자동 활성화
+  // 노트 포커스 시스템 초기화
+  setupNoteFocusSystem();
+  
+  // 키보드 화살키로 노트 이동 기능 설정
+  setupKeyboardNavigation();
+  
+  // Intersection Observer를 사용하여 스크롤 위치에 따라 서브 메뉴 자동 활성화
   setupScrollObserver();
 
   // 마우스 휠로 가로 스크롤 가능하도록 설정
@@ -196,100 +226,287 @@ export function renderTimeline(period = 'elementary') {
 
   // 초기 배경색 설정
   updateBackgroundColor(selectedPeriod);
+  
+  // 현재 period 업데이트
+  currentPeriod = selectedPeriod;
 }
 
 // Observer 인스턴스를 저장하여 중복 생성 방지
 let scrollObserver = null;
 
 /**
- * 스크롤 위치에 따라 사이드바 메뉴를 자동으로 활성화하는 함수
+ * 노트 포커스 시스템 설정 함수
+ * 스크롤 위치에 따라 현재 포커스된 노트를 감지하고 노트 상태를 업데이트합니다.
+ */
+function setupNoteFocusSystem() {
+  const timelinePage = document.querySelector('.timeline-page');
+  if (!timelinePage) return;
+
+  // placeholder 너비 설정 (첫 번째 노트의 너비를 기준으로) - DOM 렌더링 후 실행
+  const updatePlaceholderWidth = () => {
+    const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
+    if (allNoteCards.length > 0) {
+      const firstNoteCard = allNoteCards[0];
+      const firstNoteRect = firstNoteCard.getBoundingClientRect();
+      const placeholderWidth = (timelinePage.clientWidth / 2) - (firstNoteRect.width / 2);
+      
+      const placeholders = document.querySelectorAll('.note-placeholder');
+      placeholders.forEach(placeholder => {
+        placeholder.style.width = `${Math.max(0, placeholderWidth)}px`;
+      });
+    }
+  };
+
+  // DOM 렌더링 후 placeholder 너비 설정
+  setTimeout(updatePlaceholderWidth, 0);
+
+  // 초기 포커스 설정 (첫 번째 노트)
+  const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
+  if (allNoteCards.length > 0) {
+    const firstNoteId = allNoteCards[0].getAttribute('data-note-id');
+    currentFocusedNoteId = firstNoteId;
+    updateNoteStates();
+  }
+
+  // 스크롤 끝 감지를 위한 타이머
+  let scrollTimeout = null;
+  
+  // 스크롤 이벤트로 포커스 노트 감지 및 자동 스냅
+  const handleScroll = () => {
+    if (isScrollingToTarget) return; // 프로그래매틱 스크롤 중에는 업데이트하지 않음
+    
+    // 실시간으로 가장 가까운 노트 찾기 (서브메뉴 업데이트용)
+    const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
+    const viewportCenter = timelinePage.scrollLeft + timelinePage.clientWidth / 2;
+    let closestNote = null;
+    let minDistance = Infinity;
+
+    allNoteCards.forEach(noteCard => {
+      const noteRect = noteCard.getBoundingClientRect();
+      const noteLeft = noteRect.left + timelinePage.scrollLeft;
+      const noteCenter = noteLeft + noteRect.width / 2;
+      const distance = Math.abs(viewportCenter - noteCenter);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestNote = noteCard;
+      }
+    });
+
+    // 실시간으로 서브메뉴 업데이트 (가장 가까운 노트의 period 기반)
+    if (closestNote) {
+      const closestPeriod = closestNote.getAttribute('data-period');
+      
+      // period가 변경되었을 때만 서브메뉴 업데이트 (성능 최적화)
+      if (closestPeriod) {
+        const previousNote = currentFocusedNoteId ? 
+          document.querySelector(`.note-card[data-note-id="${currentFocusedNoteId}"]`) : null;
+        const previousPeriod = previousNote ? previousNote.getAttribute('data-period') : null;
+        
+        if (previousPeriod !== closestPeriod) {
+          updateActiveMenu(closestPeriod);
+        }
+      }
+    }
+    
+    // 스크롤이 끝났는지 확인하기 위해 타이머 리셋
+    clearTimeout(scrollTimeout);
+    
+    // 스크롤이 끝난 후 가장 가까운 노트로 스냅
+    scrollTimeout = setTimeout(() => {
+      if (closestNote) {
+        const noteId = closestNote.getAttribute('data-note-id');
+        // 포커스 노트가 변경되었거나, 현재 포커스 노트가 정중앙에 없으면 스냅
+        if (noteId !== currentFocusedNoteId || minDistance > 5) {
+          focusNote(noteId);
+        }
+      }
+    }, 150); // 스크롤이 끝난 후 150ms 후에 스냅
+  };
+
+  timelinePage.addEventListener('scroll', handleScroll, { passive: true });
+  
+  // 초기 포커스 노트를 정중앙으로 스크롤
+  setTimeout(() => {
+    if (currentFocusedNoteId) {
+      focusNote(currentFocusedNoteId);
+    }
+  }, 100);
+}
+
+/**
+ * 현재 포커스된 노트를 기준으로 모든 노트의 상태를 업데이트하는 함수
+ */
+function updateNoteStates() {
+  if (!currentFocusedNoteId) return;
+
+  const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
+  
+  // 현재 포커스된 노트의 인덱스 찾기
+  const focusedIndex = allNoteCards.findIndex(card => 
+    card.getAttribute('data-note-id') === currentFocusedNoteId
+  );
+
+  if (focusedIndex === -1) return;
+
+  allNoteCards.forEach((noteCard, index) => {
+    const distance = Math.abs(index - focusedIndex);
+    noteCard.classList.remove('note-focus', 'note-adjacent', 'note-adjacent-adjacent', 'note-outer');
+
+    if (distance === 0) {
+      noteCard.classList.add('note-focus');
+    } else if (distance === 1) {
+      noteCard.classList.add('note-adjacent');
+    } else if (distance === 2) {
+      noteCard.classList.add('note-adjacent-adjacent');
+    } else {
+      noteCard.classList.add('note-outer');
+    }
+  });
+}
+
+/**
+ * 특정 노트에 포커스를 맞추고 정중앙으로 스크롤하는 함수
+ */
+function focusNote(noteId) {
+  const noteCard = document.querySelector(`.note-card[data-note-id="${noteId}"]`);
+  if (!noteCard) return;
+
+  const timelinePage = document.querySelector('.timeline-page');
+  if (!timelinePage) return;
+
+  isScrollingToTarget = true;
+  timelinePage.style.scrollSnapType = 'none';
+
+  const noteRect = noteCard.getBoundingClientRect();
+  const timelinePageRect = timelinePage.getBoundingClientRect();
+  const noteLeft = noteRect.left - timelinePageRect.left + timelinePage.scrollLeft;
+  const noteCenter = noteLeft + noteRect.width / 2;
+  const viewportCenter = timelinePage.clientWidth / 2;
+  const targetScrollLeft = noteCenter - viewportCenter;
+
+  timelinePage.scrollTo({
+    left: targetScrollLeft,
+    behavior: 'smooth'
+  });
+
+  currentFocusedNoteId = noteId;
+  updateNoteStates();
+  
+  // 포커스 노트 변경 시 서브메뉴도 업데이트
+  const period = noteCard.getAttribute('data-period');
+  if (period) {
+    updateActiveMenu(period);
+  }
+
+  setTimeout(() => {
+    timelinePage.style.scrollSnapType = '';
+    isScrollingToTarget = false;
+  }, 600);
+}
+
+/**
+ * 키보드 화살키로 노트 이동 기능 설정 함수
+ */
+function setupKeyboardNavigation() {
+  // 키보드 이벤트 리스너 추가
+  document.addEventListener('keydown', (e) => {
+    // timeline 페이지가 활성화되어 있는지 확인
+    const timelinePage = document.querySelector('.timeline-page');
+    if (!timelinePage) return;
+    
+    // 입력 필드 등 다른 요소에 포커스가 있을 때는 무시
+    const activeElement = document.activeElement;
+    if (activeElement && (
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.isContentEditable
+    )) {
+      return;
+    }
+    
+    // 프로그래매틱 스크롤 중이면 무시
+    if (isScrollingToTarget) return;
+    
+    const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
+    if (allNoteCards.length === 0) return;
+    
+    // 현재 포커스된 노트의 인덱스 찾기
+    const currentIndex = allNoteCards.findIndex(card => 
+      card.getAttribute('data-note-id') === currentFocusedNoteId
+    );
+    
+    if (currentIndex === -1) return;
+    
+    let targetIndex = -1;
+    
+    // 왼쪽 화살키 또는 위 화살키: 이전 노트
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (currentIndex > 0) {
+        targetIndex = currentIndex - 1;
+      }
+    }
+    // 오른쪽 화살키 또는 아래 화살키: 다음 노트
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (currentIndex < allNoteCards.length - 1) {
+        targetIndex = currentIndex + 1;
+      }
+    }
+    
+    // 타겟 노트로 포커스 이동
+    if (targetIndex !== -1) {
+      const targetNoteId = allNoteCards[targetIndex].getAttribute('data-note-id');
+      if (targetNoteId) {
+        focusNote(targetNoteId);
+      }
+    }
+  });
+}
+
+/**
+ * 스크롤 위치에 따라 서브 메뉴를 자동으로 활성화하는 함수
+ * handleScroll 함수 내에서 이미 실시간으로 업데이트되므로 여기서는 초기 업데이트만 수행
  */
 function setupScrollObserver() {
   const timelinePage = document.querySelector('.timeline-page');
   if (!timelinePage) return;
 
-  const sections = document.querySelectorAll('.timeline-period-section');
-  if (sections.length === 0) return;
-
   // 기존 observer가 있으면 해제
   if (scrollObserver) {
-    sections.forEach(section => {
-      scrollObserver.unobserve(section);
-    });
     scrollObserver.disconnect();
   }
 
-  // Intersection Observer 옵션 - 스크롤 위치 기반으로 더 정확하게 감지
-  const observerOptions = {
-    root: timelinePage,
-    rootMargin: '-40% 0px -40% 0px', // 섹션이 뷰포트 중앙 40% 영역에 있을 때 트리거
-    threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-  };
-
-  // 스크롤 이벤트로도 활성 섹션 감지 (더 정확함)
-  const updateActiveSection = () => {
-    const scrollLeft = timelinePage.scrollLeft;
-    const viewportCenter = scrollLeft + timelinePage.clientWidth / 2;
+  // 초기 period 업데이트 (현재 포커스된 노트의 period 기반)
+  const updateActivePeriod = () => {
+    if (isScrollingToTarget) {
+      return;
+    }
     
-    let activeSection = null;
-    let minDistance = Infinity;
-
-    sections.forEach(section => {
-      const sectionLeft = section.offsetLeft;
-      const sectionWidth = section.offsetWidth;
-      const sectionCenter = sectionLeft + sectionWidth / 2;
-      const distance = Math.abs(viewportCenter - sectionCenter);
-      
-      // 섹션이 뷰포트에 보이는지 확인
-      if (sectionLeft < scrollLeft + timelinePage.clientWidth && 
-          sectionLeft + sectionWidth > scrollLeft) {
-        if (distance < minDistance) {
-          minDistance = distance;
-          activeSection = section;
+    if (currentFocusedNoteId) {
+      const focusedNote = document.querySelector(`.note-card[data-note-id="${currentFocusedNoteId}"]`);
+      if (focusedNote) {
+        const period = focusedNote.getAttribute('data-period');
+        if (period) {
+          updateActiveMenu(period);
         }
       }
-    });
-
-    if (activeSection) {
-      updateActiveMenu(activeSection.id);
     }
   };
-
-  scrollObserver = new IntersectionObserver((entries) => {
-    // 가장 많이 보이는 섹션 찾기
-    let mostVisibleEntry = null;
-    let maxIntersectionRatio = 0;
-
-    entries.forEach(entry => {
-      if (entry.intersectionRatio > maxIntersectionRatio) {
-        maxIntersectionRatio = entry.intersectionRatio;
-        mostVisibleEntry = entry;
-      }
-    });
-
-    if (mostVisibleEntry && mostVisibleEntry.isIntersecting) {
-      const sectionId = mostVisibleEntry.target.id;
-      updateActiveMenu(sectionId);
-    }
-  }, observerOptions);
-
-  // 스크롤 이벤트로도 활성 섹션 업데이트
-  timelinePage.addEventListener('scroll', updateActiveSection, { passive: true });
-
-  // 각 섹션을 관찰
-  sections.forEach(section => {
-    scrollObserver.observe(section);
-  });
+  
+  // 초기 업데이트
+  setTimeout(updateActivePeriod, 100);
 }
 
 /**
- * 사이드바 메뉴의 active 상태를 업데이트하는 함수
+ * 서브 메뉴의 active 상태를 업데이트하는 함수
  */
 function updateActiveMenu(activePeriodId) {
-  const sideMenu = document.getElementById('side-menu');
-  if (!sideMenu) return;
+  const subMenu = document.getElementById('sub-menu');
+  if (!subMenu) return;
 
-  const periodLinks = sideMenu.querySelectorAll('.period-link');
+  const periodLinks = subMenu.querySelectorAll('.period-link');
   periodLinks.forEach(link => {
     const href = link.getAttribute('href');
     const periodId = href ? href.split('/').pop() : '';
@@ -329,10 +546,14 @@ function updateBackgroundColor(period) {
 
 /**
  * 마우스 휠로 가로 스크롤 가능하도록 설정하는 함수
+ * 스크롤 휠 1회 = 노트 1개 이동
  */
 function setupHorizontalWheelScroll() {
   const timelinePage = document.querySelector('.timeline-page');
   if (!timelinePage) return;
+
+  let wheelTimeout = null;
+  let canScroll = true; // 스크롤 가능 여부 (디바운싱)
 
   timelinePage.addEventListener('wheel', (e) => {
     // 이미 가로 스크롤 휠 이벤트가 있으면 기본 동작 허용
@@ -340,13 +561,42 @@ function setupHorizontalWheelScroll() {
       return;
     }
 
-    // 세로 스크롤을 가로 스크롤로 변환
+    // 세로 스크롤을 가로채서 노트 이동으로 변환
     e.preventDefault();
     
-    timelinePage.scrollBy({
-      left: e.deltaY,
-      behavior: 'auto'
-    });
+    if (isScrollingToTarget || !canScroll) return; // 프로그래매틱 스크롤 중이거나 디바운싱 중이면 무시
+
+    const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
+    const currentIndex = allNoteCards.findIndex(card => 
+      card.getAttribute('data-note-id') === currentFocusedNoteId
+    );
+
+    if (currentIndex === -1) return;
+
+    // 스크롤 방향에 따라 다음/이전 노트로 이동
+    if (e.deltaY > 0 && currentIndex < allNoteCards.length - 1) {
+      // 아래로 스크롤 (deltaY > 0) = 다음 노트
+      canScroll = false;
+      const nextNoteId = allNoteCards[currentIndex + 1].getAttribute('data-note-id');
+      focusNote(nextNoteId);
+      
+      // 300ms 후에 다시 스크롤 가능하도록 (스크롤 애니메이션 시간)
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        canScroll = true;
+      }, 300);
+    } else if (e.deltaY < 0 && currentIndex > 0) {
+      // 위로 스크롤 (deltaY < 0) = 이전 노트
+      canScroll = false;
+      const prevNoteId = allNoteCards[currentIndex - 1].getAttribute('data-note-id');
+      focusNote(prevNoteId);
+      
+      // 300ms 후에 다시 스크롤 가능하도록
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        canScroll = true;
+      }, 300);
+    }
   }, { passive: false });
 }
 
@@ -384,6 +634,21 @@ function setupTimelineIndicator() {
   
   // 리사이즈 이벤트도 감지
   window.addEventListener('resize', updateIndicatorPosition, { passive: true });
+  
+  // 리사이즈 시 placeholder 너비 업데이트
+  window.addEventListener('resize', () => {
+    const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
+    if (allNoteCards.length > 0) {
+      const firstNoteCard = allNoteCards[0];
+      const firstNoteRect = firstNoteCard.getBoundingClientRect();
+      const placeholderWidth = (timelinePage.clientWidth / 2) - (firstNoteRect.width / 2);
+      
+      const placeholders = document.querySelectorAll('.note-placeholder');
+      placeholders.forEach(placeholder => {
+        placeholder.style.width = `${Math.max(0, placeholderWidth)}px`;
+      });
+    }
+  }, { passive: true });
 }
 
 /**
@@ -460,21 +725,6 @@ function setupTimelineProgressDrag() {
   if (!timelinePage || !progressBar || !indicator) return;
 
   let isDragging = false;
-  let snapPoints = [];
-
-  // 초기 스냅 포인트 계산 (렌더링 완료 후)
-  const updateSnapPoints = () => {
-    snapPoints = calculateSnapPoints();
-  };
-  
-  // DOM이 완전히 렌더링된 후 스냅 포인트 계산
-  setTimeout(() => {
-    updateSnapPoints();
-  }, 100);
-  
-  window.addEventListener('resize', () => {
-    setTimeout(updateSnapPoints, 100);
-  });
 
   const handleIndicatorMouseDown = (e) => {
     e.stopPropagation();
@@ -501,24 +751,10 @@ function setupTimelineProgressDrag() {
       isDragging = false;
       indicator.style.transition = 'left 0.3s ease';
       
-      // 스냅 포인트로 이동
+      // 스크롤바 드래그 완료 후 인디케이터 위치만 업데이트
       setTimeout(() => {
-        const currentScrollLeft = timelinePage.scrollLeft;
-        const nearestSnap = findNearestSnapPoint(currentScrollLeft, snapPoints);
-        
-        if (nearestSnap) {
-          timelinePage.style.scrollBehavior = 'smooth';
-          timelinePage.scrollTo({
-            left: nearestSnap.scrollLeft,
-            behavior: 'smooth'
-          });
-          
-          // 스크롤 완료 후 인디케이터 위치 업데이트
-          setTimeout(() => {
-            if (updateIndicatorPosition) {
-              updateIndicatorPosition();
-            }
-          }, 300);
+        if (updateIndicatorPosition) {
+          updateIndicatorPosition();
         }
       }, 10);
     }
@@ -541,6 +777,24 @@ function setupTimelineProgressDrag() {
       timelinePage.scrollLeft = scrollLeft;
     }
   };
+
+  // 스크롤바 마크 클릭 이벤트 (각 노트로 포커스)
+  setTimeout(() => {
+    const scrollbarMarks = progressBar.querySelectorAll('.scrollbar-mark');
+    scrollbarMarks.forEach((mark) => {
+      mark.style.cursor = 'pointer';
+      const noteIndex = parseInt(mark.getAttribute('data-note-index'));
+      mark.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // allNotesData에서 해당 인덱스의 노트 ID 찾기
+        if (allNotesData[noteIndex]) {
+          const noteId = allNotesData[noteIndex].id;
+          focusNote(noteId);
+        }
+      });
+    });
+  }, 100);
 
   // 마우스 이벤트
   progressBar.addEventListener('mousedown', handleProgressBarMouseDown);
@@ -573,24 +827,10 @@ function setupTimelineProgressDrag() {
       isDragging = false;
       indicator.style.transition = 'left 0.3s ease';
       
-      // 스냅 포인트로 이동
+      // 스크롤바 드래그 완료 후 인디케이터 위치만 업데이트
       setTimeout(() => {
-        const currentScrollLeft = timelinePage.scrollLeft;
-        const nearestSnap = findNearestSnapPoint(currentScrollLeft, snapPoints);
-        
-        if (nearestSnap) {
-          timelinePage.style.scrollBehavior = 'smooth';
-          timelinePage.scrollTo({
-            left: nearestSnap.scrollLeft,
-            behavior: 'smooth'
-          });
-          
-          // 스크롤 완료 후 인디케이터 위치 업데이트
-          setTimeout(() => {
-            if (updateIndicatorPosition) {
-              updateIndicatorPosition();
-            }
-          }, 300);
+        if (updateIndicatorPosition) {
+          updateIndicatorPosition();
         }
       }, 10);
     }

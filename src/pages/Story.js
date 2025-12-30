@@ -10,12 +10,27 @@ export async function renderStory() {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
 
-  // 로딩 상태 표시
+  // 로딩 상태 표시 - 스켈레톤 UI
+  const skeletonItems = Array(6).fill(0).map(() => `
+    <div class="gallery-item skeleton-item">
+      <div class="gallery-item-image-container">
+        <div class="gallery-item-front">
+          <div class="gallery-item-image">
+            <div class="skeleton-image"></div>
+          </div>
+        </div>
+      </div>
+      <div class="gallery-item-title">
+        <div class="skeleton-text skeleton-text-title"></div>
+      </div>
+    </div>
+  `).join('');
+  
   mainContent.innerHTML = `
     <div class="story-page">
       <main class="story-main">
         <div class="gallery-grid">
-          <div style="text-align: center; padding: 2rem;">로딩 중...</div>
+          ${skeletonItems}
         </div>
       </main>
     </div>
