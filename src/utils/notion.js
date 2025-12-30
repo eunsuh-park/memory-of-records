@@ -53,6 +53,13 @@ export async function testNotionConnection() {
       ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}`;
     
+    console.log('🔗 Notion API 호출:', {
+      isDev,
+      useProxy,
+      proxyUrl: NOTION_PROXY_URL,
+      apiUrl,
+    });
+    
     const headers = useProxy
       ? {
           'Content-Type': 'application/json',
@@ -114,6 +121,13 @@ export async function fetchNotionPages() {
     const apiUrl = useProxy
       ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}/query`
       : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`;
+    
+    console.log('🔗 Notion API 호출:', {
+      isDev,
+      useProxy,
+      proxyUrl: NOTION_PROXY_URL,
+      apiUrl,
+    });
     
     const headers = useProxy
       ? {
