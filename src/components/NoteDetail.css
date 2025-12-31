@@ -19,6 +19,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   object-fit: contain;
+  transform: scale(0.8); /* 이미지 크기를 0.8배로 축소 */
 }
 
 .note-error {
@@ -89,6 +90,7 @@
   height: auto;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: scale(0.8); /* 이미지 크기를 0.8배로 축소 */
 }
 
 /* 노트 네비게이션 */

@@ -2,7 +2,7 @@
 
 .timeline-scrollbar {
   position: fixed;
-  bottom: calc(1.5rem + 90px); /* 네비게이션 위에 배치 (네비게이션 높이 + 여유 공간) */
+  top: calc(0.5rem + 70px); /* 탑 네비게이션 아래에 배치 (네비게이션 높이 + 여유 공간) */
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001;
@@ -49,8 +49,8 @@
   position: absolute;
   top: 50%;
   left: 0%;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   background-color: #333;
   border-radius: 50%;
   transform: translate(-50%, -50%);
@@ -71,7 +71,7 @@
   .timeline-scrollbar {
     width: calc(100% - 3rem);
     max-width: none;
-    bottom: calc(1.5rem + 100px);
+    top: calc(0.5rem + 80px);
     padding: 0 1rem;
   }
 }

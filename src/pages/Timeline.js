@@ -3,7 +3,7 @@
  * 시기별 노트를 표시하는 페이지입니다.
  */
 
-import { periodOptions } from '../data/notesData.js';
+import { periodOptions, notesData } from '../data/notesData.js';
 import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
@@ -142,8 +142,24 @@ export function renderTimeline(period = 'elementary') {
 
   // 모든 노트 추가
   allNotesData.forEach(note => {
+    // notesData에서 매칭되는 노트 정보 찾기 (id 기반)
+    const noteData = notesData.find(n => {
+      // note.id가 "elementary-05-1" 형식이면 숫자 부분 추출
+      const noteIdStr = String(note.id);
+      if (noteIdStr.includes('-')) {
+        // period와 숫자로 매칭 시도
+        return false; // 일단 기본값 사용
+      }
+      return n.id === parseInt(note.id);
+    });
+    
+    const noteTitle = noteData?.title || `노트 ${note.id}`;
+    const diaryCount = noteData?.diaryCount || '0';
+    const noteSize = noteData?.size || 'A5';
+    const noteDescription = noteData?.content || noteData?.description || '노트에 대한 간단한 소개입니다.';
+    
     allNotesHTML.push(`
-      <article class="note-card" data-note-id="${note.id}" data-period="${note.period}">
+      <article class="note-card" data-note-id="${note.id}" data-period="${note.period}" data-note-title="${noteTitle}" data-diary-count="${diaryCount}" data-note-size="${noteSize}" data-note-description="${noteDescription}">
         <div class="note-card-link">
           <div class="note-cover-container">
             <img 
@@ -158,6 +174,11 @@ export function renderTimeline(period = 'elementary') {
               class="note-cover-image note-cover-back"
               onerror="this.style.display='none';"
             />
+          </div>
+          <div class="note-info">
+            <h3 class="note-info-title">${noteTitle}</h3>
+            <h5 class="note-info-meta">${diaryCount}개 / ${noteSize}</h5>
+            <p class="note-info-description">${noteDescription}</p>
           </div>
         </div>
       </article>
@@ -341,7 +362,14 @@ function setupNoteFocusSystem() {
  * 현재 포커스된 노트를 기준으로 모든 노트의 상태를 업데이트하는 함수
  */
 function updateNoteStates() {
-  if (!currentFocusedNoteId) return;
+  if (!currentFocusedNoteId) {
+    // focus된 노트가 없으면 모든 노트의 focus 클래스 제거 (CSS에서 자동으로 정보 숨김)
+    const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
+    allNoteCards.forEach(noteCard => {
+      noteCard.classList.remove('note-focus', 'note-adjacent', 'note-adjacent-adjacent', 'note-outer');
+    });
+    return;
+  }
 
   const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
   
@@ -350,7 +378,13 @@ function updateNoteStates() {
     card.getAttribute('data-note-id') === currentFocusedNoteId
   );
 
-  if (focusedIndex === -1) return;
+  if (focusedIndex === -1) {
+    // focus된 노트를 찾을 수 없으면 모든 노트의 focus 클래스 제거
+    allNoteCards.forEach(noteCard => {
+      noteCard.classList.remove('note-focus', 'note-adjacent', 'note-adjacent-adjacent', 'note-outer');
+    });
+    return;
+  }
 
   allNoteCards.forEach((noteCard, index) => {
     const distance = Math.abs(index - focusedIndex);
@@ -358,6 +392,7 @@ function updateNoteStates() {
 
     if (distance === 0) {
       noteCard.classList.add('note-focus');
+      // CSS에서 자동으로 정보 표시됨
     } else if (distance === 1) {
       noteCard.classList.add('note-adjacent');
     } else if (distance === 2) {
@@ -366,6 +401,14 @@ function updateNoteStates() {
       noteCard.classList.add('note-outer');
     }
   });
+}
+
+/**
+ * focus된 노트의 정보를 표시/숨김 처리하는 함수
+ * (CSS에서 .note-card.note-focus .note-info로 자동 처리됨)
+ */
+function updateNoteInfo(noteCard) {
+  // CSS에서 자동으로 처리되므로 별도 작업 불필요
 }
 
 /**

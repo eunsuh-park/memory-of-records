@@ -1,17 +1,17 @@
 /* Navigation 스타일 */
 
 .navigation {
-  /* 헤더를 페이지 하단에 고정 */
+  /* 헤더를 페이지 상단에 고정 */
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   background-color: #FFD966;
   border: none;
-  border-top-left-radius: 48px;
-  border-top-right-radius: 48px;
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-left-radius: 48px;
+  border-bottom-right-radius: 48px;
   z-index: 1000;
   transition: transform 0.3s ease, opacity 0.3s ease;
   max-width: 1200px;
