@@ -6,7 +6,6 @@
 import { router } from './router.js';
 import { renderNavigation } from './components/TopNavigation.js';
 import { renderFooter } from './components/Footer.js';
-import { testNotionConnection } from './utils/notion.js';
 import './index.css';
 import './App.css';
 
@@ -39,14 +38,6 @@ async function initApp() {
       console.log('✅ 네비게이션과 푸터 렌더링 완료');
     } catch (error) {
       console.error('❌ 네비게이션/푸터 렌더링 오류:', error);
-    }
-
-    // 노션 DB 자동 연결 테스트 (에러가 발생해도 앱은 계속 실행)
-    try {
-      console.log('🔗 노션 DB 연결 확인 중...');
-      await testNotionConnection();
-    } catch (error) {
-      console.warn('⚠️ 노션 DB 연결 실패 (앱은 계속 실행됩니다):', error);
     }
 
     // 라우터 초기화

@@ -1,180 +1,31 @@
 /**
  * Notion API 유틸리티
- * 노션 데이터베이스와 통신하는 함수들
+ * 노션 데이터 변환 및 파싱 함수들
  */
-
-// 환경 변수에서 노션 설정 가져오기
-const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
-const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
-// 프록시 API URL (프로덕션에서 CORS 문제 해결을 위해 사용)
-const NOTION_PROXY_URL = import.meta.env.VITE_NOTION_PROXY_URL || '';
 
 // 노션 데이터 캐시
 let notionPostsCache = null;
 
 /**
- * 노션 API 요청 헤더
- */
-function getNotionHeaders() {
-  return {
-    'Authorization': `Bearer ${NOTION_API_KEY}`,
-    'Notion-Version': '2022-06-28',
-    'Content-Type': 'application/json',
-  };
-}
-
-/**
- * 노션 연결 상태를 테스트하는 함수
- * @returns {Promise<boolean>} 연결 성공 여부
- */
-export async function testNotionConnection() {
-  const NOTION_API_KEY = import.meta.env.VITE_NOTION_API_KEY;
-  const NOTION_DATABASE_ID = import.meta.env.VITE_NOTION_DATABASE_ID;
-  const NOTION_PROXY_URL_ENV = import.meta.env.VITE_NOTION_PROXY_URL;
-  
-  // 디버깅: 환경 변수 확인
-  console.log('🔍 환경 변수 확인:', {
-    hasApiKey: !!NOTION_API_KEY,
-    hasDatabaseId: !!NOTION_DATABASE_ID,
-    hasProxyUrl: !!NOTION_PROXY_URL_ENV,
-    proxyUrl: NOTION_PROXY_URL_ENV || '(없음)',
-    allEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
-  });
-  
-  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) {
-    console.warn('⚠️ 노션 연결 실패: API 키 또는 데이터베이스 ID가 설정되지 않았습니다.');
-    console.warn('   .env 파일에 VITE_NOTION_API_KEY와 VITE_NOTION_DATABASE_ID를 설정해주세요.');
-    console.warn('   또는 GitHub Secrets에 설정하고 재배포하세요.');
-    return false;
-  }
-
-  try {
-    // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
-    const isDev = import.meta.env.DEV;
-    const proxyUrl = NOTION_PROXY_URL_ENV || NOTION_PROXY_URL;
-    const useProxy = isDev || proxyUrl;
-    
-    if (!isDev && !proxyUrl) {
-      console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
-      console.error('   CORS 문제를 해결하기 위해 프록시 서버가 필요합니다.');
-      console.error('   NOTION_PROXY_SETUP.md 파일을 참고하여 프록시를 설정하세요.');
-      return false;
-    }
-    
-    const apiUrl = useProxy
-      ? (proxyUrl || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}`
-      : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}`;
-    
-    console.log('🔗 Notion API 호출:', {
-      isDev,
-      useProxy,
-      proxyUrl: proxyUrl || '(없음)',
-      apiUrl,
-    });
-    
-    const headers = useProxy
-      ? {
-          'Content-Type': 'application/json',
-        }
-      : getNotionHeaders();
-    
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: headers,
-    });
-
-    if (response.ok) {
-      console.log('✅ 노션 DB 연결 성공!');
-      const data = await response.json();
-      console.log('📊 데이터베이스 정보:', {
-        title: data.title?.[0]?.plain_text || '제목 없음',
-        id: data.id,
-      });
-      return true;
-    } else {
-      const errorText = await response.text();
-      console.error('❌ 노션 연결 실패:', response.status, response.statusText);
-      console.error('   오류 상세:', errorText);
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ 노션 연결 오류:', error.message);
-    return false;
-  }
-}
-
-/**
- * 노션 데이터베이스에서 모든 페이지를 가져오는 함수
+ * /api/story 엔드포인트에서 모든 스토리를 가져오는 함수
  * @returns {Promise<Array>} 노션 페이지 배열
  */
 export async function fetchNotionPages() {
-  console.log('노션 API 호출 시작...');
-  console.log('API Key 존재:', !!NOTION_API_KEY);
-  console.log('Database ID:', NOTION_DATABASE_ID);
-  
-  if (!NOTION_API_KEY || !NOTION_DATABASE_ID) {
-    console.error('Notion API 키 또는 데이터베이스 ID가 설정되지 않았습니다.');
-    console.error('API Key:', NOTION_API_KEY ? '설정됨' : '없음');
-    console.error('Database ID:', NOTION_DATABASE_ID ? '설정됨' : '없음');
-    return [];
-  }
-
   try {
-    // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
-    const isDev = import.meta.env.DEV;
-    const useProxy = isDev || NOTION_PROXY_URL;
+    const response = await fetch('/api/story');
     
-    if (!isDev && !NOTION_PROXY_URL) {
-      console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
-      console.error('   CORS 문제를 해결하기 위해 프록시 서버가 필요합니다.');
-      return [];
-    }
-    
-    const apiUrl = useProxy
-      ? (NOTION_PROXY_URL || '/api/notion') + `/v1/databases/${NOTION_DATABASE_ID}/query`
-      : `https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`;
-    
-    console.log('🔗 Notion API 호출:', {
-      isDev,
-      useProxy,
-      proxyUrl: NOTION_PROXY_URL,
-      apiUrl,
-    });
-    
-    const headers = useProxy
-      ? {
-          'Content-Type': 'application/json',
-        }
-      : getNotionHeaders();
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        sorts: [
-          {
-            property: 'Date', // 영어 속성명
-            direction: 'descending'
-          }
-        ]
-      })
-    });
-
-    console.log('노션 API 응답 상태:', response.status, response.statusText);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('노션 API 오류 상세:', errorText);
-      throw new Error(`Notion API 오류: ${response.status} ${response.statusText}`);
+      console.error('Story API 오류:', response.status, response.statusText);
+      console.error('오류 상세:', errorText);
+      return [];
     }
 
     const data = await response.json();
-    console.log('노션 페이지 개수:', data.results?.length || 0);
-    console.log('노션 페이지 샘플:', data.results?.[0]);
+    console.log('스토리 페이지 개수:', data.results?.length || 0);
     return data.results || [];
   } catch (error) {
-    console.error('Notion API 요청 실패:', error);
-    console.error('에러 상세:', error.message);
+    console.error('Story API 요청 실패:', error);
     return [];
   }
 }
@@ -182,45 +33,20 @@ export async function fetchNotionPages() {
 /**
  * 노션 페이지 ID로 상세 내용을 가져오는 함수
  * @param {string} pageId - 노션 페이지 ID
- * @returns {Promise<Object>} 노션 페이지 블록 데이터
+ * @returns {Promise<Array>} 노션 페이지 블록 데이터
  */
 export async function fetchNotionPageContent(pageId) {
-  if (!NOTION_API_KEY) {
-    console.error('Notion API 키가 설정되지 않았습니다.');
-    return null;
-  }
-
   try {
-    // 개발 환경에서는 로컬 프록시 사용, 프로덕션에서는 프록시 URL 필수
-    const isDev = import.meta.env.DEV;
-    const useProxy = isDev || NOTION_PROXY_URL;
+    const response = await fetch(`/api/story?id=${encodeURIComponent(pageId)}`);
     
-    if (!isDev && !NOTION_PROXY_URL) {
-      console.error('❌ 프로덕션 환경에서는 VITE_NOTION_PROXY_URL이 필요합니다.');
-      return null;
-    }
-    
-    const apiUrl = useProxy
-      ? (NOTION_PROXY_URL || '/api/notion') + `/v1/blocks/${pageId}/children`
-      : `https://api.notion.com/v1/blocks/${pageId}/children`;
-    
-    const headers = useProxy
-      ? {}
-      : getNotionHeaders();
-    
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: headers,
-    });
-
     if (!response.ok) {
-      throw new Error(`Notion API 오류: ${response.status} ${response.statusText}`);
+      throw new Error(`Story API 오류: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    return data.results || [];
+    return data.blocks || [];
   } catch (error) {
-    console.error('Notion 페이지 내용 가져오기 실패:', error);
+    console.error('Story 페이지 내용 가져오기 실패:', error);
     return null;
   }
 }
