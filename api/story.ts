@@ -3,33 +3,28 @@
  * Notion API를 통해 Story 데이터를 제공하는 API
  * 
  * 환경 변수:
- * - NOTION_TOKEN: Notion API 토큰
+ * - NOTION_API_KEY: Notion API 토큰
  * - NOTION_DB_ID: Notion 데이터베이스 ID
  */
 
-export default async function handler(req: any, res: any) {
-  // CORS 헤더 설정
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-  // OPTIONS 요청 처리 (preflight)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
   // GET 요청만 허용
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const NOTION_TOKEN = process.env.NOTION_TOKEN;
+  const NOTION_API_KEY = process.env.NOTION_API_KEY;
   const NOTION_DB_ID = process.env.NOTION_DB_ID;
 
-  if (!NOTION_TOKEN || !NOTION_DB_ID) {
+  if (!NOTION_API_KEY || !NOTION_DB_ID) {
     return res.status(500).json({ 
       error: 'Notion configuration missing',
-      message: 'NOTION_TOKEN and NOTION_DB_ID environment variables are required'
+      message: 'NOTION_API_KEY and NOTION_DB_ID environment variables are required'
     });
   }
 
@@ -43,7 +38,7 @@ export default async function handler(req: any, res: any) {
       const blocksResponse = await fetch(blocksUrl, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${NOTION_TOKEN}`,
+          'Authorization': `Bearer ${NOTION_API_KEY}`,
           'Notion-Version': '2022-06-28',
           'Content-Type': 'application/json',
         },
@@ -63,7 +58,7 @@ export default async function handler(req: any, res: any) {
     const response = await fetch(queryUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Authorization': `Bearer ${NOTION_API_KEY}`,
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json',
       },
@@ -83,6 +78,10 @@ export default async function handler(req: any, res: any) {
     }
 
     const data = await response.json();
+    // TODO: Notion API pagination 처리 필요
+    // Notion은 기본 100개 제한이 있으므로, 스토리가 많아지면 has_more와 next_cursor를 사용하여
+    // 모든 페이지를 순회하여 결과를 수집해야 함
+    // 참고: data.has_more, data.next_cursor
     return res.status(200).json({ results: data.results || [] });
   } catch (error: any) {
     console.error('Story API error:', error);

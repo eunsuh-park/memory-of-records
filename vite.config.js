@@ -24,24 +24,5 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    server: {
-      proxy: {
-        '/api/notion': {
-          target: 'https://api.notion.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/notion/, ''),
-          configure: (proxy, _options) => {
-            proxy.on('proxyReq', (proxyReq, req, _res) => {
-              // 환경 변수에서 API 키 가져오기
-              const apiKey = env.VITE_NOTION_API_KEY;
-              if (apiKey) {
-                proxyReq.setHeader('Authorization', `Bearer ${apiKey}`);
-                proxyReq.setHeader('Notion-Version', '2022-06-28');
-              }
-            });
-          },
-        },
-      },
-    },
   };
 })
