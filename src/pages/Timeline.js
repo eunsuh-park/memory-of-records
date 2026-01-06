@@ -403,13 +403,6 @@ function updateNoteStates() {
   });
 }
 
-/**
- * focus된 노트의 정보를 표시/숨김 처리하는 함수
- * (CSS에서 .note-card.note-focus .note-info로 자동 처리됨)
- */
-function updateNoteInfo(noteCard) {
-  // CSS에서 자동으로 처리되므로 별도 작업 불필요
-}
 
 /**
  * 특정 노트에 포커스를 맞추고 정중앙으로 스크롤하는 함수
@@ -699,68 +692,6 @@ function setupTimelineIndicator() {
   }, { passive: true });
 }
 
-/**
- * 각 노트의 시작 위치로 스냅 포인트를 계산하는 함수 (첫 번째 노트가 잘리지 않도록)
- */
-function calculateSnapPoints() {
-  const timelinePage = document.querySelector('.timeline-page');
-  const sections = document.querySelectorAll('.timeline-period-section');
-  if (!timelinePage || sections.length === 0) return [];
-
-  const snapPoints = [];
-
-  const timelinePageRect = timelinePage.getBoundingClientRect();
-  
-  sections.forEach((section, sectionIndex) => {
-    const notesList = section.querySelector('.notes-list');
-    if (!notesList || notesList.children.length === 0) return;
-
-    // 노트 리스트의 실제 스크롤 위치 계산
-    const notesListRect = notesList.getBoundingClientRect();
-    const notesListScrollLeft = notesListRect.left - timelinePageRect.left + timelinePage.scrollLeft;
-    const paddingLeft = 32; // notes-list의 padding-left (2rem = 32px)
-    
-    const totalNotes = notesList.children.length;
-    
-    // 각 노트의 시작 위치를 스냅 포인트로 계산
-    for (let i = 0; i < totalNotes; i++) {
-      const note = notesList.children[i];
-      const noteRect = note.getBoundingClientRect();
-      
-      // 노트의 왼쪽 가장자리가 타임라인 페이지의 왼쪽 가장자리에 맞도록 스냅 포인트 계산
-      const noteLeftInNotesList = noteRect.left - notesListRect.left;
-      const snapLeft = notesListScrollLeft + noteLeftInNotesList - paddingLeft;
-      
-      snapPoints.push({
-        scrollLeft: snapLeft,
-        sectionIndex: sectionIndex,
-        noteIndex: i
-      });
-    }
-  });
-
-  return snapPoints;
-}
-
-/**
- * 가장 가까운 스냅 포인트를 찾는 함수
- */
-function findNearestSnapPoint(currentScrollLeft, snapPoints) {
-  if (snapPoints.length === 0) return null;
-
-  let nearest = snapPoints[0];
-  let minDistance = Math.abs(currentScrollLeft - snapPoints[0].scrollLeft);
-
-  snapPoints.forEach(point => {
-    const distance = Math.abs(currentScrollLeft - point.scrollLeft);
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearest = point;
-    }
-  });
-
-  return nearest;
-}
 
 /**
  * 타임라인 진행 표시줄 드래그 기능 설정

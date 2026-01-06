@@ -21,43 +21,12 @@
   width: 100%;
   height: fit-content;
   vertical-align: bottom;
+  padding-top: 72px; /* TopNavigation 높이만큼 여백 추가 */
 }
 
-/* main 양끝에 그라데이션 div - StoryDetail 페이지에서만 표시 */
-.main-side-gradient {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: 50px;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  display: none;
-}
-
-/* StoryDetail 페이지에서만 그라데이션 표시 */
-body.story-detail-page-active .main-side-gradient {
-  display: block;
-}
-
-.main-side-left {
-  left: 0;
-  background: repeating-linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0.75) 5px,
-    rgba(0, 0, 0, 0.1) 5px,
-    rgba(0, 0, 0, 0.75) 10px
-  );
-}
-
-.main-side-right {
-  right: 0;
-  background: repeating-linear-gradient(
-    to left,
-    rgba(0, 0, 0, 0.75) 5px,
-    rgba(0, 0, 0, 0.1) 5px,
-    rgba(0, 0, 0, 0.75) 10px
-  );
+/* StoryDetail 페이지는 padding-top 제거 (전체 화면 사용) */
+body.story-detail-page-active .app-main {
+  padding-top: 0;
 }
 
 /* 전역 스타일 - 기본 설정 */
@@ -87,4 +56,15 @@ a {
 button {
   font-family: inherit;
   font-size: inherit;
+}
+
+/* 반응형 디자인 - 모바일 */
+@media (max-width: 768px) {
+  .app-main {
+    padding-top: 80px; /* 모바일에서 TopNavigation 높이 증가 (컬럼 레이아웃) */
+  }
+  
+  body.story-detail-page-active .app-main {
+    padding-top: 0;
+  }
 }

@@ -3,7 +3,7 @@
 .sub-menu {
   /* 서브 메뉴를 상단에 고정 및 가운데 정렬 */
   position: fixed;
-  top: 48px; /* 상단에서 48px 여백 */
+  top: 0.75rem; /* TopNavigation과 겹치도록 */
   left: 50%;
   transform: translateX(-50%); /* 가로만 중앙 정렬 */
   background-color: #fff;
@@ -115,7 +115,7 @@
   .sub-menu {
     max-width: calc(100% - 3rem);
     width: calc(100% - 3rem);
-    top: 48px; /* 상단에서 48px 여백 */
+    top: 0; /* TopNavigation과 겹치도록 */
     left: 50%;
     transform: translateX(-50%); /* 가로만 중앙 정렬 */
     padding: 0.75rem 1rem;

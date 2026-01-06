@@ -8,6 +8,7 @@
   max-height: 100vh !important;
   overflow: hidden !important;
   box-sizing: border-box;
+  padding-top: 0 !important; /* Timeline 페이지는 padding-top 제거 */
 }
 
 /* 배경색 전환 애니메이션 */
