@@ -58,13 +58,3 @@ button {
   font-size: inherit;
 }
 
-/* 반응형 디자인 - 모바일 */
-@media (max-width: 768px) {
-  .app-main {
-    padding-top: 80px; /* 모바일에서 TopNavigation 높이 증가 (컬럼 레이아웃) */
-  }
-  
-  body.story-detail-page-active .app-main {
-    padding-top: 0;
-  }
-}

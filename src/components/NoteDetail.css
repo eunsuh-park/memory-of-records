@@ -149,22 +149,4 @@
   background-color: #555;
 }
 
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .note-detail {
-    padding: 1rem;
-  }
-
-  .note-title {
-    font-size: 2rem;
-  }
-
-  .note-nav-buttons {
-    flex-direction: column;
-  }
-
-  .nav-button {
-    width: 100%;
-  }
-}
 

@@ -61,23 +61,4 @@
   border-color: #333;
 }
 
-/* Tablet & Mobile */
-@media (max-width: 1023px) {
-  .quick-scroll-menu {
-    display: flex;
-  }
-
-  .detail-view-open .quick-scroll-menu {
-    transform: translateX(120px);
-    opacity: 0;
-    pointer-events: none;
-  }
-}
-
-/* Mobile */
-@media (max-width: 767px) {
-  .quick-scroll-menu {
-    bottom: 20px;
-  }
-}
 

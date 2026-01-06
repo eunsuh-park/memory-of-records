@@ -66,13 +66,4 @@
   transition: none;
 }
 
-/* 반응형 디자인 - 모바일 */
-@media (max-width: 768px) {
-  .timeline-scrollbar {
-    width: calc(100% - 3rem);
-    max-width: none;
-    top: calc(0.5rem + 80px);
-    padding: 0 1rem;
-  }
-}
 

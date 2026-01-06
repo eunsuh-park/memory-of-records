@@ -291,29 +291,4 @@ body.timeline-active.period-after-graduation {
   color: #999;
 }
 
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .timeline-container {
-    flex-direction: column;
-  }
-
-  .timeline-main {
-    padding: 1rem;
-  }
-
-  .notes-list {
-    flex-direction: row;
-    overflow-x: scroll;
-  }
-
-  .note-card {
-    width: 100%;
-    flex: 1 1 100%;
-    min-width: auto;
-  }
-
-  .note-cover-container {
-    height: 240px;
-  }
-}
 

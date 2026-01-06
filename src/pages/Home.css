@@ -66,18 +66,4 @@
   color: #555;
 }
 
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .main-title {
-    font-size: 2rem;
-  }
-
-  .subtitle {
-    font-size: 1.2rem;
-  }
-
-  .description {
-    font-size: 1rem;
-  }
-}
 
