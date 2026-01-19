@@ -8,6 +8,7 @@ import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
+import { renderNotePdfViewer } from './NoteDetail.js';
 import './Timeline.css';
 
 // base 경로 가져오기
@@ -196,6 +197,22 @@ export function renderTimeline(period = 'elementary') {
       ${allNotesHTML.join('')}
     </div>
   `;
+
+  // 노트 클릭: 포커스된 노트면 모달로 PDF 표시, 아니면 포커스 이동
+  timelineMain.querySelectorAll('.note-card[data-note-id]').forEach(noteCard => {
+    noteCard.addEventListener('click', (event) => {
+      event.preventDefault();
+      const noteId = noteCard.getAttribute('data-note-id');
+      if (!noteId) return;
+
+      if (noteCard.classList.contains('note-focus')) {
+        openPdfModal(noteId);
+        return;
+      }
+
+      focusNote(noteId);
+    });
+  });
 
   // QuickScrollMenu 아이템 생성
   const quickScrollItems = periodOptions.map(option => {
@@ -442,6 +459,53 @@ function focusNote(noteId) {
     timelinePage.style.scrollSnapType = '';
     isScrollingToTarget = false;
   }, 600);
+}
+
+/**
+ * PDF 뷰어 모달을 여는 함수
+ */
+function openPdfModal(noteId) {
+  const existing = document.querySelector('.pdf-modal-overlay');
+  if (existing) {
+    existing.remove();
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-modal-overlay';
+  overlay.innerHTML = `
+    <div class="pdf-modal" role="dialog" aria-modal="true">
+      <button class="pdf-modal-close" type="button" aria-label="닫기">✕</button>
+      <div class="pdf-modal-content"></div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.classList.add('pdf-modal-open');
+
+  const content = overlay.querySelector('.pdf-modal-content');
+  const closeButton = overlay.querySelector('.pdf-modal-close');
+  const cleanupViewer = renderNotePdfViewer(content, noteId);
+
+  const closeModal = () => {
+    cleanupViewer?.();
+    overlay.remove();
+    document.body.classList.remove('pdf-modal-open');
+    document.removeEventListener('keydown', handleEscape);
+  };
+
+  const handleEscape = (event) => {
+    if (event.key === 'Escape') {
+      closeModal();
+    }
+  };
+
+  closeButton.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) {
+      closeModal();
+    }
+  });
+  document.addEventListener('keydown', handleEscape);
 }
 
 /**

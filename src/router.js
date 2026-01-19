@@ -19,7 +19,7 @@ class Router {
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/story', handler: renderStory },
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
-      { path: '/note/:id', handler: (params) => renderNoteDetail(parseInt(params.id)) },
+      { path: '/note/:id', handler: (params) => renderNoteDetail(params.id) },
     ];
   }
 
@@ -85,6 +85,9 @@ class Router {
     // 상세 페이지가 아닐 때 클래스 제거
     if (!path.startsWith('/story/')) {
       document.body.classList.remove('story-detail-page-active');
+    }
+    if (!path.startsWith('/note/')) {
+      document.body.classList.remove('note-detail-modal');
     }
 
     // Timeline 페이지가 아닐 때 서브 메뉴 제거

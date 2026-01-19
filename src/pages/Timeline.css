@@ -255,6 +255,47 @@ body.timeline-active.period-after-graduation {
   opacity: 1;
 }
 
+/* PDF 모달 */
+.pdf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pdf-modal {
+  width: min(1200px, 100%);
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+}
+
+.pdf-modal-close {
+  align-self: flex-end;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  padding: 12px 16px 0 0;
+  cursor: pointer;
+}
+
+.pdf-modal-content {
+  padding: 12px 16px 16px;
+  overflow: auto;
+}
+
+body.pdf-modal-open {
+  overflow: hidden;
+}
+
 .note-card-fallback {
   padding: 1.5rem;
 }

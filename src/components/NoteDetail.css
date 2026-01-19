@@ -149,4 +149,116 @@
   background-color: #555;
 }
 
+.pdf-viewer {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pdf-canvas-wrap {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.pdf-canvas-wrap canvas {
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  transition: opacity 0.2s ease;
+}
+
+.pdf-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 1;
+  text-align: center;
+  padding: 16px;
+}
+
+.pdf-overlay.show {
+  display: flex;
+}
+
+.pdf-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #111827;
+  border-radius: 50%;
+  animation: pdf-spin 0.8s linear infinite;
+}
+
+@keyframes pdf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pdf-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.pdf-controls button,
+.pdf-controls input[type="number"] {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #333;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.pdf-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pdf-controls input[type="number"] {
+  width: 80px;
+  text-align: center;
+}
+
+.pdf-page-info {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.pdf-hint {
+  text-align: center;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .pdf-canvas-wrap {
+    min-height: 50vh;
+  }
+  .pdf-controls button,
+  .pdf-controls input[type="number"] {
+    font-size: 13px;
+  }
+}
 
