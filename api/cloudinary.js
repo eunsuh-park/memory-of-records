@@ -59,6 +59,18 @@ export default async function handler(req, res) {
       contents: 'Notebooks/Contents'
     };
 
+    const parseFileNameMeta = (baseName) => {
+      const [yearLabel = '', typeRaw = ''] = baseName.split('-', 2);
+      const match = typeRaw.match(/^(.*?)(\d+)?$/);
+      const recordType = (match?.[1] || '').trim();
+      const recordOrder = match?.[2] ? Number(match[2]) : null;
+      return {
+        year_label: yearLabel,
+        record_type: recordType,
+        record_order: recordOrder
+      };
+    };
+
     const normalizeAsset = (asset) => {
       const baseName = asset.public_id.split('/').pop() || asset.public_id;
       const fileName = asset.format ? `${baseName}.${asset.format}` : baseName;
@@ -68,6 +80,7 @@ export default async function handler(req, res) {
         url: asset.secure_url,
         bytes: asset.bytes,
         format: asset.format,
+        pages: typeof asset.pages === 'number' ? asset.pages : null,
         created_at: asset.created_at
       };
     };
@@ -112,9 +125,10 @@ export default async function handler(req, res) {
     ]);
 
     const notes = Array.from(allKeys)
-      .sort()
+      .sort((a, b) => a.localeCompare(b, 'ko'))
       .map((key) => ({
         key,
+        ...parseFileNameMeta(key),
         front: frontMap[key]?.url || null,
         back: backMap[key]?.url || null,
         contents: contentsMap[key]?.url || null,

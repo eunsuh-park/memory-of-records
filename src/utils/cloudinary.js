@@ -6,10 +6,13 @@
  *   "count": 18,
  *   "notes": [
  *     {
- *       "key": "note_01",
- *       "front": "https://res.cloudinary.com/..../Notebooks/Cover/Front/note_01.png",
- *       "back": "https://res.cloudinary.com/..../Notebooks/Cover/Back/note_01.png",
- *       "contents": "https://res.cloudinary.com/..../Notebooks/Contents/note_01.pdf",
+ *       "key": "2005-그림일기",
+ *       "year_label": "2005",
+ *       "record_type": "그림일기",
+ *       "record_order": null,
+ *       "front": "https://res.cloudinary.com/..../Notebooks/Cover/Front/2005-그림일기.png",
+ *       "back": "https://res.cloudinary.com/..../Notebooks/Cover/Back/2005-그림일기.png",
+ *       "contents": "https://res.cloudinary.com/..../Notebooks/Contents/2005-그림일기.pdf",
  *       "front_asset": { ... },
  *       "back_asset": { ... },
  *       "contents_asset": { ... }
@@ -39,6 +42,31 @@ export async function fetchNotebookAssets() {
   }
 
   return response.json();
+}
+
+let cachedNotebookAssets = null;
+let cachedNotebookAssetsPromise = null;
+
+/**
+ * 노트북 리소스 캐시 버전
+ * @returns {Promise<{count: number, notes: Array, items: Array, next_cursor: string | null}>}
+ */
+export async function getNotebookAssets() {
+  if (cachedNotebookAssets) return cachedNotebookAssets;
+  if (cachedNotebookAssetsPromise) return cachedNotebookAssetsPromise;
+
+  cachedNotebookAssetsPromise = fetchNotebookAssets()
+    .then((data) => {
+      cachedNotebookAssets = data;
+      return data;
+    })
+    .catch((error) => {
+      cachedNotebookAssets = null;
+      cachedNotebookAssetsPromise = null;
+      throw error;
+    });
+
+  return cachedNotebookAssetsPromise;
 }
 
 /**

@@ -8,6 +8,7 @@ import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
+import { getNotebookAssets } from '../utils/cloudinary.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import './Timeline.css';
 
@@ -20,6 +21,7 @@ let currentPeriod = null; // 현재 선택된 period 추적
 let isScrollingToTarget = false; // 타겟으로 스크롤 중인지 추적
 let currentFocusedNoteId = null; // 현재 포커스된 노트 ID
 let allNotesData = []; // 전체 노트 데이터 (순서대로)
+const CLOUDINARY_NOTE_LIMIT = 18;
 
 export function renderTimeline(period = 'elementary') {
   const mainContent = document.getElementById('main-content');
@@ -270,6 +272,9 @@ export function renderTimeline(period = 'elementary') {
   
   // 현재 period 업데이트
   currentPeriod = selectedPeriod;
+
+  // Cloudinary 이미지로 첫 18개 노트 표지 업데이트
+  applyCloudinaryImagesToTimeline(timelineMain);
 }
 
 // Observer 인스턴스를 저장하여 중복 생성 방지
@@ -482,7 +487,12 @@ function openPdfModal(noteId) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
-  const cleanupViewer = renderNotePdfViewer(content, noteId, { mode: 'modal' });
+  const noteCard = document.querySelector(`.note-card[data-note-id="${noteId}"]`);
+  const cloudinaryKey = noteCard?.getAttribute('data-cloudinary-key') || null;
+  const cleanupViewer = renderNotePdfViewer(content, noteId, {
+    mode: 'modal',
+    cloudinaryKey
+  });
 
   const closeModal = () => {
     cleanupViewer?.();
@@ -945,5 +955,55 @@ function setupMainAreaDrag() {
 
   timelinePage.addEventListener('touchstart', handleTouchStart, { passive: true });
   timelinePage.addEventListener('touchmove', handleTouchMove, { passive: false });
+}
+
+/**
+ * Cloudinary에서 가져온 표지 이미지로 첫 18개 노트를 덮어씁니다.
+ */
+async function applyCloudinaryImagesToTimeline(timelineMain) {
+  if (!timelineMain) return;
+
+  try {
+    const data = await getNotebookAssets();
+    const cloudinaryNotes = Array.isArray(data?.notes)
+      ? data.notes.slice(0, CLOUDINARY_NOTE_LIMIT)
+      : [];
+
+    if (cloudinaryNotes.length === 0) return;
+
+    const noteCards = timelineMain.querySelectorAll('.note-card');
+    cloudinaryNotes.forEach((noteAsset, index) => {
+      const noteCard = noteCards[index];
+      if (!noteCard) return;
+
+      const frontImg = noteCard.querySelector('.note-cover-front');
+      const backImg = noteCard.querySelector('.note-cover-back');
+      const titleEl = noteCard.querySelector('.note-info-title');
+      const metaEl = noteCard.querySelector('.note-info-meta');
+      const descriptionEl = noteCard.querySelector('.note-info-description');
+
+      if (noteAsset.key) {
+        noteCard.setAttribute('data-cloudinary-key', noteAsset.key);
+      }
+      if (frontImg && noteAsset.front) {
+        frontImg.src = noteAsset.front;
+      }
+      if (backImg && noteAsset.back) {
+        backImg.src = noteAsset.back;
+      }
+      if (titleEl && noteAsset.key) {
+        titleEl.textContent = noteAsset.key;
+      }
+      if (descriptionEl) {
+        descriptionEl.textContent = noteAsset.record_type || '';
+      }
+      if (metaEl) {
+        const pages = noteAsset.contents_asset?.pages;
+        metaEl.textContent = typeof pages === 'number' ? `${pages} 페이지` : '';
+      }
+    });
+  } catch (error) {
+    console.warn('Cloudinary 표지 이미지 로드 실패:', error);
+  }
 }
 

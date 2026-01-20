@@ -5,27 +5,16 @@
 
 import { periodOptions } from '../data/notesData.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
+import { getNotebookAssets } from '../utils/cloudinary.js';
 import './NoteDetailPage.css';
 import '../components/NoteDetail.css';
 
-const COLLECTION_URL =
-  'https://collection.cloudinary.com/djpgxjwpd/a34832296ffa829df1822992158a70b2';
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_CDN =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const MANUAL_PDF_URLS = [
-  // 임의 매핑 (1번째 노트로 연결)
-  'https://res.cloudinary.com/djpgxjwpd/image/upload/v1768803706/2006-%EC%9D%BC%EA%B8%B02_compressed_1_juredk.pdf',
-  // 17번째 노트 (1-based) = index 16
-  , , , , , , , , , , , , , , ,
-  'https://collection.cloudinary.com/djpgxjwpd/02c63df4415b70f88ac259d4f76859f9',
-];
+const CLOUDINARY_NOTE_LIMIT = 18;
 
 let cachedTimelineNotes = null;
-let cachedPdfUrls = null;
-let cachedPdfPromise = null;
-
 function getTimelineNotes() {
   if (cachedTimelineNotes) return cachedTimelineNotes;
   const notes = [];
@@ -68,54 +57,26 @@ async function ensurePdfJs() {
   await loadScript(PDFJS_CDN);
 }
 
-async function fetchTextWithCorsFallback(url) {
+async function resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey) {
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('응답 오류');
+    const data = await getNotebookAssets();
+    const notes = Array.isArray(data?.notes) ? data.notes : [];
+    if (cloudinaryKey) {
+      const matched = notes.find((note) => note.key === cloudinaryKey);
+      return matched?.contents || null;
     }
-    return await response.text();
+    if (timelineIndex < 0 || timelineIndex >= CLOUDINARY_NOTE_LIMIT) return null;
+    const indexedNote = notes[timelineIndex];
+    const key = indexedNote?.key;
+    if (key) {
+      const matched = notes.find((note) => note.key === key);
+      return matched?.contents || indexedNote?.contents || null;
+    }
+    return indexedNote?.contents || null;
   } catch (error) {
-    const proxiedUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
-    const response = await fetch(proxiedUrl);
-    if (!response.ok) {
-      throw new Error('프록시 응답 오류');
-    }
-    return await response.text();
+    console.error('Cloudinary PDF 로드 실패:', error);
+    return null;
   }
-}
-
-async function fetchCollectionPdfUrls() {
-  const manualUrls = MANUAL_PDF_URLS.filter(Boolean);
-  if (manualUrls.length > 0) {
-    return manualUrls;
-  }
-
-  const htmlText = await fetchTextWithCorsFallback(COLLECTION_URL);
-  const matches = htmlText.match(/https?:\/\/res\.cloudinary\.com\/[^"'\\s]+?\.pdf[^"'\\s]*/g) || [];
-  const unique = Array.from(new Set(matches));
-  return unique;
-}
-
-async function getCollectionPdfUrls() {
-  if (cachedPdfUrls) return cachedPdfUrls;
-  if (cachedPdfPromise) return cachedPdfPromise;
-  cachedPdfPromise = fetchCollectionPdfUrls()
-    .then(urls => {
-      cachedPdfUrls = urls;
-      return urls;
-    })
-    .catch(() => {
-      cachedPdfUrls = [];
-      return [];
-    });
-  return cachedPdfPromise;
-}
-
-async function resolvePdfUrlForNote(noteId, timelineIndex) {
-  if (timelineIndex < 0) return null;
-  const urls = await getCollectionPdfUrls();
-  return urls[timelineIndex] || null;
 }
 
 export function renderNotePdfViewer(targetEl, id, options = {}) {
@@ -123,6 +84,7 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
 
   const noteId = decodeURIComponent(String(id || '')).trim();
   const isModal = options.mode === 'modal';
+  const cloudinaryKey = options.cloudinaryKey || null;
 
   const timelineNotes = getTimelineNotes();
   const timelineIndex = timelineNotes.findIndex(note => note.id === noteId);
@@ -312,9 +274,9 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   async function initPdfViewer() {
     showOverlay('PDF 목록 불러오는 중...');
     await ensurePdfJs();
-    const pdfUrl = await resolvePdfUrlForNote(noteId, timelineIndex);
+    const pdfUrl = await resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey);
     if (!pdfUrl) {
-      showOverlay('PDF를 찾을 수 없습니다. 컬렉션 URL을 확인해주세요.');
+      showOverlay('PDF를 찾을 수 없습니다. Cloudinary 파일을 확인해주세요.');
       return;
     }
     loadPdf(pdfUrl);
