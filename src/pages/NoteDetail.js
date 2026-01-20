@@ -118,52 +118,70 @@ async function resolvePdfUrlForNote(noteId, timelineIndex) {
   return urls[timelineIndex] || null;
 }
 
-export function renderNotePdfViewer(targetEl, id) {
+export function renderNotePdfViewer(targetEl, id, options = {}) {
   if (!targetEl) return null;
 
   const noteId = decodeURIComponent(String(id || '')).trim();
+  const isModal = options.mode === 'modal';
 
   const timelineNotes = getTimelineNotes();
   const timelineIndex = timelineNotes.findIndex(note => note.id === noteId);
   const timelineNote = timelineIndex >= 0 ? timelineNotes[timelineIndex] : null;
 
   if (!timelineNote) {
-    targetEl.innerHTML = `
-      <div class="note-detail-page">
-        <div class="note-detail">
+    targetEl.innerHTML = isModal
+      ? `
+        <section class="pdf-viewer pdf-viewer--modal">
           <div class="note-error">
             <p>노트를 찾을 수 없습니다.</p>
           </div>
+        </section>
+      `
+      : `
+        <div class="note-detail-page">
+          <div class="note-detail">
+            <div class="note-error">
+              <p>노트를 찾을 수 없습니다.</p>
+            </div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
     return null;
   }
 
-  targetEl.innerHTML = `
-    <div class="note-detail-page">
-      <article class="note-detail">
-        <section class="pdf-viewer">
-          <div class="pdf-canvas-wrap">
-            <canvas id="pdf-canvas"></canvas>
-            <div id="pdf-overlay" class="pdf-overlay show">
-              <div class="pdf-spinner" aria-hidden="true"></div>
-              <div id="pdf-overlay-text">PDF 목록 불러오는 중...</div>
-            </div>
-          </div>
-          <div class="pdf-controls">
-            <button id="pdf-prev" type="button">← 이전</button>
-            <input id="pdf-page-input" type="number" min="1" value="1" />
-            <span class="pdf-page-info">/ <span id="pdf-total-pages">-</span></span>
-            <button id="pdf-next" type="button">다음 →</button>
-            <button id="pdf-zoom-out" type="button">축소</button>
-            <button id="pdf-zoom-in" type="button">확대</button>
-          </div>
-          <div class="pdf-hint">키보드: ←/→ 페이지 이동, +/- 확대/축소</div>
-        </section>
-      </article>
-    </div>
+  const viewerMarkup = `
+    <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
+      <div class="pdf-canvas-wrap">
+        <button id="pdf-prev" class="pdf-nav-button pdf-nav-prev" type="button" aria-label="이전 페이지">←</button>
+        <button id="pdf-next" class="pdf-nav-button pdf-nav-next" type="button" aria-label="다음 페이지">→</button>
+        <div class="pdf-page-indicator">
+          <button id="pdf-first" type="button" aria-label="처음 페이지">«</button>
+          <span id="pdf-current-page">1</span>/<span id="pdf-total-pages">-</span>
+          <button id="pdf-last" type="button" aria-label="마지막 페이지">»</button>
+        </div>
+        <div class="pdf-zoom-controls">
+          <button id="pdf-zoom-reset" type="button" aria-label="100% 비율로 초기화">100%</button>
+          <button id="pdf-zoom-in" type="button" aria-label="확대">+</button>
+          <button id="pdf-zoom-out" type="button" aria-label="축소">-</button>
+        </div>
+        <canvas id="pdf-canvas"></canvas>
+        <div id="pdf-overlay" class="pdf-overlay show">
+          <div class="pdf-spinner" aria-hidden="true"></div>
+          <div id="pdf-overlay-text">PDF 목록 불러오는 중...</div>
+        </div>
+      </div>
+    </section>
   `;
+
+  targetEl.innerHTML = isModal
+    ? viewerMarkup
+    : `
+      <div class="note-detail-page">
+        <article class="note-detail">
+          ${viewerMarkup}
+        </article>
+      </div>
+    `;
 
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
@@ -171,8 +189,11 @@ export function renderNotePdfViewer(targetEl, id) {
   const ctx = canvas.getContext('2d');
   const prevBtn = targetEl.querySelector('#pdf-prev');
   const nextBtn = targetEl.querySelector('#pdf-next');
-  const pageInput = targetEl.querySelector('#pdf-page-input');
+  const firstBtn = targetEl.querySelector('#pdf-first');
+  const lastBtn = targetEl.querySelector('#pdf-last');
+  const currentPageEl = targetEl.querySelector('#pdf-current-page');
   const totalPagesEl = targetEl.querySelector('#pdf-total-pages');
+  const zoomResetBtn = targetEl.querySelector('#pdf-zoom-reset');
   const zoomOutBtn = targetEl.querySelector('#pdf-zoom-out');
   const zoomInBtn = targetEl.querySelector('#pdf-zoom-in');
 
@@ -180,7 +201,8 @@ export function renderNotePdfViewer(targetEl, id) {
   let pageNum = 1;
   let pageRendering = false;
   let pageNumPending = null;
-  let scale = 0.6;
+  const initialScale = 0.6;
+  let scale = initialScale;
   let usingProxy = false;
 
   function showOverlay(message) {
@@ -197,7 +219,13 @@ export function renderNotePdfViewer(targetEl, id) {
   function updateControls() {
     prevBtn.disabled = pageNum <= 1 || pageRendering;
     nextBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
-    pageInput.value = pageNum;
+    if (firstBtn) {
+      firstBtn.disabled = pageNum <= 1 || pageRendering;
+    }
+    if (lastBtn) {
+      lastBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
+    }
+    currentPageEl.textContent = pageNum;
     totalPagesEl.textContent = pdfDoc ? pdfDoc.numPages : '-';
   }
 
@@ -251,6 +279,12 @@ export function renderNotePdfViewer(targetEl, id) {
     queueRenderPage(pageNum);
   }
 
+  function resetZoom() {
+    if (scale === initialScale) return;
+    scale = initialScale;
+    queueRenderPage(pageNum);
+  }
+
   async function loadPdf(url) {
     try {
       showOverlay('PDF 불러오는 중...');
@@ -296,34 +330,22 @@ export function renderNotePdfViewer(targetEl, id) {
     goToPage(pageNum + 1);
   });
 
-  pageInput.addEventListener('change', (event) => {
-    const value = parseInt(event.target.value, 10);
-    if (!Number.isNaN(value)) {
-      goToPage(value);
-    } else {
-      pageInput.value = pageNum;
-    }
+  firstBtn?.addEventListener('click', () => {
+    if (!pdfDoc || pageNum <= 1) return;
+    goToPage(1);
   });
 
-  pageInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      const value = parseInt(pageInput.value, 10);
-      if (!Number.isNaN(value)) {
-        goToPage(value);
-      }
-    }
+  lastBtn?.addEventListener('click', () => {
+    if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+    goToPage(pdfDoc.numPages);
   });
 
+  zoomResetBtn.addEventListener('click', resetZoom);
   zoomInBtn.addEventListener('click', () => changeZoom(0.2));
   zoomOutBtn.addEventListener('click', () => changeZoom(-0.2));
 
   const handleKeydown = (event) => {
-    if (document.activeElement === pageInput) return;
-    if (event.key === 'ArrowLeft') {
-      goToPage(pageNum - 1);
-    } else if (event.key === 'ArrowRight') {
-      goToPage(pageNum + 1);
-    } else if (event.key === '+' || event.key === '=') {
+    if (event.key === '+' || event.key === '=') {
       changeZoom(0.2);
     } else if (event.key === '-') {
       changeZoom(-0.2);

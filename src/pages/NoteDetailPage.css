@@ -1,7 +1,20 @@
 /* NoteDetailPage 페이지 스타일 */
 
 .note-detail-page {
-  min-height: calc(100vh - 200px);
-  padding: 2rem 0;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.note-detail-page .note-detail {
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.note-detail-page .pdf-viewer {
+  margin-top: 0;
+  flex: 1;
 }
 

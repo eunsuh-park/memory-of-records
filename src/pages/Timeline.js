@@ -474,7 +474,6 @@ function openPdfModal(noteId) {
   overlay.className = 'pdf-modal-overlay';
   overlay.innerHTML = `
     <div class="pdf-modal" role="dialog" aria-modal="true">
-      <button class="pdf-modal-close" type="button" aria-label="닫기">✕</button>
       <div class="pdf-modal-content"></div>
     </div>
   `;
@@ -483,8 +482,7 @@ function openPdfModal(noteId) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
-  const closeButton = overlay.querySelector('.pdf-modal-close');
-  const cleanupViewer = renderNotePdfViewer(content, noteId);
+  const cleanupViewer = renderNotePdfViewer(content, noteId, { mode: 'modal' });
 
   const closeModal = () => {
     cleanupViewer?.();
@@ -499,7 +497,6 @@ function openPdfModal(noteId) {
     }
   };
 
-  closeButton.addEventListener('click', closeModal);
   overlay.addEventListener('click', (event) => {
     if (event.target === overlay) {
       closeModal();
