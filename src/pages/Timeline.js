@@ -274,7 +274,16 @@ export function renderTimeline(period = 'elementary') {
   currentPeriod = selectedPeriod;
 
   // Cloudinary 이미지로 첫 18개 노트 표지 업데이트
-  applyCloudinaryImagesToTimeline(timelineMain);
+  applyCloudinaryImagesToTimeline(timelineMain)
+    .then(() => {
+      updateNoteTitlesFromCoverImages(timelineMain);
+    })
+    .catch(() => {
+      updateNoteTitlesFromCoverImages(timelineMain);
+    });
+
+  // 기본(로컬) 이미지 기준으로 우선 제목 표시
+  updateNoteTitlesFromCoverImages(timelineMain);
 }
 
 // Observer 인스턴스를 저장하여 중복 생성 방지
@@ -1005,5 +1014,26 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
   } catch (error) {
     console.warn('Cloudinary 표지 이미지 로드 실패:', error);
   }
+}
+
+function updateNoteTitlesFromCoverImages(timelineMain) {
+  if (!timelineMain) return;
+
+  const noteCards = timelineMain.querySelectorAll('.note-card');
+  noteCards.forEach((noteCard) => {
+    const titleEl = noteCard.querySelector('.note-info-title');
+    const frontImg = noteCard.querySelector('.note-cover-front');
+    if (!titleEl || !frontImg?.src) return;
+
+    const src = frontImg.getAttribute('src') || frontImg.src;
+    const fileName = src.split('/').pop() || '';
+    const baseName = decodeURIComponent(fileName.split('?')[0] || '')
+      .replace(/\.[^/.]+$/, '')
+      .trim();
+
+    if (baseName) {
+      titleEl.textContent = baseName;
+    }
+  });
 }
 

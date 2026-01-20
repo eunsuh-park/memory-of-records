@@ -93,7 +93,7 @@ export default async function handler(req, res) {
       }, {});
     };
 
-    const [frontResult, backResult, contentsResult] = await Promise.all([
+    const [frontResult, backResult, contentsRawResult, contentsImageResult] = await Promise.all([
       cloudinary.api.resources({
         type: 'upload',
         prefix: `${folderConfig.front}/`,
@@ -111,12 +111,32 @@ export default async function handler(req, res) {
         prefix: `${folderConfig.contents}/`,
         resource_type: 'raw',
         max_results: 500
+      }),
+      cloudinary.api.resources({
+        type: 'upload',
+        prefix: `${folderConfig.contents}/`,
+        resource_type: 'image',
+        max_results: 500
       })
     ]);
 
     const frontMap = toAssetMap(frontResult.resources);
     const backMap = toAssetMap(backResult.resources);
-    const contentsMap = toAssetMap(contentsResult.resources);
+    const rawContents = (contentsRawResult.resources || []).filter((asset) => {
+      const isPdfFormat = asset.format === 'pdf';
+      const isPdfUrl =
+        typeof asset.secure_url === 'string' &&
+        asset.secure_url.toLowerCase().endsWith('.pdf');
+      return isPdfFormat || isPdfUrl;
+    });
+    const imageContents = (contentsImageResult.resources || []).filter((asset) => {
+      const isPdfFormat = asset.format === 'pdf';
+      const isPdfUrl =
+        typeof asset.secure_url === 'string' &&
+        asset.secure_url.toLowerCase().endsWith('.pdf');
+      return isPdfFormat || isPdfUrl;
+    });
+    const contentsMap = toAssetMap([...rawContents, ...imageContents]);
 
     const allKeys = new Set([
       ...Object.keys(frontMap),
@@ -143,7 +163,10 @@ export default async function handler(req, res) {
       count: notes.length,
       notes,
       items: contentsItems,
-      next_cursor: contentsResult.next_cursor || null,
+      next_cursor:
+        contentsRawResult.next_cursor ||
+        contentsImageResult.next_cursor ||
+        null,
       folders: folderConfig
     });
   } catch (error) {

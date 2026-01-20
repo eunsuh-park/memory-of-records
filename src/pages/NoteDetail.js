@@ -165,7 +165,6 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   let pageNumPending = null;
   const initialScale = 0.6;
   let scale = initialScale;
-  let usingProxy = false;
 
   function showOverlay(message) {
     if (overlayText) {
@@ -255,17 +254,10 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
       const loadingTask = pdfjsLib.getDocument({ url, withCredentials: false });
       pdfDoc = await loadingTask.promise;
       pageNum = 1;
-      usingProxy = false;
       updateControls();
       hideOverlay();
       renderPage(pageNum);
     } catch (error) {
-      if (!usingProxy) {
-        usingProxy = true;
-        const proxiedUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
-        loadPdf(proxiedUrl);
-        return;
-      }
       showOverlay('PDF 로드 실패. 네트워크/URL을 확인해주세요.');
       console.error('PDF load error:', error);
     }
