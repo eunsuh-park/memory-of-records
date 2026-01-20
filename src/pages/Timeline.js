@@ -22,6 +22,7 @@ let isScrollingToTarget = false; // 타겟으로 스크롤 중인지 추적
 let currentFocusedNoteId = null; // 현재 포커스된 노트 ID
 let allNotesData = []; // 전체 노트 데이터 (순서대로)
 const CLOUDINARY_NOTE_LIMIT = 18;
+const CLOUDINARY_ERROR_ID = 'cloudinary-error-banner';
 
 export function renderTimeline(period = 'elementary') {
   const mainContent = document.getElementById('main-content');
@@ -133,6 +134,9 @@ export function renderTimeline(period = 'elementary') {
     });
   });
 
+  const transparentPixel =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
   // 모든 노트를 하나의 리스트로 합치기
   const allNotesHTML = [];
   const firstNoteId = allNotesData.length > 0 ? allNotesData[0].id : null;
@@ -161,18 +165,20 @@ export function renderTimeline(period = 'elementary') {
     const noteSize = noteData?.size || 'A5';
     const noteDescription = noteData?.content || noteData?.description || '노트에 대한 간단한 소개입니다.';
     
+    const coverSrc = note.coverPath || transparentPixel;
+    const backCoverSrc = note.backCoverPath || transparentPixel;
     allNotesHTML.push(`
       <article class="note-card" data-note-id="${note.id}" data-period="${note.period}" data-note-title="${noteTitle}" data-diary-count="${diaryCount}" data-note-size="${noteSize}" data-note-description="${noteDescription}">
         <div class="note-card-link">
           <div class="note-cover-container">
             <img 
-              src="${note.coverPath}" 
+              src="${coverSrc}" 
               alt="노트 표지" 
               class="note-cover-image note-cover-front"
               onerror="this.style.display='none';"
             />
             <img 
-              src="${note.backCoverPath}" 
+              src="${backCoverSrc}" 
               alt="노트 뒷표지" 
               class="note-cover-image note-cover-back"
               onerror="this.style.display='none';"
@@ -974,6 +980,7 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
 
   try {
     const data = await getNotebookAssets();
+    removeCloudinaryError(timelineMain);
     const cloudinaryNotes = Array.isArray(data?.notes)
       ? data.notes.slice(0, CLOUDINARY_NOTE_LIMIT)
       : [];
@@ -994,11 +1001,13 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
       if (noteAsset.key) {
         noteCard.setAttribute('data-cloudinary-key', noteAsset.key);
       }
-      if (frontImg && noteAsset.front) {
-        frontImg.src = noteAsset.front;
+      const frontUrl = noteAsset.front || noteAsset.front_asset?.url;
+      const backUrl = noteAsset.back || noteAsset.back_asset?.url;
+      if (frontImg && frontUrl) {
+        frontImg.src = frontUrl;
       }
-      if (backImg && noteAsset.back) {
-        backImg.src = noteAsset.back;
+      if (backImg && backUrl) {
+        backImg.src = backUrl;
       }
       if (titleEl && noteAsset.key) {
         titleEl.textContent = noteAsset.key;
@@ -1013,6 +1022,7 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
     });
   } catch (error) {
     console.warn('Cloudinary 표지 이미지 로드 실패:', error);
+    showCloudinaryError(timelineMain, error);
   }
 }
 
@@ -1026,6 +1036,7 @@ function updateNoteTitlesFromCoverImages(timelineMain) {
     if (!titleEl || !frontImg?.src) return;
 
     const src = frontImg.getAttribute('src') || frontImg.src;
+    if (src.startsWith('data:')) return;
     const fileName = src.split('/').pop() || '';
     const baseName = decodeURIComponent(fileName.split('?')[0] || '')
       .replace(/\.[^/.]+$/, '')
@@ -1035,5 +1046,28 @@ function updateNoteTitlesFromCoverImages(timelineMain) {
       titleEl.textContent = baseName;
     }
   });
+}
+
+function showCloudinaryError(timelineMain, error) {
+  if (!timelineMain) return;
+  if (document.getElementById(CLOUDINARY_ERROR_ID)) return;
+
+  const message =
+    error?.message ||
+    'Cloudinary API 호출에 실패했습니다. 환경 변수/배포 설정을 확인해주세요.';
+
+  const banner = document.createElement('div');
+  banner.id = CLOUDINARY_ERROR_ID;
+  banner.style.cssText =
+    'position: sticky; top: 0; z-index: 10; background: rgba(200,0,0,0.1); color: #b00020; padding: 8px 12px; font-size: 12px;';
+  banner.textContent = `Cloudinary 오류: ${message}`;
+
+  timelineMain.prepend(banner);
+}
+
+function removeCloudinaryError(timelineMain) {
+  if (!timelineMain) return;
+  const banner = document.getElementById(CLOUDINARY_ERROR_ID);
+  banner?.remove();
 }
 

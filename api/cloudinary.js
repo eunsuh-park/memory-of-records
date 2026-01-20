@@ -93,7 +93,14 @@ export default async function handler(req, res) {
       }, {});
     };
 
-    const [frontResult, backResult, contentsRawResult, contentsImageResult] = await Promise.all([
+    const [
+      frontImageResult,
+      frontRawResult,
+      backImageResult,
+      backRawResult,
+      contentsRawResult,
+      contentsImageResult
+    ] = await Promise.all([
       cloudinary.api.resources({
         type: 'upload',
         prefix: `${folderConfig.front}/`,
@@ -102,8 +109,20 @@ export default async function handler(req, res) {
       }),
       cloudinary.api.resources({
         type: 'upload',
+        prefix: `${folderConfig.front}/`,
+        resource_type: 'raw',
+        max_results: 500
+      }),
+      cloudinary.api.resources({
+        type: 'upload',
         prefix: `${folderConfig.back}/`,
         resource_type: 'image',
+        max_results: 500
+      }),
+      cloudinary.api.resources({
+        type: 'upload',
+        prefix: `${folderConfig.back}/`,
+        resource_type: 'raw',
         max_results: 500
       }),
       cloudinary.api.resources({
@@ -120,8 +139,12 @@ export default async function handler(req, res) {
       })
     ]);
 
-    const frontMap = toAssetMap(frontResult.resources);
-    const backMap = toAssetMap(backResult.resources);
+    const frontImageMap = toAssetMap(frontImageResult.resources);
+    const frontRawMap = toAssetMap(frontRawResult.resources);
+    const backImageMap = toAssetMap(backImageResult.resources);
+    const backRawMap = toAssetMap(backRawResult.resources);
+    const frontMap = { ...frontRawMap, ...frontImageMap };
+    const backMap = { ...backRawMap, ...backImageMap };
     const rawContents = (contentsRawResult.resources || []).filter((asset) => {
       const isPdfFormat = asset.format === 'pdf';
       const isPdfUrl =
@@ -136,7 +159,12 @@ export default async function handler(req, res) {
         asset.secure_url.toLowerCase().endsWith('.pdf');
       return isPdfFormat || isPdfUrl;
     });
-    const contentsMap = toAssetMap([...rawContents, ...imageContents]);
+    const contentsRawMap = toAssetMap(rawContents);
+    const contentsImageMap = toAssetMap(imageContents);
+    const contentsMap = {
+      ...contentsImageMap,
+      ...contentsRawMap
+    };
 
     const allKeys = new Set([
       ...Object.keys(frontMap),
@@ -146,18 +174,25 @@ export default async function handler(req, res) {
 
     const notes = Array.from(allKeys)
       .sort((a, b) => a.localeCompare(b, 'ko'))
-      .map((key) => ({
-        key,
-        ...parseFileNameMeta(key),
-        front: frontMap[key]?.url || null,
-        back: backMap[key]?.url || null,
-        contents: contentsMap[key]?.url || null,
-        front_asset: frontMap[key] || null,
-        back_asset: backMap[key] || null,
-        contents_asset: contentsMap[key] || null
-      }));
+      .map((key) => {
+        const contentsAsset = contentsRawMap[key] || contentsImageMap[key] || null;
+        return {
+          key,
+          ...parseFileNameMeta(key),
+          front: frontMap[key]?.url || null,
+          back: backMap[key]?.url || null,
+          contents: contentsAsset?.url || null,
+          front_asset: frontMap[key] || null,
+          back_asset: backMap[key] || null,
+          contents_asset: contentsAsset,
+          contents_resource_type: contentsRawMap[key] ? 'raw' : contentsImageMap[key] ? 'image' : null
+        };
+      });
 
-    const contentsItems = Object.values(contentsMap);
+    const contentsItems = [
+      ...Object.values(contentsRawMap),
+      ...Object.values(contentsImageMap)
+    ];
 
     return res.status(200).json({
       count: notes.length,

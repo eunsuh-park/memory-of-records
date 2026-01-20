@@ -2,16 +2,12 @@
  * public/cover 폴더의 이미지 파일을 기반으로 노트 목록을 생성하는 유틸리티
  */
 
-// base 경로 가져오기
-const BASE_URL = import.meta.env.BASE_URL || '/';
-
 /**
  * 각 period별로 가능한 모든 노트 이미지 경로를 생성하여 노트 객체 배열을 반환
  * @param {string} period - 시기 (elementary, middle-high, university, after-graduation)
  * @returns {Array} 노트 객체 배열
  */
 export function getNotesFromCoverImages(period) {
-  const basePath = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
   const periodFolderMap = {
     'elementary': '2005-2010',
     'middle-high': '2010-2016',
@@ -42,13 +38,12 @@ export function getNotesFromCoverImages(period) {
       const count = yearNoteCounts[yearNum];
       
       for (let num = 1; num <= count; num++) {
-        const coverPath = `${basePath}/cover/${folder}/note-cover_${yearStr}_${num}.png`;
         notes.push({
           id: `elementary-${yearStr}-${num}`,
           period: 'elementary',
           year: 2000 + yearNum,
-          coverPath: coverPath,
-          backCoverPath: `${basePath}/cover/${folder}/note-back_${yearStr}_${num}.png`
+          coverPath: null,
+          backCoverPath: null
         });
       }
     });
@@ -75,8 +70,8 @@ export function getNotesFromCoverImages(period) {
       notes.push({
         id: `${period}-${noteNum}`,
         period: period,
-        coverPath: `${basePath}/cover/${folder}/note_${noteNum}.png`,
-        backCoverPath: `${basePath}/cover/${folder}/note_${noteNum}_back.png`
+        coverPath: null,
+        backCoverPath: null
       });
     }
   }
