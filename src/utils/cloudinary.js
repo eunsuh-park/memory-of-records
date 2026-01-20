@@ -1,28 +1,31 @@
 /**
- * Cloudinary PDF 목록을 가져오는 프론트엔드 유틸
+ * Cloudinary 노트북 리소스를 가져오는 프론트엔드 유틸
  *
  * 응답 데이터 예시:
  * {
- *   "count": 2,
- *   "items": [
+ *   "count": 18,
+ *   "notes": [
  *     {
- *       "public_id": "archive/2024-01-report",
- *       "file_name": "2024-01-report",
- *       "url": "https://res.cloudinary.com/...",
- *       "bytes": 123456,
- *       "format": "pdf",
- *       "created_at": "2025-01-10T12:34:56Z"
+ *       "key": "note_01",
+ *       "front": "https://res.cloudinary.com/..../Notebooks/Cover/Front/note_01.png",
+ *       "back": "https://res.cloudinary.com/..../Notebooks/Cover/Back/note_01.png",
+ *       "contents": "https://res.cloudinary.com/..../Notebooks/Contents/note_01.pdf",
+ *       "front_asset": { ... },
+ *       "back_asset": { ... },
+ *       "contents_asset": { ... }
  *     }
  *   ],
- *   "next_cursor": null
+ *   "items": [ ... ], // contents 리소스 목록 (호환용)
+ *   "next_cursor": null,
+ *   "folders": { "front": "...", "back": "...", "contents": "..." }
  * }
  */
 
 /**
- * /api/cloudinary 엔드포인트에서 PDF 목록을 가져옵니다.
- * @returns {Promise<{count: number, items: Array, next_cursor: string | null}>}
+ * /api/cloudinary 엔드포인트에서 노트북 리소스를 가져옵니다.
+ * @returns {Promise<{count: number, notes: Array, items: Array, next_cursor: string | null}>}
  */
-export async function fetchArchivePdfs() {
+export async function fetchNotebookAssets() {
   const response = await fetch('/api/cloudinary', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
@@ -39,7 +42,15 @@ export async function fetchArchivePdfs() {
 }
 
 /**
- * 간단한 로딩/에러 처리 예시
+ * 기존 코드 호환을 위한 별칭 (contents 목록만 필요할 때)
+ * @returns {Promise<{count: number, items: Array, next_cursor: string | null}>}
+ */
+export async function fetchArchivePdfs() {
+  return fetchNotebookAssets();
+}
+
+/**
+ * 간단한 로딩/에러 처리 예시 (contents 목록 렌더링)
  *
  * @param {Object} params
  * @param {HTMLElement} params.listEl - 목록을 렌더링할 요소 (ul/div 등)
@@ -57,9 +68,9 @@ export async function loadArchivePdfs({ listEl, loadingEl, errorEl }) {
   listEl.innerHTML = '';
 
   try {
-    const data = await fetchArchivePdfs();
+    const data = await fetchNotebookAssets();
 
-    if (data.items.length === 0) {
+    if (!data.items || data.items.length === 0) {
       listEl.innerHTML = '<li>PDF 파일이 없습니다.</li>';
       return;
     }

@@ -53,27 +53,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    // archive/ 폴더의 raw 리소스(예: PDF)를 최대 500개까지 가져옵니다.
-    const result = await cloudinary.api.resources({
-      type: 'upload',
-      prefix: 'archive/',
-      resource_type: 'raw',
-      max_results: 500
-    });
+    const folderConfig = {
+      front: 'Notebooks/Cover/Front',
+      back: 'Notebooks/Cover/Back',
+      contents: 'Notebooks/Contents'
+    };
 
-    // PDF만 필터링합니다. (format이 pdf이거나 url이 .pdf로 끝나는 경우)
-    const pdfAssets = (result.resources || []).filter((asset) => {
-      const isRaw = asset.resource_type === 'raw';
-      const isPdfFormat = asset.format === 'pdf';
-      const isPdfUrl =
-        typeof asset.secure_url === 'string' &&
-        asset.secure_url.toLowerCase().endsWith('.pdf');
-      return isRaw && (isPdfFormat || isPdfUrl);
-    });
-
-    const items = pdfAssets.map((asset) => {
-      const fileName = asset.public_id.split('/').pop() || asset.public_id;
-
+    const normalizeAsset = (asset) => {
+      const baseName = asset.public_id.split('/').pop() || asset.public_id;
+      const fileName = asset.format ? `${baseName}.${asset.format}` : baseName;
       return {
         public_id: asset.public_id,
         file_name: fileName,
@@ -82,12 +70,67 @@ export default async function handler(req, res) {
         format: asset.format,
         created_at: asset.created_at
       };
-    });
+    };
+
+    const toAssetMap = (resources) => {
+      return (resources || []).reduce((acc, asset) => {
+        const key = asset.public_id.split('/').pop() || asset.public_id;
+        acc[key] = normalizeAsset(asset);
+        return acc;
+      }, {});
+    };
+
+    const [frontResult, backResult, contentsResult] = await Promise.all([
+      cloudinary.api.resources({
+        type: 'upload',
+        prefix: `${folderConfig.front}/`,
+        resource_type: 'image',
+        max_results: 500
+      }),
+      cloudinary.api.resources({
+        type: 'upload',
+        prefix: `${folderConfig.back}/`,
+        resource_type: 'image',
+        max_results: 500
+      }),
+      cloudinary.api.resources({
+        type: 'upload',
+        prefix: `${folderConfig.contents}/`,
+        resource_type: 'raw',
+        max_results: 500
+      })
+    ]);
+
+    const frontMap = toAssetMap(frontResult.resources);
+    const backMap = toAssetMap(backResult.resources);
+    const contentsMap = toAssetMap(contentsResult.resources);
+
+    const allKeys = new Set([
+      ...Object.keys(frontMap),
+      ...Object.keys(backMap),
+      ...Object.keys(contentsMap)
+    ]);
+
+    const notes = Array.from(allKeys)
+      .sort()
+      .map((key) => ({
+        key,
+        front: frontMap[key]?.url || null,
+        back: backMap[key]?.url || null,
+        contents: contentsMap[key]?.url || null,
+        front_asset: frontMap[key] || null,
+        back_asset: backMap[key] || null,
+        contents_asset: contentsMap[key] || null
+      }));
+
+    const contentsItems = Object.values(contentsMap);
 
     return res.status(200).json({
-      count: items.length,
-      items,
-      next_cursor: result.next_cursor || null
+      count: notes.length,
+      notes,
+      items: contentsItems,
+      next_cursor: contentsResult.next_cursor || null,
+      folders: folderConfig
     });
   } catch (error) {
     console.error('Cloudinary API error:', error);
