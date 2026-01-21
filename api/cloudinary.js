@@ -82,18 +82,29 @@ export default async function handler(req, res) {
   }
 
   try {
+    const folderParam = typeof req.query?.folder === 'string' ? req.query.folder : '';
+    const maxResultsParam =
+      typeof req.query?.max_results === 'string' ? Number(req.query.max_results) : 20;
+    const nextCursorParam = typeof req.query?.next_cursor === 'string' ? req.query.next_cursor : null;
+    const normalizedMaxResults =
+      Number.isFinite(maxResultsParam) && maxResultsParam > 0
+        ? Math.min(maxResultsParam, 500)
+        : 20;
+
     // 기본 경로 하위 폴더 확인
     const folders = await cloudinary.api.sub_folders('Notebooks');
 
     // 1단계: 표지 이미지(Front)만 간단히 조회
     const coverImages = await cloudinary.api.resources({
       type: 'upload',
-      prefix: 'Notebooks/Cover/Front',
+      prefix: folderParam || 'Notebooks/Cover/Front',
       resource_type: 'image',
-      max_results: 20
+      max_results: normalizedMaxResults,
+      ...(nextCursorParam ? { next_cursor: nextCursorParam } : {})
     });
 
     return res.status(200).json({
+      folder: folderParam || 'Notebooks/Cover/Front',
       folders: folders.folders || [],
       resources: coverImages.resources || [],
       next_cursor: coverImages.next_cursor || null
