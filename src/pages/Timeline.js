@@ -961,23 +961,20 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
   try {
     const data = await getNotebookAssets();
     removeCloudinaryError(timelineMain);
-    const fronts = Array.isArray(data?.fronts) ? data.fronts : [];
-    const backs = Array.isArray(data?.backs) ? data.backs : [];
+    const fronts = Array.isArray(data?.front_resources) ? data.front_resources : [];
+    const backs = Array.isArray(data?.back_resources) ? data.back_resources : [];
     if (fronts.length === 0) {
       showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 이미지가 없습니다.'));
       return;
     }
 
-    const backMap = backs.reduce((acc, item) => {
-      if (item?.key) {
-        acc[item.key] = item;
-      }
-      return acc;
-    }, {});
     const orderedFronts = fronts
       .slice()
-      .sort((a, b) => String(a?.key || '').localeCompare(String(b?.key || ''), 'ko'))
+      .sort((a, b) => String(a?.public_id || '').localeCompare(String(b?.public_id || ''), 'ko'))
       .slice(0, CLOUDINARY_NOTE_LIMIT);
+    const orderedBacks = backs
+      .slice()
+      .sort((a, b) => String(a?.public_id || '').localeCompare(String(b?.public_id || ''), 'ko'));
 
     const noteCards = timelineMain.querySelectorAll('.note-card');
     orderedFronts.forEach((noteAsset, index) => {
@@ -990,11 +987,13 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
       const metaEl = noteCard.querySelector('.note-info-meta');
       const descriptionEl = noteCard.querySelector('.note-info-description');
 
-      if (noteAsset.key) {
-        noteCard.setAttribute('data-cloudinary-key', noteAsset.key);
+      const publicId = noteAsset.public_id || '';
+      const baseName = publicId.split('/').pop() || '';
+      if (baseName) {
+        noteCard.setAttribute('data-cloudinary-key', baseName);
       }
       const frontUrl = noteAsset.url || null;
-      const backUrl = backMap[noteAsset.key]?.url || null;
+      const backUrl = orderedBacks[index]?.url || null;
       if (frontImg && frontUrl) {
         frontImg.src = frontUrl;
       }

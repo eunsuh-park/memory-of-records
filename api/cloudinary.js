@@ -16,6 +16,10 @@ import { v2 as cloudinary } from 'cloudinary';
 // Cloudinary 설정을 매 요청 전에 적용해도 무방합니다.
 // (Vercel Function은 요청마다 실행될 수 있으므로 안전한 방식)
 function configureCloudinary() {
+  // 우선순위:
+  // 1) CLOUDINARY_URL이 있으면 그 값을 파싱해서 설정
+  // 2) 없으면 개별 환경 변수(CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET) 사용
+  // 둘 중 하나라도 누락되면 에러를 반환
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -26,6 +30,7 @@ function configureCloudinary() {
   }
 
   if (cloudinaryUrl) {
+    // cloudinary://<api_key>:<api_secret>@<cloud_name> 형식을 URL로 파싱
     try {
       const parsed = new URL(cloudinaryUrl);
       const urlCloudName = parsed.hostname;
@@ -46,6 +51,7 @@ function configureCloudinary() {
     }
   }
 
+  // CLOUDINARY_URL이 없을 때는 개별 환경 변수로 설정
   cloudinary.config({
     cloud_name: cloudName,
     api_key: apiKey,
@@ -66,6 +72,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Cloudinary 인증 설정 확인 (누락 시 500 응답)
   const configResult = configureCloudinary();
   if (!configResult.ok) {
     return res.status(500).json({
@@ -75,57 +82,18 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 조회할 폴더 프리픽스 목록
+    // 실제 public_id 경로가 다양할 수 있어 복수 prefix를 허용
     const folderConfig = {
       front: ['Notebooks/Cover/Front', 'Front'],
       back: ['Notebooks/Cover/Back', 'Back'],
       contents: ['Notebooks/Contents', 'Contents']
     };
 
-    const normalizeKey = (baseName) => {
-      return baseName.replace(/_[A-Za-z0-9]{6}$/, '');
-    };
-
-    const parseFileNameMeta = (baseName) => {
-      const normalized = normalizeKey(baseName);
-      const [yearLabel = '', typeRaw = ''] = normalized.split('-', 2);
-      const match = typeRaw.match(/^(.*?)(\d+)?$/);
-      const recordType = (match?.[1] || '').trim();
-      const recordOrder = match?.[2] ? Number(match[2]) : null;
-      return {
-        normalized_key: normalized,
-        year_label: yearLabel,
-        record_type: recordType,
-        record_order: recordOrder
-      };
-    };
-
-    const normalizeAsset = (asset) => {
-      const baseName = asset.public_id.split('/').pop() || asset.public_id;
-      const fileName = asset.format ? `${baseName}.${asset.format}` : baseName;
-      const normalizedKey = normalizeKey(baseName);
-      return {
-        normalized_key: normalizedKey,
-        public_id: asset.public_id,
-        file_name: fileName,
-        url: asset.secure_url,
-        bytes: asset.bytes,
-        format: asset.format,
-        pages: typeof asset.pages === 'number' ? asset.pages : null,
-        created_at: asset.created_at
-      };
-    };
-
-    const toAssetMap = (resources) => {
-      return (resources || []).reduce((acc, asset) => {
-        const normalized = normalizeAsset(asset);
-        const key = normalized.normalized_key || normalized.file_name || normalized.public_id;
-        acc[key] = normalized;
-        return acc;
-      }, {});
-    };
-
+    // Cloudinary delivery type: upload / authenticated 둘 다 조회
     const deliveryTypes = ['upload', 'authenticated'];
 
+    // 여러 prefix와 delivery type을 조합해서 리소스 목록을 모두 가져옴
     const fetchResources = async ({ prefixes, resource_type }) => {
       const results = await Promise.all(
         prefixes.flatMap((prefix) =>
@@ -150,6 +118,8 @@ export default async function handler(req, res) {
       contentsRawResources,
       contentsImageResources
     ] = await Promise.all([
+      // Front/Back은 image + raw 둘 다 조회
+      // Contents는 pdf가 raw 또는 image로 올라갈 수 있어 둘 다 조회
       fetchResources({ prefixes: folderConfig.front, resource_type: 'image' }),
       fetchResources({ prefixes: folderConfig.front, resource_type: 'raw' }),
       fetchResources({ prefixes: folderConfig.back, resource_type: 'image' }),
@@ -158,84 +128,30 @@ export default async function handler(req, res) {
       fetchResources({ prefixes: folderConfig.contents, resource_type: 'image' })
     ]);
 
-    const frontImageMap = toAssetMap(frontImageResources);
-    const frontRawMap = toAssetMap(frontRawResources);
-    const backImageMap = toAssetMap(backImageResources);
-    const backRawMap = toAssetMap(backRawResources);
-    const frontMap = { ...frontRawMap, ...frontImageMap };
-    const backMap = { ...backRawMap, ...backImageMap };
-    const rawContents = (contentsRawResources || []).filter((asset) => {
-      const isPdfFormat = asset.format === 'pdf';
-      const isPdfUrl =
-        typeof asset.secure_url === 'string' &&
-        asset.secure_url.toLowerCase().endsWith('.pdf');
-      return isPdfFormat || isPdfUrl;
-    });
-    const imageContents = (contentsImageResources || []).filter((asset) => {
-      const isPdfFormat = asset.format === 'pdf';
-      const isPdfUrl =
-        typeof asset.secure_url === 'string' &&
-        asset.secure_url.toLowerCase().endsWith('.pdf');
-      return isPdfFormat || isPdfUrl;
-    });
-    const contentsRawMap = toAssetMap(rawContents);
-    const contentsImageMap = toAssetMap(imageContents);
-    const contentsMap = {
-      ...contentsImageMap,
-      ...contentsRawMap
+    const toAssetList = (resources) => {
+      return (resources || []).map((asset) => ({
+        public_id: asset.public_id || null,
+        url: asset.secure_url || asset.url || null,
+        bytes: asset.bytes ?? null,
+        format: asset.format || null,
+        resource_type: asset.resource_type || null,
+        created_at: asset.created_at || null,
+        width: asset.width ?? null,
+        height: asset.height ?? null
+      }));
     };
 
-    const toAssetList = (assetMap) => {
-      return Object.entries(assetMap)
-        .map(([key, asset]) => ({
-          key,
-          url: asset?.url || null,
-          public_id: asset?.public_id || null,
-          file_name: asset?.file_name || null,
-          bytes: asset?.bytes ?? null,
-          format: asset?.format || null,
-          created_at: asset?.created_at || null
-        }))
-        .sort((a, b) => String(a.key).localeCompare(String(b.key), 'ko'));
-    };
-
-    const fronts = toAssetList(frontMap);
-    const backs = toAssetList(backMap);
-
-    const allKeys = new Set([
-      ...Object.keys(frontMap),
-      ...Object.keys(backMap),
-      ...Object.keys(contentsMap)
-    ]);
-
-    const notes = Array.from(allKeys)
-      .sort((a, b) => a.localeCompare(b, 'ko'))
-      .map((key) => {
-        const contentsAsset = contentsRawMap[key] || contentsImageMap[key] || null;
-        return {
-          key,
-          ...parseFileNameMeta(key),
-          front: frontMap[key]?.url || null,
-          back: backMap[key]?.url || null,
-          contents: contentsAsset?.url || null,
-          front_asset: frontMap[key] || null,
-          back_asset: backMap[key] || null,
-          contents_asset: contentsAsset,
-          contents_resource_type: contentsRawMap[key] ? 'raw' : contentsImageMap[key] ? 'image' : null
-        };
-      });
-
-    const contentsItems = [
-      ...Object.values(contentsRawMap),
-      ...Object.values(contentsImageMap)
-    ];
+    // Cloudinary Admin API 원본 리소스를 최소 메타만 유지해서 반환
+    const front_resources = toAssetList([...frontImageResources, ...frontRawResources]);
+    const back_resources = toAssetList([...backImageResources, ...backRawResources]);
+    const contents_resources = toAssetList([...contentsImageResources, ...contentsRawResources]);
 
     return res.status(200).json({
-      count: fronts.length,
-      notes,
-      fronts,
-      backs,
-      items: contentsItems,
+      // count는 프론트 이미지 개수 기준
+      count: front_resources.length,
+      front_resources,
+      back_resources,
+      contents_resources,
       next_cursor: null,
       folders: folderConfig
     });
