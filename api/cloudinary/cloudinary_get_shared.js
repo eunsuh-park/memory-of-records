@@ -53,8 +53,8 @@ export async function listNotebookFolders() {
   return cloudinary.api.sub_folders('Notebooks');
 }
 
-export async function listResources({
-  prefix,
+export async function listResourcesByAssetFolder({
+  assetFolder,
   maxResults = 20,
   nextCursor = null,
   resourceType = 'image'
@@ -62,9 +62,7 @@ export async function listResources({
   const normalizedMaxResults =
     Number.isFinite(maxResults) && maxResults > 0 ? Math.min(maxResults, 500) : 20;
 
-  return cloudinary.api.resources({
-    type: 'upload',
-    prefix,
+  return cloudinary.api.resources_by_asset_folder(assetFolder, {
     resource_type: resourceType,
     max_results: normalizedMaxResults,
     ...(nextCursor ? { next_cursor: nextCursor } : {})

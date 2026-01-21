@@ -14,7 +14,7 @@
 import {
   configureCloudinary,
   listNotebookFolders,
-  listResources
+  listResourcesByAssetFolder
 } from './cloudinary/cloudinary_get_shared.js';
 
 /**
@@ -47,15 +47,17 @@ export default async function handler(req, res) {
     const folders = await listNotebookFolders();
 
     // 1단계: 표지 이미지(Front)만 간단히 조회
-    const coverImages = await listResources({
-      prefix: folderParam || 'Notebooks/Cover/Front',
+    const assetFolder = folderParam || 'Notebooks/Cover/Front';
+    const resourceType = assetFolder === 'Notebooks/Contents' ? 'raw' : 'image';
+    const coverImages = await listResourcesByAssetFolder({
+      assetFolder,
       maxResults: maxResultsParam,
       nextCursor: nextCursorParam,
-      resourceType: 'image'
+      resourceType
     });
 
     return res.status(200).json({
-      folder: folderParam || 'Notebooks/Cover/Front',
+      folder: assetFolder,
       folders: folders.folders || [],
       resources: coverImages.resources || [],
       next_cursor: coverImages.next_cursor || null
