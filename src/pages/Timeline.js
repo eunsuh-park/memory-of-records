@@ -3,7 +3,7 @@
  * 시기별 노트를 표시하는 페이지입니다.
  */
 
-import { periodOptions, notesData } from '../data/notesData.js';
+import { periodOptions } from '../data/notesData.js';
 import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
@@ -149,21 +149,10 @@ export function renderTimeline(period = 'elementary') {
 
   // 모든 노트 추가
   allNotesData.forEach(note => {
-    // notesData에서 매칭되는 노트 정보 찾기 (id 기반)
-    const noteData = notesData.find(n => {
-      // note.id가 "elementary-05-1" 형식이면 숫자 부분 추출
-      const noteIdStr = String(note.id);
-      if (noteIdStr.includes('-')) {
-        // period와 숫자로 매칭 시도
-        return false; // 일단 기본값 사용
-      }
-      return n.id === parseInt(note.id);
-    });
-    
-    const noteTitle = noteData?.title || `노트 ${note.id}`;
-    const diaryCount = noteData?.diaryCount || '0';
-    const noteSize = noteData?.size || 'A5';
-    const noteDescription = noteData?.content || noteData?.description || '노트에 대한 간단한 소개입니다.';
+    const noteTitle = `노트 ${note.id}`;
+    const diaryCount = '0';
+    const noteSize = 'A5';
+    const noteDescription = '노트에 대한 간단한 소개입니다.';
     
     const coverSrc = note.coverPath || transparentPixel;
     const backCoverSrc = note.backCoverPath || transparentPixel;
@@ -280,16 +269,7 @@ export function renderTimeline(period = 'elementary') {
   currentPeriod = selectedPeriod;
 
   // Cloudinary 이미지로 첫 18개 노트 표지 업데이트
-  applyCloudinaryImagesToTimeline(timelineMain)
-    .then(() => {
-      updateNoteTitlesFromCoverImages(timelineMain);
-    })
-    .catch(() => {
-      updateNoteTitlesFromCoverImages(timelineMain);
-    });
-
-  // 기본(로컬) 이미지 기준으로 우선 제목 표시
-  updateNoteTitlesFromCoverImages(timelineMain);
+  applyCloudinaryImagesToTimeline(timelineMain);
 }
 
 // Observer 인스턴스를 저장하여 중복 생성 방지
@@ -982,10 +962,26 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
     const data = await getNotebookAssets();
     removeCloudinaryError(timelineMain);
     const cloudinaryNotes = Array.isArray(data?.notes)
-      ? data.notes.slice(0, CLOUDINARY_NOTE_LIMIT)
-      : [];
+      ? data.notes
+          .slice()
+          .sort((a, b) => {
+            const yearA = Number(a?.year_label) || 0;
+            const yearB = Number(b?.year_label) || 0;
+            if (yearA !== yearB) return yearA - yearB;
+            const orderA =
+              typeof a?.record_order === 'number' ? a.record_order : Number.MAX_SAFE_INTEGER;
+            const orderB =
+              typeof b?.record_order === 'number' ? b.record_order : Number.MAX_SAFE_INTEGER;
+            if (orderA !== orderB) return orderA - orderB;
+            return String(a?.key || '').localeCompare(String(b?.key || ''), 'ko');
+          })
+          .slice(0, CLOUDINARY_NOTE_LIMIT)
+      : null;
 
-    if (cloudinaryNotes.length === 0) return;
+    if (!cloudinaryNotes || cloudinaryNotes.length === 0) {
+      showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 노트가 없습니다.'));
+      return;
+    }
 
     const noteCards = timelineMain.querySelectorAll('.note-card');
     cloudinaryNotes.forEach((noteAsset, index) => {
@@ -1009,43 +1005,25 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
       if (backImg && backUrl) {
         backImg.src = backUrl;
       }
-      if (titleEl && noteAsset.key) {
-        titleEl.textContent = noteAsset.key;
+      if (titleEl) {
+        const fallbackTitle = noteCard.getAttribute('data-note-title') || titleEl.textContent;
+        titleEl.textContent = noteAsset.key || fallbackTitle || '';
       }
       if (descriptionEl) {
-        descriptionEl.textContent = noteAsset.record_type || '';
+        const fallbackDescription =
+          noteCard.getAttribute('data-note-description') || descriptionEl.textContent;
+        descriptionEl.textContent = noteAsset.record_type || fallbackDescription || '';
       }
       if (metaEl) {
         const pages = noteAsset.contents_asset?.pages;
-        metaEl.textContent = typeof pages === 'number' ? `${pages} 페이지` : '';
+        const fallbackMeta = noteCard.getAttribute('data-diary-count') || metaEl.textContent;
+        metaEl.textContent = typeof pages === 'number' ? `${pages} 페이지` : fallbackMeta || '';
       }
     });
   } catch (error) {
     console.warn('Cloudinary 표지 이미지 로드 실패:', error);
     showCloudinaryError(timelineMain, error);
   }
-}
-
-function updateNoteTitlesFromCoverImages(timelineMain) {
-  if (!timelineMain) return;
-
-  const noteCards = timelineMain.querySelectorAll('.note-card');
-  noteCards.forEach((noteCard) => {
-    const titleEl = noteCard.querySelector('.note-info-title');
-    const frontImg = noteCard.querySelector('.note-cover-front');
-    if (!titleEl || !frontImg?.src) return;
-
-    const src = frontImg.getAttribute('src') || frontImg.src;
-    if (src.startsWith('data:')) return;
-    const fileName = src.split('/').pop() || '';
-    const baseName = decodeURIComponent(fileName.split('?')[0] || '')
-      .replace(/\.[^/.]+$/, '')
-      .trim();
-
-    if (baseName) {
-      titleEl.textContent = baseName;
-    }
-  });
 }
 
 function showCloudinaryError(timelineMain, error) {
