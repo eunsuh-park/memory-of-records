@@ -1,4 +1,4 @@
-import { configureCloudinary, listNotebookFolders, listResources } from './shared.js';
+import { configureCloudinary, listNotebookFolders, listResources } from './cloudinary_get_shared.js';
 
 /**
  * @param {import('@vercel/node').VercelRequest} req
@@ -24,18 +24,18 @@ export default async function handler(req, res) {
       typeof req.query?.next_cursor === 'string' ? req.query.next_cursor : null;
 
     const folders = await listNotebookFolders();
-    const coverImages = await listResources({
-      prefix: 'Notebooks/Cover/Back',
+    const contents = await listResources({
+      prefix: 'Notebooks/Contents',
       maxResults: maxResultsParam,
       nextCursor: nextCursorParam,
       resourceType: 'image'
     });
 
     return res.status(200).json({
-      folder: 'Notebooks/Cover/Back',
+      folder: 'Notebooks/Contents',
       folders: folders.folders || [],
-      resources: coverImages.resources || [],
-      next_cursor: coverImages.next_cursor || null
+      resources: contents.resources || [],
+      next_cursor: contents.next_cursor || null
     });
   } catch (error) {
     console.error('Cloudinary API error:', error);

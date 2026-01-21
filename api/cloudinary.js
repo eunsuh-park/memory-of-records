@@ -15,7 +15,7 @@ import {
   configureCloudinary,
   listNotebookFolders,
   listResources
-} from './cloudinary/shared.js';
+} from './cloudinary/cloudinary_get_shared.js';
 
 /**
  * @param {import('@vercel/node').VercelRequest} req

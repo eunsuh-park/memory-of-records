@@ -1,4 +1,4 @@
-import { configureCloudinary, listNotebookFolders, listResources } from './shared.js';
+import { configureCloudinary, listNotebookFolders, listResources } from './cloudinary_get_shared.js';
 
 /**
  * @param {import('@vercel/node').VercelRequest} req
@@ -25,14 +25,14 @@ export default async function handler(req, res) {
 
     const folders = await listNotebookFolders();
     const coverImages = await listResources({
-      prefix: 'Notebooks/Cover/Front',
+      prefix: 'Notebooks/Cover/Back',
       maxResults: maxResultsParam,
       nextCursor: nextCursorParam,
       resourceType: 'image'
     });
 
     return res.status(200).json({
-      folder: 'Notebooks/Cover/Front',
+      folder: 'Notebooks/Cover/Back',
       folders: folders.folders || [],
       resources: coverImages.resources || [],
       next_cursor: coverImages.next_cursor || null
