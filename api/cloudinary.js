@@ -59,12 +59,18 @@ export default async function handler(req, res) {
       contents: 'Notebooks/Contents'
     };
 
+    const normalizeKey = (baseName) => {
+      return baseName.replace(/_[A-Za-z0-9]{6}$/, '');
+    };
+
     const parseFileNameMeta = (baseName) => {
-      const [yearLabel = '', typeRaw = ''] = baseName.split('-', 2);
+      const normalized = normalizeKey(baseName);
+      const [yearLabel = '', typeRaw = ''] = normalized.split('-', 2);
       const match = typeRaw.match(/^(.*?)(\d+)?$/);
       const recordType = (match?.[1] || '').trim();
       const recordOrder = match?.[2] ? Number(match[2]) : null;
       return {
+        normalized_key: normalized,
         year_label: yearLabel,
         record_type: recordType,
         record_order: recordOrder
@@ -74,7 +80,9 @@ export default async function handler(req, res) {
     const normalizeAsset = (asset) => {
       const baseName = asset.public_id.split('/').pop() || asset.public_id;
       const fileName = asset.format ? `${baseName}.${asset.format}` : baseName;
+      const normalizedKey = normalizeKey(baseName);
       return {
+        normalized_key: normalizedKey,
         public_id: asset.public_id,
         file_name: fileName,
         url: asset.secure_url,
@@ -87,8 +95,9 @@ export default async function handler(req, res) {
 
     const toAssetMap = (resources) => {
       return (resources || []).reduce((acc, asset) => {
-        const key = asset.public_id.split('/').pop() || asset.public_id;
-        acc[key] = normalizeAsset(asset);
+        const normalized = normalizeAsset(asset);
+        const key = normalized.normalized_key || normalized.file_name || normalized.public_id;
+        acc[key] = normalized;
         return acc;
       }, {});
     };
