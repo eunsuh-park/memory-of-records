@@ -82,6 +82,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 기본 경로 하위 폴더 확인
+    const folders = await cloudinary.api.sub_folders('Notebooks');
+
     // 1단계: 표지 이미지(Front)만 간단히 조회
     const coverImages = await cloudinary.api.resources({
       type: 'upload',
@@ -91,6 +94,7 @@ export default async function handler(req, res) {
     });
 
     return res.status(200).json({
+      folders: folders.folders || [],
       resources: coverImages.resources || [],
       next_cursor: coverImages.next_cursor || null
     });
