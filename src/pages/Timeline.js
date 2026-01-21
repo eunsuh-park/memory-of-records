@@ -8,7 +8,7 @@ import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
-import { getNotebookAssets } from '../utils/cloudinary.js';
+import { getNotebookCoverUrls } from '../utils/notebookCovers.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import './Timeline.css';
 
@@ -959,50 +959,29 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
   if (!timelineMain) return;
 
   try {
-    const data = await getNotebookAssets();
+    const coverUrls = await getNotebookCoverUrls();
     removeCloudinaryError(timelineMain);
-    const fronts = Array.isArray(data?.front_resources) ? data.front_resources : [];
-    const backs = Array.isArray(data?.back_resources) ? data.back_resources : [];
-    if (fronts.length === 0) {
+    if (!coverUrls || coverUrls.length === 0) {
       showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 이미지가 없습니다.'));
       return;
     }
 
-    const orderedFronts = fronts
-      .slice()
-      .sort((a, b) => String(a?.public_id || '').localeCompare(String(b?.public_id || ''), 'ko'))
-      .slice(0, CLOUDINARY_NOTE_LIMIT);
-    const orderedBacks = backs
-      .slice()
-      .sort((a, b) => String(a?.public_id || '').localeCompare(String(b?.public_id || ''), 'ko'));
-
     const noteCards = timelineMain.querySelectorAll('.note-card');
-    orderedFronts.forEach((noteAsset, index) => {
+    coverUrls.slice(0, CLOUDINARY_NOTE_LIMIT).forEach((url, index) => {
       const noteCard = noteCards[index];
       if (!noteCard) return;
 
       const frontImg = noteCard.querySelector('.note-cover-front');
-      const backImg = noteCard.querySelector('.note-cover-back');
       const titleEl = noteCard.querySelector('.note-info-title');
       const metaEl = noteCard.querySelector('.note-info-meta');
       const descriptionEl = noteCard.querySelector('.note-info-description');
 
-      const publicId = noteAsset.public_id || '';
-      const baseName = publicId.split('/').pop() || '';
-      if (baseName) {
-        noteCard.setAttribute('data-cloudinary-key', baseName);
-      }
-      const frontUrl = noteAsset.url || null;
-      const backUrl = orderedBacks[index]?.url || null;
-      if (frontImg && frontUrl) {
-        frontImg.src = frontUrl;
-      }
-      if (backImg && backUrl) {
-        backImg.src = backUrl;
+      if (frontImg && url) {
+        frontImg.src = url;
       }
       if (titleEl) {
         const fallbackTitle = noteCard.getAttribute('data-note-title') || titleEl.textContent;
-        titleEl.textContent = noteAsset.key || fallbackTitle || '';
+        titleEl.textContent = fallbackTitle || '';
       }
       if (descriptionEl) {
         const fallbackDescription =
