@@ -82,78 +82,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 조회할 폴더 프리픽스 목록
-    // 실제 public_id 경로가 다양할 수 있어 복수 prefix를 허용
-    const folderConfig = {
-      front: ['Notebooks/Cover/Front', 'Front'],
-      back: ['Notebooks/Cover/Back', 'Back'],
-      contents: ['Notebooks/Contents', 'Contents']
-    };
-
-    // Cloudinary delivery type: upload / authenticated 둘 다 조회
-    const deliveryTypes = ['upload', 'authenticated'];
-
-    // 여러 prefix와 delivery type을 조합해서 리소스 목록을 모두 가져옴
-    const fetchResources = async ({ prefixes, resource_type }) => {
-      const results = await Promise.all(
-        prefixes.flatMap((prefix) =>
-          deliveryTypes.map((type) =>
-            cloudinary.api.resources({
-              type,
-              prefix: `${prefix}/`,
-              resource_type,
-              max_results: 500
-            })
-          )
-        )
-      );
-      return results.flatMap((result) => result.resources || []);
-    };
-
-    const [
-      frontImageResources,
-      frontRawResources,
-      backImageResources,
-      backRawResources,
-      contentsRawResources,
-      contentsImageResources
-    ] = await Promise.all([
-      // Front/Back은 image + raw 둘 다 조회
-      // Contents는 pdf가 raw 또는 image로 올라갈 수 있어 둘 다 조회
-      fetchResources({ prefixes: folderConfig.front, resource_type: 'image' }),
-      fetchResources({ prefixes: folderConfig.front, resource_type: 'raw' }),
-      fetchResources({ prefixes: folderConfig.back, resource_type: 'image' }),
-      fetchResources({ prefixes: folderConfig.back, resource_type: 'raw' }),
-      fetchResources({ prefixes: folderConfig.contents, resource_type: 'raw' }),
-      fetchResources({ prefixes: folderConfig.contents, resource_type: 'image' })
-    ]);
-
-    const toAssetList = (resources) => {
-      return (resources || []).map((asset) => ({
-        public_id: asset.public_id || null,
-        url: asset.secure_url || asset.url || null,
-        bytes: asset.bytes ?? null,
-        format: asset.format || null,
-        resource_type: asset.resource_type || null,
-        created_at: asset.created_at || null,
-        width: asset.width ?? null,
-        height: asset.height ?? null
-      }));
-    };
-
-    // Cloudinary Admin API 원본 리소스를 최소 메타만 유지해서 반환
-    const front_resources = toAssetList([...frontImageResources, ...frontRawResources]);
-    const back_resources = toAssetList([...backImageResources, ...backRawResources]);
-    const contents_resources = toAssetList([...contentsImageResources, ...contentsRawResources]);
+    // 1단계: 표지 이미지(Front)만 간단히 조회
+    const coverImages = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'Notebooks/Cover/Front',
+      resource_type: 'image',
+      max_results: 20
+    });
 
     return res.status(200).json({
-      // count는 프론트 이미지 개수 기준
-      count: front_resources.length,
-      front_resources,
-      back_resources,
-      contents_resources,
-      next_cursor: null,
-      folders: folderConfig
+      resources: coverImages.resources || [],
+      next_cursor: coverImages.next_cursor || null
     });
   } catch (error) {
     console.error('Cloudinary API error:', error);
