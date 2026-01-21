@@ -19,9 +19,31 @@ function configureCloudinary() {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
   const apiKey = process.env.CLOUDINARY_API_KEY;
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const cloudinaryUrl = process.env.CLOUDINARY_URL;
 
-  if (!cloudName || !apiKey || !apiSecret) {
+  if ((!cloudName || !apiKey || !apiSecret) && !cloudinaryUrl) {
     return { ok: false, message: 'Cloudinary 환경 변수가 누락되었습니다.' };
+  }
+
+  if (cloudinaryUrl) {
+    try {
+      const parsed = new URL(cloudinaryUrl);
+      const urlCloudName = parsed.hostname;
+      const urlApiKey = decodeURIComponent(parsed.username || '');
+      const urlApiSecret = decodeURIComponent(parsed.password || '');
+      if (!urlCloudName || !urlApiKey || !urlApiSecret) {
+        return { ok: false, message: 'CLOUDINARY_URL 형식이 올바르지 않습니다.' };
+      }
+      cloudinary.config({
+        cloud_name: urlCloudName,
+        api_key: urlApiKey,
+        api_secret: urlApiSecret,
+        secure: true
+      });
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, message: 'CLOUDINARY_URL 파싱에 실패했습니다.' };
+    }
   }
 
   cloudinary.config({
@@ -54,9 +76,9 @@ export default async function handler(req, res) {
 
   try {
     const folderConfig = {
-      front: 'Notebooks/Cover/Front',
-      back: 'Notebooks/Cover/Back',
-      contents: 'Notebooks/Contents'
+      front: ['Notebooks/Cover/Front', 'Front'],
+      back: ['Notebooks/Cover/Back', 'Back'],
+      contents: ['Notebooks/Contents', 'Contents']
     };
 
     const normalizeKey = (baseName) => {
@@ -102,66 +124,54 @@ export default async function handler(req, res) {
       }, {});
     };
 
+    const deliveryTypes = ['upload', 'authenticated'];
+
+    const fetchResources = async ({ prefixes, resource_type }) => {
+      const results = await Promise.all(
+        prefixes.flatMap((prefix) =>
+          deliveryTypes.map((type) =>
+            cloudinary.api.resources({
+              type,
+              prefix: `${prefix}/`,
+              resource_type,
+              max_results: 500
+            })
+          )
+        )
+      );
+      return results.flatMap((result) => result.resources || []);
+    };
+
     const [
-      frontImageResult,
-      frontRawResult,
-      backImageResult,
-      backRawResult,
-      contentsRawResult,
-      contentsImageResult
+      frontImageResources,
+      frontRawResources,
+      backImageResources,
+      backRawResources,
+      contentsRawResources,
+      contentsImageResources
     ] = await Promise.all([
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: `${folderConfig.front}/`,
-        resource_type: 'image',
-        max_results: 500
-      }),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: `${folderConfig.front}/`,
-        resource_type: 'raw',
-        max_results: 500
-      }),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: `${folderConfig.back}/`,
-        resource_type: 'image',
-        max_results: 500
-      }),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: `${folderConfig.back}/`,
-        resource_type: 'raw',
-        max_results: 500
-      }),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: `${folderConfig.contents}/`,
-        resource_type: 'raw',
-        max_results: 500
-      }),
-      cloudinary.api.resources({
-        type: 'upload',
-        prefix: `${folderConfig.contents}/`,
-        resource_type: 'image',
-        max_results: 500
-      })
+      fetchResources({ prefixes: folderConfig.front, resource_type: 'image' }),
+      fetchResources({ prefixes: folderConfig.front, resource_type: 'raw' }),
+      fetchResources({ prefixes: folderConfig.back, resource_type: 'image' }),
+      fetchResources({ prefixes: folderConfig.back, resource_type: 'raw' }),
+      fetchResources({ prefixes: folderConfig.contents, resource_type: 'raw' }),
+      fetchResources({ prefixes: folderConfig.contents, resource_type: 'image' })
     ]);
 
-    const frontImageMap = toAssetMap(frontImageResult.resources);
-    const frontRawMap = toAssetMap(frontRawResult.resources);
-    const backImageMap = toAssetMap(backImageResult.resources);
-    const backRawMap = toAssetMap(backRawResult.resources);
+    const frontImageMap = toAssetMap(frontImageResources);
+    const frontRawMap = toAssetMap(frontRawResources);
+    const backImageMap = toAssetMap(backImageResources);
+    const backRawMap = toAssetMap(backRawResources);
     const frontMap = { ...frontRawMap, ...frontImageMap };
     const backMap = { ...backRawMap, ...backImageMap };
-    const rawContents = (contentsRawResult.resources || []).filter((asset) => {
+    const rawContents = (contentsRawResources || []).filter((asset) => {
       const isPdfFormat = asset.format === 'pdf';
       const isPdfUrl =
         typeof asset.secure_url === 'string' &&
         asset.secure_url.toLowerCase().endsWith('.pdf');
       return isPdfFormat || isPdfUrl;
     });
-    const imageContents = (contentsImageResult.resources || []).filter((asset) => {
+    const imageContents = (contentsImageResources || []).filter((asset) => {
       const isPdfFormat = asset.format === 'pdf';
       const isPdfUrl =
         typeof asset.secure_url === 'string' &&
@@ -207,10 +217,7 @@ export default async function handler(req, res) {
       count: notes.length,
       notes,
       items: contentsItems,
-      next_cursor:
-        contentsRawResult.next_cursor ||
-        contentsImageResult.next_cursor ||
-        null,
+      next_cursor: null,
       folders: folderConfig
     });
   } catch (error) {
