@@ -185,6 +185,23 @@ export default async function handler(req, res) {
       ...contentsRawMap
     };
 
+    const toAssetList = (assetMap) => {
+      return Object.entries(assetMap)
+        .map(([key, asset]) => ({
+          key,
+          url: asset?.url || null,
+          public_id: asset?.public_id || null,
+          file_name: asset?.file_name || null,
+          bytes: asset?.bytes ?? null,
+          format: asset?.format || null,
+          created_at: asset?.created_at || null
+        }))
+        .sort((a, b) => String(a.key).localeCompare(String(b.key), 'ko'));
+    };
+
+    const fronts = toAssetList(frontMap);
+    const backs = toAssetList(backMap);
+
     const allKeys = new Set([
       ...Object.keys(frontMap),
       ...Object.keys(backMap),
@@ -214,8 +231,10 @@ export default async function handler(req, res) {
     ];
 
     return res.status(200).json({
-      count: notes.length,
+      count: fronts.length,
       notes,
+      fronts,
+      backs,
       items: contentsItems,
       next_cursor: null,
       folders: folderConfig

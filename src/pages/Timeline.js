@@ -961,30 +961,26 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
   try {
     const data = await getNotebookAssets();
     removeCloudinaryError(timelineMain);
-    const cloudinaryNotes = Array.isArray(data?.notes)
-      ? data.notes
-          .slice()
-          .sort((a, b) => {
-            const yearA = Number(a?.year_label) || 0;
-            const yearB = Number(b?.year_label) || 0;
-            if (yearA !== yearB) return yearA - yearB;
-            const orderA =
-              typeof a?.record_order === 'number' ? a.record_order : Number.MAX_SAFE_INTEGER;
-            const orderB =
-              typeof b?.record_order === 'number' ? b.record_order : Number.MAX_SAFE_INTEGER;
-            if (orderA !== orderB) return orderA - orderB;
-            return String(a?.key || '').localeCompare(String(b?.key || ''), 'ko');
-          })
-          .slice(0, CLOUDINARY_NOTE_LIMIT)
-      : null;
-
-    if (!cloudinaryNotes || cloudinaryNotes.length === 0) {
-      showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 노트가 없습니다.'));
+    const fronts = Array.isArray(data?.fronts) ? data.fronts : [];
+    const backs = Array.isArray(data?.backs) ? data.backs : [];
+    if (fronts.length === 0) {
+      showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 이미지가 없습니다.'));
       return;
     }
 
+    const backMap = backs.reduce((acc, item) => {
+      if (item?.key) {
+        acc[item.key] = item;
+      }
+      return acc;
+    }, {});
+    const orderedFronts = fronts
+      .slice()
+      .sort((a, b) => String(a?.key || '').localeCompare(String(b?.key || ''), 'ko'))
+      .slice(0, CLOUDINARY_NOTE_LIMIT);
+
     const noteCards = timelineMain.querySelectorAll('.note-card');
-    cloudinaryNotes.forEach((noteAsset, index) => {
+    orderedFronts.forEach((noteAsset, index) => {
       const noteCard = noteCards[index];
       if (!noteCard) return;
 
@@ -997,8 +993,8 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
       if (noteAsset.key) {
         noteCard.setAttribute('data-cloudinary-key', noteAsset.key);
       }
-      const frontUrl = noteAsset.front || noteAsset.front_asset?.url;
-      const backUrl = noteAsset.back || noteAsset.back_asset?.url;
+      const frontUrl = noteAsset.url || null;
+      const backUrl = backMap[noteAsset.key]?.url || null;
       if (frontImg && frontUrl) {
         frontImg.src = frontUrl;
       }
@@ -1012,12 +1008,11 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
       if (descriptionEl) {
         const fallbackDescription =
           noteCard.getAttribute('data-note-description') || descriptionEl.textContent;
-        descriptionEl.textContent = noteAsset.record_type || fallbackDescription || '';
+        descriptionEl.textContent = fallbackDescription || '';
       }
       if (metaEl) {
-        const pages = noteAsset.contents_asset?.pages;
         const fallbackMeta = noteCard.getAttribute('data-diary-count') || metaEl.textContent;
-        metaEl.textContent = typeof pages === 'number' ? `${pages} 페이지` : fallbackMeta || '';
+        metaEl.textContent = fallbackMeta || '';
       }
     });
   } catch (error) {
