@@ -959,7 +959,8 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
   if (!timelineMain) return;
 
   try {
-    const coverUrls = await getNotebookCoverUrls();
+    const coverUrls = await getNotebookCoverUrls('front');
+    const backCoverUrls = await getNotebookCoverUrls('back');
     removeCloudinaryError(timelineMain);
     if (!coverUrls || coverUrls.length === 0) {
       showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 이미지가 없습니다.'));
@@ -972,12 +973,17 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
       if (!noteCard) return;
 
       const frontImg = noteCard.querySelector('.note-cover-front');
+      const backImg = noteCard.querySelector('.note-cover-back');
       const titleEl = noteCard.querySelector('.note-info-title');
       const metaEl = noteCard.querySelector('.note-info-meta');
       const descriptionEl = noteCard.querySelector('.note-info-description');
 
       if (frontImg && url) {
         frontImg.src = url;
+      }
+      const backUrl = backCoverUrls?.[index] || null;
+      if (backImg && backUrl) {
+        backImg.src = backUrl;
       }
       if (titleEl) {
         const fallbackTitle = noteCard.getAttribute('data-note-title') || titleEl.textContent;

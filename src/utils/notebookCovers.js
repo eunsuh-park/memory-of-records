@@ -1,13 +1,15 @@
 /**
- * Cloudinary 노트 표지(Front) 이미지 URL 목록을 가져오는 유틸
+ * Cloudinary 노트 표지 이미지 URL 목록을 가져오는 유틸
  * /api/notebooks/covers 응답의 secure_url을 배열로 저장합니다.
  */
 
 /**
+ * @param {"front" | "back"} type
  * @returns {Promise<string[]>}
  */
-export async function fetchNotebookCoverUrls() {
-  const response = await fetch('/api/notebooks/covers', {
+export async function fetchNotebookCoverUrls(type = 'front') {
+  const endpoint = type === 'back' ? '/api/notebooks/covers_back' : '/api/notebooks/covers';
+  const response = await fetch(endpoint, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -28,27 +30,35 @@ export async function fetchNotebookCoverUrls() {
   return urls;
 }
 
-let cachedNotebookCoverUrls = null;
-let cachedNotebookCoverUrlsPromise = null;
+const cachedNotebookCoverUrls = {
+  front: null,
+  back: null
+};
+const cachedNotebookCoverUrlsPromise = {
+  front: null,
+  back: null
+};
 
 /**
  * 노트 표지 URL 캐시 버전
+ * @param {"front" | "back"} type
  * @returns {Promise<string[]>}
  */
-export async function getNotebookCoverUrls() {
-  if (cachedNotebookCoverUrls) return cachedNotebookCoverUrls;
-  if (cachedNotebookCoverUrlsPromise) return cachedNotebookCoverUrlsPromise;
+export async function getNotebookCoverUrls(type = 'front') {
+  const key = type === 'back' ? 'back' : 'front';
+  if (cachedNotebookCoverUrls[key]) return cachedNotebookCoverUrls[key];
+  if (cachedNotebookCoverUrlsPromise[key]) return cachedNotebookCoverUrlsPromise[key];
 
-  cachedNotebookCoverUrlsPromise = fetchNotebookCoverUrls()
+  cachedNotebookCoverUrlsPromise[key] = fetchNotebookCoverUrls(key)
     .then((urls) => {
-      cachedNotebookCoverUrls = urls;
+      cachedNotebookCoverUrls[key] = urls;
       return urls;
     })
     .catch((error) => {
-      cachedNotebookCoverUrls = null;
-      cachedNotebookCoverUrlsPromise = null;
+      cachedNotebookCoverUrls[key] = null;
+      cachedNotebookCoverUrlsPromise[key] = null;
       throw error;
     });
 
-  return cachedNotebookCoverUrlsPromise;
+  return cachedNotebookCoverUrlsPromise[key];
 }
