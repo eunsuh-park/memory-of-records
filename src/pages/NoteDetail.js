@@ -6,6 +6,7 @@
 import { periodOptions } from '../data/notesData.js';
 import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
 import { getNotebookAssets } from '../utils/cloudinary.js';
+import { getNotebookContentUrls } from '../utils/notebookContents.js';
 import './NoteDetailPage.css';
 import '../components/NoteDetail.css';
 
@@ -72,7 +73,11 @@ async function resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey) {
       const matched = notes.find((note) => note.key === key);
       return matched?.contents || indexedNote?.contents || null;
     }
-    return indexedNote?.contents || null;
+    if (indexedNote?.contents) return indexedNote.contents;
+
+    // /api/cloudinary?folder=Notebooks/Contents 기반 PDF 목록으로 보완
+    const contentUrls = await getNotebookContentUrls();
+    return contentUrls?.[timelineIndex] || null;
   } catch (error) {
     console.error('Cloudinary PDF 로드 실패:', error);
     return null;
