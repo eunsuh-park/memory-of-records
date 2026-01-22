@@ -46,21 +46,47 @@ export default async function handler(req, res) {
     // 기본 경로 하위 폴더 확인
     const folders = await listNotebookFolders();
 
-    // 1단계: 표지 이미지(Front)만 간단히 조회
-    const assetFolder = folderParam || 'Notebooks/Cover/Front';
-    const resourceType = assetFolder === 'Notebooks/Contents' ? 'raw' : 'image';
-    const coverImages = await listResourcesByAssetFolder({
-      assetFolder,
-      maxResults: maxResultsParam,
-      nextCursor: nextCursorParam,
-      resourceType
-    });
+    // folder 파라미터가 있으면 해당 폴더만 조회
+    if (folderParam) {
+      const resourceType = folderParam === 'Notebooks/Contents' ? 'raw' : 'image';
+      const coverImages = await listResourcesByAssetFolder({
+        assetFolder: folderParam,
+        maxResults: maxResultsParam,
+        nextCursor: nextCursorParam,
+        resourceType
+      });
+
+      return res.status(200).json({
+        folder: folderParam,
+        folders: folders.folders || [],
+        resources: coverImages.resources || [],
+        next_cursor: coverImages.next_cursor || null
+      });
+    }
+
+    // 기본 응답: Front/Back 표지 모두 포함
+    const [frontImages, backImages] = await Promise.all([
+      listResourcesByAssetFolder({
+        assetFolder: 'Notebooks/Cover/Front',
+        maxResults: maxResultsParam,
+        nextCursor: nextCursorParam,
+        resourceType: 'image'
+      }),
+      listResourcesByAssetFolder({
+        assetFolder: 'Notebooks/Cover/Back',
+        maxResults: maxResultsParam,
+        nextCursor: nextCursorParam,
+        resourceType: 'image'
+      })
+    ]);
 
     return res.status(200).json({
-      folder: assetFolder,
+      folder: 'Notebooks/Cover/Front',
       folders: folders.folders || [],
-      resources: coverImages.resources || [],
-      next_cursor: coverImages.next_cursor || null
+      resources: frontImages.resources || [],
+      front_resources: frontImages.resources || [],
+      back_resources: backImages.resources || [],
+      next_cursor: frontImages.next_cursor || null
     });
   } catch (error) {
     console.error('Cloudinary API error:', error);

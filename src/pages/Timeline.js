@@ -960,11 +960,19 @@ async function applyCloudinaryImagesToTimeline(timelineMain) {
 
   try {
     const coverUrls = await getNotebookCoverUrls('front');
-    const backCoverUrls = await getNotebookCoverUrls('back');
+    let backCoverUrls = await getNotebookCoverUrls('back');
     removeCloudinaryError(timelineMain);
     if (!coverUrls || coverUrls.length === 0) {
       showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 이미지가 없습니다.'));
       return;
+    }
+    if (!backCoverUrls || backCoverUrls.length === 0) {
+      // back 목록이 비어있으면 front URL 기반으로 추정 (같은 파일명 가정)
+      backCoverUrls = coverUrls.map((url) =>
+        String(url)
+          .replace('/Notebooks/Cover/Front/', '/Notebooks/Cover/Back/')
+          .replace('/Cover/Front/', '/Cover/Back/')
+      );
     }
 
     const noteCards = timelineMain.querySelectorAll('.note-card');
