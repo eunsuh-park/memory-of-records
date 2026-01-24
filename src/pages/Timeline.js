@@ -259,13 +259,15 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
                 src="${escapeHtml(coverSrc)}" 
                 alt="노트 표지" 
                 class="note-cover-image note-cover-front"
-                onerror="this.style.display='none';"
+                loading="lazy"
+                referrerpolicy="no-referrer"
               />
               <img 
                 src="${escapeHtml(backCoverSrc)}" 
                 alt="노트 뒷표지" 
                 class="note-cover-image note-cover-back"
-                onerror="this.style.display='none';"
+                loading="lazy"
+                referrerpolicy="no-referrer"
               />
             </div>
             <div class="note-info">
@@ -287,6 +289,17 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
         ${allNotesHTML.join('')}
       </div>
     `;
+
+    timelineMain.querySelectorAll('.note-cover-image').forEach((img) => {
+      img.addEventListener(
+        'error',
+        () => {
+          img.classList.add('note-cover-image--error');
+          console.warn('노트 표지 로드 실패:', img.src);
+        },
+        { once: true }
+      );
+    });
 
     timelineMain.querySelectorAll('.note-card[data-note-id]').forEach(noteCard => {
       noteCard.addEventListener('click', (event) => {

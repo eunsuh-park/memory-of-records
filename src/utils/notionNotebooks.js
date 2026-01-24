@@ -23,6 +23,14 @@ function formatDateString(value) {
   return str.includes('T') ? str.split('T')[0] : str;
 }
 
+function extractPageCoverUrl(page) {
+  const cover = page?.cover;
+  if (!cover) return null;
+  if (cover.type === 'external') return cover.external?.url || null;
+  if (cover.type === 'file') return cover.file?.url || null;
+  return null;
+}
+
 export function convertNotionPageToNotebook(page) {
   const properties = page?.properties || {};
   const title = parseNotionProperty(getProperty(properties, 'title', 'Title')) || '제목 없음';
@@ -35,11 +43,32 @@ export function convertNotionPageToNotebook(page) {
   const periodEnd = formatDateString(
     parseNotionProperty(getProperty(properties, 'period_end', 'Period End', 'period end'))
   );
-  const coverFrontUrl = parseNotionProperty(
-    getProperty(properties, 'cover_front_url', 'cover front url', 'Cover Front URL')
-  );
+  const coverFrontUrl =
+    parseNotionProperty(
+      getProperty(
+        properties,
+        'cover_front_url',
+        'cover front url',
+        'Cover Front URL',
+        'cover_front',
+        'Cover Front',
+        'front_cover_url',
+        'Front Cover URL',
+        'front cover url'
+      )
+    ) || extractPageCoverUrl(page);
   const coverBackUrl = parseNotionProperty(
-    getProperty(properties, 'cover_back_url', 'cover back url', 'Cover Back URL')
+    getProperty(
+      properties,
+      'cover_back_url',
+      'cover back url',
+      'Cover Back URL',
+      'cover_back',
+      'Cover Back',
+      'back_cover_url',
+      'Back Cover URL',
+      'back cover url'
+    )
   );
   const pdfUrl = parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'));
 

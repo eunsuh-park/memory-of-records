@@ -227,6 +227,11 @@ body.timeline-active.period-after-graduation {
   transform: scale(0.8); /* 이미지 크기를 0.8배로 축소 */
 }
 
+.note-cover-image--error {
+  outline: 1px dashed rgba(200, 0, 0, 0.4);
+  background: rgba(200, 0, 0, 0.06);
+}
+
 .note-cover-front {
   position: relative; /* 컨테이너 크기 결정을 위해 relative로 변경 */
   width: auto;
