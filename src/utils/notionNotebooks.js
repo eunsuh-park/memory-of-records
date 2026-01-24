@@ -23,6 +23,37 @@ function formatDateString(value) {
   return str.includes('T') ? str.split('T')[0] : str;
 }
 
+function normalizeUrlValue(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const normalized = normalizeUrlValue(item);
+      if (normalized) return normalized;
+    }
+    return null;
+  }
+  if (typeof value === 'object') {
+    if (value.url) return normalizeUrlValue(value.url);
+    if (value.external?.url) return value.external.url;
+    if (value.file?.url) return value.file.url;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const match = trimmed.match(/https?:\/\/[^\s,]+/i);
+    if (match) return match[0];
+    const firstToken = trimmed.split(/[,\s]+/).find(Boolean);
+    return firstToken || null;
+  }
+  return null;
+}
+
+function hasMultipleUrls(value) {
+  if (!value || typeof value !== 'string') return false;
+  const matches = value.match(/https?:\/\/[^\s,]+/gi);
+  return Array.isArray(matches) && matches.length > 1;
+}
+
 function extractPageCoverUrl(page) {
   const cover = page?.cover;
   if (!cover) return null;
@@ -43,34 +74,69 @@ export function convertNotionPageToNotebook(page) {
   const periodEnd = formatDateString(
     parseNotionProperty(getProperty(properties, 'period_end', 'Period End', 'period end'))
   );
-  const coverFrontUrl =
-    parseNotionProperty(
-      getProperty(
-        properties,
-        'cover_front_url',
-        'cover front url',
-        'Cover Front URL',
-        'cover_front',
-        'Cover Front',
-        'front_cover_url',
-        'Front Cover URL',
-        'front cover url'
-      )
-    ) || extractPageCoverUrl(page);
-  const coverBackUrl = parseNotionProperty(
-    getProperty(
-      properties,
-      'cover_back_url',
-      'cover back url',
-      'Cover Back URL',
-      'cover_back',
-      'Cover Back',
-      'back_cover_url',
-      'Back Cover URL',
-      'back cover url'
-    )
+  const coverFrontProperty = getProperty(
+    properties,
+    'cover_front_url',
+    'cover front url',
+    'Cover Front URL',
+    'cover_front',
+    'Cover Front',
+    'front_cover_url',
+    'Front Cover URL',
+    'front cover url'
   );
-  const pdfUrl = parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'));
+  const coverBackProperty = getProperty(
+    properties,
+    'cover_back_url',
+    'cover back url',
+    'Cover Back URL',
+    'cover_back',
+    'Cover Back',
+    'back_cover_url',
+    'Back Cover URL',
+    'back cover url'
+  );
+  const rawCoverFront = parseNotionProperty(coverFrontProperty);
+  const rawCoverBack = parseNotionProperty(coverBackProperty);
+  if (hasMultipleUrls(rawCoverFront)) {
+    console.warn(
+      '[Notion] cover_front_url has multiple URLs:',
+      title,
+      rawCoverFront,
+      coverFrontProperty
+    );
+  }
+  if (hasMultipleUrls(rawCoverBack)) {
+    console.warn(
+      '[Notion] cover_back_url has multiple URLs:',
+      title,
+      rawCoverBack,
+      coverBackProperty
+    );
+  }
+  if (coverFrontProperty?.type && coverFrontProperty.type !== 'url') {
+    console.warn(
+      '[Notion] cover_front_url type mismatch:',
+      title,
+      coverFrontProperty.type,
+      coverFrontProperty
+    );
+  }
+  if (coverBackProperty?.type && coverBackProperty.type !== 'url') {
+    console.warn(
+      '[Notion] cover_back_url type mismatch:',
+      title,
+      coverBackProperty.type,
+      coverBackProperty
+    );
+  }
+
+  const coverFrontUrl =
+    normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
+  const coverBackUrl = normalizeUrlValue(rawCoverBack);
+  const pdfUrl = normalizeUrlValue(
+    parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'))
+  );
 
   return {
     id: page?.id || '',

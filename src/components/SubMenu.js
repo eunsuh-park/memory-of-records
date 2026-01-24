@@ -4,7 +4,6 @@
  */
 
 import { periodOptions } from '../data/notesData.js';
-import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
 import '../components/SubMenu.css';
 
 export function renderSubMenu(selectedPeriod, onPeriodChange, totalNotesCount, notesCountByPeriod) {
