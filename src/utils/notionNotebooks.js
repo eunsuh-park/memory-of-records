@@ -10,9 +10,26 @@ const cachedNotionNotebooks = {
   promise: null
 };
 
+function normalizePropertyKey(name) {
+  return String(name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+}
+
 function getProperty(properties, ...names) {
   for (const name of names) {
     if (properties?.[name]) return properties[name];
+  }
+  if (!properties) return null;
+  const keys = Object.keys(properties);
+  const normalizedMap = new Map(
+    keys.map((key) => [normalizePropertyKey(key), key])
+  );
+  for (const name of names) {
+    const normalized = normalizePropertyKey(name);
+    const matchedKey = normalizedMap.get(normalized);
+    if (matchedKey && properties[matchedKey]) return properties[matchedKey];
   }
   return null;
 }
@@ -83,7 +100,26 @@ export function convertNotionPageToNotebook(page) {
     'Cover Front',
     'front_cover_url',
     'Front Cover URL',
-    'front cover url'
+    'front cover url',
+    'cover',
+    'Cover',
+    'cover_url',
+    'Cover URL',
+    'cover image',
+    'Cover Image',
+    'image',
+    'Image',
+    'thumbnail',
+    'Thumbnail',
+    '대표 이미지',
+    '대표이미지',
+    '썸네일',
+    '표지',
+    '표지 앞',
+    '앞표지',
+    '전면 표지',
+    '커버',
+    '커버 이미지'
   );
   const coverBackProperty = getProperty(
     properties,
@@ -94,7 +130,12 @@ export function convertNotionPageToNotebook(page) {
     'Cover Back',
     'back_cover_url',
     'Back Cover URL',
-    'back cover url'
+    'back cover url',
+    '뒷표지',
+    '표지 뒤',
+    '후면 표지',
+    'back cover',
+    'back cover image'
   );
   const rawCoverFront = parseNotionProperty(coverFrontProperty);
   const rawCoverBack = parseNotionProperty(coverBackProperty);
