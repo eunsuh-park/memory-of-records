@@ -3,10 +3,9 @@
  * 타임라인 노트의 PDF를 표시하는 상세 페이지입니다.
  */
 
-import { periodOptions } from '../data/notesData.js';
-import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
 import { getNotebookAssets } from '../utils/cloudinary.js';
 import { getNotebookContentUrls } from '../utils/notebookContents.js';
+import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import './NoteDetailPage.css';
 import '../components/NoteDetail.css';
 
@@ -16,15 +15,25 @@ const PDFJS_WORKER_CDN =
 const CLOUDINARY_NOTE_LIMIT = 18;
 
 let cachedTimelineNotes = null;
-function getTimelineNotes() {
+let cachedTimelineNotesPromise = null;
+
+async function loadTimelineNotes() {
   if (cachedTimelineNotes) return cachedTimelineNotes;
-  const notes = [];
-  periodOptions.forEach(periodOption => {
-    const periodNotes = getNotesFromCoverImages(periodOption.value);
-    periodNotes.forEach(note => notes.push(note));
-  });
-  cachedTimelineNotes = notes;
-  return notes;
+  if (cachedTimelineNotesPromise) return cachedTimelineNotesPromise;
+
+  cachedTimelineNotesPromise = getNotionNotebooks()
+    .then((notes) => {
+      cachedTimelineNotes = notes;
+      return notes;
+    })
+    .catch((error) => {
+      console.warn('노션 노트 목록 로드 실패:', error);
+      cachedTimelineNotes = null;
+      cachedTimelineNotesPromise = null;
+      return [];
+    });
+
+  return cachedTimelineNotesPromise;
 }
 
 function loadScript(src) {
@@ -90,31 +99,9 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   const noteId = decodeURIComponent(String(id || '')).trim();
   const isModal = options.mode === 'modal';
   const cloudinaryKey = options.cloudinaryKey || null;
+  const preferredPdfUrl = options.pdfUrl || null;
 
-  const timelineNotes = getTimelineNotes();
-  const timelineIndex = timelineNotes.findIndex(note => note.id === noteId);
-  const timelineNote = timelineIndex >= 0 ? timelineNotes[timelineIndex] : null;
-
-  if (!timelineNote) {
-    targetEl.innerHTML = isModal
-      ? `
-        <section class="pdf-viewer pdf-viewer--modal">
-          <div class="note-error">
-            <p>노트를 찾을 수 없습니다.</p>
-          </div>
-        </section>
-      `
-      : `
-        <div class="note-detail-page">
-          <div class="note-detail">
-            <div class="note-error">
-              <p>노트를 찾을 수 없습니다.</p>
-            </div>
-          </div>
-        </div>
-      `;
-    return null;
-  }
+  let timelineIndex = -1;
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
@@ -271,9 +258,21 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   async function initPdfViewer() {
     showOverlay('PDF 목록 불러오는 중...');
     await ensurePdfJs();
-    const pdfUrl = await resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey);
+    const timelineNotes = await loadTimelineNotes();
+    timelineIndex = timelineNotes.findIndex(note => note.id === noteId);
+    const timelineNote = timelineIndex >= 0 ? timelineNotes[timelineIndex] : null;
+    const notionPdfUrl = timelineNote?.pdfUrl || null;
+    if (!timelineNote && !preferredPdfUrl) {
+      showOverlay('노트를 찾을 수 없습니다.');
+      return;
+    }
+    const pdfUrl =
+      preferredPdfUrl ||
+      notionPdfUrl ||
+      (await resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey));
+
     if (!pdfUrl) {
-      showOverlay('PDF를 찾을 수 없습니다. Cloudinary 파일을 확인해주세요.');
+      showOverlay('PDF를 찾을 수 없습니다. Notion/Cloudinary 파일을 확인해주세요.');
       return;
     }
     loadPdf(pdfUrl);

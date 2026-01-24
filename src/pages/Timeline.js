@@ -7,8 +7,7 @@ import { periodOptions } from '../data/notesData.js';
 import { renderSubMenu } from '../components/SubMenu.js';
 import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
-import { getNotesFromCoverImages } from '../utils/getNotesFromCoverImages.js';
-import { getNotebookCoverUrls } from '../utils/notebookCovers.js';
+import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import './Timeline.css';
 
@@ -21,8 +20,47 @@ let currentPeriod = null; // 현재 선택된 period 추적
 let isScrollingToTarget = false; // 타겟으로 스크롤 중인지 추적
 let currentFocusedNoteId = null; // 현재 포커스된 노트 ID
 let allNotesData = []; // 전체 노트 데이터 (순서대로)
-const CLOUDINARY_NOTE_LIMIT = 18;
-const CLOUDINARY_ERROR_ID = 'cloudinary-error-banner';
+const NOTION_ERROR_ID = 'notion-error-banner';
+const TRANSPARENT_PIXEL =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+function resolvePeriodKey(notebookType) {
+  const normalized = String(notebookType || '').trim().toLowerCase();
+  const match = periodOptions.find(
+    (option) =>
+      option.value.toLowerCase() === normalized ||
+      option.label.toLowerCase() === normalized
+  );
+  return match?.value || periodOptions[0]?.value || 'elementary';
+}
+
+function formatPeriodRange(periodStart, periodEnd) {
+  if (periodStart && periodEnd) return `${periodStart} ~ ${periodEnd}`;
+  if (periodStart) return periodStart;
+  if (periodEnd) return periodEnd;
+  return '';
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getNotesCountByPeriod(notes) {
+  const counts = {};
+  periodOptions.forEach((period) => {
+    counts[period.value] = 0;
+  });
+  notes.forEach((note) => {
+    const key = resolvePeriodKey(note.notebookType || note.period);
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  return counts;
+}
 
 export function renderTimeline(period = 'elementary') {
   const mainContent = document.getElementById('main-content');
@@ -48,12 +86,13 @@ export function renderTimeline(period = 'elementary') {
     }
     
     // 서브 메뉴 active 상태 업데이트 (스크롤 애니메이션 시작 전에 즉시 업데이트)
-    const notesCountByPeriod = {};
-    periodOptions.forEach(periodOption => {
-      const notes = getNotesFromCoverImages(periodOption.value);
-      notesCountByPeriod[periodOption.value] = notes.length;
-    });
-    renderSubMenu(selectedPeriod, null, Object.values(notesCountByPeriod).reduce((sum, count) => sum + count, 0), notesCountByPeriod);
+    const notesCountByPeriod = getNotesCountByPeriod(allNotesData);
+    renderSubMenu(
+      selectedPeriod,
+      null,
+      Object.values(notesCountByPeriod).reduce((sum, count) => sum + count, 0),
+      notesCountByPeriod
+    );
     
     // 배경색 업데이트
     updateBackgroundColor(selectedPeriod);
@@ -108,12 +147,8 @@ export function renderTimeline(period = 'elementary') {
     savedScrollPosition = existingTimelinePage.scrollLeft;
   }
 
-  // 전체 노트 개수 및 period별 노트 개수 계산
-  const notesCountByPeriod = {};
-  periodOptions.forEach(periodOption => {
-    const notes = getNotesFromCoverImages(periodOption.value);
-    notesCountByPeriod[periodOption.value] = notes.length;
-  });
+  // 전체 노트 개수 및 period별 노트 개수 계산 (노션 데이터 로드 후 갱신)
+  const notesCountByPeriod = getNotesCountByPeriod(allNotesData);
   const totalNotesCount = Object.values(notesCountByPeriod).reduce((sum, count) => sum + count, 0);
 
   renderSubMenu(selectedPeriod, null, totalNotesCount, notesCountByPeriod);
@@ -122,20 +157,8 @@ export function renderTimeline(period = 'elementary') {
   const timelineMain = document.getElementById('timeline-main');
   if (!timelineMain) return;
 
-  // 전체 노트 데이터 수집 (순서대로)
+  // 노션 데이터를 로드하기 전까지는 빈 목록으로 시작
   allNotesData = [];
-  periodOptions.forEach(periodOption => {
-    const periodNotes = getNotesFromCoverImages(periodOption.value);
-    periodNotes.forEach(note => {
-      allNotesData.push({
-        ...note,
-        period: periodOption.value
-      });
-    });
-  });
-
-  const transparentPixel =
-    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
   // 모든 노트를 하나의 리스트로 합치기
   const allNotesHTML = [];
@@ -147,41 +170,10 @@ export function renderTimeline(period = 'elementary') {
     allNotesHTML.push('<div class="note-placeholder"></div>');
   }
 
-  // 모든 노트 추가
-  allNotesData.forEach(note => {
-    const noteTitle = `노트 ${note.id}`;
-    const diaryCount = '0';
-    const noteSize = 'A5';
-    const noteDescription = '노트에 대한 간단한 소개입니다.';
-    
-    const coverSrc = note.coverPath || transparentPixel;
-    const backCoverSrc = note.backCoverPath || transparentPixel;
-    allNotesHTML.push(`
-      <article class="note-card" data-note-id="${note.id}" data-period="${note.period}" data-note-title="${noteTitle}" data-diary-count="${diaryCount}" data-note-size="${noteSize}" data-note-description="${noteDescription}">
-        <div class="note-card-link">
-          <div class="note-cover-container">
-            <img 
-              src="${coverSrc}" 
-              alt="노트 표지" 
-              class="note-cover-image note-cover-front"
-              onerror="this.style.display='none';"
-            />
-            <img 
-              src="${backCoverSrc}" 
-              alt="노트 뒷표지" 
-              class="note-cover-image note-cover-back"
-              onerror="this.style.display='none';"
-            />
-          </div>
-          <div class="note-info">
-            <h3 class="note-info-title">${noteTitle}</h3>
-            <h5 class="note-info-meta">${diaryCount}개 / ${noteSize}</h5>
-            <p class="note-info-description">${noteDescription}</p>
-          </div>
-        </div>
-      </article>
-    `);
-  });
+  // 노션 로딩 전에는 빈 리스트로 렌더링 (로딩 상태 표시)
+  allNotesHTML.push(`
+    <div class="no-notes">노트를 불러오는 중...</div>
+  `);
 
   // 마지막 노트 뒤에 placeholder 추가
   if (lastNoteId) {
@@ -195,21 +187,7 @@ export function renderTimeline(period = 'elementary') {
     </div>
   `;
 
-  // 노트 클릭: 포커스된 노트면 모달로 PDF 표시, 아니면 포커스 이동
-  timelineMain.querySelectorAll('.note-card[data-note-id]').forEach(noteCard => {
-    noteCard.addEventListener('click', (event) => {
-      event.preventDefault();
-      const noteId = noteCard.getAttribute('data-note-id');
-      if (!noteId) return;
-
-      if (noteCard.classList.contains('note-focus')) {
-        openPdfModal(noteId);
-        return;
-      }
-
-      focusNote(noteId);
-    });
-  });
+  // 노션 데이터 로딩 후 노트 클릭 이벤트가 바인딩됩니다.
 
   // QuickScrollMenu 아이템 생성
   const quickScrollItems = periodOptions.map(option => {
@@ -222,54 +200,140 @@ export function renderTimeline(period = 'elementary') {
 
   renderQuickScrollMenu(quickScrollItems);
 
-  // 선택된 시기로 스크롤 처리
-  setTimeout(() => {
-    const timelinePage = document.querySelector('.timeline-page');
-    if (!timelinePage) return;
-    
-    // 서브메뉴로 이동할 경우: 해당 period의 첫 번째 노트에 포커스
-    const firstNoteOfPeriod = document.querySelector(`.note-card[data-period="${selectedPeriod}"]`);
-    if (firstNoteOfPeriod) {
-      const firstNoteId = firstNoteOfPeriod.getAttribute('data-note-id');
-      if (firstNoteId) {
-        focusNote(firstNoteId);
-        return;
-      }
-    }
-    
-    savedScrollPosition = null;
-    currentPeriod = selectedPeriod;
-  }, 100);
-
-  // 노트 포커스 시스템 초기화
-  setupNoteFocusSystem();
-  
-  // 키보드 화살키로 노트 이동 기능 설정
-  setupKeyboardNavigation();
-  
-  // Intersection Observer를 사용하여 스크롤 위치에 따라 서브 메뉴 자동 활성화
-  setupScrollObserver();
-
-  // 마우스 휠로 가로 스크롤 가능하도록 설정
-  setupHorizontalWheelScroll();
-
-  // 스크롤 위치에 따라 타임라인 인디케이터 업데이트
-  setupTimelineIndicator();
-
-  // 타임라인 진행 표시줄 드래그 기능 설정
-  setupTimelineProgressDrag();
-
-  // 메인 영역 드래그 기능 설정
-  setupMainAreaDrag();
-
-  // 초기 배경색 설정
+  // 노션 데이터 로딩 후 인터랙션 초기화
+  loadNotionNotesAndRender(timelineMain, selectedPeriod);
   updateBackgroundColor(selectedPeriod);
-  
-  // 현재 period 업데이트
   currentPeriod = selectedPeriod;
+}
 
-  // Cloudinary 이미지로 첫 18개 노트 표지 업데이트
-  applyCloudinaryImagesToTimeline(timelineMain);
+async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
+  if (!timelineMain) return;
+
+  try {
+    const notebooks = await getNotionNotebooks();
+    removeNotionError();
+
+    if (!Array.isArray(notebooks) || notebooks.length === 0) {
+      timelineMain.innerHTML = `
+        <div class="notes-list">
+          <div class="no-notes">표시할 노트가 없습니다.</div>
+        </div>
+      `;
+      return;
+    }
+
+    allNotesData = notebooks.map((note) => ({
+      ...note,
+      period: resolvePeriodKey(note.notebookType)
+    }));
+
+    const notesCountByPeriod = getNotesCountByPeriod(allNotesData);
+    const totalNotesCount = Object.values(notesCountByPeriod).reduce((sum, count) => sum + count, 0);
+
+    renderSubMenu(selectedPeriod, null, totalNotesCount, notesCountByPeriod);
+    renderTimelineScrollBar(totalNotesCount, notesCountByPeriod);
+
+    const allNotesHTML = [];
+    const firstNoteId = allNotesData.length > 0 ? allNotesData[0].id : null;
+    const lastNoteId = allNotesData.length > 0 ? allNotesData[allNotesData.length - 1].id : null;
+
+    if (firstNoteId) {
+      allNotesHTML.push('<div class="note-placeholder"></div>');
+    }
+
+    allNotesData.forEach((note) => {
+      const noteTitle = escapeHtml(note.title);
+      const notebookType = escapeHtml(note.notebookType || '');
+      const periodRange = escapeHtml(formatPeriodRange(note.periodStart, note.periodEnd));
+      const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
+      const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
+      const pdfUrl = note.pdfUrl || '';
+      const noteId = escapeHtml(note.id);
+      const periodKey = escapeHtml(note.period);
+
+      allNotesHTML.push(`
+        <article class="note-card" data-note-id="${noteId}" data-period="${periodKey}" data-pdf-url="${escapeHtml(pdfUrl)}">
+          <div class="note-card-link">
+            <div class="note-cover-container">
+              <img 
+                src="${escapeHtml(coverSrc)}" 
+                alt="노트 표지" 
+                class="note-cover-image note-cover-front"
+                onerror="this.style.display='none';"
+              />
+              <img 
+                src="${escapeHtml(backCoverSrc)}" 
+                alt="노트 뒷표지" 
+                class="note-cover-image note-cover-back"
+                onerror="this.style.display='none';"
+              />
+            </div>
+            <div class="note-info">
+              <h3 class="note-info-title">${noteTitle}</h3>
+              <h5 class="note-info-meta">${notebookType}</h5>
+              <p class="note-info-description">${periodRange}</p>
+            </div>
+          </div>
+        </article>
+      `);
+    });
+
+    if (lastNoteId) {
+      allNotesHTML.push('<div class="note-placeholder"></div>');
+    }
+
+    timelineMain.innerHTML = `
+      <div class="notes-list">
+        ${allNotesHTML.join('')}
+      </div>
+    `;
+
+    timelineMain.querySelectorAll('.note-card[data-note-id]').forEach(noteCard => {
+      noteCard.addEventListener('click', (event) => {
+        event.preventDefault();
+        const noteId = noteCard.getAttribute('data-note-id');
+        if (!noteId) return;
+
+        if (noteCard.classList.contains('note-focus')) {
+          const pdfUrl = noteCard.getAttribute('data-pdf-url') || null;
+          openPdfModal(noteId, pdfUrl);
+          return;
+        }
+
+        focusNote(noteId);
+      });
+    });
+
+    setTimeout(() => {
+      const timelinePage = document.querySelector('.timeline-page');
+      if (!timelinePage) return;
+
+      const firstNoteOfPeriod = document.querySelector(`.note-card[data-period="${selectedPeriod}"]`);
+      if (firstNoteOfPeriod) {
+        const firstNoteId = firstNoteOfPeriod.getAttribute('data-note-id');
+        if (firstNoteId) {
+          focusNote(firstNoteId);
+          return;
+        }
+      }
+
+      savedScrollPosition = null;
+      currentPeriod = selectedPeriod;
+    }, 100);
+
+    setupNoteFocusSystem();
+    setupKeyboardNavigation();
+    setupScrollObserver();
+    setupHorizontalWheelScroll();
+    setupTimelineIndicator();
+    setupTimelineProgressDrag();
+    setupMainAreaDrag();
+    updateBackgroundColor(selectedPeriod);
+    currentPeriod = selectedPeriod;
+  } catch (error) {
+    console.warn('노션 노트 로드 실패:', error);
+    showNotionError(error);
+  }
 }
 
 // Observer 인스턴스를 저장하여 중복 생성 방지
@@ -464,7 +528,7 @@ function focusNote(noteId) {
 /**
  * PDF 뷰어 모달을 여는 함수
  */
-function openPdfModal(noteId) {
+function openPdfModal(noteId, pdfUrl = null) {
   const existing = document.querySelector('.pdf-modal-overlay');
   if (existing) {
     existing.remove();
@@ -482,11 +546,9 @@ function openPdfModal(noteId) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
-  const noteCard = document.querySelector(`.note-card[data-note-id="${noteId}"]`);
-  const cloudinaryKey = noteCard?.getAttribute('data-cloudinary-key') || null;
   const cleanupViewer = renderNotePdfViewer(content, noteId, {
     mode: 'modal',
-    cloudinaryKey
+    pdfUrl
   });
 
   const closeModal = () => {
@@ -952,87 +1014,25 @@ function setupMainAreaDrag() {
   timelinePage.addEventListener('touchmove', handleTouchMove, { passive: false });
 }
 
-/**
- * Cloudinary에서 가져온 표지 이미지로 첫 18개 노트를 덮어씁니다.
- */
-async function applyCloudinaryImagesToTimeline(timelineMain) {
-  if (!timelineMain) return;
-
-  try {
-    const coverUrls = await getNotebookCoverUrls('front');
-    let backCoverUrls = await getNotebookCoverUrls('back');
-    removeCloudinaryError(timelineMain);
-    if (!coverUrls || coverUrls.length === 0) {
-      showCloudinaryError(timelineMain, new Error('Cloudinary 응답에 이미지가 없습니다.'));
-      return;
-    }
-    if (!backCoverUrls || backCoverUrls.length === 0) {
-      // back 목록이 비어있으면 front URL 기반으로 추정 (같은 파일명 가정)
-      backCoverUrls = coverUrls.map((url) =>
-        String(url)
-          .replace('/Notebooks/Cover/Front/', '/Notebooks/Cover/Back/')
-          .replace('/Cover/Front/', '/Cover/Back/')
-      );
-    }
-
-    const noteCards = timelineMain.querySelectorAll('.note-card');
-    coverUrls.slice(0, CLOUDINARY_NOTE_LIMIT).forEach((url, index) => {
-      const noteCard = noteCards[index];
-      if (!noteCard) return;
-
-      const frontImg = noteCard.querySelector('.note-cover-front');
-      const backImg = noteCard.querySelector('.note-cover-back');
-      const titleEl = noteCard.querySelector('.note-info-title');
-      const metaEl = noteCard.querySelector('.note-info-meta');
-      const descriptionEl = noteCard.querySelector('.note-info-description');
-
-      if (frontImg && url) {
-        frontImg.src = url;
-      }
-      const backUrl = backCoverUrls?.[index] || null;
-      if (backImg && backUrl) {
-        backImg.src = backUrl;
-      }
-      if (titleEl) {
-        const fallbackTitle = noteCard.getAttribute('data-note-title') || titleEl.textContent;
-        titleEl.textContent = fallbackTitle || '';
-      }
-      if (descriptionEl) {
-        const fallbackDescription =
-          noteCard.getAttribute('data-note-description') || descriptionEl.textContent;
-        descriptionEl.textContent = fallbackDescription || '';
-      }
-      if (metaEl) {
-        const fallbackMeta = noteCard.getAttribute('data-diary-count') || metaEl.textContent;
-        metaEl.textContent = fallbackMeta || '';
-      }
-    });
-  } catch (error) {
-    console.warn('Cloudinary 표지 이미지 로드 실패:', error);
-    showCloudinaryError(timelineMain, error);
-  }
-}
-
-function showCloudinaryError(timelineMain, error) {
-  if (!timelineMain) return;
-  if (document.getElementById(CLOUDINARY_ERROR_ID)) return;
+function showNotionError(error) {
+  if (document.getElementById(NOTION_ERROR_ID)) return;
 
   const message =
     error?.message ||
-    'Cloudinary API 호출에 실패했습니다. 환경 변수/배포 설정을 확인해주세요.';
+    'Notion API 호출에 실패했습니다. 환경 변수/배포 설정을 확인해주세요.';
 
   const banner = document.createElement('div');
-  banner.id = CLOUDINARY_ERROR_ID;
+  banner.id = NOTION_ERROR_ID;
   banner.style.cssText =
     'position: sticky; top: 0; z-index: 10; background: rgba(200,0,0,0.1); color: #b00020; padding: 8px 12px; font-size: 12px;';
-  banner.textContent = `Cloudinary 오류: ${message}`;
+  banner.textContent = `Notion 오류: ${message}`;
 
-  timelineMain.prepend(banner);
+  const timelineMain = document.getElementById('timeline-main');
+  timelineMain?.prepend(banner);
 }
 
-function removeCloudinaryError(timelineMain) {
-  if (!timelineMain) return;
-  const banner = document.getElementById(CLOUDINARY_ERROR_ID);
+function removeNotionError() {
+  const banner = document.getElementById(NOTION_ERROR_ID);
   banner?.remove();
 }
 

@@ -31,31 +31,75 @@ export default async function handler(req, res) {
   }
 
   try {
-    const params = new URLSearchParams({
-      asset_folder: 'Notebooks/Contents',
-      fields: 'asset_id,public_id,asset_folder,secure_url,url'
-    });
+    const allParam = String(req.query?.all || '').toLowerCase() === 'true';
+    const fields = 'asset_id,public_id,asset_folder,secure_url,url';
+    const maxPages = 20;
+    const perPage = 500;
 
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/resources/raw?${params.toString()}`;
+    const buildUrl = (nextCursor) => {
+      const params = new URLSearchParams({
+        asset_folder: 'Notebooks/Contents',
+        fields,
+        ...(allParam ? { max_results: String(perPage) } : {}),
+        ...(nextCursor ? { next_cursor: nextCursor } : {})
+      });
+      return `https://api.cloudinary.com/v1_1/${cloudName}/resources/raw?${params.toString()}`;
+    };
+
     const authToken = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Basic ${authToken}`
-      }
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: 'Cloudinary API error',
-        details: data
+    if (!allParam) {
+      const response = await fetch(buildUrl(), {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${authToken}`
+        }
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: 'Cloudinary API error',
+          details: data
+        });
+      }
+
+      return res.status(200).json(data);
     }
 
-    return res.status(200).json(data);
+    let allResources = [];
+    let nextCursor = null;
+    let pageCount = 0;
+
+    do {
+      const response = await fetch(buildUrl(nextCursor), {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${authToken}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return res.status(response.status).json({
+          error: 'Cloudinary API error',
+          details: data
+        });
+      }
+
+      const resources = Array.isArray(data?.resources) ? data.resources : [];
+      allResources = allResources.concat(resources);
+      nextCursor = data?.next_cursor || null;
+      pageCount += 1;
+    } while (nextCursor && pageCount < maxPages);
+
+    return res.status(200).json({
+      resources: allResources,
+      next_cursor: nextCursor,
+      truncated: Boolean(nextCursor)
+    });
   } catch (error) {
     console.error('Cloudinary API error:', error);
     return res.status(500).json({
