@@ -5,6 +5,7 @@ footer {
   margin-top: auto;
   padding: 2rem 0;
   height:80px;
+  background-color: var(--primary-color);
 }
 
 .footer-container {

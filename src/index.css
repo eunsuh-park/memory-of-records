@@ -5,7 +5,7 @@
 
 :root {
   /* 색상 변수 정의 - 필요에 따라 수정 가능 */
-  --primary-color: #333;
+  --primary-color: #FFD966;
   --secondary-color: #666;
   --background-color: #fafafa;
   --border-color: #e0e0e0;
@@ -27,14 +27,15 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  background-color: var(--primary-color);
+
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100vh;
-  background-color: var(--background-color);
-  color: var(--primary-color);
+  min-height: 100%;
+  color: #333;
 }
 
 #root {

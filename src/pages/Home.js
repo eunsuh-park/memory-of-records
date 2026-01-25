@@ -14,8 +14,8 @@ export function renderHome() {
       <main class="home-main">
         <section class="hero-section">
           <img src="${logo}" alt="Memory of Records" class="home-logo" />
-          <p class="home-intro">Hello, I have narcolepsy. Analog Records throughout my life help me keep awake.</p>
-          <p class="home-intro">I want to share my overcoming-stories struggling in my sleepness.</p>
+          <p class="home-intro">Analog Records is a collection of my life's memories.</p>
+          <p class="home-intro">I want to share my memories with you.</p>
         </section>
       </main>
     </div>

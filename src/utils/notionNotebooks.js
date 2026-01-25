@@ -81,7 +81,9 @@ function extractPageCoverUrl(page) {
 
 export function convertNotionPageToNotebook(page) {
   const properties = page?.properties || {};
-  const title = parseNotionProperty(getProperty(properties, 'title', 'Title')) || '제목 없음';
+  const title =
+    parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
+    '제목 없음';
   const notebookType = parseNotionProperty(
     getProperty(properties, 'notebook_type', 'Notebook Type', 'Notebook type', 'Type')
   );
