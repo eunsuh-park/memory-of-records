@@ -13,24 +13,24 @@
 
 /* 배경색 전환 애니메이션 */
 body.timeline-active {
-  background-color: #f8f5f0;
+  background-color: #ffffff;
   transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.timeline-active.period-elementary {
-  background-color: #fff9e6;
+  background-color: #ffffff;
 }
 
 body.timeline-active.period-middle-high {
-  background-color: #e8f4f8;
+  background-color: #ffffff;
 }
 
 body.timeline-active.period-university {
-  background-color: #f0e8f5;
+  background-color: #ffffff;
 }
 
 body.timeline-active.period-after-graduation {
-  background-color: #f5f0e8;
+  background-color: #ffffff;
 }
 
 .timeline-page {
