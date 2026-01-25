@@ -3,6 +3,10 @@
 .home-page {
   min-height: calc(100vh - 200px); /* 헤더와 푸터를 제외한 높이 */
   padding: 2rem 0;
+  background-color: var(--primary-color);
+  vertical-align: middle;
+  width: 100%;
+  height: 100%;
 }
 
 .home-main {

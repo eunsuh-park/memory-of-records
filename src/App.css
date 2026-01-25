@@ -24,6 +24,11 @@
   padding-top: 72px; /* TopNavigation 높이만큼 여백 추가 */
 }
 
+#main-content {
+  background: unset;
+  background-color: unset;
+}
+
 /* StoryDetail 페이지는 padding-top 제거 (전체 화면 사용) */
 body.story-detail-page-active .app-main {
   padding-top: 0;
