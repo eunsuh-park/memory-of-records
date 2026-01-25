@@ -31,10 +31,6 @@ export function renderNavigation() {
   const container = document.getElementById('navigation');
   if (!container) return;
 
-  // 임시: elementary 외 구간 비활성화로 네비게이션 숨김
-  container.innerHTML = '';
-  return;
-
   const currentPath = getActualPath(window.location.pathname);
 
   container.innerHTML = `
@@ -51,15 +47,6 @@ export function renderNavigation() {
               data-link
             >
               Timeline
-            </a>
-          </li>
-          <li>
-            <a 
-              href="/story" 
-              class="${currentPath.startsWith('/story') ? 'active' : ''}"
-              data-link
-            >
-              Story
             </a>
           </li>
         </ul>
