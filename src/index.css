@@ -26,9 +26,7 @@
 * {
   box-sizing: border-box;
   margin: 0;
-  padding: 0;
-  background-color: var(--primary-color);
-
+  padding: 0; 
 }
 
 body {
@@ -45,7 +43,6 @@ body {
 /* 링크 기본 스타일 */
 a {
   font-weight: 500;
-  color: var(--primary-color);
   text-decoration: inherit;
   transition: color 0.3s;
 }
