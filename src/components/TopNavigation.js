@@ -16,10 +16,10 @@ function getActualPath(pathname) {
   }
   // base 경로가 있으면 제거
   // BASE_URL은 항상 '/'로 끝나므로, 마지막 '/'를 제거한 길이만큼 슬라이스
-  const basePathWithoutTrailingSlash = BASE_URL.endsWith('/') 
-    ? BASE_URL.slice(0, -1) 
+  const basePathWithoutTrailingSlash = BASE_URL.endsWith('/')
+    ? BASE_URL.slice(0, -1)
     : BASE_URL;
-  
+
   if (pathname.startsWith(basePathWithoutTrailingSlash)) {
     const actualPath = pathname.slice(basePathWithoutTrailingSlash.length) || '/';
     return actualPath;
@@ -37,12 +37,14 @@ export function renderNavigation() {
     <nav class="navigation">
       <div class="nav-container">
         <a href="/" class="logo" data-link>
+          <span class="logo-icon" aria-hidden="true">&lt;</span>
+          <span class="logo-text">Back</span>
           <img src="${logo}" alt="Memory of Records" class="logo-image" />
         </a>
         <ul class="nav-menu">
           <li>
-            <a 
-              href="/timeline" 
+            <a
+              href="/timeline"
               class="${currentPath.startsWith('/timeline') ? 'active' : ''}"
               data-link
             >
@@ -50,6 +52,11 @@ export function renderNavigation() {
             </a>
           </li>
         </ul>
+        <button class="nav-hamburger" type="button" aria-label="메뉴 열기">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </nav>
   `;

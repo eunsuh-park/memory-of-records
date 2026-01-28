@@ -269,6 +269,49 @@ body.timeline-active.period-after-graduation {
   color: #555;
 }
 
+@media (max-width: 1024px) {
+  .notes-list {
+    gap: 1.2rem;
+    padding: 0 1.5rem;
+  }
+
+  .note-card {
+    min-height: 55vh;
+  }
+
+  .note-cover-container {
+    height: 55vh;
+  }
+
+  .note-info-title {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .notes-list {
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .note-card {
+    min-height: 48vh;
+  }
+
+  .note-cover-container {
+    height: 48vh;
+  }
+
+  .note-info-title {
+    font-size: 1.05rem;
+  }
+
+  .note-info-meta,
+  .note-info-description {
+    font-size: 0.8rem;
+  }
+}
+
 .note-cover-image {
   width: auto; /* 너비는 이미지 비율에 맞춰 자동 조정 */
   height: 100%; /* 높이는 컨테이너 높이에 맞춤 (통일된 높이: 60vh) */

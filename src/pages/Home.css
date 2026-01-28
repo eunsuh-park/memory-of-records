@@ -67,6 +67,56 @@
   margin: 0 auto;
 }
 
+@media (max-width: 1024px) {
+  .home-main {
+    max-width: 820px;
+    padding: 0 1.5rem;
+  }
+
+  .hero-section {
+    font-size: 1.35rem;
+  }
+
+  .home-logo {
+    max-width: 420px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-page {
+    padding: 1.5rem 0;
+  }
+
+  .home-main {
+    padding: 0 1rem;
+  }
+
+  .hero-section {
+    font-size: 1.1rem;
+  }
+
+  .home-logo {
+    max-width: 320px;
+  }
+
+  .main-title {
+    font-size: 2.2rem;
+  }
+
+  .subtitle {
+    font-size: 1.25rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+
+  .intro-section {
+    margin-top: 2.5rem;
+    padding: 1.5rem;
+  }
+}
+
 .intro-section {
   margin-top: 4rem;
   padding: 2rem;

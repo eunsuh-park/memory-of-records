@@ -109,4 +109,17 @@
   font-weight: 500;
 }
 
+@media (max-width: 768px) {
+  .period-list {
+    gap: 0;
+  }
+
+  .period-item .period-link {
+    display: none;
+  }
+
+  .period-item .period-link.active {
+    display: flex;
+  }
+}
 
