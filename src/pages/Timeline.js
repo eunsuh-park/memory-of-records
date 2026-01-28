@@ -21,8 +21,104 @@ let isScrollingToTarget = false; // 타겟으로 스크롤 중인지 추적
 let currentFocusedNoteId = null; // 현재 포커스된 노트 ID
 let allNotesData = []; // 전체 노트 데이터 (순서대로)
 const NOTION_ERROR_ID = 'notion-error-banner';
+const TIMELINE_LOADING_OVERLAY_ID = 'timeline-loading-overlay';
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+const TIMELINE_LOADING_MESSAGES = [
+  '노트들을 상자에서 꺼내는 중...',
+  '상자의 먼지를 털어내는 중....'
+];
+const TIMELINE_LOADING_MIN_VISIBLE_MS = 2500;
+const TIMELINE_LOADING_FADE_MS = 200;
+const TIMELINE_LOADING_TIMEOUT_MS = 7000;
+let timelineOverlayShownAt = 0;
+let timelineOverlayHideTimer = null;
+
+function getRandomLoadingMessage() {
+  const index = Math.floor(Math.random() * TIMELINE_LOADING_MESSAGES.length);
+  return TIMELINE_LOADING_MESSAGES[index];
+}
+
+function showTimelineLoadingOverlay() {
+  let overlay = document.getElementById(TIMELINE_LOADING_OVERLAY_ID);
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = TIMELINE_LOADING_OVERLAY_ID;
+    overlay.className = 'timeline-loading-overlay';
+    document.body.appendChild(overlay);
+  }
+
+  if (timelineOverlayHideTimer) {
+    clearTimeout(timelineOverlayHideTimer);
+    timelineOverlayHideTimer = null;
+  }
+  timelineOverlayShownAt = Date.now();
+  overlay.classList.remove('timeline-loading-overlay--hidden', 'timeline-loading-overlay--fading');
+  overlay.innerHTML = `
+    <div class="timeline-loading-content" role="status" aria-live="polite">
+      <div class="timeline-loading-spinner" aria-hidden="true"></div>
+      <p class="timeline-loading-text">${getRandomLoadingMessage()}</p>
+    </div>
+  `;
+}
+
+function hideTimelineLoadingOverlay() {
+  const overlay = document.getElementById(TIMELINE_LOADING_OVERLAY_ID);
+  if (!overlay) return;
+  const elapsed = Date.now() - timelineOverlayShownAt;
+  const remaining = Math.max(0, TIMELINE_LOADING_MIN_VISIBLE_MS - elapsed);
+  if (remaining === 0) {
+    overlay.classList.add('timeline-loading-overlay--fading');
+    timelineOverlayHideTimer = setTimeout(() => {
+      overlay.classList.add('timeline-loading-overlay--hidden');
+      overlay.classList.remove('timeline-loading-overlay--fading');
+      timelineOverlayHideTimer = null;
+    }, TIMELINE_LOADING_FADE_MS);
+    return;
+  }
+  timelineOverlayHideTimer = setTimeout(() => {
+    overlay.classList.add('timeline-loading-overlay--fading');
+    setTimeout(() => {
+      overlay.classList.add('timeline-loading-overlay--hidden');
+      overlay.classList.remove('timeline-loading-overlay--fading');
+    }, TIMELINE_LOADING_FADE_MS);
+    timelineOverlayHideTimer = null;
+  }, remaining);
+}
+
+function waitForTimelineImages(container) {
+  if (!container) return Promise.resolve();
+
+  const images = Array.from(container.querySelectorAll('.note-cover-image'));
+  const pending = images.filter((img) => !img.complete);
+
+  if (pending.length === 0) {
+    return Promise.resolve();
+  }
+
+  const loadPromises = pending.map(
+    (img) =>
+      new Promise((resolve) => {
+        const cleanup = () => {
+          img.removeEventListener('load', handleLoad);
+          img.removeEventListener('error', handleLoad);
+        };
+        const handleLoad = () => {
+          cleanup();
+          resolve();
+        };
+        img.addEventListener('load', handleLoad, { once: true });
+        img.addEventListener('error', handleLoad, { once: true });
+      })
+  );
+
+  return Promise.race([
+    Promise.all(loadPromises),
+    new Promise((resolve) => {
+      setTimeout(resolve, TIMELINE_LOADING_TIMEOUT_MS);
+    })
+  ]);
+}
 
 function resolvePeriodKey(notebookType) {
   const normalized = String(notebookType || '').trim().toLowerCase();
@@ -104,6 +200,8 @@ export function renderTimeline(period = 'elementary') {
   }
 
   // 새로운 timeline 페이지로 들어오는 경우에만 DOM 생성
+  showTimelineLoadingOverlay();
+
   // 서브 메뉴를 body 레벨에 추가 (fixed 위치용)
   let subMenuContainer = document.getElementById('sub-menu');
   if (!subMenuContainer) {
@@ -126,6 +224,7 @@ export function renderTimeline(period = 'elementary') {
   if (mainWrapper) {
     mainWrapper.classList.add('timeline-active');
   }
+  document.body.classList.add('timeline-active');
   
   mainContent.innerHTML = `
     <div class="timeline-page">
@@ -219,6 +318,7 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
           <div class="no-notes">표시할 노트가 없습니다.</div>
         </div>
       `;
+      hideTimelineLoadingOverlay();
       return;
     }
 
@@ -301,6 +401,8 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
       );
     });
 
+    waitForTimelineImages(timelineMain).then(hideTimelineLoadingOverlay);
+
     timelineMain.querySelectorAll('.note-card[data-note-id]').forEach(noteCard => {
       noteCard.addEventListener('click', (event) => {
         event.preventDefault();
@@ -346,6 +448,7 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
   } catch (error) {
     console.warn('노션 노트 로드 실패:', error);
     showNotionError(error);
+    hideTimelineLoadingOverlay();
   }
 }
 

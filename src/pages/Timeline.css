@@ -50,6 +50,57 @@ body.timeline-active.period-after-graduation {
   display: none; /* Chrome, Safari, Opera */
 }
 
+.timeline-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.timeline-loading-overlay--fading {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.timeline-loading-overlay--hidden {
+  display: none;
+}
+
+.timeline-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  color: #333;
+  padding: 24px;
+}
+
+.timeline-loading-spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 6px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #333;
+  animation: timeline-spinner-rotate 0.9s linear infinite;
+}
+
+.timeline-loading-text {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+@keyframes timeline-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .timeline-container {
   display: flex;
   height: 100%;

@@ -1,7 +1,7 @@
 /* Home 페이지 스타일 */
 
 .home-page {
-  min-height: calc(100vh - 200px); /* 헤더와 푸터를 제외한 높이 */
+  min-height: 100%;
   padding: 2rem 0;
   background-color: var(--primary-color);
   vertical-align: middle;
@@ -13,17 +13,28 @@
   max-width: 900px;
   margin: 0 auto;
   padding: 0 2rem;
+  background-color: var(--primary-color);
+  height: 100%;
 }
 
 .hero-section {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  padding: 3rem 0;
+  padding-top: 0;
+  padding-bottom: 0;
   font-size: 1.5rem;
   color: #333;
   line-height: 1.5;
   max-width: 600px;
-  margin: 0 auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .home-logo {

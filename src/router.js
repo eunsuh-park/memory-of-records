@@ -92,6 +92,13 @@ class Router {
 
     // Timeline 페이지가 아닐 때 서브 메뉴 제거
     if (!path.startsWith('/timeline')) {
+      document.body.classList.remove(
+        'timeline-active',
+        'period-elementary',
+        'period-middle-high',
+        'period-university',
+        'period-after-graduation'
+      );
       const subMenu = document.getElementById('sub-menu');
       if (subMenu) {
         subMenu.remove();
