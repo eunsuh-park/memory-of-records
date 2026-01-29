@@ -1,10 +1,18 @@
 /* App 컴포넌트 스타일 */
 
+html,
+body,
+#app {
+  height: 100%;
+  overflow: hidden;
+}
+
 .app {
   /* 전체 애플리케이션 컨테이너 */
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .main-wrapper {
@@ -13,15 +21,17 @@
   display: flex;
   width: 100%;
   position: relative;
+  height: calc(100vh - 80px);
 }
 
 .app-main {
   /* 메인 콘텐츠 영역 - 헤더와 푸터 사이 */
   flex: 1;
   width: 100%;
-  height: fit-content;
+  height: 100%;
   vertical-align: bottom;
   padding-top: 72px; /* TopNavigation 높이만큼 여백 추가 */
+  overflow: hidden;
 }
 
 #main-content {

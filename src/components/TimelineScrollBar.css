@@ -29,33 +29,16 @@
 .scrollbar-dot {
   position: absolute;
   top: 50%;
-  width: 6px;
-  height: 6px;
+  width: 9px;
+  height: 9px;
   background-color: rgba(0, 0, 0, 0.35);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.scrollbar-indicator {
-  position: absolute;
-  top: 50%;
-  left: 0%;
-  width: 12px;
-  height: 12px;
+.scrollbar-dot--active {
   background-color: rgba(0, 0, 0, 0.8);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: left 0.1s ease;
-  z-index: 2;
-  cursor: grab;
-  touch-action: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-.scrollbar-indicator:active {
-  cursor: grabbing;
-  transition: none;
 }
 
 

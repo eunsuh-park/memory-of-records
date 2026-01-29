@@ -443,8 +443,7 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
     setupKeyboardNavigation();
     setupScrollObserver();
     setupHorizontalWheelScroll();
-    setupTimelineIndicator();
-    setupTimelineProgressDrag();
+    setupTimelineDots();
     setupMainAreaDrag();
     updateBackgroundColor(selectedPeriod);
     currentPeriod = selectedPeriod;
@@ -483,6 +482,7 @@ function setupNoteFocusSystem() {
 
   // DOM 렌더링 후 placeholder 너비 설정
   setTimeout(updatePlaceholderWidth, 0);
+  window.addEventListener('resize', updatePlaceholderWidth, { passive: true });
 
   // 초기 포커스 설정 (첫 번째 노트)
   const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
@@ -631,6 +631,7 @@ function focusNote(noteId) {
 
   currentFocusedNoteId = noteId;
   updateNoteStates();
+  updateActiveScrollbarDot(noteId);
   
   // 포커스 노트 변경 시 서브메뉴도 업데이트
   const period = noteCard.getAttribute('data-period');
@@ -642,6 +643,22 @@ function focusNote(noteId) {
     timelinePage.style.scrollSnapType = '';
     isScrollingToTarget = false;
   }, 600);
+}
+
+/**
+ * 현재 포커스 노트에 맞는 스크롤바 점 활성화
+ */
+function updateActiveScrollbarDot(noteId) {
+  const dots = document.querySelectorAll('.scrollbar-dot');
+  if (!dots.length) return;
+
+  const targetIndex = allNotesData.findIndex((note) => note.id === noteId);
+  if (targetIndex === -1) return;
+
+  dots.forEach((dot) => {
+    const dotIndex = parseInt(dot.getAttribute('data-note-index'), 10);
+    dot.classList.toggle('scrollbar-dot--active', dotIndex === targetIndex);
+  });
 }
 
 /**
@@ -890,131 +907,21 @@ function setupHorizontalWheelScroll() {
   }, { passive: false });
 }
 
-// 인디케이터 위치 업데이트 함수를 전역으로 저장
-let updateIndicatorPosition = null;
-
 /**
- * 스크롤 위치에 따라 타임라인 인디케이터 위치를 업데이트하는 함수
+ * 타임라인 진행 표시줄 점 클릭/활성화 설정
  */
-function setupTimelineIndicator() {
-  const timelinePage = document.querySelector('.timeline-page');
-  const indicator = document.getElementById('scrollbar-indicator');
-  if (!timelinePage || !indicator) return;
-
-  updateIndicatorPosition = () => {
-    const scrollLeft = timelinePage.scrollLeft;
-    const scrollWidth = timelinePage.scrollWidth;
-    const clientWidth = timelinePage.clientWidth;
-    const maxScroll = scrollWidth - clientWidth;
-
-    if (maxScroll <= 0) {
-      indicator.style.left = '0%';
-      return;
-    }
-
-    const scrollPercentage = (scrollLeft / maxScroll) * 100;
-    indicator.style.left = `${scrollPercentage}%`;
-  };
-
-  // 초기 위치 설정
-  updateIndicatorPosition();
-
-  // 스크롤 이벤트 리스너 추가
-  timelinePage.addEventListener('scroll', updateIndicatorPosition, { passive: true });
-  
-  // 리사이즈 이벤트도 감지
-  window.addEventListener('resize', updateIndicatorPosition, { passive: true });
-  
-  // 리사이즈 시 placeholder 너비 업데이트
-  window.addEventListener('resize', () => {
-    const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
-    if (allNoteCards.length > 0) {
-      const firstNoteCard = allNoteCards[0];
-      const firstNoteRect = firstNoteCard.getBoundingClientRect();
-      const placeholderWidth = (timelinePage.clientWidth / 2) - (firstNoteRect.width / 2);
-      
-      const placeholders = document.querySelectorAll('.note-placeholder');
-      placeholders.forEach(placeholder => {
-        placeholder.style.width = `${Math.max(0, placeholderWidth)}px`;
-      });
-    }
-  }, { passive: true });
-}
-
-
-/**
- * 타임라인 진행 표시줄 드래그 기능 설정
- */
-function setupTimelineProgressDrag() {
-  const timelinePage = document.querySelector('.timeline-page');
+function setupTimelineDots() {
   const progressBar = document.querySelector('.scrollbar-track');
-  const indicator = document.getElementById('scrollbar-indicator');
-  
-  if (!timelinePage || !progressBar || !indicator) return;
+  if (!progressBar) return;
 
-  let isDragging = false;
-
-  const handleIndicatorMouseDown = (e) => {
-    e.stopPropagation();
-    isDragging = true;
-    indicator.style.transition = 'none';
-    timelinePage.style.scrollBehavior = 'auto';
-    updatePositionFromEvent(e);
-  };
-
-  const handleProgressBarMouseDown = (e) => {
-    isDragging = true;
-    indicator.style.transition = 'none';
-    timelinePage.style.scrollBehavior = 'auto';
-    updatePositionFromEvent(e);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    updatePositionFromEvent(e);
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging) {
-      isDragging = false;
-      indicator.style.transition = 'left 0.3s ease';
-      
-      // 스크롤바 드래그 완료 후 인디케이터 위치만 업데이트
-      setTimeout(() => {
-        if (updateIndicatorPosition) {
-          updateIndicatorPosition();
-        }
-      }, 10);
-    }
-  };
-
-  const updatePositionFromEvent = (e) => {
-    const rect = progressBar.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    
-    indicator.style.left = `${percentage}%`;
-
-    // 스크롤 위치 업데이트
-    const scrollWidth = timelinePage.scrollWidth;
-    const clientWidth = timelinePage.clientWidth;
-    const maxScroll = scrollWidth - clientWidth;
-
-    if (maxScroll > 0) {
-      const scrollLeft = (percentage / 100) * maxScroll;
-      timelinePage.scrollLeft = scrollLeft;
-    }
-  };
-
-  // 스크롤바 마크 클릭 이벤트 (각 노트로 포커스)
   setTimeout(() => {
     const scrollbarDots = progressBar.querySelectorAll('.scrollbar-dot');
     scrollbarDots.forEach((dot) => {
       dot.style.cursor = 'pointer';
-      const noteIndex = parseInt(dot.getAttribute('data-note-index'));
+      const noteIndex = parseInt(dot.getAttribute('data-note-index'), 10);
       dot.addEventListener('click', (e) => {
         e.stopPropagation();
-        
+
         // allNotesData에서 해당 인덱스의 노트 ID 찾기
         if (allNotesData[noteIndex]) {
           const noteId = allNotesData[noteIndex].id;
@@ -1022,52 +929,11 @@ function setupTimelineProgressDrag() {
         }
       });
     });
-  }, 100);
 
-  // 마우스 이벤트
-  progressBar.addEventListener('mousedown', handleProgressBarMouseDown);
-  indicator.addEventListener('mousedown', handleIndicatorMouseDown);
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
-
-  // 터치 이벤트
-  const handleProgressBarTouchStart = (e) => {
-    isDragging = true;
-    indicator.style.transition = 'none';
-    updatePositionFromEvent(e.touches[0]);
-  };
-
-  const handleIndicatorTouchStart = (e) => {
-    e.stopPropagation();
-    isDragging = true;
-    indicator.style.transition = 'none';
-    updatePositionFromEvent(e.touches[0]);
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    updatePositionFromEvent(e.touches[0]);
-  };
-
-  const handleTouchEnd = () => {
-    if (isDragging) {
-      isDragging = false;
-      indicator.style.transition = 'left 0.3s ease';
-      
-      // 스크롤바 드래그 완료 후 인디케이터 위치만 업데이트
-      setTimeout(() => {
-        if (updateIndicatorPosition) {
-          updateIndicatorPosition();
-        }
-      }, 10);
+    if (currentFocusedNoteId) {
+      updateActiveScrollbarDot(currentFocusedNoteId);
     }
-  };
-
-  progressBar.addEventListener('touchstart', handleProgressBarTouchStart, { passive: false });
-  indicator.addEventListener('touchstart', handleIndicatorTouchStart, { passive: false });
-  progressBar.addEventListener('touchmove', handleTouchMove, { passive: false });
-  document.addEventListener('touchend', handleTouchEnd);
+  }, 100);
 }
 
 /**

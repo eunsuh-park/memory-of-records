@@ -10,6 +10,10 @@ export function renderTimelineScrollBar(totalNotesCount, notesCountByPeriod) {
   const container = document.getElementById('timeline-scrollbar');
   if (!container) return;
 
+  const dotSpreadPercent = 50;
+  const dotSpreadFactor = dotSpreadPercent / 100;
+  const dotSpreadOffset = (100 - dotSpreadPercent) / 2;
+
   // 전체 노트 개수와 period별 노트 개수로 눈금 생성 (노트 1개당 1개 눈금)
   let marksHTML = '';
   let noteIndex = 0; // 전체 노트 인덱스 추적
@@ -22,7 +26,8 @@ export function renderTimelineScrollBar(totalNotesCount, notesCountByPeriod) {
       if (count > 0) {
         // 각 노트마다 점 생성 (data-note-index 추가)
         for (let i = 0; i < count; i++) {
-          const dotPosition = currentPosition + widthPerNote / 2;
+          const dotPosition = dotSpreadOffset
+            + (currentPosition + widthPerNote / 2) * dotSpreadFactor;
           marksHTML += `<div class="scrollbar-dot" data-note-index="${noteIndex}" style="left: ${dotPosition}%;"></div>`;
           currentPosition += widthPerNote;
           noteIndex++;
@@ -37,7 +42,6 @@ export function renderTimelineScrollBar(totalNotesCount, notesCountByPeriod) {
         <div class="scrollbar-dots">
           ${marksHTML}
         </div>
-        <div class="scrollbar-indicator" id="scrollbar-indicator"></div>
       </div>
     </div>
   `;
