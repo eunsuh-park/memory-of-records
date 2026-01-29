@@ -38,7 +38,7 @@
   margin: 0;
   background: unset;
   background-color: unset;
-  width: 120px;
+  width: auto;
 }
 
 .period-link {
@@ -52,14 +52,19 @@
   background-color: transparent;
   font-weight: 400;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease-in-out, width 0.3s ease;
+  transition: background-color 0.3s ease-in-out;
   border-radius: 999px;
   line-height: 100%;
   text-align: center;
   box-sizing: border-box;
   white-space: nowrap;
   overflow: visible;
-  width: 160px;
+  width: auto;
+}
+
+.period-link[aria-disabled="true"] {
+  pointer-events: none;
+  cursor: default;
 }
 
 .period-link:not(.period-link--elementary) {

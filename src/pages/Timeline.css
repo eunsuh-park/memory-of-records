@@ -185,7 +185,8 @@ body.timeline-active.period-after-graduation {
 }
 
 .note-card.note-focus .note-cover-container {
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12))
+    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
 }
 
 .note-card.note-adjacent {

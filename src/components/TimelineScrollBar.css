@@ -1,8 +1,11 @@
 /* TimelineScrollBar 스타일 */
 
 .timeline-scrollbar {
-  position: relative;
-  z-index: 2;
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  z-index: 1002;
   width: min(800px, 80vw);
   padding: 0 1.5rem;
   box-sizing: border-box;

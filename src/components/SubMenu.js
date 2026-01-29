@@ -47,21 +47,6 @@ export function renderSubMenu(selectedPeriod, onPeriodChange, totalNotesCount, n
     </aside>
   `;
 
-  // 가장 긴 메뉴 항목의 너비에 맞춰 모든 항목의 너비 통일
-  setTimeout(() => {
-    const links = container.querySelectorAll('.period-link');
-    if (links.length > 0) {
-      let maxWidth = 0;
-      links.forEach(link => {
-        const width = link.getBoundingClientRect().width;
-        if (width > maxWidth) {
-          maxWidth = width;
-        }
-      });
-      links.forEach(link => {
-        link.style.width = `${maxWidth}px`;
-      });
-    }
-  }, 0);
+  // 메뉴 너비는 콘텐츠 기준으로 자연스럽게 결정
 }
 
