@@ -6,7 +6,8 @@
   top: 0.75rem; /* TopNavigation과 겹치도록 */
   left: 50%;
   transform: translateX(-50%); /* 가로만 중앙 정렬 */
-  background-color: #fff;
+  background: unset;
+  background-color: unset;
   border: none;
   border-radius: 999px;
   z-index: 1001;
@@ -30,10 +31,14 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  color: rgba(0, 0, 0, 0);
 }
 
 .period-item {
   margin: 0;
+  background: unset;
+  background-color: unset;
+  width: 120px;
 }
 
 .period-link {
@@ -41,7 +46,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   text-decoration: none;
   color: #333;
   background-color: transparent;
@@ -54,6 +59,7 @@
   box-sizing: border-box;
   white-space: nowrap;
   overflow: visible;
+  width: 160px;
 }
 
 .period-link:not(.period-link--elementary) {
@@ -96,6 +102,8 @@
   line-height: 100%;
   text-align: center;
   transition: font-weight 0.3s ease;
+  width: 100%;
+  overflow: hidden;
 }
 
 .period-link.active .period-label {
@@ -124,7 +132,7 @@
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .period-list {
     gap: 0;
   }

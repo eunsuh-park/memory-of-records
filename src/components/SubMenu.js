@@ -14,18 +14,34 @@ export function renderSubMenu(selectedPeriod, onPeriodChange, totalNotesCount, n
     <aside class="sub-menu">
       <nav class="sub-nav">
         <ul class="period-list">
-          ${periodOptions.map(period => `
-            <li class="period-item">
-              <a
-                href="/timeline/${period.value}"
-                class="period-link period-link--${period.value} ${selectedPeriod === period.value ? 'active' : ''}"
-                data-link
-              >
-                <span class="period-label">${period.label}</span>
-                <span class="period-years">${period.years}</span>
-              </a>
-            </li>
-          `).join('')}
+          ${periodOptions.map(period => {
+            const isElementary = period.value === 'elementary';
+            const isActive = selectedPeriod === period.value;
+            return `
+              <li class="period-item">
+                ${isElementary
+                  ? `
+                    <a
+                      href="/timeline/${period.value}"
+                      class="period-link period-link--${period.value} ${isActive ? 'active' : ''}"
+                      data-link
+                    >
+                      <span class="period-label">${period.label}</span>
+                      <span class="period-years">${period.years}</span>
+                    </a>
+                  `
+                  : `
+                    <span
+                      class="period-link period-link--${period.value} ${isActive ? 'active' : ''}"
+                      aria-disabled="true"
+                    >
+                      <span class="period-label">${period.label}</span>
+                      <span class="period-years">${period.years}</span>
+                    </span>
+                  `}
+              </li>
+            `;
+          }).join('')}
         </ul>
       </nav>
     </aside>

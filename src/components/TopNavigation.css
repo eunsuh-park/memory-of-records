@@ -40,9 +40,10 @@
 }
 
 .logo-icon {
-  font-size: 1.75rem;
-  font-weight: 600;
-  line-height: 1;
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .logo-text {
@@ -110,19 +111,22 @@
   flex-direction: column;
   gap: 4px;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.nav-hamburger span {
+.nav-hamburger-icon {
   display: block;
-  width: 22px;
-  height: 2px;
-  background-color: #333;
-  border-radius: 999px;
+  width: 24px;
+  height: 24px;
 }
 
 @media (max-width: 768px) {
   .nav-container {
     padding: 0.75rem 1.25rem;
+  }
+
+  .navigation--home .logo-icon {
+    display: none;
   }
 
   .logo-image {
