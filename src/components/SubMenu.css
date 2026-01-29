@@ -56,10 +56,25 @@
   overflow: visible;
 }
 
+.period-link:not(.period-link--elementary) {
+  color: rgba(51, 51, 51, 0.5);
+}
+
+.period-link:not(.period-link--elementary) .period-years {
+  color: rgba(102, 102, 102, 0.5);
+}
+
 .period-link:hover:not(.active) {
   /* 호버 시 배경색 변경 (active가 아닐 때만) */
   color: #333;
   background-color: rgba(0, 0, 0, 0.05);
+}
+
+.period-link:not(.period-link--elementary):hover:not(.active),
+.period-link:not(.period-link--elementary).active,
+.period-link:not(.period-link--elementary).active:hover {
+  color: rgba(51, 51, 51, 0.5);
+  background-color: transparent;
 }
 
 .period-link.active {

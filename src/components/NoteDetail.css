@@ -237,6 +237,11 @@
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
+.pdf-nav-button svg,
+.pdf-page-indicator button svg {
+  display: block;
+}
+
 .pdf-nav-button:hover {
   background: rgba(17, 24, 39, 0.9);
 }

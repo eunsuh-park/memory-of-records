@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   
   return {
     base: base,
+    assetsInclude: ['**/*.lottie'],
     // Vanilla JS 프로젝트이므로 플러그인 없음
     build: {
       outDir: 'dist',

@@ -18,7 +18,7 @@ export function renderSubMenu(selectedPeriod, onPeriodChange, totalNotesCount, n
             <li class="period-item">
               <a
                 href="/timeline/${period.value}"
-                class="period-link ${selectedPeriod === period.value ? 'active' : ''}"
+                class="period-link period-link--${period.value} ${selectedPeriod === period.value ? 'active' : ''}"
                 data-link
               >
                 <span class="period-label">${period.label}</span>

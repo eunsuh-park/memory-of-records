@@ -9,6 +9,7 @@ import { renderTimelineScrollBar } from '../components/TimelineScrollBar.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
+import booksLottie from '../assets/Books.lottie';
 import './Timeline.css';
 
 // base 경로 가져오기
@@ -28,6 +29,10 @@ const TIMELINE_LOADING_MESSAGES = [
   '노트들을 상자에서 꺼내는 중...',
   '상자의 먼지를 털어내는 중....'
 ];
+const ICONS = {
+  close:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>close_medium_line</title><g id='close_medium_line' fill='none' fill-rule='nonzero'><path d='M24 0v24H0V0zM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036q-.016-.004-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427q-.004-.016-.016-.018m.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092q.019.005.029-.008l.004-.014-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014-.034.614q.001.018.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></g></svg>"
+};
 const TIMELINE_LOADING_MIN_VISIBLE_MS = 2500;
 const TIMELINE_LOADING_FADE_MS = 200;
 const TIMELINE_LOADING_TIMEOUT_MS = 7000;
@@ -56,7 +61,12 @@ function showTimelineLoadingOverlay() {
   overlay.classList.remove('timeline-loading-overlay--hidden', 'timeline-loading-overlay--fading');
   overlay.innerHTML = `
     <div class="timeline-loading-content" role="status" aria-live="polite">
-      <div class="timeline-loading-spinner" aria-hidden="true"></div>
+      <dotlottie-wc
+        class="timeline-loading-lottie"
+        src="${booksLottie}"
+        autoplay
+        loop
+      ></dotlottie-wc>
       <p class="timeline-loading-text">${getRandomLoadingMessage()}</p>
     </div>
   `;
@@ -210,14 +220,6 @@ export function renderTimeline(period = 'elementary') {
     document.body.appendChild(subMenuContainer);
   }
 
-  // 타임라인 스크롤바를 body 레벨에 추가 (fixed 위치용)
-  let scrollBarContainer = document.getElementById('timeline-scrollbar');
-  if (!scrollBarContainer) {
-    scrollBarContainer = document.createElement('div');
-    scrollBarContainer.id = 'timeline-scrollbar';
-    document.body.appendChild(scrollBarContainer);
-  }
-
   // 메인 콘텐츠 렌더링
   mainContent.className = 'app-main timeline-active';
   const mainWrapper = mainContent.closest('.main-wrapper');
@@ -230,6 +232,7 @@ export function renderTimeline(period = 'elementary') {
     <div class="timeline-page">
       <div class="timeline-container">
         <main class="timeline-main" id="timeline-main"></main>
+        <div id="timeline-scrollbar"></div>
       </div>
       <div id="quick-scroll-menu"></div>
     </div>
@@ -654,6 +657,7 @@ function openPdfModal(noteId, pdfUrl = null) {
   overlay.className = 'pdf-modal-overlay';
   overlay.innerHTML = `
     <div class="pdf-modal" role="dialog" aria-modal="true">
+      <button class="pdf-modal-close" type="button" aria-label="닫기">${ICONS.close}</button>
       <div class="pdf-modal-content"></div>
     </div>
   `;
@@ -685,6 +689,7 @@ function openPdfModal(noteId, pdfUrl = null) {
       closeModal();
     }
   });
+  overlay.querySelector('.pdf-modal-close')?.addEventListener('click', closeModal);
   document.addEventListener('keydown', handleEscape);
 }
 
@@ -1003,11 +1008,11 @@ function setupTimelineProgressDrag() {
 
   // 스크롤바 마크 클릭 이벤트 (각 노트로 포커스)
   setTimeout(() => {
-    const scrollbarMarks = progressBar.querySelectorAll('.scrollbar-mark');
-    scrollbarMarks.forEach((mark) => {
-      mark.style.cursor = 'pointer';
-      const noteIndex = parseInt(mark.getAttribute('data-note-index'));
-      mark.addEventListener('click', (e) => {
+    const scrollbarDots = progressBar.querySelectorAll('.scrollbar-dot');
+    scrollbarDots.forEach((dot) => {
+      dot.style.cursor = 'pointer';
+      const noteIndex = parseInt(dot.getAttribute('data-note-index'));
+      dot.addEventListener('click', (e) => {
         e.stopPropagation();
         
         // allNotesData에서 해당 인덱스의 노트 ID 찾기
