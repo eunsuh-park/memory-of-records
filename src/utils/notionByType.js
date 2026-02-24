@@ -171,7 +171,10 @@ export async function fetchNotionTypeItems() {
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     const message =
-      errorBody?.message || `요청 실패: ${response.status} ${response.statusText}`;
+      errorBody?.message ||
+      errorBody?.details?.message ||
+      errorBody?.details?.error ||
+      `요청 실패: ${response.status} ${response.statusText}`;
     throw new Error(message);
   }
 

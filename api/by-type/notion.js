@@ -55,6 +55,7 @@ export default async function handler(req, res) {
       if (!response.ok) {
         return res.status(response.status).json({
           error: 'Notion API error',
+          message: data?.message || data?.error || 'Notion API error',
           details: data
         });
       }
