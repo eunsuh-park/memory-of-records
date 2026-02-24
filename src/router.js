@@ -8,6 +8,7 @@ import { renderByType } from './pages/ByType.js';
 import { renderStory } from './pages/Story.js';
 import { renderStoryDetail } from './pages/StoryDetail.js';
 import { renderNoteDetail } from './pages/NoteDetail.js';
+import { renderJukebox } from './pages/Jukebox.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -23,6 +24,7 @@ class Router {
       { path: '/story', handler: renderStory },
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(params.id) },
+      { path: '/jukebox', handler: renderJukebox },
     ];
   }
 
@@ -91,6 +93,13 @@ class Router {
     }
     if (!path.startsWith('/note/')) {
       document.body.classList.remove('note-detail-modal');
+    }
+
+    // Jukebox 페이지가 아닐 때 jukebox 관련 클래스 제거
+    if (!path.startsWith('/jukebox')) {
+      document.body.classList.remove('jukebox-active');
+      mainContent?.classList.remove('jukebox-active');
+      mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
 
     // Timeline/By type 페이지가 아닐 때 서브 메뉴 제거

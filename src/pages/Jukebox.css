@@ -1,0 +1,206 @@
+/* Jukebox 페이지 – 타임라인 이미지를 jukebox 스타일 애니메이션으로 표시 */
+
+.main-wrapper.jukebox-active,
+#main-content.jukebox-active,
+.app-main.jukebox-active {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: 0;
+  background: linear-gradient(180deg, #1a0a0a 0%, #2d1515 50%, #1a0a0a 100%);
+}
+
+body.jukebox-active {
+  background: #1a0a0a;
+  transition: background-color 0.4s ease;
+}
+
+.jukebox-page {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* jukebox 기기 프레임 */
+.jukebox-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+}
+
+/* 창 (슬롯이 보이는 영역) */
+.jukebox-window {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 65vh;
+  background: linear-gradient(145deg, #0d0505 0%, #1f0f0f 100%);
+  border: 8px solid #3d2317;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.7),
+    0 0 0 2px #5c3825,
+    0 12px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  position: relative;
+}
+
+.jukebox-slot {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jukebox-slot-inner {
+  width: 85%;
+  height: 92%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* 슬롯 전환 애니메이션 – 다음: 아래에서 올라옴 */
+@keyframes jukebox-slide-in-from-bottom {
+  0% {
+    opacity: 0;
+    transform: translateY(80%) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 이전: 위에서 내려옴 */
+@keyframes jukebox-slide-in-from-top {
+  0% {
+    opacity: 0;
+    transform: translateY(-80%) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.jukebox-slot-inner.jukebox-slide-in-next .jukebox-cover-image,
+.jukebox-slot-inner.jukebox-slide-in-next .jukebox-cover-title {
+  animation: jukebox-slide-in-from-bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.jukebox-slot-inner.jukebox-slide-in-prev .jukebox-cover-image,
+.jukebox-slot-inner.jukebox-slide-in-prev .jukebox-cover-title {
+  animation: jukebox-slide-in-from-top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.jukebox-cover-image {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 78%;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.jukebox-cover-image--error {
+  outline: 2px dashed rgba(200, 0, 0, 0.5);
+  background: rgba(200, 0, 0, 0.08);
+}
+
+.jukebox-cover-title {
+  margin: 0.5rem 0 0;
+  padding: 0 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e8d5c4;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jukebox-loading,
+.jukebox-empty {
+  color: #a08060;
+  font-size: 1rem;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+/* 컨트롤 (이전/다음, 카운터) */
+.jukebox-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.jukebox-btn {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #5c3825;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #3d2317 0%, #2d1515 100%);
+  color: #e8d5c4;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.jukebox-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.jukebox-btn:active {
+  transform: scale(0.98);
+}
+
+.jukebox-counter {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #c9a86c;
+  min-width: 4ch;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .jukebox-page {
+    padding: 1rem;
+  }
+
+  .jukebox-window {
+    max-height: 58vh;
+  }
+
+  .jukebox-cover-title {
+    font-size: 0.8rem;
+  }
+
+  .jukebox-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 1.5rem;
+  }
+}
