@@ -4,6 +4,7 @@
 
 import { renderHome } from './pages/Home.js';
 import { renderTimeline } from './pages/Timeline.js';
+import { renderByType } from './pages/ByType.js';
 import { renderStory } from './pages/Story.js';
 import { renderStoryDetail } from './pages/StoryDetail.js';
 import { renderNoteDetail } from './pages/NoteDetail.js';
@@ -17,6 +18,8 @@ class Router {
       { path: '/', handler: renderHome },
       { path: '/timeline', handler: () => renderTimeline(null) },
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
+      { path: '/by-type', handler: () => renderByType(null) },
+      { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
       { path: '/story', handler: renderStory },
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(params.id) },
@@ -90,8 +93,8 @@ class Router {
       document.body.classList.remove('note-detail-modal');
     }
 
-    // Timeline 페이지가 아닐 때 서브 메뉴 제거
-    if (!path.startsWith('/timeline')) {
+    // Timeline/By type 페이지가 아닐 때 서브 메뉴 제거
+    if (!path.startsWith('/timeline') && !path.startsWith('/by-type')) {
       document.body.classList.remove(
         'timeline-active',
         'period-elementary',
@@ -104,7 +107,7 @@ class Router {
         subMenu.remove();
       }
       
-      // Timeline 페이지가 아닐 때 TimelineScrollBar 제거
+      // Timeline/By type 페이지가 아닐 때 TimelineScrollBar 제거
       const timelineScrollBar = document.getElementById('timeline-scrollbar');
       if (timelineScrollBar) {
         timelineScrollBar.remove();

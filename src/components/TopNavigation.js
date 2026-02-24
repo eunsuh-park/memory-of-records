@@ -72,6 +72,15 @@ export function renderNavigation() {
               Timeline
             </a>
           </li>
+          <li>
+            <a
+              href="/by-type"
+              class="${currentPath.startsWith('/by-type') ? 'active' : ''}"
+              data-link
+            >
+              By type
+            </a>
+          </li>
         </ul>
         <a
           href="/timeline"
