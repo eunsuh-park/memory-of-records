@@ -69,12 +69,10 @@ body.jukebox-active {
 
 .jukebox-gallery > div {
   white-space: normal;
-  width: 200px;
-  width: 12vw;
-  height: 9vw;
-  min-width: 120px;
-  min-height: 90px;
-  overflow: hidden;
+  width: auto;
+  height: auto;
+  max-height: 28vh;
+  overflow: visible;
   -webkit-box-reflect: below 0px
     -webkit-gradient(
       linear,
@@ -102,18 +100,16 @@ body.jukebox-active {
   opacity: 0.2;
 }
 
-.jukebox-gallery > div:hover span {
-  opacity: 0.9;
-  transform: translate(0);
-}
-
 .jukebox-gallery > div img {
   display: block;
   z-index: 1;
   position: relative;
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
+  height: auto;
+  width: auto;
+  max-height: 28vh;
+  max-width: 20vw;
+  object-fit: contain;
+  vertical-align: bottom;
 }
 
 .jukebox-gallery > div .jukebox-cover-image--error {
@@ -137,28 +133,6 @@ body.jukebox-active {
   pointer-events: none;
 }
 
-/* 카드 제목 라벨 (CodePen span) */
-.jukebox-gallery > div span {
-  font-size: 1vw;
-  color: #f7f436;
-  text-align: right;
-  position: absolute;
-  transform: translate3d(0, 0, 0);
-  text-transform: uppercase;
-  opacity: 0;
-  display: block;
-  width: 80%;
-  bottom: 0.3vw;
-  right: 1.1vw;
-  z-index: 3;
-  font-weight: bold;
-  transition: all 0.05s ease-out;
-  text-shadow: 1px 1px 1px #888, 2px 2px 1px #888, 3px 3px 1px #888,
-    4px 4px 1px #888, 5px 5px 1px #888;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .jukebox-gallery > div.jukebox-loading,
 .jukebox-gallery > div.jukebox-empty {
@@ -182,15 +156,13 @@ body.jukebox-active {
 }
 
 @media (max-width: 768px) {
-  .jukebox-gallery > div {
-    width: 20vw;
-    min-width: 100px;
-    height: 15vw;
-    min-height: 75px;
-    margin-left: -3vw;
+  .jukebox-gallery > div,
+  .jukebox-gallery > div img {
+    max-height: 24vh;
+    max-width: 28vw;
   }
 
-  .jukebox-gallery > div span {
-    font-size: 2.5vw;
+  .jukebox-gallery > div {
+    margin-left: -3vw;
   }
 }

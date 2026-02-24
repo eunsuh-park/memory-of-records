@@ -100,7 +100,6 @@ export function renderJukebox() {
           const title = escapeHtml(note.title);
           return `
             <div>
-              <span>${title}</span>
               <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
             </div>
           `;
