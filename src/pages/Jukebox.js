@@ -5,6 +5,7 @@
  */
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
+import { getNotionTypeItems } from '../utils/notionByType.js';
 import './Jukebox.css';
 
 const TRANSPARENT_PIXEL =
@@ -87,14 +88,28 @@ export function renderJukebox() {
 
   const gallery = document.getElementById('jukebox-gallery');
 
-  getNotionNotebooks()
-    .then((notebooks) => {
-      if (!Array.isArray(notebooks) || notebooks.length === 0) {
+  Promise.all([getNotionNotebooks(), getNotionTypeItems()])
+    .then(([notebooks, typeItems]) => {
+      const byId = new Map();
+      const add = (item) => {
+        if (item?.id && !byId.has(item.id)) {
+          byId.set(item.id, {
+            id: item.id,
+            title: item.title ?? '제목 없음',
+            coverFrontUrl: item.coverFrontUrl || null
+          });
+        }
+      };
+      (notebooks || []).forEach(add);
+      (typeItems || []).forEach(add);
+      const allNotes = Array.from(byId.values());
+
+      if (allNotes.length === 0) {
         gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
         return;
       }
 
-      const itemsHtml = notebooks
+      const itemsHtml = allNotes
         .map((note) => {
           const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
           const title = escapeHtml(note.title);
@@ -108,9 +123,8 @@ export function renderJukebox() {
 
       gallery.innerHTML = itemsHtml;
 
-      /* CodePen처럼 왼쪽 카드가 앞에 오도록 z-index 설정 */
       gallery.querySelectorAll(':scope > div').forEach((el, i) => {
-        el.style.zIndex = String(notebooks.length - i);
+        el.style.zIndex = String(allNotes.length - i);
       });
 
       gallery.querySelectorAll('img').forEach((img) => {

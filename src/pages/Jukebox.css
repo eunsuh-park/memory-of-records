@@ -84,7 +84,7 @@ body.jukebox-active {
   display: inline-block;
   margin-left: -4vw;
   transform-origin: 40% 40%;
-  transform: translate3d(0, 0, 0) perspective(15vw) rotateY(-55deg);
+  transform: translate3d(0, 0, 0) perspective(28vw) rotateY(-32deg);
   position: relative;
   opacity: 1;
   transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
@@ -92,7 +92,7 @@ body.jukebox-active {
 
 .jukebox-gallery > div:hover,
 .jukebox-gallery > div:active {
-  transform: translate3d(1vw, 0, 0) perspective(15vw) scale(1.1) rotateY(-35deg);
+  transform: translate3d(0.8vw, 0, 0) perspective(28vw) scale(1.08) rotateY(-18deg);
   z-index: 99;
 }
 

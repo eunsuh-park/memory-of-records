@@ -81,6 +81,15 @@ export function renderNavigation() {
               By type
             </a>
           </li>
+          <li>
+            <a
+              href="/jukebox"
+              class="${currentPath.startsWith('/jukebox') ? 'active' : ''}"
+              data-link
+            >
+              Jukebox
+            </a>
+          </li>
         </ul>
         <a
           href="/timeline"
