@@ -1,7 +1,7 @@
 /**
  * Jukebox 페이지
- * Timeline과 동일한 노트 커버 이미지를 jukebox CSS 애니메이션 스타일로 표시합니다.
- * 삭제 시: router.js에서 라우트 제거, 본 파일 및 Jukebox.css 삭제하면 됩니다.
+ * 참고: https://codepen.io/palampinen/pen/OXGYdX
+ * Timeline과 동일한 노트 커버를 가로 갤러리 + 3D 원근(rotateY) + 반사 + 호버 스타일로 표시합니다.
  */
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
@@ -10,6 +10,11 @@ import './Jukebox.css';
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
+const THRESHOLD = 0.6;
+const MAX_SPEED = 25;
+const LEFT = 'left';
+const RIGHT = 'right';
+
 function escapeHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -17,6 +22,48 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function enableGalleryScroll(gallery) {
+  if (!gallery) return;
+  let scrolling = null;
+
+  gallery.addEventListener('mouseover', (e) => {
+    const pageX = e.clientX ?? e.screenX ?? 0;
+    const screenWidth = window.innerWidth;
+    const currentPosPercentage = (screenWidth - pageX) / screenWidth;
+    let speed;
+
+    if (currentPosPercentage > THRESHOLD) {
+      const positionPercentage = currentPosPercentage;
+      const speedPercentage = (positionPercentage - THRESHOLD) / (1 - THRESHOLD);
+      speed = speedPercentage * MAX_SPEED;
+      if (scrolling) clearInterval(scrolling);
+      scrolling = setInterval(() => {
+        gallery.scrollLeft -= speed;
+      }, 10);
+    } else if (currentPosPercentage < 1 - THRESHOLD) {
+      const positionPercentage = 1 - currentPosPercentage;
+      const speedPercentage = (positionPercentage - THRESHOLD) / (1 - THRESHOLD);
+      speed = speedPercentage * MAX_SPEED;
+      if (scrolling) clearInterval(scrolling);
+      scrolling = setInterval(() => {
+        gallery.scrollLeft += speed;
+      }, 10);
+    } else {
+      if (scrolling) {
+        clearInterval(scrolling);
+        scrolling = null;
+      }
+    }
+  });
+
+  gallery.addEventListener('mouseleave', () => {
+    if (scrolling) {
+      clearInterval(scrolling);
+      scrolling = null;
+    }
+  });
 }
 
 export function renderJukebox() {
@@ -31,85 +78,52 @@ export function renderJukebox() {
   document.body.classList.add('jukebox-active');
 
   mainContent.innerHTML = `
-    <div class="jukebox-page">
-      <div class="jukebox-frame">
-        <div class="jukebox-window">
-          <div class="jukebox-slot">
-            <div class="jukebox-slot-inner">
-              <div class="jukebox-loading">노트를 불러오는 중...</div>
-            </div>
-          </div>
-        </div>
-        <div class="jukebox-controls">
-          <button type="button" class="jukebox-btn jukebox-prev" aria-label="이전">‹</button>
-          <span class="jukebox-counter"><span class="jukebox-current">1</span> / <span class="jukebox-total">0</span></span>
-          <button type="button" class="jukebox-btn jukebox-next" aria-label="다음">›</button>
-        </div>
+    <div class="jukebox-fullscreen" id="jukebox-fullscreen">
+      <div class="jukebox-gallery centerized" id="jukebox-gallery">
+        <div class="jukebox-loading">노트를 불러오는 중...</div>
       </div>
     </div>
   `;
 
-  let currentIndex = 0;
-  let notes = [];
-
-  const slotInner = mainContent.querySelector('.jukebox-slot-inner');
-  const currentEl = mainContent.querySelector('.jukebox-current');
-  const totalEl = mainContent.querySelector('.jukebox-total');
-  const prevBtn = mainContent.querySelector('.jukebox-prev');
-  const nextBtn = mainContent.querySelector('.jukebox-next');
-
-  function showSlide(index, direction = 'next') {
-    if (!notes.length) return;
-    const safeIndex = ((index % notes.length) + notes.length) % notes.length;
-    currentIndex = safeIndex;
-    const note = notes[safeIndex];
-    const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
-    const title = escapeHtml(note.title);
-
-    slotInner.classList.remove('jukebox-slide-in-next', 'jukebox-slide-in-prev');
-    slotInner.offsetHeight;
-    slotInner.classList.add(direction === 'next' ? 'jukebox-slide-in-next' : 'jukebox-slide-in-prev');
-
-    slotInner.innerHTML = `
-      <img 
-        src="${escapeHtml(coverSrc)}" 
-        alt="${title}" 
-        class="jukebox-cover-image"
-        loading="lazy"
-        referrerpolicy="no-referrer"
-      />
-      <p class="jukebox-cover-title">${title}</p>
-    `;
-
-    currentEl.textContent = String(safeIndex + 1);
-    totalEl.textContent = String(notes.length);
-
-    slotInner.querySelector('.jukebox-cover-image')?.addEventListener('error', () => {
-      slotInner.querySelector('.jukebox-cover-image')?.classList.add('jukebox-cover-image--error');
-    }, { once: true });
-  }
-
-  prevBtn?.addEventListener('click', () => {
-    showSlide(currentIndex - 1, 'prev');
-  });
-  nextBtn?.addEventListener('click', () => {
-    showSlide(currentIndex + 1, 'next');
-  });
+  const gallery = document.getElementById('jukebox-gallery');
 
   getNotionNotebooks()
     .then((notebooks) => {
       if (!Array.isArray(notebooks) || notebooks.length === 0) {
-        slotInner.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
-        totalEl.textContent = '0';
+        gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
         return;
       }
-      notes = notebooks;
-      totalEl.textContent = String(notes.length);
-      showSlide(0, 'next');
+
+      const itemsHtml = notebooks
+        .map((note) => {
+          const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
+          const title = escapeHtml(note.title);
+          return `
+            <div>
+              <span>${title}</span>
+              <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+            </div>
+          `;
+        })
+        .join('');
+
+      gallery.innerHTML = itemsHtml;
+
+      /* CodePen처럼 왼쪽 카드가 앞에 오도록 z-index 설정 */
+      gallery.querySelectorAll(':scope > div').forEach((el, i) => {
+        el.style.zIndex = String(notebooks.length - i);
+      });
+
+      gallery.querySelectorAll('img').forEach((img) => {
+        img.addEventListener('error', () => {
+          img.classList.add('jukebox-cover-image--error');
+        }, { once: true });
+      });
+
+      enableGalleryScroll(gallery);
     })
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);
-      slotInner.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
-      totalEl.textContent = '0';
+      gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
     });
 }
