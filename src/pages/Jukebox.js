@@ -25,6 +25,38 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+const MAX_ANGLE_DEG = 32;
+
+function updateCardAngles(gallery) {
+  if (!gallery) return;
+  const viewportCenterX = window.innerWidth / 2;
+  const halfWidth = window.innerWidth / 2;
+  const cards = gallery.querySelectorAll(':scope > div:not(.jukebox-loading):not(.jukebox-empty)');
+
+  cards.forEach((card) => {
+    const rect = card.getBoundingClientRect();
+    const cardCenterX = rect.left + rect.width / 2;
+    const offset = cardCenterX - viewportCenterX;
+    const ratio = Math.max(-1, Math.min(1, offset / halfWidth));
+    const angle = -ratio * MAX_ANGLE_DEG;
+    card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
+  });
+}
+
+function enableCenterPerspective(gallery) {
+  if (!gallery) return;
+  const onUpdate = () => {
+    if (!gallery.isConnected) {
+      window.removeEventListener('resize', onUpdate);
+      return;
+    }
+    updateCardAngles(gallery);
+  };
+  gallery.addEventListener('scroll', onUpdate, { passive: true });
+  window.addEventListener('resize', onUpdate);
+  onUpdate();
+}
+
 function enableGalleryScroll(gallery) {
   if (!gallery) return;
   let scrolling = null;
@@ -133,6 +165,7 @@ export function renderJukebox() {
         }, { once: true });
       });
 
+      enableCenterPerspective(gallery);
       enableGalleryScroll(gallery);
     })
     .catch((err) => {

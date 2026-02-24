@@ -65,6 +65,8 @@ body.jukebox-active {
   overflow: hidden;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
 }
 
 .jukebox-gallery > div {
@@ -83,8 +85,8 @@ body.jukebox-active {
     );
   display: inline-block;
   margin-left: -4vw;
-  transform-origin: 40% 40%;
-  transform: translate3d(0, 0, 0) perspective(28vw) rotateY(-32deg);
+  transform-origin: center center;
+  transform: translate3d(0, 0, 0) rotateY(var(--jukebox-rotate-y, 0deg));
   position: relative;
   opacity: 1;
   transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
@@ -92,7 +94,7 @@ body.jukebox-active {
 
 .jukebox-gallery > div:hover,
 .jukebox-gallery > div:active {
-  transform: translate3d(0.8vw, 0, 0) perspective(28vw) scale(1.08) rotateY(-18deg);
+  transform: translate3d(0, 0, 0) scale(1.08) rotateY(0deg);
   z-index: 99;
 }
 
