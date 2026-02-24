@@ -134,7 +134,26 @@ function normalizeTypeValue(value) {
   return String(value || '').trim().toLowerCase();
 }
 
+function resolveTypeKeyFromTitle(title) {
+  const trimmed = String(title || '').trim();
+  const prefix = trimmed.slice(0, 2);
+  switch (prefix) {
+    case '01':
+      return 'diary-scheduler';
+    case '02':
+      return 'notebook-memo';
+    case '03':
+      return 'sketchbook';
+    case '04':
+      return 'lined-notebook';
+    default:
+      return null;
+  }
+}
+
 function resolveTypeKey(notebookType) {
+  const prefixMatch = resolveTypeKeyFromTitle(notebookType);
+  if (prefixMatch) return prefixMatch;
   const normalized = normalizeTypeValue(notebookType);
   const match = typeOptions.find((option) => {
     const candidateList = [

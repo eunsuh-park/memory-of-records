@@ -65,9 +65,10 @@ function extractPageCoverUrl(page) {
 
 export function convertNotionPageToTypeItem(page) {
   const properties = page?.properties || {};
-  const title =
+  const rawTitle =
     parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
     '제목 없음';
+  const title = rawTitle.length > 7 ? rawTitle.slice(0, -7).trim() : rawTitle;
   const type =
     parseNotionProperty(
       getProperty(
