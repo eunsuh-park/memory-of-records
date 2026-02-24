@@ -112,13 +112,23 @@ export function renderJukebox() {
 
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
-      <div class="jukebox-gallery centerized" id="jukebox-gallery">
-        <div class="jukebox-loading">노트를 불러오는 중...</div>
+      <div class="jukebox-spotlight" id="jukebox-spotlight" role="button" tabindex="0" aria-label="선택 해제">
+        <div class="jukebox-spotlight-inner">
+          <img class="jukebox-spotlight-img" src="" alt="" />
+        </div>
+      </div>
+      <div class="jukebox-gallery-wrap">
+        <div class="jukebox-gallery centerized" id="jukebox-gallery">
+          <div class="jukebox-loading">노트를 불러오는 중...</div>
+        </div>
       </div>
     </div>
   `;
 
+  const fullscreen = document.getElementById('jukebox-fullscreen');
   const gallery = document.getElementById('jukebox-gallery');
+  const spotlight = document.getElementById('jukebox-spotlight');
+  const spotlightImg = spotlight?.querySelector('.jukebox-spotlight-img');
 
   Promise.all([getNotionNotebooks(), getNotionTypeItems()])
     .then(([notebooks, typeItems]) => {
@@ -142,11 +152,11 @@ export function renderJukebox() {
       }
 
       const itemsHtml = allNotes
-        .map((note) => {
+        .map((note, index) => {
           const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
           const title = escapeHtml(note.title);
           return `
-            <div>
+            <div class="jukebox-card" data-note-index="${index}" data-cover-src="${escapeHtml(coverSrc)}" data-title="${title}" role="button" tabindex="0">
               <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
             </div>
           `;
@@ -163,6 +173,40 @@ export function renderJukebox() {
         img.addEventListener('error', () => {
           img.classList.add('jukebox-cover-image--error');
         }, { once: true });
+      });
+
+      function showInSpotlight(coverSrc, title) {
+        if (!spotlight || !spotlightImg) return;
+        spotlightImg.src = coverSrc || TRANSPARENT_PIXEL;
+        spotlightImg.alt = title || '';
+        spotlight.classList.add('jukebox-spotlight--active', 'jukebox-spotlight--rise');
+      }
+
+      function hideSpotlight() {
+        if (!spotlight) return;
+        spotlight.classList.remove('jukebox-spotlight--active', 'jukebox-spotlight--rise');
+        if (spotlightImg) {
+          spotlightImg.src = '';
+          spotlightImg.alt = '';
+        }
+      }
+
+      gallery.querySelectorAll('.jukebox-card').forEach((card) => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const src = card.getAttribute('data-cover-src') || '';
+          const title = card.getAttribute('data-title') || '';
+          showInSpotlight(src, title);
+        });
+      });
+
+      spotlight?.addEventListener('click', () => hideSpotlight());
+      spotlight?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          hideSpotlight();
+        }
       });
 
       enableCenterPerspective(gallery);
