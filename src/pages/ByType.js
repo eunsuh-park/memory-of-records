@@ -188,9 +188,91 @@ function getNotesCountByType(notes) {
   return counts;
 }
 
+/** 현재 선택 타입에 해당하는 노트만 반환 (타입 결정이 이미 된 allNotesData 기준) */
+function getNotesForType(notes, selectedType) {
+  return notes.filter((note) => note.type === selectedType);
+}
+
 function getTypeLabel(typeKey, fallback = '') {
   const match = typeOptions.find((option) => option.value === typeKey);
   return match?.label || fallback || '';
+}
+
+/**
+ * 선택한 타입에 해당하는 노트만 메인 영역에 렌더링 (타입 전환 시 재사용)
+ */
+function renderNotesListForType(typeMain, selectedType) {
+  const notesToShow = getNotesForType(allNotesData, selectedType);
+  const allNotesHTML = [];
+  const firstNoteId = notesToShow.length > 0 ? notesToShow[0].id : null;
+  const lastNoteId = notesToShow.length > 0 ? notesToShow[notesToShow.length - 1].id : null;
+
+  if (firstNoteId) {
+    allNotesHTML.push('<div class="note-placeholder"></div>');
+  }
+  if (notesToShow.length === 0) {
+    allNotesHTML.push(`
+      <div class="no-notes">이 타입에 해당하는 노트가 없습니다.</div>
+    `);
+  } else {
+    notesToShow.forEach((note) => {
+      const noteTitle = escapeHtml(note.title);
+      const typeLabel = escapeHtml(getTypeLabel(note.type, note.type || ''));
+      const description = escapeHtml(note.description || '');
+      const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
+      const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
+      const pdfUrl = note.pdfUrl || '';
+      const noteId = escapeHtml(note.id);
+      const typeKey = escapeHtml(note.type);
+      allNotesHTML.push(`
+        <article class="note-card" data-note-id="${noteId}" data-type="${typeKey}" data-pdf-url="${escapeHtml(
+        pdfUrl
+      )}">
+          <div class="note-card-link">
+            <div class="note-cover-container">
+              <img src="${escapeHtml(coverSrc)}" alt="노트 표지" class="note-cover-image note-cover-front" loading="lazy" referrerpolicy="no-referrer" />
+              <img src="${escapeHtml(backCoverSrc)}" alt="노트 뒷표지" class="note-cover-image note-cover-back" loading="lazy" referrerpolicy="no-referrer" />
+            </div>
+            <div class="note-info">
+              <h3 class="note-info-title">${noteTitle}</h3>
+              <h5 class="note-info-meta">${typeLabel}</h5>
+              <p class="note-info-description">${description}</p>
+            </div>
+          </div>
+        </article>
+      `);
+    });
+  }
+  if (lastNoteId) {
+    allNotesHTML.push('<div class="note-placeholder"></div>');
+  }
+
+  typeMain.innerHTML = `
+    <div class="notes-list">
+      ${allNotesHTML.join('')}
+    </div>
+  `;
+
+  typeMain.querySelectorAll('.note-cover-image').forEach((img) => {
+    img.addEventListener('error', () => {
+      img.classList.add('note-cover-image--error');
+      console.warn('노트 표지 로드 실패:', img.src);
+    }, { once: true });
+  });
+
+  typeMain.querySelectorAll('.note-card[data-note-id]').forEach((noteCard) => {
+    noteCard.addEventListener('click', (event) => {
+      event.preventDefault();
+      const noteId = noteCard.getAttribute('data-note-id');
+      if (!noteId) return;
+      if (noteCard.classList.contains('note-focus')) {
+        const pdfUrl = noteCard.getAttribute('data-pdf-url') || null;
+        openPdfModal(noteId, pdfUrl);
+        return;
+      }
+      focusNote(noteId);
+    });
+  });
 }
 
 export function renderByType(type = 'diary-scheduler') {
@@ -202,20 +284,27 @@ export function renderByType(type = 'diary-scheduler') {
   const typeChanged = currentType !== null && currentType !== selectedType;
   const existingTypePage = document.querySelector('.timeline-page');
 
-  if (existingTypePage && typeChanged) {
-    const firstNoteOfType = document.querySelector(
-      `.note-card[data-type="${selectedType}"]`
-    );
-    if (firstNoteOfType) {
-      const firstNoteId = firstNoteOfType.getAttribute('data-note-id');
-      if (firstNoteId) {
-        focusNote(firstNoteId);
+  if (existingTypePage && typeChanged && allNotesData.length > 0) {
+    const typeMain = document.getElementById('timeline-main');
+    if (typeMain) {
+      renderNotesListForType(typeMain, selectedType);
+      renderTypeScrollBar(
+        (getNotesCountByType(allNotesData)[selectedType] ?? 0),
+        getNotesCountByType(allNotesData),
+        selectedType
+      );
+      setupTimelineDots();
+      const notesForType = getNotesForType(allNotesData, selectedType);
+      if (notesForType.length > 0) {
+        focusNote(notesForType[0].id);
+        updatePlaceholderWidth();
+      } else {
+        currentFocusedNoteId = null;
+        updateNoteStates();
       }
     }
-
     const notesCountByType = getNotesCountByType(allNotesData);
     renderTypeSubMenu(selectedType, null, 0, notesCountByType);
-
     currentType = selectedType;
     return;
   }
@@ -262,7 +351,8 @@ export function renderByType(type = 'diary-scheduler') {
   );
 
   renderTypeSubMenu(selectedType, null, totalNotesCount, notesCountByType);
-  renderTypeScrollBar(totalNotesCount, notesCountByType);
+  const countForType = notesCountByType[selectedType] ?? 0;
+  renderTypeScrollBar(countForType, notesCountByType, selectedType);
 
   const typeMain = document.getElementById('timeline-main');
   if (!typeMain) return;
@@ -331,17 +421,24 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
     );
 
     renderTypeSubMenu(selectedType, null, totalNotesCount, notesCountByType);
-    renderTypeScrollBar(totalNotesCount, notesCountByType);
+    const countForType = notesCountByType[selectedType] ?? 0;
+    renderTypeScrollBar(countForType, notesCountByType, selectedType);
 
+    const notesToShow = getNotesForType(allNotesData, selectedType);
     const allNotesHTML = [];
-    const firstNoteId = allNotesData.length > 0 ? allNotesData[0].id : null;
-    const lastNoteId = allNotesData.length > 0 ? allNotesData[allNotesData.length - 1].id : null;
+    const firstNoteId = notesToShow.length > 0 ? notesToShow[0].id : null;
+    const lastNoteId = notesToShow.length > 0 ? notesToShow[notesToShow.length - 1].id : null;
 
     if (firstNoteId) {
       allNotesHTML.push('<div class="note-placeholder"></div>');
     }
 
-    allNotesData.forEach((note) => {
+    if (notesToShow.length === 0) {
+      allNotesHTML.push(`
+        <div class="no-notes">이 타입에 해당하는 노트가 없습니다.</div>
+      `);
+    } else {
+      notesToShow.forEach((note) => {
       const noteTitle = escapeHtml(note.title);
       const typeLabel = escapeHtml(getTypeLabel(note.type, note.type || ''));
       const description = escapeHtml(note.description || '');
@@ -381,7 +478,7 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
         </article>
       `);
     });
-
+    }
     if (lastNoteId) {
       allNotesHTML.push('<div class="note-placeholder"></div>');
     }
@@ -422,20 +519,9 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
     });
 
     setTimeout(() => {
-      const timelinePage = document.querySelector('.timeline-page');
-      if (!timelinePage) return;
-
-      const firstNoteOfType = document.querySelector(
-        `.note-card[data-type="${selectedType}"]`
-      );
-      if (firstNoteOfType) {
-        const firstNoteId = firstNoteOfType.getAttribute('data-note-id');
-        if (firstNoteId) {
-          focusNote(firstNoteId);
-          return;
-        }
+      if (notesToShow.length > 0) {
+        focusNote(notesToShow[0].id);
       }
-
       savedScrollPosition = null;
       currentType = selectedType;
     }, 100);
@@ -456,23 +542,24 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
 
 let scrollObserver = null;
 
+function updatePlaceholderWidth() {
+  const timelinePage = document.querySelector('.timeline-page');
+  if (!timelinePage) return;
+  const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
+  if (allNoteCards.length > 0) {
+    const firstNoteCard = allNoteCards[0];
+    const firstNoteRect = firstNoteCard.getBoundingClientRect();
+    const placeholderWidth = timelinePage.clientWidth / 2 - firstNoteRect.width / 2;
+    const placeholders = document.querySelectorAll('.note-placeholder');
+    placeholders.forEach((placeholder) => {
+      placeholder.style.width = `${Math.max(0, placeholderWidth)}px`;
+    });
+  }
+}
+
 function setupNoteFocusSystem() {
   const timelinePage = document.querySelector('.timeline-page');
   if (!timelinePage) return;
-
-  const updatePlaceholderWidth = () => {
-    const allNoteCards = document.querySelectorAll('.note-card[data-note-id]');
-    if (allNoteCards.length > 0) {
-      const firstNoteCard = allNoteCards[0];
-      const firstNoteRect = firstNoteCard.getBoundingClientRect();
-      const placeholderWidth = timelinePage.clientWidth / 2 - firstNoteRect.width / 2;
-
-      const placeholders = document.querySelectorAll('.note-placeholder');
-      placeholders.forEach((placeholder) => {
-        placeholder.style.width = `${Math.max(0, placeholderWidth)}px`;
-      });
-    }
-  };
 
   setTimeout(updatePlaceholderWidth, 0);
   window.addEventListener('resize', updatePlaceholderWidth, { passive: true });
@@ -635,7 +722,8 @@ function updateActiveScrollbarDot(noteId) {
   const dots = document.querySelectorAll('.scrollbar-dot');
   if (!dots.length) return;
 
-  const targetIndex = allNotesData.findIndex((note) => note.id === noteId);
+  const notesForCurrentType = getNotesForType(allNotesData, currentType);
+  const targetIndex = notesForCurrentType.findIndex((note) => note.id === noteId);
   if (targetIndex === -1) return;
 
   dots.forEach((dot) => {
@@ -846,15 +934,16 @@ function setupTimelineDots() {
 
   setTimeout(() => {
     const scrollbarDots = progressBar.querySelectorAll('.scrollbar-dot');
+    const noteCards = document.querySelectorAll('.note-card[data-note-id]');
     scrollbarDots.forEach((dot) => {
       dot.style.cursor = 'pointer';
       const noteIndex = parseInt(dot.getAttribute('data-note-index'), 10);
       dot.addEventListener('click', (e) => {
         e.stopPropagation();
-
-        if (allNotesData[noteIndex]) {
-          const noteId = allNotesData[noteIndex].id;
-          focusNote(noteId);
+        const card = noteCards[noteIndex];
+        if (card) {
+          const noteId = card.getAttribute('data-note-id');
+          if (noteId) focusNote(noteId);
         }
       });
     });
