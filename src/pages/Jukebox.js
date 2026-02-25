@@ -1,14 +1,17 @@
 /**
  * Jukebox 페이지
- * ----------------------------------------
- * 참고: https://codepen.io/palampinen/pen/OXGYdX
  *
- * [애니메이션 구성]
- * 1. 중앙 기준 3D 원근: 화면 정중앙을 기준으로 왼쪽 카드는 뒷면(rotateY +),
- *    오른쪽 카드는 앞면(rotateY -)이 보이도록 각 카드마다 rotateY를 동적으로 적용.
- * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위에서 마우스가 왼쪽에 있으면 왼쪽으로,
- *    오른쪽에 있으면 오른쪽으로 스크롤되며, 중앙일 때는 멈춤.
- * 3. 스포트라이트: 카드 클릭 시 해당 노트 커버가 아래→위로 올라오듯이 상단에 크게 표시됨.
+ * 참고
+ * - Cover Flow (스크롤 기반): https://scroll-driven-animations.style/demos/cover-flow/css/
+ * - CodePen 갤러리: https://codepen.io/palampinen/pen/OXGYdX
+ *
+ * [구성]
+ * 1. 스크롤 연동 Cover Flow: 갤러리를 가로 스크롤하면 각 카드의 뷰포트 내 위치에 따라
+ *    rotateY·scale·translateZ·z-index가 갱신됨. 중앙은 정면, 양옆은 옆으로 회전.
+ *    (데모는 View Timeline, 여기서는 scroll 이벤트 + updateCardAngles로 동일 시각 효과.)
+ * 2. 마우스 위치 기반 자동 스크롤(CodePen): 갤러리 위에서 마우스가 왼쪽이면 왼쪽,
+ *    오른쪽이면 오른쪽으로 스크롤, 중앙이면 정지. mousemove 시 방향·속도 갱신, scrollLeft 클램프.
+ * 3. 스포트라이트: 카드 클릭 시 해당 카드(DOM)가 위로 올라가며 scale 1.2로 상단에 표시, 클릭 시 복귀.
  */
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
@@ -19,9 +22,9 @@ import './Jukebox.css';
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-/** 마우스 위치 기반 스크롤: 화면 좌측/우측 이 비율(0~1)을 넘어야 스크롤 시작 (중앙 40%는 정지) */
+/** 마우스 자동 스크롤: 비율 > THRESHOLD면 왼쪽 스크롤, < (1-THRESHOLD)면 오른쪽, 그 사이면 정지 */
 const THRESHOLD = 0.6;
-/** 스크롤 최대 속도 (px/10ms) */
+/** 마우스 자동 스크롤 최대 속도 (px/10ms) */
 const MAX_SPEED = 25;
 
 function escapeHtml(value) {
@@ -100,7 +103,9 @@ function updateCardAngles(gallery) {
 }
 
 /**
- * 스크롤/리사이즈 시 카드 각도 갱신을 등록하고, 페이지 이탈 시 resize 리스너 제거.
+ * Cover Flow 스크롤 연동
+ * 갤러리 scroll 이벤트·리사이즈 시 updateCardAngles 호출 → 카드별 위치에 따라 3D 변환 갱신.
+ * (휠/터치/마우스 자동 스크롤 모두 scrollLeft를 바꾸므로 동일하게 scroll 이벤트로 연동됨.)
  */
 function enableCenterPerspective(gallery) {
   if (!gallery) return;
@@ -117,12 +122,11 @@ function enableCenterPerspective(gallery) {
 }
 
 /**
- * [애니메이션 2] 마우스 위치 기반 자동 스크롤
- * 갤러리 위에서 마우스를 움직일 때(mousemove)마다:
- * - 화면 왼쪽 60% 밖 → 갤러리 왼쪽으로 스크롤 (scrollLeft 감소)
- * - 화면 오른쪽 40% 밖 → 갤러리 오른쪽으로 스크롤 (scrollLeft 증가)
- * - 중앙 40% → 스크롤 정지
- * scrollLeft는 0 ~ maxScrollLeft 범위로 클램프해 끝에서 넘어가지 않도록 함.
+ * 마우스 위치 기반 자동 스크롤 (CodePen 스타일)
+ * - mousemove: 화면 X 기준으로 영역 판별 후 10ms마다 scrollLeft 증감.
+ *   왼쪽(비율 > 0.6) → scrollLeft 감소, 오른쪽(비율 < 0.4) → scrollLeft 증가, 중앙(0.4~0.6) → 정지.
+ * - 속도: 영역 끝에 가까울수록 MAX_SPEED까지 선형 보간.
+ * - tick()에서 scrollLeft를 0 ~ maxScroll 로 클램프하여 끝에서 넘어가지 않도록 함.
  */
 function enableGalleryScroll(gallery) {
   if (!gallery) return;
@@ -141,6 +145,7 @@ function enableGalleryScroll(gallery) {
   function updateScroll(e) {
     const pageX = e.clientX ?? e.screenX ?? 0;
     const screenWidth = window.innerWidth;
+    /* 0 = 화면 오른쪽 끝, 1 = 화면 왼쪽 끝 */
     const currentPosPercentage = (screenWidth - pageX) / screenWidth;
     let direction = 0;
 
