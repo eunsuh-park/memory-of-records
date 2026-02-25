@@ -162,7 +162,7 @@ body.jukebox-active {
     linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   display: inline-block;
   /* 노트(카드) 간 간격: 음수면 겹침(-4vw), 양수면 떨어짐(예: 2vw) */
-  margin-left: -4vw;
+  margin-left: -2vw;
   transform-origin: center center;
   transform:
     translate3d(0, 0, var(--jukebox-translate-z, 0))
