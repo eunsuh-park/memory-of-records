@@ -13,6 +13,7 @@
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { getNotionTypeItems } from '../utils/notionByType.js';
+import booksLottie from '../assets/Books.lottie';
 import './Jukebox.css';
 
 /** 이미지 URL이 없을 때 사용하는 1x1 투명 GIF (깜빡임 방지) */
@@ -262,6 +263,26 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
 
   gallery.addEventListener('mouseleave', stopScroll);
 
+  /* 마우스 휠: 세로 휠을 가로 스크롤로 변환 (휠 아래 = 오른쪽, 휠 위 = 왼쪽) */
+  const WHEEL_SCROLL_SPEED = 1.2;
+  gallery.addEventListener(
+    'wheel',
+    (e) => {
+      const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+      if (maxScroll <= 0) return;
+      const delta = e.deltaY * WHEEL_SCROLL_SPEED;
+      const newScroll = gallery.scrollLeft + delta;
+      if (delta > 0 && newScroll < maxScroll) {
+        e.preventDefault();
+        gallery.scrollLeft = Math.min(maxScroll, newScroll);
+      } else if (delta < 0 && newScroll > 0) {
+        e.preventDefault();
+        gallery.scrollLeft = Math.max(0, newScroll);
+      }
+    },
+    { passive: false }
+  );
+
   /* 이전/다음 버튼: 카드 한 장씩 이동 (현재 중앙에 가장 가까운 카드 기준 이전/다음 카드로 스크롤) */
   function scrollToCenterCard(card) {
     if (!card) return;
@@ -325,7 +346,10 @@ export function renderJukebox() {
         <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"></button>
         <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"></button>
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
-          <div class="jukebox-loading">노트를 불러오는 중...</div>
+          <div class="jukebox-loading" role="status" aria-live="polite">
+          <dotlottie-wc class="jukebox-loading-lottie" src="${booksLottie}" autoplay loop></dotlottie-wc>
+          <p class="jukebox-loading-text">노트를 불러오는 중...</p>
+        </div>
         </div>
       </div>
       <div class="jukebox-scrollbar-wrap jukebox-scrollbar-wrap--hidden" id="jukebox-scrollbar-wrap" aria-hidden="true">
@@ -370,7 +394,14 @@ export function renderJukebox() {
           const title = escapeHtml(note.title);
           return `
             <div class="jukebox-card">
-              <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+              <div class="jukebox-card-inner">
+                <div class="jukebox-card-face jukebox-card-face--front">
+                  <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+                <div class="jukebox-card-face jukebox-card-face--back">
+                  <div class="jukebox-card-back-content" aria-hidden="true"></div>
+                </div>
+              </div>
             </div>
           `;
         })

@@ -306,6 +306,23 @@ body.jukebox-active {
   margin-left: 0;
   transform: none;
   -webkit-box-reflect: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.jukebox-loading-lottie {
+  width: 140px;
+  height: 140px;
+  display: block;
+}
+
+.jukebox-loading-text {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .jukebox-gallery > div.jukebox-loading::after,
