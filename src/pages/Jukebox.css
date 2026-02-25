@@ -194,9 +194,10 @@ body.jukebox-active {
 }
 
 .jukebox-gallery > div.jukebox-card--centered:hover::after {
-  opacity: 0.2;
+  opacity: 0;
 }
 
+/* 이미지 자체를 어둡게 (brightness). PNG 투명 영역에는 적용되지 않음 */
 .jukebox-gallery > div img {
   display: block;
   z-index: 1;
@@ -206,6 +207,8 @@ body.jukebox-active {
   max-height: 28vh;
   max-width: 20vw;
   object-fit: contain;
+  filter: brightness(var(--jukebox-brightness, 1));
+  transition: filter 0.2s ease-out;
 }
 
 .jukebox-gallery > div .jukebox-cover-image--error {
@@ -213,7 +216,7 @@ body.jukebox-active {
   background: rgba(200, 0, 0, 0.08);
 }
 
-/* 카드 위 그라데이션 오버레이 (왼쪽 어둡게 → 오른쪽 투명, CodePen 스타일) */
+/* 카드 위 그라데이션 오버레이 제거함. 양옆 어두운 느낌은 img에 filter: brightness()로만 적용 (PNG 투명 영역 깔끔) */
 .jukebox-gallery > div::after {
   position: absolute;
   display: block;
@@ -223,7 +226,7 @@ body.jukebox-active {
   bottom: 0;
   transition: opacity 0.2s ease-out;
   background: linear-gradient(90deg, #000, transparent);
-  opacity: 0.8;
+  opacity: 0;
   content: '';
   z-index: 2;
   pointer-events: none;

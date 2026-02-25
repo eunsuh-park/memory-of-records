@@ -82,10 +82,14 @@ function updateCardAngles(gallery) {
     /* 호버 시 중앙 쪽으로 옆 이동 (중앙 포커스 카드에만 호버 적용) */
     const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
 
+    /* 양옆 카드는 이미지 자체를 어둡게 (PNG 투명 영역에는 영향 없음). 중앙은 1, 양끝은 0.72 */
+    const brightness = 1 - (1 - 0.72) * absRatio;
+
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));
     card.style.setProperty('--jukebox-translate-z', translateZ);
     card.style.setProperty('--jukebox-hover-x', hoverX);
+    card.style.setProperty('--jukebox-brightness', String(brightness));
     card.style.zIndex = String(zIndex);
   });
 
