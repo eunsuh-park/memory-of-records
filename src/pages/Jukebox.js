@@ -86,8 +86,13 @@ function updateCardAngles(gallery) {
     /* 호버 시 중앙 쪽으로 옆 이동 (중앙 포커스 카드에만 호버 적용) */
     const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
 
-    /* 양옆 카드는 이미지 자체를 어둡게 (PNG 투명 영역에는 영향 없음). 중앙은 1, 양끝은 0.72 */
-    const brightness = 1 - (1 - 0.72) * absRatio;
+    /* 양옆 카드는 이미지 더 어둡게. 중앙 1, 양끝 0.48 (끝으로 갈수록 더 어둡게) */
+    const brightness = 1 - (1 - 0.48) * absRatio;
+
+    /* 그림자: 중앙은 연하게, 양끝으로 갈수록 더 진하고 넓게 */
+    const shadowOpacity = 0.12 + absRatio * 0.42;
+    const shadowBlur = 16 + Math.round(absRatio * 24);
+    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${shadowOpacity.toFixed(2)})`);
 
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));

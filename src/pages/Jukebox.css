@@ -150,7 +150,7 @@ body.jukebox-active {
   overflow: visible;
 }
 
-/* --- 카드: Cover Flow (회전·scale·z), JS 변수 사용 ---
+/* --- 카드: Cover Flow (회전·scale·z), JS 변수 사용 ---  
    --jukebox-rotate-y, --jukebox-scale, --jukebox-translate-z, --jukebox-brightness */
 .jukebox-gallery > div.jukebox-card {
   white-space: normal;
@@ -172,12 +172,11 @@ body.jukebox-active {
   opacity: 1;
   transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
   scroll-snap-align: center;
+  /* JS에서 위치별로 설정: 양끝일수록 --jukebox-shadow가 더 진함 */
+  box-shadow: var(--jukebox-shadow, none);
 }
 
-/* 중앙(앞) 카드: 연한 그림자 */
-.jukebox-gallery > div.jukebox-card.jukebox-card--centered {
-  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.44);
-}
+/* 중앙(앞) 카드도 box-shadow는 위에서 var(--jukebox-shadow)로 적용됨. 호버 시만 아래에서 강조 */
 
 /* 호버: 중앙 포커스 카드(.jukebox-card--centered)에만 적용 */
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover,
@@ -188,7 +187,7 @@ body.jukebox-active {
     scale(1.25)
     rotateY(0deg);
   z-index: 101;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
 }
 
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
