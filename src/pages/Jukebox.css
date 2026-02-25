@@ -182,9 +182,9 @@ body.jukebox-active {
   scroll-snap-align: center;
 }
 
-/* 호버 시: 옆으로 이동 + 정면 + 확대 + 맨 앞 (중앙 쪽으로 살짝 이동하는 인터랙션) */
-.jukebox-gallery > div:hover,
-.jukebox-gallery > div:active {
+/* 호버: 중앙에 포커스된 카드(.jukebox-card--centered)에만 적용 */
+.jukebox-gallery > div.jukebox-card--centered:hover,
+.jukebox-gallery > div.jukebox-card--centered:active {
   transform:
     translateX(var(--jukebox-hover-x, 0))
     translateZ(1.5em)
@@ -193,7 +193,7 @@ body.jukebox-active {
   z-index: 101;
 }
 
-.jukebox-gallery > div:hover::after {
+.jukebox-gallery > div.jukebox-card--centered:hover::after {
   opacity: 0.2;
 }
 

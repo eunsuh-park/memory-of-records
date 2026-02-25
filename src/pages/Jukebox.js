@@ -59,11 +59,19 @@ function updateCardAngles(gallery) {
   const halfWidth = window.innerWidth / 2;
   const cards = gallery.querySelectorAll(':scope > div:not(.jukebox-loading):not(.jukebox-empty)');
 
+  let closestCard = null;
+  let closestAbsOffset = Infinity;
+
   cards.forEach((card) => {
     const rect = card.getBoundingClientRect();
     const cardCenterX = rect.left + rect.width / 2;
     const offset = cardCenterX - viewportCenterX;
     const ratio = Math.max(-1, Math.min(1, offset / halfWidth)); /* -1(왼쪽 끝) ~ 1(오른쪽 끝), 0=중앙 */
+    const absOffset = Math.abs(offset);
+    if (absOffset < closestAbsOffset) {
+      closestAbsOffset = absOffset;
+      closestCard = card;
+    }
 
     const angle = -ratio * COVER_FLOW_ANGLE_DEG;
     const absRatio = Math.abs(ratio);
@@ -71,7 +79,7 @@ function updateCardAngles(gallery) {
     const translateZ = absRatio > 0.5 ? COVER_FLOW_Z_SIDE : COVER_FLOW_Z_CENTER;
     const zIndex = Math.round(COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE));
 
-    /* 호버 시 중앙 쪽으로 옆 이동: 왼쪽 카드는 오른쪽으로(+), 오른쪽 카드는 왼쪽으로(-) */
+    /* 호버 시 중앙 쪽으로 옆 이동 (중앙 포커스 카드에만 호버 적용) */
     const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
 
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
@@ -79,6 +87,11 @@ function updateCardAngles(gallery) {
     card.style.setProperty('--jukebox-translate-z', translateZ);
     card.style.setProperty('--jukebox-hover-x', hoverX);
     card.style.zIndex = String(zIndex);
+  });
+
+  /* 중앙에 가장 가까운 카드에만 포커스 클래스 (호버 효과는 이 카드에만 적용) */
+  cards.forEach((card) => {
+    card.classList.toggle('jukebox-card--centered', card === closestCard);
   });
 }
 
@@ -179,9 +192,11 @@ export function renderJukebox() {
   const gallery = document.getElementById('jukebox-gallery');
   const spotlight = document.getElementById('jukebox-spotlight');
 
-  /* Timeline(노트북) + ByType 데이터를 합쳐서 id 기준 중복 제거 후 사용 */
-  Promise.all([getNotionNotebooks(), getNotionTypeItems()])
-    .then(([notebooks, typeItems]) => {
+  /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 (한쪽 실패해도 다른 쪽은 표시) */
+  Promise.allSettled([getNotionNotebooks(), getNotionTypeItems()])
+    .then(([notebookResult, typeResult]) => {
+      const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
+      const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
       const byId = new Map();
       const add = (item) => {
         if (item?.id && !byId.has(item.id)) {
@@ -192,8 +207,8 @@ export function renderJukebox() {
           });
         }
       };
-      (notebooks || []).forEach(add);
-      (typeItems || []).forEach(add);
+      (Array.isArray(notebooks) ? notebooks : []).forEach(add);
+      (Array.isArray(typeItems) ? typeItems : []).forEach(add);
       const allNotes = Array.from(byId.values());
 
       if (allNotes.length === 0) {
