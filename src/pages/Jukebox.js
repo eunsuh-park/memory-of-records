@@ -101,50 +101,50 @@ function enableCenterPerspective(gallery) {
 
 /**
  * [애니메이션 2] 마우스 위치 기반 자동 스크롤
- * 갤러리 위에 마우스가 있을 때:
- * - 마우스가 화면 왼쪽 60% 밖(왼쪽 영역)에 있으면 → 갤러리를 왼쪽으로 스크롤
- * - 마우스가 화면 오른쪽 40% 밖(오른쪽 영역)에 있으면 → 갤러리를 오른쪽으로 스크롤
- * - 중앙 40% 안에 있으면 → 스크롤 정지
- * 거리에 비례해 스크롤 속도가 빨라짐 (MAX_SPEED까지).
+ * 갤러리 위에서 마우스를 움직일 때(mousemove)마다:
+ * - 화면 왼쪽 60% 밖 → 갤러리 왼쪽으로 스크롤 (scrollLeft 감소)
+ * - 화면 오른쪽 40% 밖 → 갤러리 오른쪽으로 스크롤 (scrollLeft 증가)
+ * - 중앙 40% → 스크롤 정지
+ * scrollLeft는 0 ~ maxScrollLeft 범위로 클램프해 끝에서 넘어가지 않도록 함.
  */
 function enableGalleryScroll(gallery) {
   if (!gallery) return;
   let scrolling = null;
 
-  gallery.addEventListener('mouseover', (e) => {
+  function tick(direction) {
+    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+    if (maxScroll <= 0) return;
+    if (direction < 0) {
+      gallery.scrollLeft = Math.max(0, gallery.scrollLeft - Math.abs(direction));
+    } else if (direction > 0) {
+      gallery.scrollLeft = Math.min(maxScroll, gallery.scrollLeft + Math.abs(direction));
+    }
+  }
+
+  function updateScroll(e) {
     const pageX = e.clientX ?? e.screenX ?? 0;
     const screenWidth = window.innerWidth;
-    /* 0 = 화면 오른쪽 끝, 1 = 화면 왼쪽 끝 */
     const currentPosPercentage = (screenWidth - pageX) / screenWidth;
-    let speed;
+    let direction = 0;
 
     if (currentPosPercentage > THRESHOLD) {
-      /* 왼쪽 영역: 갤러리를 왼쪽으로 스크롤 (scrollLeft 감소) */
-      const positionPercentage = currentPosPercentage;
-      const speedPercentage = (positionPercentage - THRESHOLD) / (1 - THRESHOLD);
-      speed = speedPercentage * MAX_SPEED;
-      if (scrolling) clearInterval(scrolling);
-      scrolling = setInterval(() => {
-        gallery.scrollLeft -= speed;
-      }, 10);
+      const speedPercentage = (currentPosPercentage - THRESHOLD) / (1 - THRESHOLD);
+      direction = -speedPercentage * MAX_SPEED;
     } else if (currentPosPercentage < 1 - THRESHOLD) {
-      /* 오른쪽 영역: 갤러리를 오른쪽으로 스크롤 (scrollLeft 증가) */
-      const positionPercentage = 1 - currentPosPercentage;
-      const speedPercentage = (positionPercentage - THRESHOLD) / (1 - THRESHOLD);
-      speed = speedPercentage * MAX_SPEED;
-      if (scrolling) clearInterval(scrolling);
-      scrolling = setInterval(() => {
-        gallery.scrollLeft += speed;
-      }, 10);
-    } else {
-      /* 중앙: 스크롤 정지 */
-      if (scrolling) {
-        clearInterval(scrolling);
-        scrolling = null;
-      }
+      const speedPercentage = (1 - THRESHOLD - currentPosPercentage) / (1 - THRESHOLD);
+      direction = speedPercentage * MAX_SPEED;
     }
-  });
 
+    if (scrolling) {
+      clearInterval(scrolling);
+      scrolling = null;
+    }
+    if (direction !== 0) {
+      scrolling = setInterval(() => tick(direction), 10);
+    }
+  }
+
+  gallery.addEventListener('mousemove', updateScroll, { passive: true });
   gallery.addEventListener('mouseleave', () => {
     if (scrolling) {
       clearInterval(scrolling);
