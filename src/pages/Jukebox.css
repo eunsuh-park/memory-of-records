@@ -31,7 +31,7 @@ body.jukebox-active {
   background: var(--jukebox-bg);
 }
 
-/* --- 레이아웃: 전체 컨테이너 (스포트라이트 + 갤러리) --- */
+/* --- 레이아웃 --- */
 .jukebox-fullscreen {
   background: linear-gradient(
     var(--jukebox-bg) 40%,
@@ -44,62 +44,60 @@ body.jukebox-active {
   flex-direction: column;
 }
 
-/* --- 스포트라이트: 클릭한 카드가 올라와 커지는 영역 --- */
-.jukebox-spotlight {
-  flex: 0 0 auto;
-  height: 38vh;
-  min-height: 120px;
-  box-sizing: border-box;
-  cursor: default;
-  overflow: hidden;
-}
-
-.jukebox-spotlight:not(.jukebox-spotlight--active) {
-  pointer-events: none;
-}
-
-.jukebox-spotlight.jukebox-spotlight--active {
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-/* 스포트라이트에 올라간 카드: 반사/오버레이 제거, 최상단 표시 */
-.jukebox-card.jukebox-card--flying {
-  z-index: 1000;
-  -webkit-box-reflect: none;
-}
-
-.jukebox-card.jukebox-card--flying::after {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.jukebox-card.jukebox-card--flying img {
-  max-height: none;
-  max-width: none;
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
-}
-
-/* 복귀 시 갤러리 빈 자리 유지용 플레이스홀더 */
-.jukebox-card-placeholder {
-  display: inline-block;
-  vertical-align: bottom;
-  width: 20vw;
-  max-width: 200px;
-  height: 28vh;
-  min-height: 80px;
-  margin-left: -4vw;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-/* --- 갤러리 영역 --- */
+/* --- 갤러리 --- */
 .jukebox-gallery-wrap {
   flex: 1 1 0;
   min-height: 0;
   position: relative;
+}
+
+/* PC용 이전/다음 버튼 (가장자리 호버 스크롤과 함께 사용) */
+.jukebox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 56px;
+  height: 80px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.jukebox-nav:hover {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.jukebox-nav:active {
+  background: rgba(0, 0, 0, 0.7);
+}
+.jukebox-nav--prev {
+  left: 12px;
+}
+.jukebox-nav--next {
+  right: 12px;
+}
+.jukebox-nav--prev::before,
+.jukebox-nav--next::before {
+  content: '';
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 0 auto;
+  border: solid currentColor;
+  border-width: 0 0 3px 3px;
+  box-sizing: border-box;
+}
+.jukebox-nav--prev::before {
+  transform: rotate(-45deg) translate(2px, 2px);
+}
+.jukebox-nav--next::before {
+  transform: rotate(135deg) translate(2px, 2px);
 }
 
 .jukebox-fullscreen::-webkit-scrollbar,

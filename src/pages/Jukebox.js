@@ -2,16 +2,13 @@
  * Jukebox 페이지
  *
  * 참고
- * - Cover Flow (스크롤 기반): https://scroll-driven-animations.style/demos/cover-flow/css/
- * - CodePen 갤러리: https://codepen.io/palampinen/pen/OXGYdX
+ * - Cover Flow: https://scroll-driven-animations.style/demos/cover-flow/css/
+ * - CodePen: https://codepen.io/palampinen/pen/OXGYdX
  *
- * [구성]
- * 1. 스크롤 연동 Cover Flow: 갤러리를 가로 스크롤하면 각 카드의 뷰포트 내 위치에 따라
- *    rotateY·scale·translateZ·z-index가 갱신됨. 중앙은 정면, 양옆은 옆으로 회전.
- *    (데모는 View Timeline, 여기서는 scroll 이벤트 + updateCardAngles로 동일 시각 효과.)
- * 2. 마우스 위치 기반 자동 스크롤(CodePen): 갤러리 위에서 마우스가 왼쪽이면 왼쪽,
- *    오른쪽이면 오른쪽으로 스크롤, 중앙이면 정지. mousemove 시 방향·속도 갱신, scrollLeft 클램프.
- * 3. 스포트라이트: 카드 클릭 시 해당 카드(DOM)가 위로 올라가며 scale 1.2로 상단에 표시, 클릭 시 복귀.
+ * 구성
+ * 1. 스크롤 연동 Cover Flow: 가로 스크롤 시 카드별 뷰포트 위치에 따라
+ *    rotateY·scale·translateZ·z-index 갱신 (scroll 이벤트 + updateCardAngles).
+ * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
  */
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
@@ -22,10 +19,14 @@ import './Jukebox.css';
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-/** 마우스 자동 스크롤: 비율 > THRESHOLD면 왼쪽 스크롤, < (1-THRESHOLD)면 오른쪽, 그 사이면 정지 */
-const THRESHOLD = 0.6;
-/** 마우스 자동 스크롤 최대 속도 (px/10ms) */
-const MAX_SPEED = 25;
+/** 화면 왼쪽 이 비율(0~1) 안에 마우스가 있으면 왼쪽 스크롤 (가장자리만 반응하도록 작게) */
+const EDGE_ZONE_LEFT = 0.12;
+/** 화면 오른쪽 이 비율(0~1) 안에 마우스가 있으면 오른쪽 스크롤 */
+const EDGE_ZONE_RIGHT = 0.12;
+/** 가장자리 호버 시 스크롤 시작 전 대기(ms). 짧게 지나갈 때는 스크롤 안 함 */
+const EDGE_HOVER_DELAY_MS = 280;
+/** 가장자리 스크롤 최대 속도 (px/10ms) */
+const EDGE_SCROLL_SPEED = 18;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -122,15 +123,15 @@ function enableCenterPerspective(gallery) {
 }
 
 /**
- * 마우스 위치 기반 자동 스크롤 (CodePen 스타일)
- * - mousemove: 화면 X 기준으로 영역 판별 후 10ms마다 scrollLeft 증감.
- *   왼쪽(비율 > 0.6) → scrollLeft 감소, 오른쪽(비율 < 0.4) → scrollLeft 증가, 중앙(0.4~0.6) → 정지.
- * - 속도: 영역 끝에 가까울수록 MAX_SPEED까지 선형 보간.
- * - tick()에서 scrollLeft를 0 ~ maxScroll 로 클램프하여 끝에서 넘어가지 않도록 함.
+ * PC 사용성: 가장자리 호버 스크롤 + 이전/다음 버튼
+ * - 가장자리만 반응: 화면 왼쪽 12% / 오른쪽 12% 안에 마우스가 있을 때만 스크롤. 중앙 76%는 정지.
+ * - EDGE_HOVER_DELAY_MS 동안 가장자리에 머물렀을 때만 스크롤 시작 (지나가기만 하면 동작 안 함).
+ * - 이전/다음 버튼: 클릭 시 한 번에 한 단계씩 스크롤 (휠/드래그와 함께 사용).
  */
-function enableGalleryScroll(gallery) {
+function enableGalleryScroll(gallery, prevBtn, nextBtn) {
   if (!gallery) return;
   let scrolling = null;
+  let edgeDelayTimer = null;
 
   function tick(direction) {
     const maxScroll = gallery.scrollWidth - gallery.clientWidth;
@@ -142,36 +143,57 @@ function enableGalleryScroll(gallery) {
     }
   }
 
-  function updateScroll(e) {
-    const pageX = e.clientX ?? e.screenX ?? 0;
-    const screenWidth = window.innerWidth;
-    /* 0 = 화면 오른쪽 끝, 1 = 화면 왼쪽 끝 */
-    const currentPosPercentage = (screenWidth - pageX) / screenWidth;
-    let direction = 0;
-
-    if (currentPosPercentage > THRESHOLD) {
-      const speedPercentage = (currentPosPercentage - THRESHOLD) / (1 - THRESHOLD);
-      direction = -speedPercentage * MAX_SPEED;
-    } else if (currentPosPercentage < 1 - THRESHOLD) {
-      const speedPercentage = (1 - THRESHOLD - currentPosPercentage) / (1 - THRESHOLD);
-      direction = speedPercentage * MAX_SPEED;
+  function stopScroll() {
+    if (edgeDelayTimer) {
+      clearTimeout(edgeDelayTimer);
+      edgeDelayTimer = null;
     }
-
     if (scrolling) {
       clearInterval(scrolling);
       scrolling = null;
-    }
-    if (direction !== 0) {
-      scrolling = setInterval(() => tick(direction), 10);
     }
   }
 
-  gallery.addEventListener('mousemove', updateScroll, { passive: true });
-  gallery.addEventListener('mouseleave', () => {
-    if (scrolling) {
-      clearInterval(scrolling);
-      scrolling = null;
+  function startScrollIfEdge(pageX) {
+    const screenWidth = window.innerWidth;
+    const ratio = pageX / screenWidth;
+    let direction = 0;
+    if (ratio < EDGE_ZONE_LEFT) {
+      direction = -EDGE_SCROLL_SPEED * (1 - ratio / EDGE_ZONE_LEFT);
+    } else if (ratio > 1 - EDGE_ZONE_RIGHT) {
+      direction = EDGE_SCROLL_SPEED * ((ratio - (1 - EDGE_ZONE_RIGHT)) / EDGE_ZONE_RIGHT);
     }
+    if (direction === 0) {
+      stopScroll();
+      return;
+    }
+    stopScroll();
+    edgeDelayTimer = setTimeout(() => {
+      edgeDelayTimer = null;
+      scrolling = setInterval(() => tick(direction), 10);
+    }, EDGE_HOVER_DELAY_MS);
+  }
+
+  gallery.addEventListener('mousemove', (e) => {
+    const pageX = e.clientX ?? e.screenX ?? 0;
+    const ratio = pageX / window.innerWidth;
+    if (ratio >= EDGE_ZONE_LEFT && ratio <= 1 - EDGE_ZONE_RIGHT) {
+      stopScroll();
+      return;
+    }
+    startScrollIfEdge(pageX);
+  }, { passive: true });
+
+  gallery.addEventListener('mouseleave', stopScroll);
+
+  /* 이전/다음 버튼: 한 번에 한 단계(약 한 카드 너비) 스크롤 */
+  const step = () => Math.min(gallery.clientWidth * 0.75, 280);
+  prevBtn?.addEventListener('click', () => {
+    gallery.scrollLeft = Math.max(0, gallery.scrollLeft - step());
+  });
+  nextBtn?.addEventListener('click', () => {
+    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+    gallery.scrollLeft = Math.min(maxScroll, gallery.scrollLeft + step());
   });
 }
 
@@ -186,11 +208,11 @@ export function renderJukebox() {
   }
   document.body.classList.add('jukebox-active');
 
-  /* 레이아웃: 상단 스포트라이트(카드가 올라갈 영역) + 하단 갤러리 */
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
-      <div class="jukebox-spotlight" id="jukebox-spotlight" role="button" tabindex="0" aria-label="선택 해제"></div>
       <div class="jukebox-gallery-wrap">
+        <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"></button>
+        <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"></button>
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
           <div class="jukebox-loading">노트를 불러오는 중...</div>
         </div>
@@ -199,7 +221,8 @@ export function renderJukebox() {
   `;
 
   const gallery = document.getElementById('jukebox-gallery');
-  const spotlight = document.getElementById('jukebox-spotlight');
+  const prevBtn = document.getElementById('jukebox-prev');
+  const nextBtn = document.getElementById('jukebox-next');
 
   /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 (한쪽 실패해도 다른 쪽은 표시) */
   Promise.allSettled([getNotionNotebooks(), getNotionTypeItems()])
@@ -225,13 +248,12 @@ export function renderJukebox() {
         return;
       }
 
-      /* 각 노트를 카드 div로 렌더 (클릭 시 스포트라이트에 표시할 데이터를 data 속성으로 보관) */
       const itemsHtml = allNotes
-        .map((note, index) => {
+        .map((note) => {
           const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
           const title = escapeHtml(note.title);
           return `
-            <div class="jukebox-card" data-note-index="${index}" data-cover-src="${escapeHtml(coverSrc)}" data-title="${title}" role="button" tabindex="0">
+            <div class="jukebox-card">
               <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
             </div>
           `;
@@ -240,114 +262,14 @@ export function renderJukebox() {
 
       gallery.innerHTML = itemsHtml;
 
-      /* z-index는 updateCardAngles에서 중앙 거리 기준으로 설정됨 (Cover Flow) */
-
       gallery.querySelectorAll('img').forEach((img) => {
         img.addEventListener('error', () => {
           img.classList.add('jukebox-cover-image--error');
         }, { once: true });
       });
 
-      /** 올라간 카드와 원래 인덱스 (닫을 때 복귀용) */
-      let selectedCard = null;
-      let selectedIndex = null;
-
-      /**
-       * [애니메이션 3] 클릭한 카드가 그대로 위로 올라감 (go up)
-       * 카드 DOM을 스포트라이트로 옮기고, 현재 위치 → 상단 중앙 + scale 1.2 로 애니메이션.
-       */
-      function goUp(card) {
-        if (!spotlight || selectedCard) return;
-        const rect = card.getBoundingClientRect();
-        const index = parseInt(card.getAttribute('data-note-index'), 10);
-
-        spotlight.appendChild(card);
-        card.classList.add('jukebox-card--flying');
-
-        card.style.position = 'fixed';
-        card.style.left = `${rect.left}px`;
-        card.style.top = `${rect.top}px`;
-        card.style.width = `${rect.width}px`;
-        card.style.height = `${rect.height}px`;
-        card.style.marginLeft = '0';
-        card.style.transform = 'translate(0, 0) scale(1)';
-        card.style.transition = 'left 0.45s cubic-bezier(0.34, 1.2, 0.64, 1), top 0.45s cubic-bezier(0.34, 1.2, 0.64, 1), width 0.45s cubic-bezier(0.34, 1.2, 0.64, 1), height 0.45s cubic-bezier(0.34, 1.2, 0.64, 1), transform 0.45s cubic-bezier(0.34, 1.2, 0.64, 1)';
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            card.style.left = '50%';
-            card.style.top = '12px';
-            card.style.width = 'auto';
-            card.style.height = 'auto';
-            card.style.maxWidth = 'min(80vw, 420px)';
-            card.style.maxHeight = '35vh';
-            card.style.transform = 'translateX(-50%) scale(1.2)';
-          });
-        });
-
-        selectedCard = card;
-        selectedIndex = index;
-        spotlight.classList.add('jukebox-spotlight--active');
-      }
-
-      /**
-       * 닫을 때: 카드가 원래 자리로 빠르게 복귀 (짧은 transition 후 갤러리에 다시 삽입)
-       */
-      function goBack() {
-        if (!spotlight || !selectedCard || selectedIndex == null) return;
-        const card = selectedCard;
-        const index = selectedIndex;
-        selectedCard = null;
-        selectedIndex = null;
-        spotlight.classList.remove('jukebox-spotlight--active');
-
-        const placeholder = document.createElement('div');
-        placeholder.className = 'jukebox-card-placeholder';
-        const ref = gallery.children[index] || null;
-        gallery.insertBefore(placeholder, ref);
-
-        const targetRect = placeholder.getBoundingClientRect();
-        card.style.transition = 'left 0.2s ease-out, top 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out, transform 0.2s ease-out';
-        card.style.left = `${targetRect.left}px`;
-        card.style.top = `${targetRect.top}px`;
-        card.style.width = `${targetRect.width}px`;
-        card.style.height = `${targetRect.height}px`;
-        card.style.maxWidth = '';
-        card.style.maxHeight = '';
-        card.style.transform = 'translate(0, 0) scale(1)';
-
-        const onEnd = () => {
-          card.removeEventListener('transitionend', onEnd);
-          card.classList.remove('jukebox-card--flying');
-          card.style.cssText = '';
-          placeholder.replaceWith(card);
-          gallery.querySelectorAll(':scope > div').forEach((el, i) => {
-            el.style.zIndex = String(gallery.children.length - i);
-          });
-          updateCardAngles(gallery);
-        };
-        card.addEventListener('transitionend', onEnd);
-      }
-
-      gallery.querySelectorAll('.jukebox-card').forEach((card) => {
-        card.style.cursor = 'pointer';
-        card.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (selectedCard) return;
-          goUp(card);
-        });
-      });
-
-      spotlight?.addEventListener('click', () => goBack());
-      spotlight?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          goBack();
-        }
-      });
-
       enableCenterPerspective(gallery);
-      enableGalleryScroll(gallery);
+      enableGalleryScroll(gallery, prevBtn, nextBtn);
     })
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);
