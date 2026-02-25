@@ -115,7 +115,7 @@ body.jukebox-active {
   position: absolute;
   left: 0;
   right: 0;
-  top: 35%;
+  top: 40%;
   transform: translate3d(0, -50%, 0);
 }
 

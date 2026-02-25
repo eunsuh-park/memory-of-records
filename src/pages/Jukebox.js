@@ -89,10 +89,10 @@ function updateCardAngles(gallery) {
     /* 양옆 카드는 이미지 더 어둡게. 중앙 1, 양끝 0.48 (끝으로 갈수록 더 어둡게) */
     const brightness = 1 - (1 - 0.48) * absRatio;
 
-    /* 그림자: 중앙은 연하게, 양끝으로 갈수록 더 진하고 넓게 */
-    const shadowOpacity = 0.12 + absRatio * 0.42;
-    const shadowBlur = 16 + Math.round(absRatio * 24);
-    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${shadowOpacity.toFixed(2)})`);
+    /* 바닥 그림자: 중앙은 적당히, 양끝으로 갈수록 불투명도·블러 약하게 */
+    const shadowOpacity = 0.32 - absRatio * 0.26;
+    const shadowBlur = 22 - Math.round(absRatio * 10);
+    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(0.06, shadowOpacity).toFixed(2)})`);
 
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));
