@@ -1,10 +1,16 @@
-/* Jukebox 페이지 – CodePen palampinen/OXGYdX 스타일
-   가로 스크롤 갤러리 + 3D 원근(rotateY) + 아래 반사 + 호버 시 앞으로 */
+/* ==========================================================================
+   Jukebox 페이지 스타일
+   참고: https://codepen.io/palampinen/pen/OXGYdX
+   ========================================================================== */
 
+/* ----------------------------------------
+   [전역] Jukebox 배경색 (다크 톤)
+   ---------------------------------------- */
 :root {
   --jukebox-bg: #29323f;
 }
 
+/* Jukebox 페이지가 켜져 있을 때 메인 영역 전체 화면, 스크롤 없음 */
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
 .app-main.jukebox-active {
@@ -27,6 +33,10 @@ body.jukebox-active {
   background: var(--jukebox-bg);
 }
 
+/* ----------------------------------------
+   [레이아웃] 전체 컨테이너
+   상단 스포트라이트 + 하단 갤러리로 flex 세로 배치
+   ---------------------------------------- */
 .jukebox-fullscreen {
   background: linear-gradient(
     var(--jukebox-bg) 40%,
@@ -39,15 +49,16 @@ body.jukebox-active {
   flex-direction: column;
 }
 
-/* 상단 스포트라이트: 클릭한 노트가 올라와 크게 표시되는 영역 */
+/* ----------------------------------------
+   [애니메이션 3] 상단 스포트라이트 (카드가 올라갈 영역)
+   클릭한 카드(실제 DOM)가 이 영역으로 "go up" 하며 scale 1.2 로 커짐.
+   - 비활성: 터치/클릭 무시
+   - 활성: 클릭 시 카드가 원래 위치로 빠르게 복귀 (go back)
+   ---------------------------------------- */
 .jukebox-spotlight {
   flex: 0 0 auto;
   height: 38vh;
   min-height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 16px;
   box-sizing: border-box;
   cursor: default;
   overflow: hidden;
@@ -62,47 +73,46 @@ body.jukebox-active {
   pointer-events: auto;
 }
 
-.jukebox-spotlight-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  max-width: 90vw;
+/* 카드가 올라간 상태: 갤러리용 반사/오버레이 제거, z-index로 맨 앞에 */
+.jukebox-card.jukebox-card--flying {
+  z-index: 1000;
+  -webkit-box-reflect: none;
 }
 
-.jukebox-spotlight-img {
-  max-height: 100%;
-  max-width: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
+.jukebox-card.jukebox-card--flying::after {
   opacity: 0;
-  transform: translateY(60%) scale(0.55);
-  transition: none;
+  pointer-events: none;
 }
 
-.jukebox-spotlight--active .jukebox-spotlight-img {
-  opacity: 1;
+.jukebox-card.jukebox-card--flying img {
+  max-height: none;
+  max-width: none;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
 }
 
-.jukebox-spotlight--rise .jukebox-spotlight-img {
-  transform: translateY(0) scale(1);
-  transition: transform 0.5s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.35s ease-out;
+/* 복귀 애니메이션 시 갤러리 빈 자리 유지용 (보이지 않는 플레이스홀더) */
+.jukebox-card-placeholder {
+  display: inline-block;
+  vertical-align: bottom;
+  width: 20vw;
+  max-width: 200px;
+  height: 28vh;
+  min-height: 80px;
+  margin-left: -4vw;
+  visibility: hidden;
+  pointer-events: none;
 }
 
-.jukebox-spotlight--active.jukebox-spotlight--rise .jukebox-spotlight-img {
-  transform: translateY(0) scale(1);
-}
-
-/* 갤러리 래퍼: 스포트라이트 아래 남은 공간 */
+/* 갤러리 래퍼: 스포트라이트 아래 남은 공간을 채우고, 내부에 갤러리를 세로 중앙 정렬할 수 있게 relative */
 .jukebox-gallery-wrap {
   flex: 1 1 0;
   min-height: 0;
   position: relative;
 }
 
-/* 스크롤바 숨김 */
+/* 스크롤바 숨김 (갤러리는 가로 스크롤만 사용) */
 .jukebox-fullscreen::-webkit-scrollbar,
 .jukebox-gallery::-webkit-scrollbar {
   width: 0;
@@ -113,7 +123,7 @@ body.jukebox-active {
   background: transparent;
 }
 
-/* 갤러리 세로 중앙 정렬 (CodePen .centerized) */
+/* 갤러리 컨테이너를 래퍼 안에서 세로 중앙에 배치 (CodePen .centerized) */
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
@@ -122,6 +132,11 @@ body.jukebox-active {
   transform: translate3d(0, -50%, 0);
 }
 
+/* ----------------------------------------
+   [갤러리] 가로 스크롤 + 3D 원근
+   - perspective: 모든 카드가 같은 원근감을 가지도록 갤러리에 한 번만 지정
+   - overflow-x: auto 로 가로 스크롤
+   ---------------------------------------- */
 .jukebox-gallery {
   padding: 40vh 0;
   width: 100%;
@@ -135,6 +150,12 @@ body.jukebox-active {
   perspective-origin: 50% 50%;
 }
 
+/* ----------------------------------------
+   [애니메이션 1] 개별 카드 (3D 원근)
+   - --jukebox-rotate-y: JS에서 화면 내 위치에 따라 설정 (중앙 0, 왼쪽 +, 오른쪽 -)
+   - margin-left: -4vw 로 카드들이 겹쳐 보이게 (주크박스 앨범 쌓인 느낌)
+   - -webkit-box-reflect: 카드 아래에 반사 (유리/바닥 반사 느낌)
+   ---------------------------------------- */
 .jukebox-gallery > div {
   white-space: normal;
   width: auto;
@@ -158,6 +179,7 @@ body.jukebox-active {
   transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
 }
 
+/* 호버 시: 정면(rotateY 0) + 살짝 확대(1.08) + 앞으로 (z-index 99) */
 .jukebox-gallery > div:hover,
 .jukebox-gallery > div:active {
   transform: translate3d(0, 0, 0) scale(1.08) rotateY(0deg);
@@ -177,7 +199,6 @@ body.jukebox-active {
   max-height: 28vh;
   max-width: 20vw;
   object-fit: contain;
-  vertical-align: bottom;
 }
 
 .jukebox-gallery > div .jukebox-cover-image--error {
@@ -185,7 +206,7 @@ body.jukebox-active {
   background: rgba(200, 0, 0, 0.08);
 }
 
-/* 그라데이션 오버레이 (CodePen ::after) */
+/* 카드 위 그라데이션 오버레이 (왼쪽 어둡게 → 오른쪽 투명, CodePen 스타일) */
 .jukebox-gallery > div::after {
   position: absolute;
   display: block;
@@ -201,7 +222,7 @@ body.jukebox-active {
   pointer-events: none;
 }
 
-
+/* 로딩/빈 상태 메시지: 3D·반사·오버레이 적용 제외 */
 .jukebox-gallery > div.jukebox-loading,
 .jukebox-gallery > div.jukebox-empty {
   color: rgba(255, 255, 255, 0.7);
