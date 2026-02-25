@@ -132,7 +132,7 @@ body.jukebox-active {
   /* 3D 원근감: 자식(카드)의 rotateY가 입체처럼 보이도록 시점 거리. 값이 작을수록 왜곡이 강하고, 클수록 평면에 가깝게 보임 */
   perspective: 40em;
   /* 원근의 소실점: 뷰포트 정중앙(50% 50%)을 기준으로 원근 적용. 카드가 중앙에서 벌어질수록 옆으로 기울어 보이게 함 */
-  perspective-origin: 80% 80%;
+  perspective-origin: 50% 50%;
   /* 가로 스크롤 스냅: 스크롤이 멈출 때 반드시 스냅 포인트(scroll-snap-align: center인 카드)에 맞춰짐. 휠/드래그 후 카드가 중앙에 딱 맞게 정렬 */
   scroll-snap-type: x mandatory;
 }
@@ -161,6 +161,7 @@ body.jukebox-active {
   -webkit-box-reflect: below 0.5em
     linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   display: inline-block;
+  /* 노트(카드) 간 간격: 음수면 겹침(-4vw), 양수면 떨어짐(예: 2vw) */
   margin-left: -4vw;
   transform-origin: center center;
   transform:
