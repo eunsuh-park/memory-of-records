@@ -111,6 +111,68 @@ body.jukebox-active {
   background: transparent;
 }
 
+/* --- 커스텀 가로 스크롤바 (스타일리시) --- */
+.jukebox-scrollbar-wrap {
+  flex-shrink: 0;
+  padding: 12px 72px 20px;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+.jukebox-scrollbar-wrap.jukebox-scrollbar-wrap--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.jukebox-scrollbar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.jukebox-scrollbar-thumb {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 10px;
+  min-width: 40px;
+  border-radius: 5px;
+  touch-action: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  cursor: grab;
+  transition: background 0.2s ease, box-shadow 0.2s ease, height 0.2s ease;
+}
+.jukebox-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.28) 100%
+  );
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.jukebox-scrollbar-thumb:active,
+.jukebox-scrollbar-thumb.jukebox-scrollbar-thumb--dragging {
+  cursor: grabbing;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.32) 100%
+  );
+  height: 12px;
+  border-radius: 6px;
+}
+
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
@@ -291,6 +353,9 @@ body.jukebox-active {
   .jukebox-nav--next {
     right: 8px;
   }
+  .jukebox-scrollbar-wrap {
+    padding: 10px 56px 16px;
+  }
 }
 
 /* 초소형 모바일 (480px 이하): 한 화면에 카드 1장이 주인공이 되도록 */
@@ -323,5 +388,15 @@ body.jukebox-active {
   }
   .jukebox-nav--next {
     right: 6px;
+  }
+  .jukebox-scrollbar-wrap {
+    padding: 8px 52px 14px;
+  }
+  .jukebox-scrollbar-track {
+    height: 5px;
+  }
+  .jukebox-scrollbar-thumb {
+    height: 8px;
+    min-width: 32px;
   }
 }

@@ -135,10 +135,73 @@ function enableCenterPerspective(gallery) {
 }
 
 /**
+ * 커스텀 가로 스크롤바: 갤러리 scrollLeft와 동기화, 트랙 클릭·썸 드래그 지원
+ */
+function enableCustomScrollbar(gallery, wrapEl, trackEl, thumbEl) {
+  if (!gallery || !wrapEl || !trackEl || !thumbEl) return;
+
+  function updateThumb() {
+    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+    if (maxScroll <= 0) {
+      wrapEl.classList.add('jukebox-scrollbar-wrap--hidden');
+      return;
+    }
+    wrapEl.classList.remove('jukebox-scrollbar-wrap--hidden');
+    const ratio = gallery.scrollLeft / maxScroll;
+    const trackWidth = trackEl.clientWidth;
+    const thumbMinWidth = 40;
+    const thumbWidth = Math.max(thumbMinWidth, Math.round(trackWidth * (gallery.clientWidth / gallery.scrollWidth)));
+    const thumbMaxLeft = trackWidth - thumbWidth;
+    const left = Math.round(ratio * thumbMaxLeft);
+    thumbEl.style.width = `${thumbWidth}px`;
+    thumbEl.style.left = `${left}px`;
+  }
+
+  gallery.addEventListener('scroll', updateThumb, { passive: true });
+  window.addEventListener('resize', updateThumb);
+
+  trackEl.addEventListener('click', (e) => {
+    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+    if (maxScroll <= 0) return;
+    const rect = trackEl.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const ratio = x / trackEl.clientWidth;
+    gallery.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
+  });
+
+  let dragStartX = 0;
+  let dragStartScroll = 0;
+  function onPointerDown(e) {
+    e.preventDefault();
+    dragStartX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+    dragStartScroll = gallery.scrollLeft;
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp, { once: true });
+    thumbEl.classList.add('jukebox-scrollbar-thumb--dragging');
+  }
+  function onPointerMove(e) {
+    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
+    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+    const trackWidth = trackEl.clientWidth;
+    const thumbWidth = thumbEl.offsetWidth;
+    const thumbMaxLeft = trackWidth - thumbWidth;
+    const deltaRatio = (x - dragStartX) / thumbMaxLeft;
+    const newScroll = dragStartScroll + deltaRatio * maxScroll;
+    gallery.scrollLeft = Math.max(0, Math.min(maxScroll, newScroll));
+  }
+  function onPointerUp() {
+    window.removeEventListener('pointermove', onPointerMove);
+    thumbEl.classList.remove('jukebox-scrollbar-thumb--dragging');
+  }
+  thumbEl.addEventListener('pointerdown', onPointerDown);
+  updateThumb();
+}
+
+/**
  * PC 사용성: 가장자리 호버 스크롤 + 이전/다음 버튼
  * - 가장자리만 반응: 화면 왼쪽 12% / 오른쪽 12% 안에 마우스가 있을 때만 스크롤. 중앙 76%는 정지.
  * - EDGE_HOVER_DELAY_MS 동안 가장자리에 머물렀을 때만 스크롤 시작 (지나가기만 하면 동작 안 함).
- * - 이전/다음 버튼: 클릭 시 한 번에 한 단계씩 스크롤 (휠/드래그와 함께 사용).
+ * - 이전/다음 버튼: 클릭 시 카드 한 장씩 이동.
  * 반응형: 터치 기기에서는 mousemove가 없어 호버 스크롤은 동작하지 않음. 스와이프·버튼·휠만 사용.
  */
 function enableGalleryScroll(gallery, prevBtn, nextBtn) {
@@ -199,14 +262,49 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
 
   gallery.addEventListener('mouseleave', stopScroll);
 
-  /* 이전/다음 버튼: 한 번에 한 단계(약 한 카드 너비) 스크롤. 뷰포트에 맞춰 step 크기 반응형 */
-  const step = () => Math.min(gallery.clientWidth * 0.75, 280);
+  /* 이전/다음 버튼: 카드 한 장씩 이동 (현재 중앙에 가장 가까운 카드 기준 이전/다음 카드로 스크롤) */
+  function scrollToCenterCard(card) {
+    if (!card) return;
+    const targetScroll =
+      card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
+    gallery.scrollTo({
+      left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
+      behavior: 'smooth'
+    });
+  }
+
+  function getCards() {
+    return Array.from(gallery.querySelectorAll(':scope > div.jukebox-card'));
+  }
+
+  function getClosestCardIndex() {
+    const cards = getCards();
+    if (cards.length === 0) return -1;
+    const viewportCenterX = gallery.scrollLeft + gallery.clientWidth / 2;
+    let closestIdx = 0;
+    let closestDist = Infinity;
+    cards.forEach((card, i) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const dist = Math.abs(cardCenter - viewportCenterX);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = i;
+      }
+    });
+    return closestIdx;
+  }
+
   prevBtn?.addEventListener('click', () => {
-    gallery.scrollLeft = Math.max(0, gallery.scrollLeft - step());
+    const idx = getClosestCardIndex();
+    const cards = getCards();
+    if (idx > 0) scrollToCenterCard(cards[idx - 1]);
+    else if (cards.length > 0) scrollToCenterCard(cards[0]);
   });
   nextBtn?.addEventListener('click', () => {
-    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-    gallery.scrollLeft = Math.min(maxScroll, gallery.scrollLeft + step());
+    const idx = getClosestCardIndex();
+    const cards = getCards();
+    if (idx >= 0 && idx < cards.length - 1) scrollToCenterCard(cards[idx + 1]);
+    else if (cards.length > 0) scrollToCenterCard(cards[cards.length - 1]);
   });
 }
 
@@ -228,6 +326,11 @@ export function renderJukebox() {
         <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"></button>
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
           <div class="jukebox-loading">노트를 불러오는 중...</div>
+        </div>
+      </div>
+      <div class="jukebox-scrollbar-wrap jukebox-scrollbar-wrap--hidden" id="jukebox-scrollbar-wrap" aria-hidden="true">
+        <div class="jukebox-scrollbar-track" id="jukebox-scrollbar-track">
+          <div class="jukebox-scrollbar-thumb" id="jukebox-scrollbar-thumb"></div>
         </div>
       </div>
     </div>
@@ -286,6 +389,10 @@ export function renderJukebox() {
 
       enableCenterPerspective(gallery);
       enableGalleryScroll(gallery, prevBtn, nextBtn);
+      const scrollbarWrap = document.getElementById('jukebox-scrollbar-wrap');
+      const scrollbarTrack = document.getElementById('jukebox-scrollbar-track');
+      const scrollbarThumb = document.getElementById('jukebox-scrollbar-thumb');
+      enableCustomScrollbar(gallery, scrollbarWrap, scrollbarTrack, scrollbarThumb);
     })
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);
