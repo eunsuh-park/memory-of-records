@@ -115,7 +115,7 @@ body.jukebox-active {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  top: 20%;
   transform: translate3d(0, -50%, 0);
 }
 
@@ -129,7 +129,7 @@ body.jukebox-active {
   overflow: hidden;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  perspective: 40em;
+  perspective: 80em;
   perspective-origin: 50% 50%;
   scroll-snap-type: x mandatory;
 }
