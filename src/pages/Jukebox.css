@@ -1,17 +1,14 @@
-/* ==========================================================================
-   Jukebox 페이지 스타일
-   참고: CodePen palampinen/OXGYdX, Cover Flow (scroll-driven-animations)
+/* =============================================================================
+   Jukebox 페이지
+   참고: CodePen palampinen/OXGYdX, Cover Flow
    https://scroll-driven-animations.style/demos/cover-flow/css/
-   ========================================================================== */
+   ============================================================================= */
 
-/* ----------------------------------------
-   [전역] Jukebox 배경색 (다크 톤)
-   ---------------------------------------- */
+/* --- 전역 --- */
 :root {
   --jukebox-bg: #29323f;
 }
 
-/* Jukebox 페이지가 켜져 있을 때 메인 영역 전체 화면, 스크롤 없음 */
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
 .app-main.jukebox-active {
@@ -34,10 +31,7 @@ body.jukebox-active {
   background: var(--jukebox-bg);
 }
 
-/* ----------------------------------------
-   [레이아웃] 전체 컨테이너
-   상단 스포트라이트 + 하단 갤러리로 flex 세로 배치
-   ---------------------------------------- */
+/* --- 레이아웃: 전체 컨테이너 (스포트라이트 + 갤러리) --- */
 .jukebox-fullscreen {
   background: linear-gradient(
     var(--jukebox-bg) 40%,
@@ -50,12 +44,7 @@ body.jukebox-active {
   flex-direction: column;
 }
 
-/* ----------------------------------------
-   [애니메이션 3] 상단 스포트라이트 (카드가 올라갈 영역)
-   클릭한 카드(실제 DOM)가 이 영역으로 "go up" 하며 scale 1.2 로 커짐.
-   - 비활성: 터치/클릭 무시
-   - 활성: 클릭 시 카드가 원래 위치로 빠르게 복귀 (go back)
-   ---------------------------------------- */
+/* --- 스포트라이트: 클릭한 카드가 올라와 커지는 영역 --- */
 .jukebox-spotlight {
   flex: 0 0 auto;
   height: 38vh;
@@ -74,7 +63,7 @@ body.jukebox-active {
   pointer-events: auto;
 }
 
-/* 카드가 올라간 상태: 갤러리용 반사/오버레이 제거, z-index로 맨 앞에 */
+/* 스포트라이트에 올라간 카드: 반사/오버레이 제거, 최상단 표시 */
 .jukebox-card.jukebox-card--flying {
   z-index: 1000;
   -webkit-box-reflect: none;
@@ -93,7 +82,7 @@ body.jukebox-active {
   object-fit: contain;
 }
 
-/* 복귀 애니메이션 시 갤러리 빈 자리 유지용 (보이지 않는 플레이스홀더) */
+/* 복귀 시 갤러리 빈 자리 유지용 플레이스홀더 */
 .jukebox-card-placeholder {
   display: inline-block;
   vertical-align: bottom;
@@ -106,25 +95,24 @@ body.jukebox-active {
   pointer-events: none;
 }
 
-/* 갤러리 래퍼: 스포트라이트 아래 남은 공간을 채우고, 내부에 갤러리를 세로 중앙 정렬할 수 있게 relative */
+/* --- 갤러리 영역 --- */
 .jukebox-gallery-wrap {
   flex: 1 1 0;
   min-height: 0;
   position: relative;
 }
 
-/* 스크롤바 숨김 (갤러리는 가로 스크롤만 사용) */
 .jukebox-fullscreen::-webkit-scrollbar,
 .jukebox-gallery::-webkit-scrollbar {
   width: 0;
   height: 0;
   background: transparent;
 }
+
 .jukebox-gallery::-webkit-scrollbar-thumb {
   background: transparent;
 }
 
-/* 갤러리 컨테이너를 래퍼 안에서 세로 중앙에 배치 (CodePen .centerized) */
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
@@ -133,12 +121,7 @@ body.jukebox-active {
   transform: translate3d(0, -50%, 0);
 }
 
-/* ----------------------------------------
-   [갤러리] 가로 스크롤 + 3D 원근 (Cover Flow 스타일)
-   참고: https://scroll-driven-animations.style/demos/cover-flow/css/
-   - perspective: 데모처럼 em 단위로 원근감
-   - scroll-snap: 한 장씩 중앙에 스냅 (선택적)
-   ---------------------------------------- */
+/* 갤러리: 가로 스크롤, 3D 원근, 스냅 */
 .jukebox-gallery {
   padding: 40vh 0;
   width: 100%;
@@ -153,14 +136,8 @@ body.jukebox-active {
   scroll-snap-type: x mandatory;
 }
 
-/* ----------------------------------------
-   [애니메이션 1] Cover Flow – 양옆 회전, 중앙 정면
-   JS에서 설정하는 CSS 변수:
-   - --jukebox-rotate-y: 양옆 ±45°, 중앙 0°
-   - --jukebox-scale: 양옆 0.88, 중앙 1.25
-   - --jukebox-translate-z: 중앙에서 앞으로 1.5em
-   z-index도 JS에서 중앙에 가까울수록 높게 설정해 겹침 시 중앙이 위로.
-   ---------------------------------------- */
+/* --- 카드: Cover Flow (회전·scale·z), JS 변수 사용 ---
+   --jukebox-rotate-y, --jukebox-scale, --jukebox-translate-z, --jukebox-brightness */
 .jukebox-gallery > div {
   white-space: normal;
   width: auto;
@@ -182,7 +159,7 @@ body.jukebox-active {
   scroll-snap-align: center;
 }
 
-/* 호버: 중앙에 포커스된 카드(.jukebox-card--centered)에만 적용 */
+/* 호버: 중앙 포커스 카드(.jukebox-card--centered)에만 적용 */
 .jukebox-gallery > div.jukebox-card--centered:hover,
 .jukebox-gallery > div.jukebox-card--centered:active {
   transform:
@@ -197,7 +174,7 @@ body.jukebox-active {
   opacity: 0;
 }
 
-/* 이미지 자체를 어둡게 (brightness). PNG 투명 영역에는 적용되지 않음 */
+/* 카드 이미지: 양옆은 brightness로만 어둡게 (PNG 투명 영역 유지) */
 .jukebox-gallery > div img {
   display: block;
   z-index: 1;
@@ -216,7 +193,7 @@ body.jukebox-active {
   background: rgba(200, 0, 0, 0.08);
 }
 
-/* 카드 위 그라데이션 오버레이 제거함. 양옆 어두운 느낌은 img에 filter: brightness()로만 적용 (PNG 투명 영역 깔끔) */
+/* 오버레이 비활성(투명). 어두운 느낌은 img brightness로만 처리 */
 .jukebox-gallery > div::after {
   position: absolute;
   display: block;
@@ -232,7 +209,7 @@ body.jukebox-active {
   pointer-events: none;
 }
 
-/* 로딩/빈 상태 메시지: 3D·반사·오버레이 적용 제외 */
+/* 로딩/빈 상태: 카드 3D·반사·오버레이 스타일 제외 */
 .jukebox-gallery > div.jukebox-loading,
 .jukebox-gallery > div.jukebox-empty {
   color: rgba(255, 255, 255, 0.7);
@@ -254,6 +231,7 @@ body.jukebox-active {
   display: none;
 }
 
+/* --- 반응형 --- */
 @media (max-width: 768px) {
   .jukebox-gallery > div,
   .jukebox-gallery > div img {
