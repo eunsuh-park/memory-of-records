@@ -182,10 +182,14 @@ body.jukebox-active {
   scroll-snap-align: center;
 }
 
-/* 호버 시: 정면 + 살짝 확대 + 맨 앞 (Cover Flow 중앙과 동일한 느낌) */
+/* 호버 시: 옆으로 이동 + 정면 + 확대 + 맨 앞 (중앙 쪽으로 살짝 이동하는 인터랙션) */
 .jukebox-gallery > div:hover,
 .jukebox-gallery > div:active {
-  transform: translate3d(0, 0, 1.5em) scale(1.25) rotateY(0deg);
+  transform:
+    translateX(var(--jukebox-hover-x, 0))
+    translateZ(1.5em)
+    scale(1.25)
+    rotateY(0deg);
   z-index: 101;
 }
 

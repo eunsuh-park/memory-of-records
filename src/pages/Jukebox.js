@@ -71,9 +71,13 @@ function updateCardAngles(gallery) {
     const translateZ = absRatio > 0.5 ? COVER_FLOW_Z_SIDE : COVER_FLOW_Z_CENTER;
     const zIndex = Math.round(COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE));
 
+    /* 호버 시 중앙 쪽으로 옆 이동: 왼쪽 카드는 오른쪽으로(+), 오른쪽 카드는 왼쪽으로(-) */
+    const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
+
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));
     card.style.setProperty('--jukebox-translate-z', translateZ);
+    card.style.setProperty('--jukebox-hover-x', hoverX);
     card.style.zIndex = String(zIndex);
   });
 }
