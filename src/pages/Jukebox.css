@@ -119,7 +119,7 @@ body.jukebox-active {
   transform: translate3d(0, -50%, 0);
 }
 
-/* 갤러리: 가로 스크롤, 3D 원근, 스냅 */
+/* 갤러리: 가로 스크롤, 3D 원근, 스냅. 터치 기기에서 스와이프 부드럽게 (iOS 등) */
 .jukebox-gallery {
   padding: 40vh 0;
   width: 100%;
@@ -251,15 +251,77 @@ body.jukebox-active {
   display: none;
 }
 
-/* --- 반응형 --- */
+/* =============================================================================
+   반응형
+   - 768px 이하: 태블릿·세로 모바일. 카드 축소, 갤러리 패딩·네비 버튼 조정.
+   - 480px 이하: 초소형 모바일. 카드 비율 확대(한 화면에 1장 강조), 스페이서·간격 재조정.
+   ============================================================================= */
+
+/* 태블릿·모바일 (768px 이하) */
 @media (max-width: 768px) {
-  .jukebox-gallery > div,
-  .jukebox-gallery > div img {
-    max-height: 24vh;
-    max-width: 28vw;
+  /* 갤러리 상하 여백 축소: 세로 공간 확보 */
+  .jukebox-gallery {
+    padding: 30vh 0;
   }
 
-  .jukebox-gallery > div {
-    margin-left: -3vw;
+  /* 좌우 스페이서: 좁은 화면에서 첫/끝 카드 중앙 정렬 유지. (50vw - 카드 절반)에 맞춰 34vw */
+  .jukebox-gallery > div.jukebox-spacer {
+    width: 34vw;
+  }
+
+  /* 카드·이미지: 카드만 대상(.jukebox-spacer·로딩·빈 상태 제외). 높이 줄여 한 화면에 여유 */
+  .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card img {
+    max-height: 26vh;
+    max-width: 32vw;
+  }
+
+  .jukebox-gallery > div.jukebox-card {
+    margin-left: -2.5vw;
+  }
+
+  /* 네비 버튼: 터치 영역 유지하되 크기·여백 축소로 갤러리와 겹침 완화 */
+  .jukebox-nav {
+    width: 44px;
+    height: 64px;
+  }
+  .jukebox-nav--prev {
+    left: 8px;
+  }
+  .jukebox-nav--next {
+    right: 8px;
+  }
+}
+
+/* 초소형 모바일 (480px 이하): 한 화면에 카드 1장이 주인공이 되도록 */
+@media (max-width: 480px) {
+  .jukebox-gallery {
+    padding: 28vh 0;
+  }
+
+  /* 스페이서: 카드가 42vw까지 커지므로 50vw - 21vw = 29vw */
+  .jukebox-gallery > div.jukebox-spacer {
+    width: 29vw;
+  }
+
+  .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card img {
+    max-height: 38vh;
+    max-width: 42vw;
+  }
+
+  .jukebox-gallery > div.jukebox-card {
+    margin-left: -2vw;
+  }
+
+  .jukebox-nav {
+    width: 40px;
+    height: 56px;
+  }
+  .jukebox-nav--prev {
+    left: 6px;
+  }
+  .jukebox-nav--next {
+    right: 6px;
   }
 }

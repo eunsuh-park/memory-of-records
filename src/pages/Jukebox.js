@@ -89,10 +89,10 @@ function updateCardAngles(gallery) {
     /* 양옆 카드는 이미지 더 어둡게. 중앙 1, 양끝 0.48 (끝으로 갈수록 더 어둡게) */
     const brightness = 1 - (1 - 0.48) * absRatio;
 
-    /* 바닥 그림자: 중앙은 적당히, 양끝으로 갈수록 불투명도·블러 약하게 */
-    const shadowOpacity = 0.32 - absRatio * 0.26;
+    /* 바닥 그림자: 비추는 정도만 줄임. 중앙↔끝 그라데이션 비율은 유지 */
+    const shadowOpacity = (0.32 - absRatio * 0.26) * 0.5;
     const shadowBlur = 22 - Math.round(absRatio * 10);
-    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(0.06, shadowOpacity).toFixed(2)})`);
+    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(0.03, shadowOpacity).toFixed(2)})`);
 
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));
@@ -112,6 +112,7 @@ function updateCardAngles(gallery) {
  * Cover Flow 스크롤 연동
  * 갤러리 scroll 이벤트·리사이즈 시 updateCardAngles 호출 → 카드별 위치에 따라 3D 변환 갱신.
  * (휠/터치/마우스 자동 스크롤 모두 scrollLeft를 바꾸므로 동일하게 scroll 이벤트로 연동됨.)
+ * 반응형: window.innerWidth 기준으로 ratio 계산하므로 뷰포트 변경 시 resize 이벤트로 자동 재계산됨.
  */
 function enableCenterPerspective(gallery) {
   if (!gallery) return;
@@ -132,6 +133,7 @@ function enableCenterPerspective(gallery) {
  * - 가장자리만 반응: 화면 왼쪽 12% / 오른쪽 12% 안에 마우스가 있을 때만 스크롤. 중앙 76%는 정지.
  * - EDGE_HOVER_DELAY_MS 동안 가장자리에 머물렀을 때만 스크롤 시작 (지나가기만 하면 동작 안 함).
  * - 이전/다음 버튼: 클릭 시 한 번에 한 단계씩 스크롤 (휠/드래그와 함께 사용).
+ * 반응형: 터치 기기에서는 mousemove가 없어 호버 스크롤은 동작하지 않음. 스와이프·버튼·휠만 사용.
  */
 function enableGalleryScroll(gallery, prevBtn, nextBtn) {
   if (!gallery) return;
@@ -191,7 +193,7 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
 
   gallery.addEventListener('mouseleave', stopScroll);
 
-  /* 이전/다음 버튼: 한 번에 한 단계(약 한 카드 너비) 스크롤 */
+  /* 이전/다음 버튼: 한 번에 한 단계(약 한 카드 너비) 스크롤. 뷰포트에 맞춰 step 크기 반응형 */
   const step = () => Math.min(gallery.clientWidth * 0.75, 280);
   prevBtn?.addEventListener('click', () => {
     gallery.scrollLeft = Math.max(0, gallery.scrollLeft - step());
