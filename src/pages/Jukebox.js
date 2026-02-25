@@ -89,10 +89,16 @@ function updateCardAngles(gallery) {
     /* 양옆 카드는 이미지 더 어둡게. 중앙 1, 양끝 0.48 (끝으로 갈수록 더 어둡게) */
     const brightness = 1 - (1 - 0.48) * absRatio;
 
-    /* 바닥 그림자: 비추는 정도만 줄임. 중앙↔끝 그라데이션 비율은 유지 */
-    const shadowOpacity = (0.32 - absRatio * 0.26) * 0.5;
+    /* 바닥 그림자: 비추는 정도만 줄임. 중앙↔끝 그라데이션 비율을 더 짧뚱하게(가파르게) */
+    // 원래: (0.32 - absRatio * 0.26) * 0.5;
+    // "짧뚱하게": 그라데이션이 더 짧은 구간에서 끝나도록 absRatio 가중치를 늘려 더 급격하게 변화하게 조정
+    const gradientSlope = 0.42; // absRatio 가중치 증가
+    const minShadowOpacity = 0.03;
+    const baseShadowOpacity = 0.32;
+    const shadowOpacity = (baseShadowOpacity - absRatio * gradientSlope) * 0.5;
     const shadowBlur = 22 - Math.round(absRatio * 10);
-    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(0.03, shadowOpacity).toFixed(2)})`);
+
+    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(minShadowOpacity, shadowOpacity).toFixed(2)})`);
 
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));
