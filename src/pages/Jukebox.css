@@ -115,7 +115,7 @@ body.jukebox-active {
   position: absolute;
   left: 0;
   right: 0;
-  top: 20%;
+  top: 40%;
   transform: translate3d(0, -50%, 0);
 }
 
@@ -134,13 +134,26 @@ body.jukebox-active {
   scroll-snap-type: x mandatory;
 }
 
+/* 좌우 스페이서: 첫/끝 카드가 중앙에 올 수 있도록 빈 공간 (50vw - 카드 절반 너비) */
+.jukebox-gallery > div.jukebox-spacer {
+  display: inline-block;
+  width: 36vw;
+  height: 0;
+  min-height: 0;
+  vertical-align: middle;
+  scroll-snap-align: none;
+  pointer-events: none;
+  margin: 0;
+  overflow: visible;
+}
+
 /* --- 카드: Cover Flow (회전·scale·z), JS 변수 사용 ---
    --jukebox-rotate-y, --jukebox-scale, --jukebox-translate-z, --jukebox-brightness */
-.jukebox-gallery > div {
+.jukebox-gallery > div.jukebox-card {
   white-space: normal;
   width: auto;
   height: auto;
-  max-height: 28vh;
+  max-height: 38vh;
   overflow: visible;
   -webkit-box-reflect: below 0.5em
     linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
@@ -157,42 +170,48 @@ body.jukebox-active {
   scroll-snap-align: center;
 }
 
+/* 중앙(앞) 카드: 연한 그림자 */
+.jukebox-gallery > div.jukebox-card.jukebox-card--centered {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
 /* 호버: 중앙 포커스 카드(.jukebox-card--centered)에만 적용 */
-.jukebox-gallery > div.jukebox-card--centered:hover,
-.jukebox-gallery > div.jukebox-card--centered:active {
+.jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover,
+.jukebox-gallery > div.jukebox-card.jukebox-card--centered:active {
   transform:
     translateX(var(--jukebox-hover-x, 0))
     translateZ(1.5em)
     scale(1.25)
     rotateY(0deg);
   z-index: 101;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
 }
 
-.jukebox-gallery > div.jukebox-card--centered:hover::after {
+.jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
   opacity: 0;
 }
 
-/* 카드 이미지: 양옆은 brightness로만 어둡게 (PNG 투명 영역 유지) */
-.jukebox-gallery > div img {
+/* 카드 이미지: 양옆은 brightness로만 어둡게 (PNG 투명 영역 유지), 한 화면에 보이는 개수 감소를 위해 크기 확대 */
+.jukebox-gallery > div.jukebox-card img {
   display: block;
   z-index: 1;
   position: relative;
   height: auto;
   width: auto;
-  max-height: 28vh;
-  max-width: 20vw;
+  max-height: 38vh;
+  max-width: 28vw;
   object-fit: contain;
   filter: brightness(var(--jukebox-brightness, 1));
   transition: filter 0.2s ease-out;
 }
 
-.jukebox-gallery > div .jukebox-cover-image--error {
+.jukebox-gallery > div.jukebox-card .jukebox-cover-image--error {
   outline: 2px dashed rgba(200, 0, 0, 0.5);
   background: rgba(200, 0, 0, 0.08);
 }
 
 /* 오버레이 비활성(투명). 어두운 느낌은 img brightness로만 처리 */
-.jukebox-gallery > div::after {
+.jukebox-gallery > div.jukebox-card::after {
   position: absolute;
   display: block;
   left: 0;

@@ -61,7 +61,7 @@ function updateCardAngles(gallery) {
   if (!gallery) return;
   const viewportCenterX = window.innerWidth / 2;
   const halfWidth = window.innerWidth / 2;
-  const cards = gallery.querySelectorAll(':scope > div:not(.jukebox-loading):not(.jukebox-empty)');
+  const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
 
   let closestCard = null;
   let closestAbsOffset = Infinity;
@@ -260,7 +260,10 @@ export function renderJukebox() {
         })
         .join('');
 
-      gallery.innerHTML = itemsHtml;
+      gallery.innerHTML =
+        '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
+        itemsHtml +
+        '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
 
       gallery.querySelectorAll('img').forEach((img) => {
         img.addEventListener('error', () => {
