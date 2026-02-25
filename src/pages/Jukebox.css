@@ -256,6 +256,41 @@ body.jukebox-active {
   opacity: 0;
 }
 
+/* 카드 플립: 중앙 카드 호버 시 뒷표지(back cover) 표시 */
+.jukebox-gallery > div.jukebox-card .jukebox-card-inner {
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  transition: transform 0.55s ease;
+}
+.jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
+  transform: rotateY(180deg);
+}
+.jukebox-gallery > div.jukebox-card .jukebox-card-face {
+  backface-visibility: hidden;
+}
+.jukebox-gallery > div.jukebox-card .jukebox-card-face--front {
+  display: block;
+  transform-style: preserve-3d;
+}
+.jukebox-gallery > div.jukebox-card .jukebox-card-face--back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+.jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
+  display: block;
+  height: auto;
+  width: auto;
+  max-height: 38vh;
+  max-width: 28vw;
+  object-fit: contain;
+}
+
 /* 카드 이미지: 양옆은 brightness로만 어둡게 (PNG 투명 영역 유지), 한 화면에 보이는 개수 감소를 위해 크기 확대 */
 .jukebox-gallery > div.jukebox-card img {
   display: block;

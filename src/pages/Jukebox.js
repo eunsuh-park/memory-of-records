@@ -375,7 +375,8 @@ export function renderJukebox() {
           byId.set(item.id, {
             id: item.id,
             title: item.title ?? '제목 없음',
-            coverFrontUrl: item.coverFrontUrl || null
+            coverFrontUrl: item.coverFrontUrl || null,
+            coverBackUrl: item.coverBackUrl || null
           });
         }
       };
@@ -391,6 +392,7 @@ export function renderJukebox() {
       const itemsHtml = allNotes
         .map((note) => {
           const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
+          const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
           const title = escapeHtml(note.title);
           return `
             <div class="jukebox-card">
@@ -399,7 +401,7 @@ export function renderJukebox() {
                   <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
                 </div>
                 <div class="jukebox-card-face jukebox-card-face--back">
-                  <div class="jukebox-card-back-content" aria-hidden="true"></div>
+                  <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
                 </div>
               </div>
             </div>
@@ -412,7 +414,7 @@ export function renderJukebox() {
         itemsHtml +
         '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
 
-      gallery.querySelectorAll('img').forEach((img) => {
+      gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
         img.addEventListener('error', () => {
           img.classList.add('jukebox-cover-image--error');
         }, { once: true });
