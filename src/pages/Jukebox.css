@@ -115,7 +115,7 @@ body.jukebox-active {
   position: absolute;
   left: 0;
   right: 0;
-  top: 40%;
+  top: 35%;
   transform: translate3d(0, -50%, 0);
 }
 
@@ -176,7 +176,7 @@ body.jukebox-active {
 
 /* 중앙(앞) 카드: 연한 그림자 */
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.44);
 }
 
 /* 호버: 중앙 포커스 카드(.jukebox-card--centered)에만 적용 */
