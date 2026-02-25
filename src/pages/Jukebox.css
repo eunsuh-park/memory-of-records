@@ -1,6 +1,7 @@
 /* ==========================================================================
    Jukebox 페이지 스타일
-   참고: https://codepen.io/palampinen/pen/OXGYdX
+   참고: CodePen palampinen/OXGYdX, Cover Flow (scroll-driven-animations)
+   https://scroll-driven-animations.style/demos/cover-flow/css/
    ========================================================================== */
 
 /* ----------------------------------------
@@ -133,9 +134,10 @@ body.jukebox-active {
 }
 
 /* ----------------------------------------
-   [갤러리] 가로 스크롤 + 3D 원근
-   - perspective: 모든 카드가 같은 원근감을 가지도록 갤러리에 한 번만 지정
-   - overflow-x: auto 로 가로 스크롤
+   [갤러리] 가로 스크롤 + 3D 원근 (Cover Flow 스타일)
+   참고: https://scroll-driven-animations.style/demos/cover-flow/css/
+   - perspective: 데모처럼 em 단위로 원근감
+   - scroll-snap: 한 장씩 중앙에 스냅 (선택적)
    ---------------------------------------- */
 .jukebox-gallery {
   padding: 40vh 0;
@@ -146,15 +148,18 @@ body.jukebox-active {
   overflow: hidden;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  perspective: 2200px;
+  perspective: 40em;
   perspective-origin: 50% 50%;
+  scroll-snap-type: x mandatory;
 }
 
 /* ----------------------------------------
-   [애니메이션 1] 개별 카드 (3D 원근)
-   - --jukebox-rotate-y: JS에서 화면 내 위치에 따라 설정 (중앙 0, 왼쪽 +, 오른쪽 -)
-   - margin-left: -4vw 로 카드들이 겹쳐 보이게 (주크박스 앨범 쌓인 느낌)
-   - -webkit-box-reflect: 카드 아래에 반사 (유리/바닥 반사 느낌)
+   [애니메이션 1] Cover Flow – 양옆 회전, 중앙 정면
+   JS에서 설정하는 CSS 변수:
+   - --jukebox-rotate-y: 양옆 ±45°, 중앙 0°
+   - --jukebox-scale: 양옆 0.88, 중앙 1.25
+   - --jukebox-translate-z: 중앙에서 앞으로 1.5em
+   z-index도 JS에서 중앙에 가까울수록 높게 설정해 겹침 시 중앙이 위로.
    ---------------------------------------- */
 .jukebox-gallery > div {
   white-space: normal;
@@ -162,28 +167,26 @@ body.jukebox-active {
   height: auto;
   max-height: 28vh;
   overflow: visible;
-  -webkit-box-reflect: below 0px
-    -webkit-gradient(
-      linear,
-      left top,
-      left bottom,
-      from(transparent),
-      to(rgba(250, 250, 250, 0.1))
-    );
+  -webkit-box-reflect: below 0.5em
+    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   display: inline-block;
   margin-left: -4vw;
   transform-origin: center center;
-  transform: translate3d(0, 0, 0) rotateY(var(--jukebox-rotate-y, 0deg));
+  transform:
+    translate3d(0, 0, var(--jukebox-translate-z, 0))
+    rotateY(var(--jukebox-rotate-y, 0deg))
+    scale(var(--jukebox-scale, 1));
   position: relative;
   opacity: 1;
   transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
+  scroll-snap-align: center;
 }
 
-/* 호버 시: 정면(rotateY 0) + 살짝 확대(1.08) + 앞으로 (z-index 99) */
+/* 호버 시: 정면 + 살짝 확대 + 맨 앞 (Cover Flow 중앙과 동일한 느낌) */
 .jukebox-gallery > div:hover,
 .jukebox-gallery > div:active {
-  transform: translate3d(0, 0, 0) scale(1.08) rotateY(0deg);
-  z-index: 99;
+  transform: translate3d(0, 0, 1.5em) scale(1.25) rotateY(0deg);
+  z-index: 101;
 }
 
 .jukebox-gallery > div:hover::after {

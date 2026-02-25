@@ -33,15 +33,25 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/** 중앙 기준 3D 원근: 카드가 화면 끝에 있을 때 적용되는 최대 rotateY 각도(deg). 왼쪽 +32°, 오른쪽 -32° */
-const MAX_ANGLE_DEG = 32;
+/**
+ * Cover Flow 스타일 상수 (참고: https://scroll-driven-animations.style/demos/cover-flow/css/)
+ * - 양옆에 늘어선 카드는 옆으로 회전(rotateY ±45°), 중앙은 정면 + 살짝 확대 + 앞으로(translateZ)
+ */
+const COVER_FLOW_ANGLE_DEG = 45; /* 양끝 카드 rotateY (왼쪽 +45°, 오른쪽 -45°) */
+const COVER_FLOW_SCALE_CENTER = 1.25; /* 중앙 카드 scale */
+const COVER_FLOW_SCALE_SIDE = 0.88; /* 양옆 카드 scale */
+const COVER_FLOW_Z_CENTER = '1.5em'; /* 중앙 카드 translateZ (앞으로) */
+const COVER_FLOW_Z_SIDE = '0em';
+const COVER_FLOW_Z_INDEX_CENTER = 100; /* 중앙에 가까울수록 위에 보이도록 */
+const COVER_FLOW_Z_INDEX_SIDE = 1;
 
 /**
- * [애니메이션 1] 중앙 기준 3D 원근
- * 각 카드의 화면 내 위치에 따라 rotateY를 계산해 CSS 변수(--jukebox-rotate-y)로 넣음.
- * - 화면 정중앙: 0deg (정면)
- * - 화면 왼쪽: 양수 → 카드 오른쪽이 앞으로, 왼쪽(뒷면)이 살짝 보임
- * - 화면 오른쪽: 음수 → 카드 왼쪽이 앞으로, 앞면이 살짝 보임
+ * [애니메이션 1] Cover Flow 스타일 – 중앙 기준 3D 원근 + 양옆 회전
+ * 각 카드의 화면 내 위치(ratio -1~1)에 따라:
+ * - rotateY: 양옆 ±45°, 중앙 0° (데모와 동일)
+ * - scale: 중앙 1.25, 양옆 0.88
+ * - translateZ: 중앙에서 앞으로, 양옆 0
+ * - z-index: 중앙에 가까울수록 높게 (겹침 시 중앙 카드가 위로)
  */
 function updateCardAngles(gallery) {
   if (!gallery) return;
@@ -52,10 +62,19 @@ function updateCardAngles(gallery) {
   cards.forEach((card) => {
     const rect = card.getBoundingClientRect();
     const cardCenterX = rect.left + rect.width / 2;
-    const offset = cardCenterX - viewportCenterX; /* 중앙 기준 픽셀 오프셋 (음수=왼쪽, 양수=오른쪽) */
-    const ratio = Math.max(-1, Math.min(1, offset / halfWidth)); /* -1 ~ 1로 정규화 */
-    const angle = -ratio * MAX_ANGLE_DEG; /* 왼쪽일수록 +, 오른쪽일수록 - */
+    const offset = cardCenterX - viewportCenterX;
+    const ratio = Math.max(-1, Math.min(1, offset / halfWidth)); /* -1(왼쪽 끝) ~ 1(오른쪽 끝), 0=중앙 */
+
+    const angle = -ratio * COVER_FLOW_ANGLE_DEG;
+    const absRatio = Math.abs(ratio);
+    const scale = COVER_FLOW_SCALE_SIDE + (1 - absRatio) * (COVER_FLOW_SCALE_CENTER - COVER_FLOW_SCALE_SIDE);
+    const translateZ = absRatio > 0.5 ? COVER_FLOW_Z_SIDE : COVER_FLOW_Z_CENTER;
+    const zIndex = Math.round(COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE));
+
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
+    card.style.setProperty('--jukebox-scale', String(scale));
+    card.style.setProperty('--jukebox-translate-z', translateZ);
+    card.style.zIndex = String(zIndex);
   });
 }
 
@@ -193,10 +212,7 @@ export function renderJukebox() {
 
       gallery.innerHTML = itemsHtml;
 
-      /* 겹친 카드에서 왼쪽이 앞에 보이도록 z-index: 첫 번째 카드가 가장 크게 */
-      gallery.querySelectorAll(':scope > div').forEach((el, i) => {
-        el.style.zIndex = String(allNotes.length - i);
-      });
+      /* z-index는 updateCardAngles에서 중앙 거리 기준으로 설정됨 (Cover Flow) */
 
       gallery.querySelectorAll('img').forEach((img) => {
         img.addEventListener('error', () => {
