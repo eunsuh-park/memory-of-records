@@ -169,14 +169,13 @@
 .pdf-modal {
   width: min(1400px, 98vw);
   max-height: 95vh;
+  background: #fff;
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
-
-------------------------------------------------
 
 /* 모달 닫기 버튼 X */
 .pdf-modal-close {
@@ -186,12 +185,11 @@
   font-size: 20px;
   padding: 12px 16px 0 0;
   cursor: pointer;
-  color: white;
+  color: #333;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
-
-------------------------------------------------
 
 /* 모달 내부 컨텐츠 영역 */
 .pdf-modal-content {
@@ -227,8 +225,14 @@ body.pdf-modal-open {
   flex: 1;
 }
 
+/* PDF 캔버스를 감싸는 래퍼 영역
+   - PDF 페이지가 가운데 정렬되도록 설정
+   - min-height는 전체 뷰어 영역 확보
+   - overflow: hidden으로 스크롤바 감춤
+*/
 .pdf-canvas-wrap {
   position: relative;
+  background: #f3f4f6;
   border: none;
   border-radius: 0;
   padding: 0;
@@ -243,6 +247,11 @@ body.pdf-modal-open {
   flex: 1;
 }
 
+/* 실제 PDF가 렌더링되는 canvas 태그의 스타일
+   - 중앙 배치 및 확대/축소 효과를 위해 transform 사용
+   - max-width/max-height: none으로 원본 사이즈 표시
+   - opacity 변화 시 트랜지션 적용(페이지 넘길 때 등)
+*/
 .pdf-canvas-wrap canvas {
   position: absolute;
   top: 50%;
@@ -261,6 +270,7 @@ body.pdf-modal-open {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
   z-index: 1;
   text-align: center;
   padding: 16px;
@@ -284,9 +294,6 @@ body.pdf-modal-open {
     transform: rotate(360deg);
   }
 }
-
-
-------------------------------------------------
 
 /* 페이지 이동 버튼 < 랑 > */
 .pdf-nav-button {
@@ -327,8 +334,6 @@ body.pdf-modal-open {
   right: 14px;
 }
 
-------------------------------------------------
-
 /* 페이지 번호 표시 영역 */
 .pdf-page-indicator {
   position: absolute;
@@ -350,28 +355,26 @@ body.pdf-modal-open {
   font-weight: 700;
 }
 
-------------------------------------------------
-
-/* 페이지 양끝으로 이동하는 버튼. <<이랑 >> */
+/* 페이지 양끝으로 이동하는 버튼 << >> */
 .pdf-page-indicator button {
   border: none;
-  color: rgba(17, 24, 39, 0.7);
+  background: rgba(17, 24, 39, 0.7);
+  color: #fff;
   font-size: 12px;
-  padding: 8px 8px;
+  padding: 4px 8px;
   border-radius: 999px;
   cursor: pointer;
 }
 
 .pdf-page-indicator button:disabled {
-  opacity: 0.2;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .pdf-page-indicator button:hover {
   background: rgba(17, 24, 39, 0.9);
+  color: #fff;
 }
-
-------------------------------------------------
 
 /* 확대/축소 버튼 영역 */
 .pdf-zoom-controls {
@@ -397,16 +400,18 @@ body.pdf-modal-open {
   cursor: pointer;
 }
 
+/* 확대/축소 버튼 영역의 첫 번째 버튼은 100% 비율로 초기화하는 버튼*/
 .pdf-zoom-controls button:first-child {
-  font-size: 11px;
+  font-size: 10px;
+  text-align: center;
+  font-weight: 700;
   letter-spacing: -0.2px;
 }
 
 .pdf-zoom-controls button:hover {
   background: rgba(17, 24, 39, 0.9);
+  color: #fff;
 }
-
-
 
 @media (max-width: 640px) {
   .pdf-canvas-wrap {
