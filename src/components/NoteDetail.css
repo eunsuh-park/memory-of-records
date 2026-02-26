@@ -149,6 +149,56 @@
   background-color: #555;
 }
 
+/* =============================================================================
+   PDF 뷰어 · 모달 (통합)
+   - 모달: Timeline/By type에서 노트 클릭 시 뜨는 전체 화면 오버레이
+   - 뷰어: 모달 내부 및 /note/:id 상세 페이지에서 쓰는 PDF 영역
+   ============================================================================= */
+
+/* PDF 모달 (Timeline, By type에서 노트 클릭 시) */
+.pdf-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.pdf-modal {
+  width: min(1400px, 98vw);
+  max-height: 95vh;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+}
+
+.pdf-modal-close {
+  align-self: flex-end;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  padding: 12px 16px 0 0;
+  cursor: pointer;
+  color: #333;
+}
+
+.pdf-modal-content {
+  padding: 0;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+body.pdf-modal-open {
+  overflow: hidden;
+}
+
+/* PDF 뷰어 공통 */
 .pdf-viewer {
   margin-top: 2rem;
   display: flex;
@@ -157,14 +207,20 @@
   height: 100%;
 }
 
+/* 모달 안에서 쓰일 때 */
 .pdf-viewer--modal {
+  margin-top: 0;
+  flex: 1;
+}
+
+/* /note/:id 상세 페이지에서 쓸 때 */
+.note-detail-page .pdf-viewer {
   margin-top: 0;
   flex: 1;
 }
 
 .pdf-canvas-wrap {
   position: relative;
-  background: #f3f4f6;
   border: none;
   border-radius: 0;
   padding: 0;
@@ -197,7 +253,6 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
   z-index: 1;
   text-align: center;
   padding: 16px;
