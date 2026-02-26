@@ -13,8 +13,9 @@
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { getNotionTypeItems } from '../utils/notionByType.js';
-import booksLottie from '../assets/Books.lottie';
 import './Jukebox.css';
+
+const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/22c119f0-cbf3-4e9f-b783-138ae847382d/eB0wIorJpY.lottie';
 
 /** 이미지 URL이 없을 때 사용하는 1x1 투명 GIF (깜빡임 방지) */
 const TRANSPARENT_PIXEL =
@@ -347,7 +348,7 @@ export function renderJukebox() {
         <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"></button>
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
           <div class="jukebox-loading" role="status" aria-live="polite">
-          <dotlottie-wc class="jukebox-loading-lottie" src="${booksLottie}" autoplay loop></dotlottie-wc>
+          <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
           <p class="jukebox-loading-text">노트를 불러오는 중...</p>
         </div>
         </div>
