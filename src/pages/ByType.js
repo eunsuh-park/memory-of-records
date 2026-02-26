@@ -198,6 +198,20 @@ function getTypeLabel(typeKey, fallback = '') {
   return match?.label || fallback || '';
 }
 
+/** 타입별 리스트 설명 영역 HTML (타이틀, 본문, scroll 텍스트) */
+function getTypeListIntroHTML(selectedType) {
+  const option = typeOptions.find((o) => o.value === selectedType);
+  const title = option?.listTitle ?? '';
+  const body = option?.listBody ?? '';
+  return `
+    <div class="type-list-intro">
+      <h2 class="type-list-intro-title">${escapeHtml(title)}</h2>
+      <p class="type-list-intro-body">${escapeHtml(body)}</p>
+      <span class="type-list-intro-scroll" aria-hidden="true">scroll</span>
+    </div>
+  `;
+}
+
 /**
  * 선택한 타입에 해당하는 노트만 메인 영역에 렌더링 (타입 전환 시 재사용)
  */
@@ -249,6 +263,7 @@ function renderNotesListForType(typeMain, selectedType) {
 
   typeMain.innerHTML = `
     <div class="notes-list">
+      ${getTypeListIntroHTML(selectedType)}
       ${allNotesHTML.join('')}
     </div>
   `;
@@ -326,7 +341,7 @@ export function renderByType(type = 'diary-scheduler') {
   document.body.classList.add('timeline-active');
 
   mainContent.innerHTML = `
-    <div class="timeline-page">
+    <div class="timeline-page by-type-page">
       <div class="timeline-container">
         <main class="timeline-main" id="timeline-main"></main>
         <div id="timeline-scrollbar"></div>
@@ -377,6 +392,7 @@ export function renderByType(type = 'diary-scheduler') {
 
   typeMain.innerHTML = `
     <div class="notes-list">
+      ${getTypeListIntroHTML(selectedType)}
       ${allNotesHTML.join('')}
     </div>
   `;
@@ -402,6 +418,7 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
     if (!Array.isArray(typeItems) || typeItems.length === 0) {
       typeMain.innerHTML = `
         <div class="notes-list">
+          ${getTypeListIntroHTML(selectedType)}
           <div class="no-notes">표시할 노트가 없습니다.</div>
         </div>
       `;
@@ -485,6 +502,7 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
 
     typeMain.innerHTML = `
       <div class="notes-list">
+        ${getTypeListIntroHTML(selectedType)}
         ${allNotesHTML.join('')}
       </div>
     `;

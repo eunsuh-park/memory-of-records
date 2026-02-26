@@ -148,6 +148,103 @@ body.timeline-active.period-after-graduation {
   background-color: rgba(255, 255, 255, 0.4);
 }
 
+/* By type 전용: 노트 간격 축소·겹침, 중앙에서 멀어질수록 크기 축소 */
+.by-type-page .notes-list {
+  gap: 0;
+}
+.by-type-page .notes-list .note-placeholder,
+.by-type-page .notes-list .type-list-intro {
+  margin-right: 0;
+}
+.by-type-page .notes-list .note-card {
+  position: relative;
+  margin-left: -1.5rem; /* 좌우로 겹치게 */
+  margin-right: -1.5rem;
+}
+.by-type-page .note-card.note-focus {
+  z-index: 3;
+}
+.by-type-page .note-card.note-adjacent {
+  z-index: 2;
+}
+.by-type-page .note-card.note-adjacent-adjacent {
+  z-index: 1;
+}
+.by-type-page .note-card.note-outer {
+  z-index: 0;
+}
+.by-type-page .note-card.note-focus {
+  opacity: 1;
+  transform: scale(1);
+}
+.by-type-page .note-card.note-adjacent {
+  opacity: 0.85;
+  transform: scale(0.88);
+}
+.by-type-page .note-card.note-adjacent-adjacent {
+  opacity: 0.55;
+  transform: scale(0.76);
+  filter: saturate(0.5);
+}
+.by-type-page .note-card.note-outer {
+  opacity: 0.3;
+  transform: scale(0.64);
+  filter: saturate(0.2);
+}
+
+/* By type: 리스트 왼쪽 설명 영역 (타이틀, 본문, scroll) */
+.type-list-intro {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 12rem;
+  max-width: 20rem;
+  padding-right: 2rem;
+  color: var(--app-text, #1a1a1a);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  margin-right: 0.5rem;
+}
+
+.type-list-intro-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.type-list-intro-body {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--app-text-secondary, rgba(0, 0, 0, 0.7));
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.type-list-intro-scroll {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--app-text-secondary, rgba(0, 0, 0, 0.6));
+  animation: type-list-scroll-blink 2.2s ease-in-out infinite;
+}
+
+@keyframes type-list-scroll-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
 .note-card {
   background-color: transparent;
   border: none;
