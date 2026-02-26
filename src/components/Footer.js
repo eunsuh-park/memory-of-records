@@ -12,8 +12,7 @@ export function renderFooter() {
   container.innerHTML = `
     <footer>
       <div class="footer-container">
-        <p>© 2024 Memory of Records. All rights reserved.</p>
-        <p class="footer-subtitle">과거의 기록을 현재로 가져오기</p>
+        <p>© 2026 Memory of Records. PES All rights reserved.</p>
       </div>
     </footer>
   `;

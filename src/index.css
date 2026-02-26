@@ -10,6 +10,12 @@
   --background-color: #fafafa;
   --border-color: #e0e0e0;
   --hover-color: #555;
+  /* 주크박스와 동일한 앱 배경 (다크 블루그레이) */
+  --app-bg: #29323f;
+  --app-bg-alt: #2f3847;
+  --app-text: rgba(255, 255, 255, 0.92);
+  --app-text-muted: rgba(255, 255, 255, 0.7);
+  --app-text-dim: rgba(255, 255, 255, 0.5);
   
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -33,7 +39,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100%;
-  color: #333;
+  color: var(--app-text);
 }
 
 #root {

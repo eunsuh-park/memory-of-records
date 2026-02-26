@@ -4,9 +4,9 @@
    https://scroll-driven-animations.style/demos/cover-flow/css/
    ============================================================================= */
 
-/* --- 전역 --- */
+/* --- 전역 (주크박스 전용; 앱 공통 색은 index.css --app-bg) --- */
 :root {
-  --jukebox-bg: #29323f;
+  --jukebox-bg: var(--app-bg, #29323f);
 }
 
 .main-wrapper.jukebox-active,
@@ -35,7 +35,7 @@ body.jukebox-active {
 .jukebox-fullscreen {
   background: linear-gradient(
     var(--jukebox-bg) 40%,
-    #2f3847 60%,
+    var(--app-bg-alt, #2f3847) 60%,
     var(--jukebox-bg) 100%
   );
   height: 100%;
@@ -82,22 +82,21 @@ body.jukebox-active {
 .jukebox-nav--next {
   right: 12px;
 }
-.jukebox-nav--prev::before,
-.jukebox-nav--next::before {
-  content: '';
-  display: block;
-  width: 14px;
-  height: 14px;
+.jukebox-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   margin: 0 auto;
-  border: solid currentColor;
-  border-width: 0 0 3px 3px;
-  box-sizing: border-box;
 }
-.jukebox-nav--prev::before {
-  transform: rotate(-45deg) translate(2px, 2px);
+.jukebox-nav-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
-.jukebox-nav--next::before {
-  transform: rotate(135deg) translate(2px, 2px);
+.jukebox-nav-icon--next svg {
+  transform: scaleX(-1);
 }
 
 .jukebox-fullscreen::-webkit-scrollbar,
@@ -181,7 +180,7 @@ body.jukebox-active {
   transform: translate3d(0, -50%, 0);
 }
 
-/* 갤러리: 가로 스크롤, 3D 원근, 스냅. 터치 기기에서 스와이프 부드럽게 (iOS 등) */
+/* 갤러리 (PC 기준): 가로 스크롤, 3D 원근, 스냅. 마우스 휠·드래그로 스크롤 */
 .jukebox-gallery {
   padding: 40vh 0;
   width: 100%;
@@ -190,12 +189,11 @@ body.jukebox-active {
   white-space: nowrap;
   overflow: hidden;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   /* 3D 원근감: 자식(카드)의 rotateY가 입체처럼 보이도록 시점 거리. 값이 작을수록 왜곡이 강하고, 클수록 평면에 가깝게 보임 */
   perspective: 60em;
   /* 원근의 소실점: 뷰포트 정중앙(50% 50%)을 기준으로 원근 적용. 카드가 중앙에서 벌어질수록 옆으로 기울어 보이게 함 */
   perspective-origin: 50% 50%;
-  /* 가로 스크롤 스냅: 스크롤이 멈출 때 반드시 스냅 포인트(scroll-snap-align: center인 카드)에 맞춰짐. 휠/드래그 후 카드가 중앙에 딱 맞게 정렬 */
+  /* 가로 스크롤 스냅: 스크롤이 멈출 때 스냅 포인트(scroll-snap-align: center인 카드)에 맞춰짐. 휠/드래그 후 카드가 중앙에 정렬 */
   scroll-snap-type: x mandatory;
 }
 
@@ -373,9 +371,10 @@ body.jukebox-active {
 
 /* 태블릿·모바일 (768px 이하) */
 @media (max-width: 768px) {
-  /* 갤러리 상하 여백 축소: 세로 공간 확보 */
+  /* 갤러리: 상하 여백 축소 + 터치 스와이프 부드럽게 (iOS 등 모멘텀 스크롤) */
   .jukebox-gallery {
     padding: 30vh 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* 좌우 스페이서: 좁은 화면에서 첫/끝 카드 중앙 정렬 유지. (50vw - 카드 절반)에 맞춰 34vw */
@@ -410,7 +409,7 @@ body.jukebox-active {
   }
 }
 
-/* 초소형 모바일 (480px 이하): 한 화면에 카드 1장이 주인공이 되도록 */
+/* 초소형 모바일 (480px 이하): 한 화면에 카드 1장이 주인공이 되도록 (-webkit-overflow-scrolling은 768px 미디어쿼리에서 상속) */
 @media (max-width: 480px) {
   .jukebox-gallery {
     padding: 28vh 0;

@@ -25,6 +25,6 @@ footer {
 }
 
 footer p {
-  color: #666;
+  color: var(--app-text-muted);
   font-size: 0.6rem;
 }

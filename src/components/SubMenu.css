@@ -42,13 +42,13 @@
 }
 
 .period-link {
-  /* 시기 링크 스타일 */
+  /* 시기 링크 스타일 (주크박스와 동일한 앱 배경에 맞춤) */
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0.5rem 0.75rem;
   text-decoration: none;
-  color: #333;
+  color: var(--app-text);
   background-color: transparent;
   font-weight: 400;
   font-size: 0.9rem;
@@ -68,35 +68,32 @@
 }
 
 .period-link:not(.period-link--elementary) {
-  color: rgba(51, 51, 51, 0.5);
+  color: var(--app-text-dim);
 }
 
 .period-link:not(.period-link--elementary) .period-years {
-  color: rgba(102, 102, 102, 0.5);
+  color: var(--app-text-dim);
 }
 
 .period-link:hover:not(.active) {
-  /* 호버 시 배경색 변경 (active가 아닐 때만) */
-  color: #333;
-  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .period-link:not(.period-link--elementary):hover:not(.active),
 .period-link:not(.period-link--elementary).active,
 .period-link:not(.period-link--elementary).active:hover {
-  color: rgba(51, 51, 51, 0.5);
+  color: var(--app-text-dim);
   background-color: transparent;
 }
 
 .period-link.active {
-  /* 활성화된 시기 스타일 */
-  color: #333;
-  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .period-link.active:hover {
-  /* active 상태에서 호버 시에도 동일한 스타일 유지 (애니메이션을 위해 명시) */
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .period-label {
@@ -119,7 +116,7 @@
   /* 시기 연도 (예: "2005-2010") */
   font-size: 0.75rem;
   font-weight: 400;
-  color: #666;
+  color: var(--app-text-muted);
   line-height: 100%;
   text-align: center;
   margin-top: 0;

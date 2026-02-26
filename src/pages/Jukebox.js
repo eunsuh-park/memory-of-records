@@ -17,6 +17,9 @@ import './Jukebox.css';
 
 const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';
 
+/** 이전 버튼용 왼쪽 화살표 SVG (오른쪽 버튼은 CSS scaleX(-1)로 좌우 반전) */
+const JUKEBOX_NAV_ICON_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><title>left_line</title><g fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0h24ZM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018Zm.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01-.184-.092Z'/><path fill='currentColor' d='M8.293 12.707a1 1 0 0 1 0-1.414l5.657-5.657a1 1 0 1 1 1.414 1.414L10.414 12l4.95 4.95a1 1 0 0 1-1.414 1.414l-5.657-5.657Z'/></g></svg>`;
+
 /** 이미지 URL이 없을 때 사용하는 1x1 투명 GIF (깜빡임 방지) */
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
@@ -284,7 +287,10 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
     { passive: false }
   );
 
-  /* 이전/다음 버튼: 카드 한 장씩 이동 (현재 중앙에 가장 가까운 카드 기준 이전/다음 카드로 스크롤) */
+  /**
+   * 이전/다음 버튼: 카드 한 장씩 이동.
+   * 현재 뷰포트 중앙에 가장 가까운 카드 기준으로 이전/다음 카드로 부드럽게 스크롤.
+   */
   function scrollToCenterCard(card) {
     if (!card) return;
     const targetScroll =
@@ -316,12 +322,14 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
     return closestIdx;
   }
 
+  /* 이전 버튼: 중앙에 가장 가까운 카드의 이전 카드로 스크롤 (맨 앞이면 첫 카드로) */
   prevBtn?.addEventListener('click', () => {
     const idx = getClosestCardIndex();
     const cards = getCards();
     if (idx > 0) scrollToCenterCard(cards[idx - 1]);
     else if (cards.length > 0) scrollToCenterCard(cards[0]);
   });
+  /* 다음 버튼: 중앙에 가장 가까운 카드의 다음 카드로 스크롤 (맨 뒤면 마지막 카드로) */
   nextBtn?.addEventListener('click', () => {
     const idx = getClosestCardIndex();
     const cards = getCards();
@@ -344,8 +352,8 @@ export function renderJukebox() {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"></button>
-        <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"></button>
+        <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"><span class="jukebox-nav-icon">${JUKEBOX_NAV_ICON_SVG}</span></button>
+        <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"><span class="jukebox-nav-icon jukebox-nav-icon--next">${JUKEBOX_NAV_ICON_SVG}</span></button>
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
           <div class="jukebox-loading" role="status" aria-live="polite">
           <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>

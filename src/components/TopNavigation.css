@@ -1,12 +1,12 @@
 /* Navigation 스타일 */
 
 .navigation {
-  /* 헤더를 페이지 상단에 고정 */
+  /* 헤더를 페이지 상단에 고정 (주크박스와 동일한 앱 배경) */
   position: fixed;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #FFD966;
+  background-color: var(--app-bg);
   border: none;
   border-top-left-radius: 0px;
   border-top-right-radius: 0px;
@@ -75,9 +75,9 @@
 }
 
 .nav-menu li a {
-  /* 메뉴 링크 스타일 */
+  /* 메뉴 링크 스타일 (주크박스와 동일한 앱 배경에 맞춤) */
   text-decoration: none;
-  color: #666;
+  color: var(--app-text-muted);
   font-weight: 500;
   transition: background-color 0.3s, color 0.3s;
   padding: 0.5rem 1rem;
@@ -85,22 +85,19 @@
 }
 
 .nav-menu li a:hover {
-  /* 호버 시 배경색 변경 */
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.3);
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .nav-menu li a:focus {
-  /* 포커스 시 배경색 변경 */
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.3);
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.15);
   outline: none;
 }
 
 .nav-menu li a.active {
-  /* 활성화된 메뉴 스타일 */
-  color: #333;
-  background-color: rgba(255, 255, 255, 0.4);
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .nav-hamburger {
