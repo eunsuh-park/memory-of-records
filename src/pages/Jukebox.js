@@ -15,7 +15,7 @@ import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { getNotionTypeItems } from '../utils/notionByType.js';
 import './Jukebox.css';
 
-const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/22c119f0-cbf3-4e9f-b783-138ae847382d/eB0wIorJpY.lottie';
+const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';
 
 /** 이미지 URL이 없을 때 사용하는 1x1 투명 GIF (깜빡임 방지) */
 const TRANSPARENT_PIXEL =
