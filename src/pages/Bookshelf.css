@@ -1,0 +1,103 @@
+/**
+ * Bookshelf 페이지 스타일
+ * 전체 노트를 한 줄로, 높이 480px·비율 고정·너비 전체에 맞춰 축소해 표시.
+ */
+
+/* --- 레이아웃 --- */
+.main-wrapper.bookshelf-active,
+#main-content.bookshelf-active,
+.app-main.bookshelf-active {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: 0;
+  background-color: var(--app-bg);
+}
+
+body.bookshelf-active {
+  background-color: var(--app-bg);
+}
+
+.bookshelf-fullscreen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--app-bg);
+}
+
+/* 뷰포트: 한 줄이 다 들어오는 영역. 행을 scale로 축소해 맞춤 */
+.bookshelf-viewport {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+/* 한 줄 행: 노트들이 나란히. JS에서 transform: scale() 로 너비에 맞춤 */
+.bookshelf-row {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 20px;
+  transform-origin: center center;
+  transition: transform 0.2s ease-out;
+}
+
+/* 노트 한 권: 그림자·간격만 담당. 이미지 비율은 .bookshelf-cover 에서 고정 */
+.bookshelf-item {
+  flex-shrink: 0;
+  height: 480px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  border-radius: 4px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  transition: box-shadow 0.2s ease;
+}
+
+.bookshelf-item:hover {
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* 표지 이미지: 높이 480px 고정, 너비는 비율에 따라 자동 */
+.bookshelf-cover {
+  display: block;
+  height: 480px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  vertical-align: bottom;
+}
+
+.bookshelf-cover--error {
+  background: rgba(200, 0, 0, 0.08);
+  outline: 2px dashed rgba(200, 0, 0, 0.4);
+}
+
+/* 로딩·빈 상태 */
+.bookshelf-loading,
+.bookshelf-empty {
+  color: var(--app-text);
+  font-size: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.bookshelf-loading-text {
+  margin: 0;
+}

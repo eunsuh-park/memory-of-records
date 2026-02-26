@@ -90,6 +90,15 @@ export function renderNavigation() {
               Jukebox
             </a>
           </li>
+          <li>
+            <a
+              href="/bookshelf"
+              class="${currentPath.startsWith('/bookshelf') ? 'active' : ''}"
+              data-link
+            >
+              Bookshelf
+            </a>
+          </li>
         </ul>
         <a
           href="/timeline"

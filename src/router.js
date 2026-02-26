@@ -9,6 +9,7 @@ import { renderStory } from './pages/Story.js';
 import { renderStoryDetail } from './pages/StoryDetail.js';
 import { renderNoteDetail } from './pages/NoteDetail.js';
 import { renderJukebox } from './pages/Jukebox.js';
+import { renderBookshelf } from './pages/Bookshelf.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -25,6 +26,7 @@ class Router {
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(params.id) },
       { path: '/jukebox', handler: renderJukebox },
+      { path: '/bookshelf', handler: renderBookshelf },
     ];
   }
 
@@ -100,6 +102,13 @@ class Router {
       document.body.classList.remove('jukebox-active');
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
+    }
+
+    // Bookshelf 페이지가 아닐 때 bookshelf 관련 클래스 제거
+    if (!path.startsWith('/bookshelf')) {
+      document.body.classList.remove('bookshelf-active');
+      mainContent?.classList.remove('bookshelf-active');
+      mainContent?.closest('.main-wrapper')?.classList.remove('bookshelf-active');
     }
 
     // Timeline/By type 페이지가 아닐 때 서브 메뉴 제거
