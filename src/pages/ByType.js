@@ -11,6 +11,7 @@ import { getNotionTypeItems } from '../utils/notionByType.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import booksLottie from '../assets/Books.lottie';
 import './Timeline.css';
+import './ByType.css';
 
 // base 경로 가져오기
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -204,8 +205,16 @@ function getTypeLabel(typeKey, fallback = '') {
 
 /**
  * 타입별 리스트 설명 영역 HTML (타이틀, 본문, scroll 텍스트)
- * 내용은 src/data/typeOptions.js 에서 각 타입 옵션의 listTitle, listBody 에 넣으면 됨.
- * 예: { value: 'diary-scheduler', label: '...', listTitle: '이 리스트 제목', listBody: '설명 본문...', ... }
+ *
+ * 인터랙션
+ * - By type 페이지에서 노트 리스트(.notes-list)를 그릴 때마다 이 HTML이 리스트의 맨 왼쪽 첫 자식으로 들어감.
+ * - 선택된 타입(selectedType)에 따라 typeOptions에서 해당 타입의 listTitle, listBody를 읽어 표시함.
+ * - 타입을 바꾸면(서브 메뉴/퀵 스크롤) 리스트가 다시 그려지면서 이 영역도 새 타입의 제목·본문으로 갱신됨.
+ * - 가로 스크롤 시 카드만 움직이고 이 블록은 고정된 왼쪽에 남아 있어, "이 리스트가 무엇인지" 안내 역할만 함.
+ *
+ * 내용 설정
+ * - src/data/typeOptions.js 의 각 타입 옵션에서 listTitle, listBody 에 문자열을 넣으면 됨.
+ * - 예: { value: 'diary-scheduler', label: '...', listTitle: '이 리스트 제목', listBody: '설명 본문...', ... }
  */
 function getTypeListIntroHTML(selectedType) {
   const option = typeOptions.find((o) => o.value === selectedType);
