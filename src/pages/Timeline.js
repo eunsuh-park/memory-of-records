@@ -374,7 +374,6 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
               />
             </div>
             <div class="note-info">
-              <h3 class="note-info-title">${noteTitle}</h3>
               <h5 class="note-info-meta">${notebookType}</h5>
               <p class="note-info-description">${periodRange}</p>
             </div>

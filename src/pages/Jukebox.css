@@ -51,6 +51,8 @@ body.jukebox-active {
   position: relative;
 }
 
+----------------------------------------NAVIGATION----------------------------------------
+
 /* PC용 이전/다음 버튼 (가장자리 호버 스크롤과 함께 사용) */
 .jukebox-nav {
   position: absolute;
@@ -99,6 +101,12 @@ body.jukebox-active {
   transform: scaleX(-1);
 }
 
+------------------------------------------SCROLLBAR------------------------------------------
+
+
+/* 1) 네이티브 스크롤바 숨김
+   - .jukebox-fullscreen, .jukebox-gallery는 실제로 가로 스크롤되는 영역.
+   - 브라우저 기본 스크롤바를 숨기고, 아래 커스텀 스크롤바로 대체하기 위함. */
 .jukebox-fullscreen::-webkit-scrollbar,
 .jukebox-gallery::-webkit-scrollbar {
   width: 0;
@@ -110,7 +118,9 @@ body.jukebox-active {
   background: transparent;
 }
 
-/* --- 커스텀 가로 스크롤바 (스타일리시) --- */
+/* 2) 커스텀 가로 스크롤바 (스타일리시)
+   - 트랙 + 썸으로 갤러리 scrollLeft와 동기화.
+   - 트랙 클릭 시 해당 위치로 스크롤, 썸 드래그로 이동. */
 .jukebox-scrollbar-wrap {
   flex-shrink: 0;
   padding: 12px 72px 20px;
@@ -171,7 +181,7 @@ body.jukebox-active {
   height: 12px;
   border-radius: 6px;
 }
-
+------------------------------------------GALLERY------------------------------------------
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
@@ -278,7 +288,7 @@ body.jukebox-active {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: transparent;
 }
 .jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
   display: block;

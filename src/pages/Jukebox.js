@@ -140,69 +140,6 @@ function enableCenterPerspective(gallery) {
 }
 
 /**
- * 커스텀 가로 스크롤바: 갤러리 scrollLeft와 동기화, 트랙 클릭·썸 드래그 지원
- */
-function enableCustomScrollbar(gallery, wrapEl, trackEl, thumbEl) {
-  if (!gallery || !wrapEl || !trackEl || !thumbEl) return;
-
-  function updateThumb() {
-    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-    if (maxScroll <= 0) {
-      wrapEl.classList.add('jukebox-scrollbar-wrap--hidden');
-      return;
-    }
-    wrapEl.classList.remove('jukebox-scrollbar-wrap--hidden');
-    const ratio = gallery.scrollLeft / maxScroll;
-    const trackWidth = trackEl.clientWidth;
-    const thumbMinWidth = 40;
-    const thumbWidth = Math.max(thumbMinWidth, Math.round(trackWidth * (gallery.clientWidth / gallery.scrollWidth)));
-    const thumbMaxLeft = trackWidth - thumbWidth;
-    const left = Math.round(ratio * thumbMaxLeft);
-    thumbEl.style.width = `${thumbWidth}px`;
-    thumbEl.style.left = `${left}px`;
-  }
-
-  gallery.addEventListener('scroll', updateThumb, { passive: true });
-  window.addEventListener('resize', updateThumb);
-
-  trackEl.addEventListener('click', (e) => {
-    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-    if (maxScroll <= 0) return;
-    const rect = trackEl.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const ratio = x / trackEl.clientWidth;
-    gallery.scrollTo({ left: ratio * maxScroll, behavior: 'smooth' });
-  });
-
-  let dragStartX = 0;
-  let dragStartScroll = 0;
-  function onPointerDown(e) {
-    e.preventDefault();
-    dragStartX = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    dragStartScroll = gallery.scrollLeft;
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp, { once: true });
-    thumbEl.classList.add('jukebox-scrollbar-thumb--dragging');
-  }
-  function onPointerMove(e) {
-    const x = e.clientX ?? e.touches?.[0]?.clientX ?? 0;
-    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-    const trackWidth = trackEl.clientWidth;
-    const thumbWidth = thumbEl.offsetWidth;
-    const thumbMaxLeft = trackWidth - thumbWidth;
-    const deltaRatio = (x - dragStartX) / thumbMaxLeft;
-    const newScroll = dragStartScroll + deltaRatio * maxScroll;
-    gallery.scrollLeft = Math.max(0, Math.min(maxScroll, newScroll));
-  }
-  function onPointerUp() {
-    window.removeEventListener('pointermove', onPointerMove);
-    thumbEl.classList.remove('jukebox-scrollbar-thumb--dragging');
-  }
-  thumbEl.addEventListener('pointerdown', onPointerDown);
-  updateThumb();
-}
-
-/**
  * PC 사용성: 가장자리 호버 스크롤 + 이전/다음 버튼
  * - 가장자리만 반응: 화면 왼쪽 12% / 오른쪽 12% 안에 마우스가 있을 때만 스크롤. 중앙 76%는 정지.
  * - EDGE_HOVER_DELAY_MS 동안 가장자리에 머물렀을 때만 스크롤 시작 (지나가기만 하면 동작 안 함).
@@ -361,11 +298,6 @@ export function renderJukebox() {
         </div>
         </div>
       </div>
-      <div class="jukebox-scrollbar-wrap jukebox-scrollbar-wrap--hidden" id="jukebox-scrollbar-wrap" aria-hidden="true">
-        <div class="jukebox-scrollbar-track" id="jukebox-scrollbar-track">
-          <div class="jukebox-scrollbar-thumb" id="jukebox-scrollbar-thumb"></div>
-        </div>
-      </div>
     </div>
   `;
 
@@ -431,10 +363,6 @@ export function renderJukebox() {
 
       enableCenterPerspective(gallery);
       enableGalleryScroll(gallery, prevBtn, nextBtn);
-      const scrollbarWrap = document.getElementById('jukebox-scrollbar-wrap');
-      const scrollbarTrack = document.getElementById('jukebox-scrollbar-track');
-      const scrollbarThumb = document.getElementById('jukebox-scrollbar-thumb');
-      enableCustomScrollbar(gallery, scrollbarWrap, scrollbarTrack, scrollbarThumb);
     })
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);

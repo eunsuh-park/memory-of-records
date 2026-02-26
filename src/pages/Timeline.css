@@ -309,7 +309,7 @@ body.timeline-active.period-after-graduation {
   display: flex;
   flex-direction: column;
   align-items: center; /* 가운데 정렬 */
-  gap: 1.5rem; /* 이미지와 정보 사이 간격 */
+  gap: 0.75rem; /* 이미지와 정보 사이 간격 */
   width: 100%;
   height: 100%;
 }
@@ -335,6 +335,7 @@ body.timeline-active.period-after-graduation {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  gap: 0.25rem;
   width: 100%;
   max-width: 300px;
   opacity: 0;
@@ -346,17 +347,10 @@ body.timeline-active.period-after-graduation {
   opacity: 1;
 }
 
-.note-info-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: var(--app-text);
-}
-
 .note-info-meta {
   font-size: 0.875rem;
-  font-weight: 400;
-  margin: 0 0 0.75rem 0;
+  font-weight: 700;
+  margin: 0;
   color: var(--app-text-muted);
 }
 
@@ -380,10 +374,6 @@ body.timeline-active.period-after-graduation {
   .note-cover-container {
     height: 55vh;
   }
-
-  .note-info-title {
-    font-size: 1.15rem;
-  }
 }
 
 @media (max-width: 768px) {
@@ -398,10 +388,6 @@ body.timeline-active.period-after-graduation {
 
   .note-cover-container {
     height: 48vh;
-  }
-
-  .note-info-title {
-    font-size: 1.05rem;
   }
 
   .note-info-meta,

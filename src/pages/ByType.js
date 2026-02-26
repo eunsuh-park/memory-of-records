@@ -198,7 +198,11 @@ function getTypeLabel(typeKey, fallback = '') {
   return match?.label || fallback || '';
 }
 
-/** 타입별 리스트 설명 영역 HTML (타이틀, 본문, scroll 텍스트) */
+/**
+ * 타입별 리스트 설명 영역 HTML (타이틀, 본문, scroll 텍스트)
+ * 내용은 src/data/typeOptions.js 에서 각 타입 옵션의 listTitle, listBody 에 넣으면 됨.
+ * 예: { value: 'diary-scheduler', label: '...', listTitle: '이 리스트 제목', listBody: '설명 본문...', ... }
+ */
 function getTypeListIntroHTML(selectedType) {
   const option = typeOptions.find((o) => o.value === selectedType);
   const title = option?.listTitle ?? '';
@@ -248,7 +252,6 @@ function renderNotesListForType(typeMain, selectedType) {
               <img src="${escapeHtml(backCoverSrc)}" alt="노트 뒷표지" class="note-cover-image note-cover-back" loading="lazy" referrerpolicy="no-referrer" />
             </div>
             <div class="note-info">
-              <h3 class="note-info-title">${noteTitle}</h3>
               <h5 class="note-info-meta">${typeLabel}</h5>
               <p class="note-info-description">${description}</p>
             </div>
@@ -487,7 +490,6 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
               />
             </div>
             <div class="note-info">
-              <h3 class="note-info-title">${noteTitle}</h3>
               <h5 class="note-info-meta">${typeLabel}</h5>
               <p class="note-info-description">${description}</p>
             </div>
