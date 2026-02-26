@@ -1,6 +1,7 @@
 /**
  * Bookshelf 페이지 스타일
- * 전체 노트를 한 줄로, 높이 480px·비율 고정·너비 전체에 맞춰 축소해 표시.
+ * 노트 너비·높이 480px 고정, 줄어들지 않음. 100vw를 채우도록 간격(음수 가능)으로 겹침.
+ * 겹침이 너무 크면 JS에서 2줄로 나눔.
  */
 
 /* --- 레이아웃 --- */
@@ -28,7 +29,7 @@ body.bookshelf-active {
   background-color: var(--app-bg);
 }
 
-/* 뷰포트: 한 줄이 다 들어오는 영역. 행을 scale로 축소해 맞춤 */
+/* 뷰포트: 100vw. 행들이 여기 들어감 */
 .bookshelf-viewport {
   width: 100%;
   height: 100%;
@@ -36,27 +37,34 @@ body.bookshelf-active {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 0 24px;
+  padding: 0 16px;
   box-sizing: border-box;
 }
 
-/* 한 줄 행: 노트들이 나란히. JS에서 transform: scale() 로 너비에 맞춤 */
+/* 2줄일 때 행들을 감싸는 래퍼 */
+.bookshelf-rows-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 한 줄 행: 노트 480px 고정, --bookshelf-overlap(음수 가능)으로 겹침. JS에서 설정 */
 .bookshelf-row {
-  display: inline-flex;
+  display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: flex-end;
-  gap: 20px;
-  transform-origin: center center;
-  transition: transform 0.2s ease-out;
+  justify-content: center;
 }
 
-/* 노트 한 권: 그림자·간격만 담당. 이미지 비율은 .bookshelf-cover 에서 고정 */
+/* 노트 한 권: 480×480 고정, 줄어들지 않음. margin-left로 겹침 */
 .bookshelf-item {
   flex-shrink: 0;
+  width: 480px;
   height: 480px;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   padding: 0;
   border-radius: 4px;
@@ -65,6 +73,11 @@ body.bookshelf-active {
     0 2px 4px rgba(0, 0, 0, 0.1);
   background: transparent;
   transition: box-shadow 0.2s ease;
+  margin-left: var(--bookshelf-overlap, 0);
+}
+
+.bookshelf-row .bookshelf-item:first-child {
+  margin-left: 0;
 }
 
 .bookshelf-item:hover {
@@ -73,15 +86,13 @@ body.bookshelf-active {
     0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* 표지 이미지: 높이 480px 고정, 너비는 비율에 따라 자동 */
+/* 표지 이미지: 480×480 안에 비율 유지 */
 .bookshelf-cover {
   display: block;
+  width: 480px;
   height: 480px;
-  width: auto;
-  max-width: 100%;
   object-fit: contain;
   border-radius: 4px;
-  vertical-align: bottom;
 }
 
 .bookshelf-cover--error {
