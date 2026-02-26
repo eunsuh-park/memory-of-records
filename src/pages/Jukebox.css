@@ -49,11 +49,12 @@ body.jukebox-active {
   flex: 1 1 0;
   min-height: 0;
   position: relative;
+  width: 100%;
 }
 
 ----------------------------------------NAVIGATION----------------------------------------
 
-/* PC용 이전/다음 버튼 (가장자리 호버 스크롤과 함께 사용) */
+/* PC용 이전/다음 버튼: 카드 리스트 양끝에 배치, 정사각·원형 */
 .jukebox-nav {
   position: absolute;
   top: 50%;
@@ -64,12 +65,15 @@ body.jukebox-active {
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: 28px;
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.35);
   color: rgba(255, 255, 255, 1);
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .jukebox-nav:hover {
   background: rgba(0, 0, 0, 0.55);
@@ -101,92 +105,23 @@ body.jukebox-active {
   transform: scaleX(-1);
 }
 
-------------------------------------------SCROLLBAR------------------------------------------
-
-
-/* 1) 네이티브 스크롤바 숨김
-   - .jukebox-fullscreen, .jukebox-gallery는 실제로 가로 스크롤되는 영역.
-   - 브라우저 기본 스크롤바를 숨기고, 아래 커스텀 스크롤바로 대체하기 위함. */
+/* 갤러리 영역 가로 스크롤 시 브라우저 기본 스크롤바 숨김 */
 .jukebox-fullscreen::-webkit-scrollbar,
 .jukebox-gallery::-webkit-scrollbar {
   width: 0;
   height: 0;
   background: transparent;
 }
-
 .jukebox-gallery::-webkit-scrollbar-thumb {
   background: transparent;
 }
 
-/* 2) 커스텀 가로 스크롤바 (스타일리시)
-   - 트랙 + 썸으로 갤러리 scrollLeft와 동기화.
-   - 트랙 클릭 시 해당 위치로 스크롤, 썸 드래그로 이동. */
-.jukebox-scrollbar-wrap {
-  flex-shrink: 0;
-  padding: 12px 72px 20px;
-  opacity: 1;
-  transition: opacity 0.25s ease;
-}
-.jukebox-scrollbar-wrap.jukebox-scrollbar-wrap--hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-.jukebox-scrollbar-track {
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
-  position: relative;
-  cursor: pointer;
-  overflow: visible;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-.jukebox-scrollbar-thumb {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 10px;
-  min-width: 40px;
-  border-radius: 5px;
-  touch-action: none;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.35) 0%,
-    rgba(255, 255, 255, 0.18) 100%
-  );
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  cursor: grab;
-  transition: background 0.2s ease, box-shadow 0.2s ease, height 0.2s ease;
-}
-.jukebox-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.28) 100%
-  );
-  box-shadow:
-    0 1px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-.jukebox-scrollbar-thumb:active,
-.jukebox-scrollbar-thumb.jukebox-scrollbar-thumb--dragging {
-  cursor: grabbing;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.32) 100%
-  );
-  height: 12px;
-  border-radius: 6px;
-}
 ------------------------------------------GALLERY------------------------------------------
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
   right: 0;
-  top: 40%;
+  top: 50%;
   transform: translate3d(0, -50%, 0);
 }
 
@@ -403,19 +338,16 @@ body.jukebox-active {
     margin-left: -2.5vw;
   }
 
-  /* 네비 버튼: 터치 영역 유지하되 크기·여백 축소로 갤러리와 겹침 완화 */
+  /* 네비 버튼: 정사각·원형 유지 */
   .jukebox-nav {
-    width: 44px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
   }
   .jukebox-nav--prev {
     left: 8px;
   }
   .jukebox-nav--next {
     right: 8px;
-  }
-  .jukebox-scrollbar-wrap {
-    padding: 10px 56px 16px;
   }
 }
 
@@ -442,22 +374,12 @@ body.jukebox-active {
 
   .jukebox-nav {
     width: 40px;
-    height: 56px;
+    height: 40px;
   }
   .jukebox-nav--prev {
     left: 6px;
   }
   .jukebox-nav--next {
     right: 6px;
-  }
-  .jukebox-scrollbar-wrap {
-    padding: 8px 52px 14px;
-  }
-  .jukebox-scrollbar-track {
-    height: 5px;
-  }
-  .jukebox-scrollbar-thumb {
-    height: 8px;
-    min-width: 32px;
   }
 }

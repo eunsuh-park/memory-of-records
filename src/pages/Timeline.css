@@ -92,6 +92,20 @@ body.timeline-active.period-after-graduation {
   font-weight: 600;
 }
 
+/* 로딩 중에는 상단 서브 메뉴와 하단 서클 인디케이터를 숨겼다가,
+   리스트가 등장할 때 함께 부드럽게 나타나도록 처리 */
+body.timeline-active.timeline-loading-active #sub-menu,
+body.timeline-active.timeline-loading-active .timeline-scrollbar {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+#sub-menu,
+.timeline-scrollbar {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
 .timeline-container {
   display: flex;
   flex-direction: column;

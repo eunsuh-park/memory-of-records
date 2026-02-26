@@ -53,6 +53,8 @@ function showTimelineLoadingOverlay() {
     document.body.appendChild(overlay);
   }
 
+  document.body.classList.add('timeline-loading-active');
+
   if (timelineOverlayHideTimer) {
     clearTimeout(timelineOverlayHideTimer);
     timelineOverlayHideTimer = null;
@@ -82,6 +84,7 @@ function hideTimelineLoadingOverlay() {
     timelineOverlayHideTimer = setTimeout(() => {
       overlay.classList.add('timeline-loading-overlay--hidden');
       overlay.classList.remove('timeline-loading-overlay--fading');
+      document.body.classList.remove('timeline-loading-active');
       timelineOverlayHideTimer = null;
     }, TIMELINE_LOADING_FADE_MS);
     return;
@@ -91,6 +94,7 @@ function hideTimelineLoadingOverlay() {
     setTimeout(() => {
       overlay.classList.add('timeline-loading-overlay--hidden');
       overlay.classList.remove('timeline-loading-overlay--fading');
+      document.body.classList.remove('timeline-loading-active');
     }, TIMELINE_LOADING_FADE_MS);
     timelineOverlayHideTimer = null;
   }, remaining);

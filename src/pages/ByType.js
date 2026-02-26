@@ -53,6 +53,8 @@ function showTypeLoadingOverlay() {
     document.body.appendChild(overlay);
   }
 
+  document.body.classList.add('timeline-loading-active');
+
   if (typeOverlayHideTimer) {
     clearTimeout(typeOverlayHideTimer);
     typeOverlayHideTimer = null;
@@ -82,6 +84,7 @@ function hideTypeLoadingOverlay() {
     typeOverlayHideTimer = setTimeout(() => {
       overlay.classList.add('timeline-loading-overlay--hidden');
       overlay.classList.remove('timeline-loading-overlay--fading');
+      document.body.classList.remove('timeline-loading-active');
       typeOverlayHideTimer = null;
     }, TYPE_LOADING_FADE_MS);
     return;
@@ -91,6 +94,7 @@ function hideTypeLoadingOverlay() {
     setTimeout(() => {
       overlay.classList.add('timeline-loading-overlay--hidden');
       overlay.classList.remove('timeline-loading-overlay--fading');
+      document.body.classList.remove('timeline-loading-active');
     }, TYPE_LOADING_FADE_MS);
     typeOverlayHideTimer = null;
   }, remaining);
