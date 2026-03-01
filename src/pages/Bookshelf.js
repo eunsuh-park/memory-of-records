@@ -38,6 +38,7 @@ function getOverlapForRow(viewportWidth, itemCount) {
 
 /**
  * 타입 아이템을 type별로 그룹화 후, TYPES_PER_ROW개씩 묶어 행 배열로 반환.
+ * type이 제대로 설정되지 않은 경우(타입 수 > 노트 수의 절반) 전체를 2줄로 균등 분할.
  * @returns {Array<Array<{id, title, coverFrontUrl}>>} 각 행의 노트 배열
  */
 function groupTypeItemsByRow(typeItems) {
@@ -56,9 +57,18 @@ function groupTypeItemsByRow(typeItems) {
   }
 
   const types = Array.from(byType.keys());
+  const totalCount = typeItems.filter((i) => i?.id).length;
+
+  // type이 거의 전부 다를 때(타입 수 > 노트 수의 절반): 전체를 2줄로 균등 분할
+  if (types.length > totalCount / 2) {
+    const notes = Array.from(byType.values()).flat();
+    if (notes.length === 0) return [];
+    const mid = Math.ceil(notes.length / 2);
+    return [[...notes.slice(0, mid)], [...notes.slice(mid)]];
+  }
+
   const rows = [];
   const maxTypeRows = 2;
-
   for (let i = 0; i < types.length && rows.length < maxTypeRows; i += TYPES_PER_ROW) {
     const chunk = types.slice(i, i + TYPES_PER_ROW);
     const rowNotes = chunk.flatMap((t) => byType.get(t));
