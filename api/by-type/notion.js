@@ -9,7 +9,7 @@
  * - NOTION_BY_TYPE_DB_ID: By type 데이터베이스 ID
  */
 const BY_TYPE_DB_ID =
-  process.env.NOTION_BY_TYPE_DB_ID || '2f2c337eb8b08146bd64e1be25c4114b';
+  process.env.NOTION_DATABASE_ID || process.env.NOTION_BY_TYPE_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
 
 /**
  * @param {import('@vercel/node').VercelRequest} req

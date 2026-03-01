@@ -7,7 +7,7 @@
  * 필요 환경 변수:
  * - NOTION_API_KEY: Notion API 토큰
  */
-const NOTEBOOK_DB_ID = '2f1c337eb8b08038ba39ebc76bba8a0d';
+const NOTEBOOK_DB_ID = process.env.NOTION_DATABASE_ID || process.env.NOTION_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
 
 /**
  * @param {import('@vercel/node').VercelRequest} req

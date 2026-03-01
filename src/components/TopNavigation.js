@@ -84,19 +84,10 @@ export function renderNavigation() {
           <li>
             <a
               href="/jukebox"
-              class="${currentPath.startsWith('/jukebox') ? 'active' : ''}"
+              class="${currentPath.startsWith('/jukebox') || currentPath.startsWith('/bookshelf') ? 'active' : ''}"
               data-link
             >
-              Jukebox
-            </a>
-          </li>
-          <li>
-            <a
-              href="/bookshelf"
-              class="${currentPath.startsWith('/bookshelf') ? 'active' : ''}"
-              data-link
-            >
-              Bookshelf
+              노트
             </a>
           </li>
         </ul>

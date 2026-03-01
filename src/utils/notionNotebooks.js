@@ -3,7 +3,7 @@
  */
 import { parseNotionProperty } from './notion.js';
 
-const NOTEBOOK_DB_ID = '2f1c337eb8b08038ba39ebc76bba8a0d';
+const NOTEBOOK_DB_ID = '18dfb9c7066e4df99962c5fed616b3db';
 
 const cachedNotionNotebooks = {
   data: null,
@@ -84,9 +84,13 @@ export function convertNotionPageToNotebook(page) {
   const title =
     parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
     '제목 없음';
-  const notebookType = parseNotionProperty(
-    getProperty(properties, 'notebook_type', 'Notebook Type', 'Notebook type', 'Type')
-  );
+  const notebookType =
+    parseNotionProperty(
+      getProperty(properties, 'period_name', 'Period Name', 'period name', 'Period')
+    ) ||
+    parseNotionProperty(
+      getProperty(properties, 'notebook_type', 'Notebook Type', 'Notebook type', 'Type')
+    );
   const periodStart = formatDateString(
     parseNotionProperty(getProperty(properties, 'period_start', 'Period Start', 'period start'))
   );

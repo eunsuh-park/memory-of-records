@@ -275,6 +275,53 @@ export function enableGalleryScroll(gallery, prevBtn, nextBtn) {
   });
 }
 
+/**
+ * 갤러리 DOM에 노트 카드를 채우고 Cover Flow·스크롤을 활성화.
+ * Library 페이지에서 Jukebox/Bookshelf 토글 시 재사용.
+ * @param {HTMLElement} gallery - .jukebox-gallery 요소
+ * @param {HTMLElement|null} prevBtn - 이전 버튼
+ * @param {HTMLElement|null} nextBtn - 다음 버튼
+ * @param {Array<{id, title, coverFrontUrl?, coverBackUrl?}>} allNotes - 노트 목록
+ */
+export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
+  if (!gallery) return;
+  if (!Array.isArray(allNotes) || allNotes.length === 0) {
+    gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
+    return;
+  }
+  const itemsHtml = allNotes
+    .map((note) => {
+      const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
+      const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
+      const title = escapeHtml(note.title);
+      return `
+        <div class="jukebox-card">
+          <div class="jukebox-card-inner">
+            <div class="jukebox-card-face jukebox-card-face--front">
+              <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+            </div>
+            <div class="jukebox-card-face jukebox-card-face--back">
+              <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  gallery.innerHTML =
+    '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
+    itemsHtml +
+    '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
+
+  gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
+    img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
+  });
+
+  enableCenterPerspective(gallery);
+  enableGalleryScroll(gallery, prevBtn, nextBtn);
+}
+
 export function renderJukebox() {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
@@ -305,7 +352,7 @@ export function renderJukebox() {
   const prevBtn = document.getElementById('jukebox-prev');
   const nextBtn = document.getElementById('jukebox-next');
 
-  /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 (한쪽 실패해도 다른 쪽은 표시) */
+  /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 */
   Promise.allSettled([getNotionNotebooks(), getNotionTypeItems()])
     .then(([notebookResult, typeResult]) => {
       const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
@@ -324,45 +371,7 @@ export function renderJukebox() {
       (Array.isArray(notebooks) ? notebooks : []).forEach(add);
       (Array.isArray(typeItems) ? typeItems : []).forEach(add);
       const allNotes = Array.from(byId.values());
-
-      if (allNotes.length === 0) {
-        gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
-        return;
-      }
-
-      const itemsHtml = allNotes
-        .map((note) => {
-          const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
-          const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
-          const title = escapeHtml(note.title);
-          return `
-            <div class="jukebox-card">
-              <div class="jukebox-card-inner">
-                <div class="jukebox-card-face jukebox-card-face--front">
-                  <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
-                </div>
-                <div class="jukebox-card-face jukebox-card-face--back">
-                  <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
-                </div>
-              </div>
-            </div>
-          `;
-        })
-        .join('');
-
-      gallery.innerHTML =
-        '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
-        itemsHtml +
-        '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
-
-      gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
-        img.addEventListener('error', () => {
-          img.classList.add('jukebox-cover-image--error');
-        }, { once: true });
-      });
-
-      enableCenterPerspective(gallery);
-      enableGalleryScroll(gallery, prevBtn, nextBtn);
+      fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes);
     })
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);

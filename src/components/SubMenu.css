@@ -67,24 +67,17 @@
   cursor: default;
 }
 
-.period-link:not(.period-link--elementary) {
+.period-link:not(.active) {
   color: var(--app-text-dim);
 }
 
-.period-link:not(.period-link--elementary) .period-years {
+.period-link:not(.active) .period-years {
   color: var(--app-text-dim);
 }
 
 .period-link:hover:not(.active) {
   color: var(--app-text);
   background-color: rgba(255, 255, 255, 0.08);
-}
-
-.period-link:not(.period-link--elementary):hover:not(.active),
-.period-link:not(.period-link--elementary).active,
-.period-link:not(.period-link--elementary).active:hover {
-  color: var(--app-text-dim);
-  background-color: transparent;
 }
 
 .period-link.active {
@@ -132,6 +125,13 @@
   opacity: 1;
   margin-top: 0.4rem;
   font-weight: 500;
+}
+
+.period-count {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--app-text-muted);
+  margin-left: 0.35rem;
 }
 
 @media (max-width: 1024px) {
