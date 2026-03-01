@@ -16,6 +16,11 @@
   background-color: var(--app-bg);
 }
 
+.main-wrapper.bookshelf-active {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
 body.bookshelf-active {
   background-color: var(--app-bg);
 }
@@ -38,7 +43,7 @@ body.bookshelf-active {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 0 80px;
+  padding: 0;
   box-sizing: border-box;
 }
 
