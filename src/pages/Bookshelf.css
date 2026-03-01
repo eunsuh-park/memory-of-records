@@ -1,6 +1,6 @@
 /**
  * Bookshelf 페이지 스타일
- * 노트 너비·높이 480px 고정, 줄어들지 않음. 100vw를 채우도록 간격(음수 가능)으로 겹침.
+ * 노트 너비·높이 240px 고정, 줄어들지 않음. 100vw를 채우도록 간격(음수 가능)으로 겹침.
  * 겹침이 너무 크면 JS에서 2줄로 나눔.
  */
 
@@ -49,7 +49,7 @@ body.bookshelf-active {
   gap: 24px;
 }
 
-/* 한 줄 행: 노트 480px 고정, --bookshelf-overlap(음수 가능)으로 겹침. JS에서 설정 */
+/* 한 줄 행: 노트 240px 고정, --bookshelf-overlap(음수 가능)으로 겹침. JS에서 설정 */
 .bookshelf-row {
   display: flex;
   flex-direction: row;
@@ -58,11 +58,11 @@ body.bookshelf-active {
   justify-content: center;
 }
 
-/* 노트 한 권: 480×480 고정, 줄어들지 않음. margin-left로 겹침 */
+/* 노트 한 권: 240×240 고정, 줄어들지 않음. margin-left로 겹침 */
 .bookshelf-item {
   flex-shrink: 0;
-  width: 480px;
-  height: 480px;
+  width: 240px;
+  height: 240px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,11 +86,11 @@ body.bookshelf-active {
     0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* 표지 이미지: 480×480 안에 비율 유지 */
+/* 표지 이미지: 240×240 안에 비율 유지 */
 .bookshelf-cover {
   display: block;
-  width: 480px;
-  height: 480px;
+  width: 240px;
+  height: 240px;
   object-fit: contain;
   border-radius: 4px;
 }

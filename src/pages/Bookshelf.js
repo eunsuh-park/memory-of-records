@@ -1,6 +1,6 @@
 /**
  * Bookshelf 페이지
- * 노트 480×480 고정, 100vw를 채우도록 겹침(음수 간격). 겹침이 크면 2줄로 나눔.
+ * 노트 240×240 고정, 100vw를 채우도록 겹침(음수 간격). 겹침이 크면 2줄로 나눔.
  */
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
@@ -10,7 +10,7 @@ import './Bookshelf.css';
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-const ITEM_SIZE_PX = 480;
+const ITEM_SIZE_PX = 240;
 /** 겹침이 이 값(px)보다 크면 2줄로 나눔 */
 const OVERLAP_THRESHOLD_PX = 240;
 
