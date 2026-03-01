@@ -33,6 +33,23 @@ const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>close_medium_line</title><g id='close_medium_line' fill='none' fill-rule='nonzero'><path d='M24 0v24H0V0zM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036q-.016-.004-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427q-.004-.016-.016-.018m.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092q.019.005.029-.008l.004-.014-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014-.034.614q.001.018.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></g></svg>"
 };
+
+/** 이전/다음 버튼용 화살표 SVG (Jukebox와 동일) */
+const TIMELINE_NAV_ICON_SVG =
+  `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><title>left_line</title><g fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0z'/><path fill='currentColor' d='M8.293 12.707a1 1 0 0 1 0-1.414l5.657-5.657a1 1 0 1 1 1.414 1.414L10.414 12l4.95 4.95a1 1 0 0 1-1.414 1.414l-5.657-5.657Z'/></g></svg>`;
+
+/** Jukebox 스타일 Cover Flow 상수 */
+const EDGE_ZONE_LEFT = 0.12;
+const EDGE_ZONE_RIGHT = 0.12;
+const EDGE_HOVER_DELAY_MS = 280;
+const EDGE_SCROLL_SPEED = 18;
+const COVER_FLOW_ANGLE_DEG = 45;
+const COVER_FLOW_SCALE_CENTER = 1.25;
+const COVER_FLOW_SCALE_SIDE = 0.88;
+const COVER_FLOW_Z_CENTER = '1.5em';
+const COVER_FLOW_Z_SIDE = '0em';
+const COVER_FLOW_Z_INDEX_CENTER = 100;
+const COVER_FLOW_Z_INDEX_SIDE = 1;
 const TIMELINE_LOADING_MIN_VISIBLE_MS = 2500;
 const TIMELINE_LOADING_FADE_MS = 200;
 const TIMELINE_LOADING_TIMEOUT_MS = 7000;
@@ -172,6 +189,217 @@ function getNotesCountByPeriod(notes) {
   return counts;
 }
 
+/**
+ * [Jukebox 스타일] Cover Flow - 노트 카드 위치에 따라 3D 변환 (rotateY, scale, translateZ, brightness)
+ */
+function updateNoteAngles(timelinePage) {
+  if (!timelinePage) return;
+  const viewportCenterX = timelinePage.scrollLeft + timelinePage.clientWidth / 2;
+  const halfWidth = timelinePage.clientWidth / 2;
+  const timelineRect = timelinePage.getBoundingClientRect();
+  const cards = timelinePage.querySelectorAll('.note-card[data-note-id]');
+
+  let closestCard = null;
+  let closestAbsOffset = Infinity;
+
+  cards.forEach((card) => {
+    const rect = card.getBoundingClientRect();
+    const cardCenterX = rect.left - timelineRect.left + timelinePage.scrollLeft + rect.width / 2;
+    const offset = cardCenterX - viewportCenterX;
+    const ratio = Math.max(-1, Math.min(1, offset / halfWidth));
+    const absOffset = Math.abs(offset);
+    if (absOffset < closestAbsOffset) {
+      closestAbsOffset = absOffset;
+      closestCard = card;
+    }
+
+    const angle = -ratio * COVER_FLOW_ANGLE_DEG;
+    const absRatio = Math.abs(ratio);
+    const scale =
+      COVER_FLOW_SCALE_SIDE + (1 - absRatio) * (COVER_FLOW_SCALE_CENTER - COVER_FLOW_SCALE_SIDE);
+    const translateZ = absRatio > 0.5 ? COVER_FLOW_Z_SIDE : COVER_FLOW_Z_CENTER;
+    const zIndex = Math.round(
+      COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE)
+    );
+    const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
+    const brightness = 1 - (1 - 0.48) * absRatio;
+    const shadowOpacity = (0.32 - absRatio * 0.42) * 0.5;
+    const shadowBlur = 22 - Math.round(absRatio * 10);
+
+    card.style.setProperty(
+      '--timeline-shadow',
+      `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(0.03, shadowOpacity).toFixed(2)})`
+    );
+    card.style.setProperty('--timeline-rotate-y', `${angle}deg`);
+    card.style.setProperty('--timeline-scale', String(scale));
+    card.style.setProperty('--timeline-translate-z', translateZ);
+    card.style.setProperty('--timeline-hover-x', hoverX);
+    card.style.setProperty('--timeline-brightness', String(brightness));
+    card.style.zIndex = String(zIndex);
+  });
+
+  cards.forEach((card) => {
+    card.classList.toggle('note-card--centered', card === closestCard);
+  });
+}
+
+/**
+ * Cover Flow 스크롤 연동 (Jukebox와 동일)
+ */
+function enableTimelineCenterPerspective(timelinePage) {
+  if (!timelinePage) return;
+  const onUpdate = () => {
+    if (!timelinePage.isConnected) {
+      window.removeEventListener('resize', onUpdate);
+      return;
+    }
+    updateNoteAngles(timelinePage);
+  };
+  timelinePage.addEventListener('scroll', onUpdate, { passive: true });
+  window.addEventListener('resize', onUpdate);
+  onUpdate();
+}
+
+/**
+ * 가장자리 호버 스크롤 + 이전/다음 버튼 + 휠→가로 스크롤 (Jukebox와 동일)
+ */
+function enableTimelineGalleryScroll(timelinePage, wrapEl, prevBtn, nextBtn) {
+  if (!timelinePage) return;
+  let scrolling = null;
+  let edgeDelayTimer = null;
+
+  function tick(direction) {
+    const maxScroll = timelinePage.scrollWidth - timelinePage.clientWidth;
+    if (maxScroll <= 0) return;
+    if (direction < 0) {
+      timelinePage.scrollLeft = Math.max(0, timelinePage.scrollLeft - Math.abs(direction));
+    } else if (direction > 0) {
+      timelinePage.scrollLeft = Math.min(maxScroll, timelinePage.scrollLeft + Math.abs(direction));
+    }
+  }
+
+  function stopScroll() {
+    if (edgeDelayTimer) {
+      clearTimeout(edgeDelayTimer);
+      edgeDelayTimer = null;
+    }
+    if (scrolling) {
+      clearInterval(scrolling);
+      scrolling = null;
+    }
+  }
+
+  function startScrollIfEdge(pageX) {
+    const ratio = pageX / window.innerWidth;
+    let direction = 0;
+    if (ratio < EDGE_ZONE_LEFT) {
+      direction = -EDGE_SCROLL_SPEED * (1 - ratio / EDGE_ZONE_LEFT);
+    } else if (ratio > 1 - EDGE_ZONE_RIGHT) {
+      direction = EDGE_SCROLL_SPEED * ((ratio - (1 - EDGE_ZONE_RIGHT)) / EDGE_ZONE_RIGHT);
+    }
+    if (direction === 0) {
+      stopScroll();
+      return;
+    }
+    stopScroll();
+    edgeDelayTimer = setTimeout(() => {
+      edgeDelayTimer = null;
+      scrolling = setInterval(() => tick(direction), 10);
+    }, EDGE_HOVER_DELAY_MS);
+  }
+
+  const hoverTarget = wrapEl || timelinePage;
+  hoverTarget.addEventListener(
+    'mousemove',
+    (e) => {
+      const pageX = e.clientX ?? e.screenX ?? 0;
+      const ratio = pageX / window.innerWidth;
+      if (ratio >= EDGE_ZONE_LEFT && ratio <= 1 - EDGE_ZONE_RIGHT) {
+        stopScroll();
+        return;
+      }
+      startScrollIfEdge(pageX);
+    },
+    { passive: true }
+  );
+  hoverTarget.addEventListener('mouseleave', stopScroll);
+
+  const WHEEL_SCROLL_SPEED = 1.2;
+  timelinePage.addEventListener(
+    'wheel',
+    (e) => {
+      const maxScroll = timelinePage.scrollWidth - timelinePage.clientWidth;
+      if (maxScroll <= 0) return;
+      const delta = e.deltaY * WHEEL_SCROLL_SPEED;
+      const newScroll = timelinePage.scrollLeft + delta;
+      if (delta > 0 && newScroll < maxScroll) {
+        e.preventDefault();
+        timelinePage.scrollLeft = Math.min(maxScroll, newScroll);
+      } else if (delta < 0 && newScroll > 0) {
+        e.preventDefault();
+        timelinePage.scrollLeft = Math.max(0, newScroll);
+      }
+    },
+    { passive: false }
+  );
+
+  function scrollToCenterCard(card) {
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const timelineRect = timelinePage.getBoundingClientRect();
+    const targetScroll =
+      rect.left -
+      timelineRect.left +
+      timelinePage.scrollLeft +
+      rect.width / 2 -
+      timelinePage.clientWidth / 2;
+    timelinePage.scrollTo({
+      left: Math.max(
+        0,
+        Math.min(timelinePage.scrollWidth - timelinePage.clientWidth, targetScroll)
+      ),
+      behavior: 'smooth'
+    });
+  }
+
+  function getCards() {
+    return Array.from(timelinePage.querySelectorAll('.note-card[data-note-id]'));
+  }
+
+  function getClosestCardIndex() {
+    const cards = getCards();
+    if (cards.length === 0) return -1;
+    const viewportCenterX = timelinePage.scrollLeft + timelinePage.clientWidth / 2;
+    const timelineRect = timelinePage.getBoundingClientRect();
+    let closestIdx = 0;
+    let closestDist = Infinity;
+    cards.forEach((card, i) => {
+      const rect = card.getBoundingClientRect();
+      const cardCenter =
+        rect.left - timelineRect.left + timelinePage.scrollLeft + rect.width / 2;
+      const dist = Math.abs(cardCenter - viewportCenterX);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestIdx = i;
+      }
+    });
+    return closestIdx;
+  }
+
+  prevBtn?.addEventListener('click', () => {
+    const idx = getClosestCardIndex();
+    const cards = getCards();
+    if (idx > 0) scrollToCenterCard(cards[idx - 1]);
+    else if (cards.length > 0) scrollToCenterCard(cards[0]);
+  });
+  nextBtn?.addEventListener('click', () => {
+    const idx = getClosestCardIndex();
+    const cards = getCards();
+    if (idx >= 0 && idx < cards.length - 1) scrollToCenterCard(cards[idx + 1]);
+    else if (cards.length > 0) scrollToCenterCard(cards[cards.length - 1]);
+  });
+}
+
 export function renderTimeline(period = 'elementary') {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
@@ -233,12 +461,16 @@ export function renderTimeline(period = 'elementary') {
   document.body.classList.add('timeline-active');
   
   mainContent.innerHTML = `
-    <div class="timeline-page">
-      <div class="timeline-container">
-        <main class="timeline-main" id="timeline-main"></main>
-        <div id="timeline-scrollbar"></div>
+    <div class="timeline-gallery-wrap">
+      <button type="button" class="timeline-nav timeline-nav--prev" id="timeline-prev" aria-label="이전"><span class="timeline-nav-icon">${TIMELINE_NAV_ICON_SVG}</span></button>
+      <button type="button" class="timeline-nav timeline-nav--next" id="timeline-next" aria-label="다음"><span class="timeline-nav-icon timeline-nav-icon--next">${TIMELINE_NAV_ICON_SVG}</span></button>
+      <div class="timeline-page" id="timeline-page">
+        <div class="timeline-container">
+          <main class="timeline-main" id="timeline-main"></main>
+          <div id="timeline-scrollbar"></div>
+        </div>
+        <div id="quick-scroll-menu"></div>
       </div>
-      <div id="quick-scroll-menu"></div>
     </div>
   `;
   
@@ -361,25 +593,19 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
       allNotesHTML.push(`
         <article class="note-card" data-note-id="${noteId}" data-period="${periodKey}" data-pdf-url="${escapeHtml(pdfUrl)}">
           <div class="note-card-link">
-            <div class="note-cover-container">
-              <img 
-                src="${escapeHtml(coverSrc)}" 
-                alt="노트 표지" 
-                class="note-cover-image note-cover-front"
-                loading="lazy"
-                referrerpolicy="no-referrer"
-              />
-              <img 
-                src="${escapeHtml(backCoverSrc)}" 
-                alt="노트 뒷표지" 
-                class="note-cover-image note-cover-back"
-                loading="lazy"
-                referrerpolicy="no-referrer"
-              />
-            </div>
             <div class="note-info">
               <h5 class="note-info-meta">${notebookType}</h5>
               <p class="note-info-description">${periodRange}</p>
+            </div>
+            <div class="note-cover-container">
+              <div class="note-cover-inner">
+                <div class="note-cover-face note-cover-face--front">
+                  <img src="${escapeHtml(coverSrc)}" alt="노트 표지" class="note-cover-image" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+                <div class="note-cover-face note-cover-face--back">
+                  <img src="${escapeHtml(backCoverSrc)}" alt="노트 뒷표지" class="note-cover-image note-cover-back" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+              </div>
             </div>
           </div>
         </article>
@@ -445,7 +671,15 @@ async function loadNotionNotesAndRender(timelineMain, selectedPeriod) {
     setupNoteFocusSystem();
     setupKeyboardNavigation();
     setupScrollObserver();
-    setupHorizontalWheelScroll();
+    const timelinePageEl = document.getElementById('timeline-page');
+    const galleryWrap = document.querySelector('.timeline-gallery-wrap');
+    enableTimelineCenterPerspective(timelinePageEl);
+    enableTimelineGalleryScroll(
+      timelinePageEl,
+      galleryWrap,
+      document.getElementById('timeline-prev'),
+      document.getElementById('timeline-next')
+    );
     setupTimelineDots();
     setupMainAreaDrag();
     updateBackgroundColor(selectedPeriod);
@@ -852,62 +1086,6 @@ function updateBackgroundColor(period) {
   if (period) {
     document.body.classList.add(`period-${period}`);
   }
-}
-
-/**
- * 마우스 휠로 가로 스크롤 가능하도록 설정하는 함수
- * 스크롤 휠 1회 = 노트 1개 이동
- */
-function setupHorizontalWheelScroll() {
-  const timelinePage = document.querySelector('.timeline-page');
-  if (!timelinePage) return;
-
-  let wheelTimeout = null;
-  let canScroll = true; // 스크롤 가능 여부 (디바운싱)
-
-  timelinePage.addEventListener('wheel', (e) => {
-    // 이미 가로 스크롤 휠 이벤트가 있으면 기본 동작 허용
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-      return;
-    }
-
-    // 세로 스크롤을 가로채서 노트 이동으로 변환
-    e.preventDefault();
-    
-    if (isScrollingToTarget || !canScroll) return; // 프로그래매틱 스크롤 중이거나 디바운싱 중이면 무시
-
-    const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
-    const currentIndex = allNoteCards.findIndex(card => 
-      card.getAttribute('data-note-id') === currentFocusedNoteId
-    );
-
-    if (currentIndex === -1) return;
-
-    // 스크롤 방향에 따라 다음/이전 노트로 이동
-    if (e.deltaY > 0 && currentIndex < allNoteCards.length - 1) {
-      // 아래로 스크롤 (deltaY > 0) = 다음 노트
-      canScroll = false;
-      const nextNoteId = allNoteCards[currentIndex + 1].getAttribute('data-note-id');
-      focusNote(nextNoteId);
-      
-      // 300ms 후에 다시 스크롤 가능하도록 (스크롤 애니메이션 시간)
-      clearTimeout(wheelTimeout);
-      wheelTimeout = setTimeout(() => {
-        canScroll = true;
-      }, 300);
-    } else if (e.deltaY < 0 && currentIndex > 0) {
-      // 위로 스크롤 (deltaY < 0) = 이전 노트
-      canScroll = false;
-      const prevNoteId = allNoteCards[currentIndex - 1].getAttribute('data-note-id');
-      focusNote(prevNoteId);
-      
-      // 300ms 후에 다시 스크롤 가능하도록
-      clearTimeout(wheelTimeout);
-      wheelTimeout = setTimeout(() => {
-        canScroll = true;
-      }, 300);
-    }
-  }, { passive: false });
 }
 
 /**

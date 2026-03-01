@@ -8,8 +8,10 @@
   max-height: 100vh !important;
   overflow: hidden !important;
   box-sizing: border-box;
-  padding-top: 0 !important; /* Timeline 페이지는 padding-top 제거 */
+  padding-top: 0 !important;
   background-color: var(--app-bg) !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* 배경색 전환 애니메이션 */
@@ -34,9 +36,20 @@ body.timeline-active.period-after-graduation {
   background-color: var(--app-bg);
 }
 
+/* Jukebox 스타일 갤러리 래퍼 (버튼 + 스크롤 영역) */
+.timeline-gallery-wrap {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+  width: 100%;
+  display: flex;
+}
+
 .timeline-page {
-  height: 100vh;
-  max-height: 100vh;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   overflow-y: hidden;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -44,6 +57,56 @@ body.timeline-active.period-after-graduation {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
   box-sizing: border-box;
+}
+
+/* 이전/다음 버튼 (Jukebox와 동일) */
+.timeline-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 1);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-nav:hover {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.timeline-nav:active {
+  background: rgba(0, 0, 0, 0.7);
+}
+.timeline-nav--prev {
+  left: 12px;
+}
+.timeline-nav--next {
+  right: 12px;
+}
+.timeline-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+.timeline-nav-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.timeline-nav-icon--next svg {
+  transform: scaleX(-1);
 }
 
 .timeline-page::-webkit-scrollbar {
@@ -126,6 +189,8 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   padding: 0;
   box-sizing: border-box;
   align-items: center;
+  perspective: 60em;
+  perspective-origin: 50% 50%;
 }
 
 /* 노트 리스트 (모든 노트가 하나의 리스트로 합쳐짐) */
@@ -162,21 +227,38 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background-color: rgba(255, 255, 255, 0.4);
 }
 
+/* Jukebox 스타일 Cover Flow: 3D 변환 (JS에서 --timeline-* 변수 설정) */
 .note-card {
   background-color: transparent;
   border: none;
   border-radius: 8px;
   padding: 0;
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
   overflow: visible;
   flex-shrink: 0;
-  height: auto; /* 높이 자동 조정 */
-  min-height: 60vh; /* 최소 높이 설정 */
-  width: auto; /* 너비는 이미지 비율에 맞춰 자동 조정 */
+  height: auto;
+  min-height: 60vh;
+  width: auto;
   display: flex;
-  align-items: center; /* 컨테이너 내에서 가운데 정렬 */
+  align-items: center;
   opacity: 1;
-  transform: scale(1);
+  transform-origin: center center;
+  transform: translate3d(0, 0, var(--timeline-translate-z, 0))
+    rotateY(var(--timeline-rotate-y, 0deg))
+    scale(var(--timeline-scale, 1));
+  box-shadow: var(--timeline-shadow, none);
+  scroll-snap-align: center;
+}
+
+/* 중앙 카드 호버 시 살짝 확대 + 플립 (Jukebox와 동일) */
+.note-card.note-card--centered:hover,
+.note-card.note-card--centered:active {
+  transform: translateX(var(--timeline-hover-x, 0))
+    translateZ(1.5em)
+    scale(1.25)
+    rotateY(0deg);
+  z-index: 101;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
 }
 
 /* 노트 placeholder (첫 번째/마지막 노트 앞뒤의 빈 공간) */
@@ -192,32 +274,10 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   box-shadow: none;
 }
 
-/* 노트 상태별 스타일 */
-.note-card.note-focus {
-  opacity: 1;
-  transform: scale(1);
-}
-
+/* 노트 상태별: 3D 변환은 updateNoteAngles에서 처리, note-focus는 노트 정보 표시용 */
 .note-card.note-focus .note-cover-container {
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12))
     drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-}
-
-.note-card.note-adjacent {
-  opacity: 0.75;
-  transform: scale(0.9);
-}
-
-.note-card.note-adjacent-adjacent {
-  opacity: 0.4;
-  transform: scale(0.8);
-  filter: saturate(0.4); /* 채도 40% */
-}
-
-.note-card.note-outer {
-  opacity: 0.25;
-  transform: scale(0.75);
-  filter: saturate(0); /* 채도 0% (흑백) */
 }
 
 .note-card-link {
@@ -225,30 +285,15 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   color: inherit;
   display: flex;
   flex-direction: column;
-  align-items: center; /* 가운데 정렬 */
-  gap: 0.75rem; /* 이미지와 정보 사이 간격 */
+  align-items: center;
+  gap: 0.75rem;
   width: 100%;
   height: 100%;
 }
 
-/* 노트 표지 컨테이너 */
-.note-cover-container {
-  position: relative;
-  width: fit-content; /* 이미지 너비에 맞춰 자동 조정 */
-  height: 60vh; /* 고정 높이 */
-  border-radius: 8px;
-  overflow: visible;
-  background-color: transparent;
-  display: flex;
-  align-items: flex-end; /* 이미지를 하단 정렬 */
-  justify-content: center;
-  flex-shrink: 0;
-  transition: filter 0.3s ease;
-}
-
-/* 노트 정보 영역 */
+/* 노트 정보 영역 - 노트 위에 표시 */
 .note-info {
-  display: none; /* 기본적으로 숨김 */
+  display: none;
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -257,11 +302,55 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   max-width: 300px;
   opacity: 0;
   transition: opacity 0.3s ease;
+  order: 1;
 }
 
 .note-card.note-focus .note-info {
   display: flex;
   opacity: 1;
+}
+
+/* 노트 표지 컨테이너 */
+.note-cover-container {
+  position: relative;
+  width: fit-content;
+  height: 60vh;
+  border-radius: 8px;
+  overflow: visible;
+  background-color: transparent;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: filter 0.3s ease;
+  order: 2;
+}
+
+/* 3D 플립용 inner (Jukebox와 동일) */
+.note-cover-inner {
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  transition: transform 0.55s ease;
+}
+.note-card.note-card--centered:hover .note-cover-inner {
+  transform: rotateY(180deg);
+}
+.note-cover-face {
+  backface-visibility: hidden;
+}
+.note-cover-face--front {
+  display: block;
+  transform-style: preserve-3d;
+}
+.note-cover-face--back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
 }
 
 .note-info-meta {
@@ -307,53 +396,50 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
     height: 48vh;
   }
 
+  .note-cover-face img.note-cover-image,
+  .note-cover-face--back .note-cover-image {
+    max-height: 26vh;
+    max-width: 32vw;
+  }
+
   .note-info-meta,
   .note-info-description {
     font-size: 0.8rem;
   }
+
+  .timeline-nav {
+    width: 48px;
+    height: 48px;
+  }
+  .timeline-nav--prev {
+    left: 8px;
+  }
+  .timeline-nav--next {
+    right: 8px;
+  }
 }
 
-.note-cover-image {
-  width: auto; /* 너비는 이미지 비율에 맞춰 자동 조정 */
-  height: 100%; /* 높이는 컨테이너 높이에 맞춤 (통일된 높이: 60vh) */
+.note-cover-face img.note-cover-image {
+  width: auto;
+  height: 100%;
+  max-height: 60vh;
+  max-width: 28vw;
   display: block;
-  object-fit: contain; /* 이미지 비율 유지 */
-  object-position: bottom; /* 하단 정렬 */
-  transition: opacity 0.3s ease;
-  transform: scale(0.8); /* 이미지 크기를 0.8배로 축소 */
+  object-fit: contain;
+  object-position: bottom;
+  filter: brightness(var(--timeline-brightness, 1));
+  transition: filter 0.2s ease-out;
+}
+
+.note-cover-face--back .note-cover-image {
+  max-height: 60vh;
+  max-width: 28vw;
+  object-fit: contain;
 }
 
 .note-cover-image--error {
   outline: 1px dashed rgba(200, 0, 0, 0.4);
   background: rgba(200, 0, 0, 0.06);
-}
-
-.note-cover-front {
-  position: relative; /* 컨테이너 크기 결정을 위해 relative로 변경 */
-  width: auto;
-  height: 100%;
-  opacity: 1;
-  z-index: 2;
-}
-
-.note-cover-back {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: auto;
-  height: 100%;
-  opacity: 0;
-  z-index: 1;
-  pointer-events: none; /* hover 시에도 앞 이미지를 클릭할 수 있도록 */
-}
-
-/* hover 시 뒷면 보여주기는 focus 상태의 노트에만 적용 */
-.note-card.note-focus:hover .note-cover-front {
-  opacity: 0;
-}
-
-.note-card.note-focus:hover .note-cover-back {
-  opacity: 1;
 }
 
 .note-card-fallback {
