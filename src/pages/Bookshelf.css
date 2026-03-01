@@ -38,7 +38,7 @@ body.bookshelf-active {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 0 16px;
+  padding: 0 80px;
   box-sizing: border-box;
 }
 
@@ -58,7 +58,7 @@ body.bookshelf-active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 48px;
 }
 
 /* 한 줄 행: 노트 140px 고정, --bookshelf-overlap(음수 가능)으로 겹침. JS에서 설정 */
