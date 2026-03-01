@@ -1,7 +1,7 @@
 /**
  * Bookshelf 페이지 스타일
- * 노트 너비·높이 240px 고정, 줄어들지 않음. 100vw를 채우도록 간격(음수 가능)으로 겹침.
- * 겹침이 너무 크면 JS에서 2줄로 나눔.
+ * 3줄 구조: 타임라인 1줄 + 타입별 2줄(2종류씩).
+ * 노트 140×140px, 100vw·100vh에 맞춰 스크롤 없이 표시.
  */
 
 /* --- 레이아웃 --- */
@@ -29,11 +29,12 @@ body.bookshelf-active {
   background-color: var(--app-bg);
 }
 
-/* 뷰포트: 100vw. 행들이 여기 들어감 */
+/* 뷰포트: 100vw × 100vh. 행들이 여기 들어감 */
 .bookshelf-viewport {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -41,15 +42,26 @@ body.bookshelf-active {
   box-sizing: border-box;
 }
 
-/* 2줄일 때 행들을 감싸는 래퍼 */
+#bookshelf-rows-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+/* 3줄 행들을 감싸는 래퍼 */
 .bookshelf-rows-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  justify-content: center;
+  gap: 12px;
 }
 
-/* 한 줄 행: 노트 240px 고정, --bookshelf-overlap(음수 가능)으로 겹침. JS에서 설정 */
+/* 한 줄 행: 노트 140px 고정, --bookshelf-overlap(음수 가능)으로 겹침. JS에서 설정 */
 .bookshelf-row {
   display: flex;
   flex-direction: row;
@@ -58,11 +70,11 @@ body.bookshelf-active {
   justify-content: center;
 }
 
-/* 노트 한 권: 240×240 고정, 줄어들지 않음. margin-left로 겹침 */
+/* 노트 한 권: 140×140 고정, 줄어들지 않음. margin-left로 겹침 */
 .bookshelf-item {
   flex-shrink: 0;
-  width: 240px;
-  height: 240px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,11 +98,11 @@ body.bookshelf-active {
     0 4px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* 표지 이미지: 240×240 안에 비율 유지 */
+/* 표지 이미지: 140×140 안에 비율 유지 */
 .bookshelf-cover {
   display: block;
-  width: 240px;
-  height: 240px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   border-radius: 4px;
 }

@@ -1,6 +1,7 @@
 /**
  * Bookshelf 페이지
- * 노트 240×240 고정, 100vw를 채우도록 겹침(음수 간격). 겹침이 크면 2줄로 나눔.
+ * 3줄 구조: 1줄 타임라인 노트, 2~3줄 타입별 노트(2종류씩).
+ * 노트 크기 고정, 100vw·100vh에 맞춰 겹침 적용.
  */
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
@@ -10,9 +11,9 @@ import './Bookshelf.css';
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-const ITEM_SIZE_PX = 240;
-/** 겹침이 이 값(px)보다 크면 2줄로 나눔 */
-const OVERLAP_THRESHOLD_PX = 240;
+const ITEM_SIZE_PX = 140;
+/** 한 줄에 넣을 타입 종류 수 */
+const TYPES_PER_ROW = 2;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -36,31 +37,35 @@ function getOverlapForRow(viewportWidth, itemCount) {
 }
 
 /**
- * 1줄 vs 2줄 결정 후, 행별 overlap 적용해 DOM 구성.
- * - 1줄: 한 row에 전부, --bookshelf-overlap 설정
- * - 2줄: rows-wrap 안에 row 두 개, 각 row에 --bookshelf-overlap 설정
+ * 타입 아이템을 type별로 그룹화 후, TYPES_PER_ROW개씩 묶어 행 배열로 반환.
+ * @returns {Array<Array<{id, title, coverFrontUrl}>>} 각 행의 노트 배열
  */
-function buildRows(allNotes, viewportWidth) {
-  const n = allNotes.length;
-  if (n === 0) return { rows: [], useTwoRows: false };
+function groupTypeItemsByRow(typeItems) {
+  if (!Array.isArray(typeItems) || typeItems.length === 0) return [];
 
-  const overlap1 = getOverlapForRow(viewportWidth, n);
-  const useTwoRows = n > 1 && overlap1 > OVERLAP_THRESHOLD_PX;
-
-  if (!useTwoRows) {
-    return { rows: [allNotes], useTwoRows: false, overlaps: [Math.round(overlap1)] };
+  const byType = new Map();
+  for (const item of typeItems) {
+    if (!item?.id) continue;
+    const type = String(item.type ?? item.title ?? '기타').trim() || '기타';
+    if (!byType.has(type)) byType.set(type, []);
+    byType.get(type).push({
+      id: item.id,
+      title: item.title ?? '제목 없음',
+      coverFrontUrl: item.coverFrontUrl || null
+    });
   }
 
-  const half = Math.ceil(n / 2);
-  const row1 = allNotes.slice(0, half);
-  const row2 = allNotes.slice(half);
-  const overlapR1 = getOverlapForRow(viewportWidth, row1.length);
-  const overlapR2 = getOverlapForRow(viewportWidth, row2.length);
-  return {
-    rows: [row1, row2],
-    useTwoRows: true,
-    overlaps: [Math.round(overlapR1), Math.round(overlapR2)]
-  };
+  const types = Array.from(byType.keys());
+  const rows = [];
+  const maxTypeRows = 2;
+
+  for (let i = 0; i < types.length && rows.length < maxTypeRows; i += TYPES_PER_ROW) {
+    const chunk = types.slice(i, i + TYPES_PER_ROW);
+    const rowNotes = chunk.flatMap((t) => byType.get(t));
+    if (rowNotes.length > 0) rows.push(rowNotes);
+  }
+
+  return rows;
 }
 
 export function renderBookshelf() {
@@ -97,30 +102,27 @@ export function renderBookshelf() {
     `;
   }
 
-  function renderBookshelfRows(allNotes) {
+  function renderBookshelfRows(timelineNotes, typeRows) {
     const vw = viewport.clientWidth;
-    const { rows, useTwoRows, overlaps } = buildRows(allNotes, vw);
+    const allRows = [];
+    if (timelineNotes.length > 0) allRows.push(timelineNotes);
+    typeRows.forEach((r) => allRows.push(r));
 
-    if (rows.length === 0) {
+    if (allRows.length === 0) {
       container.innerHTML = '<div class="bookshelf-empty">표시할 노트가 없습니다.</div>';
       container.removeAttribute('aria-hidden');
       return;
     }
 
-    if (useTwoRows && rows.length === 2) {
-      container.innerHTML = `
-        <div class="bookshelf-rows-wrap">
-          <div class="bookshelf-row" style="--bookshelf-overlap: -${overlaps[0]}px;">${rows[0].map(itemHtml).join('')}</div>
-          <div class="bookshelf-row" style="--bookshelf-overlap: -${overlaps[1]}px;">${rows[1].map(itemHtml).join('')}</div>
-        </div>
-      `;
-    } else {
-      const overlap = overlaps[0] || 0;
-      container.innerHTML = `
-        <div class="bookshelf-row" style="--bookshelf-overlap: -${overlap}px;">${rows[0].map(itemHtml).join('')}</div>
-      `;
-    }
+    const overlaps = allRows.map((row) => Math.round(getOverlapForRow(vw, row.length)));
+    const rowEls = allRows
+      .map((row, i) => {
+        const overlap = overlaps[i] || 0;
+        return `<div class="bookshelf-row" style="--bookshelf-overlap: -${overlap}px;">${row.map(itemHtml).join('')}</div>`;
+      })
+      .join('');
 
+    container.innerHTML = `<div class="bookshelf-rows-wrap">${rowEls}</div>`;
     container.removeAttribute('aria-hidden');
     container.querySelectorAll('.bookshelf-cover').forEach((img) => {
       img.addEventListener('error', () => img.classList.add('bookshelf-cover--error'), { once: true });
@@ -131,33 +133,28 @@ export function renderBookshelf() {
     .then(([notebookResult, typeResult]) => {
       const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
       const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
-      const byId = new Map();
-      const add = (item) => {
-        if (item?.id && !byId.has(item.id)) {
-          byId.set(item.id, {
-            id: item.id,
-            title: item.title ?? '제목 없음',
-            coverFrontUrl: item.coverFrontUrl || null
-          });
-        }
-      };
-      (Array.isArray(notebooks) ? notebooks : []).forEach(add);
-      (Array.isArray(typeItems) ? typeItems : []).forEach(add);
-      const allNotes = Array.from(byId.values());
+
+      const timelineNotes = (Array.isArray(notebooks) ? notebooks : []).map((n) => ({
+        id: n.id,
+        title: n.title ?? '제목 없음',
+        coverFrontUrl: n.coverFrontUrl || null
+      }));
+
+      const typeRows = groupTypeItemsByRow(Array.isArray(typeItems) ? typeItems : []);
 
       loading.remove();
 
-      if (allNotes.length === 0) {
+      if (timelineNotes.length === 0 && typeRows.length === 0) {
         container.innerHTML = '<div class="bookshelf-empty">표시할 노트가 없습니다.</div>';
         container.removeAttribute('aria-hidden');
         return;
       }
 
-      renderBookshelfRows(allNotes);
+      renderBookshelfRows(timelineNotes, typeRows);
 
       const resizeObserver = new ResizeObserver(() => {
-        if (container.querySelector('.bookshelf-empty') || allNotes.length === 0) return;
-        renderBookshelfRows(allNotes);
+        if (container.querySelector('.bookshelf-empty')) return;
+        renderBookshelfRows(timelineNotes, typeRows);
       });
       resizeObserver.observe(viewport);
     })
