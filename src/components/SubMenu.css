@@ -3,7 +3,7 @@
 .sub-menu {
   /* 서브 메뉴를 상단에 고정 및 가운데 정렬 */
   position: fixed;
-  top: 0.75rem; /* TopNavigation과 겹치도록 */
+  top: 80px; /* TopNavigation 하단 아래 배치 (네비 높이 72px + 여백) */
   left: 50%;
   transform: translateX(-50%); /* 가로만 중앙 정렬 */
   background: unset;
