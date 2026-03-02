@@ -13,7 +13,14 @@
 
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { getNotionTypeItems } from '../utils/notionByType.js';
+import { renderFilterSubMenu } from '../components/FilterSubMenu.js';
+import { renderNotePdfViewer } from './NoteDetail.js';
 import './Jukebox.css';
+
+const ICONS = {
+  close:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>"
+};
 
 const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';
 
@@ -375,6 +382,130 @@ export function renderJukebox() {
     })
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);
+      gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
+    });
+}
+
+function openPdfModal(noteId, pdfUrl = null) {
+  const existing = document.querySelector('.pdf-modal-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-modal-overlay';
+  overlay.innerHTML = `
+    <div class="pdf-modal" role="dialog" aria-modal="true">
+      <button class="pdf-modal-close" type="button" aria-label="닫기">${ICONS.close}</button>
+      <div class="pdf-modal-content"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.classList.add('pdf-modal-open');
+
+  const content = overlay.querySelector('.pdf-modal-content');
+  const cleanupViewer = renderNotePdfViewer(content, noteId, { mode: 'modal', pdfUrl });
+
+  const closeModal = () => {
+    cleanupViewer?.();
+    overlay.remove();
+    document.body.classList.remove('pdf-modal-open');
+    document.removeEventListener('keydown', handleEscape);
+  };
+
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') closeModal();
+  };
+
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  overlay.querySelector('.pdf-modal-close')?.addEventListener('click', closeModal);
+  document.addEventListener('keydown', handleEscape);
+}
+
+/**
+ * Jukebox 페이지 + 필터 (Timeline: 기간별, By Type: 타입별)
+ * @param {Object} options
+ * @param {'period'|'type'} options.filterMode
+ * @param {string} options.basePath - '/timeline' | '/by-type'
+ * @param {string} options.selectedValue - 현재 선택된 필터 값
+ * @param {Array<{value, label, years?, detail?}>} options.filterOptions
+ * @param {() => Promise<Array>} options.loadNotes
+ * @param {(notes: Array) => Record<string, number>} options.getNotesCount
+ * @param {(note: Object) => string} options.resolveFilterKey
+ */
+export function renderJukeboxWithFilter(options) {
+  const {
+    filterMode,
+    basePath,
+    selectedValue,
+    filterOptions,
+    loadNotes,
+    getNotesCount,
+    resolveFilterKey
+  } = options;
+
+  const mainContent = document.getElementById('main-content');
+  if (!mainContent) return;
+
+  let subMenuContainer = document.getElementById('sub-menu');
+  if (!subMenuContainer) {
+    subMenuContainer = document.createElement('aside');
+    subMenuContainer.id = 'sub-menu';
+    document.body.appendChild(subMenuContainer);
+  }
+
+  mainContent.className = 'app-main jukebox-active';
+  const mainWrapper = mainContent.closest('.main-wrapper');
+  if (mainWrapper) mainWrapper.classList.add('jukebox-active');
+  document.body.classList.add('jukebox-active');
+
+  mainContent.innerHTML = `
+    <div class="jukebox-fullscreen" id="jukebox-fullscreen">
+      <div class="jukebox-gallery-wrap">
+        <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"><span class="jukebox-nav-icon">${JUKEBOX_NAV_ICON_SVG}</span></button>
+        <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"><span class="jukebox-nav-icon jukebox-nav-icon--next">${JUKEBOX_NAV_ICON_SVG}</span></button>
+        <div class="jukebox-gallery centerized" id="jukebox-gallery">
+          <div class="jukebox-loading" role="status" aria-live="polite">
+            <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width:300px;height:300px" autoplay loop></dotlottie-wc>
+            <p class="jukebox-loading-text">노트를 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const gallery = document.getElementById('jukebox-gallery');
+  const prevBtn = document.getElementById('jukebox-prev');
+  const nextBtn = document.getElementById('jukebox-next');
+
+  loadNotes()
+    .then((allNotes) => {
+      const counts = getNotesCount(allNotes || []);
+      renderFilterSubMenu(selectedValue, basePath, filterOptions, counts);
+
+      const filtered = (allNotes || []).filter((note) => resolveFilterKey(note) === selectedValue);
+      fillJukeboxGallery(gallery, prevBtn, nextBtn, filtered);
+
+      const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
+      cards.forEach((card, i) => {
+        const note = filtered[i];
+        if (!note) return;
+        card.setAttribute('data-note-id', note.id);
+        card.setAttribute('data-pdf-url', note.pdfUrl || '');
+        card.addEventListener('click', () => {
+          if (card.classList.contains('jukebox-card--centered')) {
+            openPdfModal(note.id, note.pdfUrl || null);
+          } else {
+            const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
+            gallery.scrollTo({
+              left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+    })
+    .catch((err) => {
+      console.warn('Jukebox filter: 노트 로드 실패', err);
+      renderFilterSubMenu(selectedValue, basePath, filterOptions, {});
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
     });
 }

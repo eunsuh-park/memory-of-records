@@ -98,30 +98,22 @@ class Router {
 
     // Library(Jukebox/Bookshelf) 페이지가 아닐 때 관련 클래스 제거
     if (!path.startsWith('/jukebox') && !path.startsWith('/bookshelf')) {
-      document.body.classList.remove('library-active', 'jukebox-active', 'bookshelf-active');
-      mainContent?.classList.remove('library-active', 'jukebox-active', 'bookshelf-active');
-      mainContent?.closest('.main-wrapper')?.classList.remove('library-active', 'jukebox-active', 'bookshelf-active');
+      document.body.classList.remove('library-active', 'bookshelf-active');
+      mainContent?.classList.remove('library-active', 'bookshelf-active');
+      mainContent?.closest('.main-wrapper')?.classList.remove('library-active', 'bookshelf-active');
+    }
+
+    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type도 Jukebox 사용)
+    if (!path.startsWith('/jukebox') && !path.startsWith('/timeline') && !path.startsWith('/by-type')) {
+      document.body.classList.remove('jukebox-active');
+      mainContent?.classList.remove('jukebox-active');
+      mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
 
     // Timeline/By type 페이지가 아닐 때 서브 메뉴 제거
     if (!path.startsWith('/timeline') && !path.startsWith('/by-type')) {
-      document.body.classList.remove(
-        'timeline-active',
-        'period-elementary',
-        'period-middle-high',
-        'period-university',
-        'period-after-graduation'
-      );
       const subMenu = document.getElementById('sub-menu');
-      if (subMenu) {
-        subMenu.remove();
-      }
-      
-      // Timeline/By type 페이지가 아닐 때 TimelineScrollBar 제거
-      const timelineScrollBar = document.getElementById('timeline-scrollbar');
-      if (timelineScrollBar) {
-        timelineScrollBar.remove();
-      }
+      if (subMenu) subMenu.remove();
     }
 
     // 네비게이션 업데이트
