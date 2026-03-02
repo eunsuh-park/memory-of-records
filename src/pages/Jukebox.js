@@ -62,7 +62,7 @@ const COVER_FLOW_Z_INDEX_SIDE = 1;
  * - translateZ: 중앙에서 앞으로, 양옆 0
  * - z-index: 중앙에 가까울수록 높게 (겹침 시 중앙 카드가 위로)
  */
-export function updateCardAngles(gallery) {
+function updateCardAngles(gallery) {
   if (!gallery) return;
   const viewportCenterX = window.innerWidth / 2;
   const halfWidth = window.innerWidth / 2;
@@ -125,7 +125,7 @@ export function updateCardAngles(gallery) {
  * (휠/터치/마우스 자동 스크롤 모두 scrollLeft를 바꾸므로 동일하게 scroll 이벤트로 연동됨.)
  * 반응형: window.innerWidth 기준으로 ratio 계산하므로 뷰포트 변경 시 resize 이벤트로 자동 재계산됨.
  */
-export function enableCenterPerspective(gallery) {
+function enableCenterPerspective(gallery) {
   if (!gallery) return;
   const onUpdate = () => {
     if (!gallery.isConnected) {
@@ -146,7 +146,7 @@ export function enableCenterPerspective(gallery) {
  * - 이전/다음 버튼: 클릭 시 카드 한 장씩 이동.
  * 반응형: 터치 기기에서는 mousemove가 없어 호버 스크롤은 동작하지 않음. 스와이프·버튼·휠만 사용.
  */
-export function enableGalleryScroll(gallery, prevBtn, nextBtn) {
+function enableGalleryScroll(gallery, prevBtn, nextBtn) {
   if (!gallery) return;
   let scrolling = null;
   let edgeDelayTimer = null;
