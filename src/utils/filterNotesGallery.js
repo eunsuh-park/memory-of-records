@@ -1,7 +1,6 @@
 /**
  * FilterNotesGallery - Timeline / By Type 공통 갤러리 스크롤 로직
- * CSS scroll-driven animations 사용 (filterNotesGallery.js의 updateNoteAngles 대체)
- * enableCenterPerspective: note-card--centered만 갱신 (호버 플립용)
+ * Jukebox와 동일: 스크롤 시 카드별 --jukebox-* CSS 변수로 원근감(rotateY/scale/translateZ/brightness/shadow) 갱신
  */
 
 const EDGE_ZONE_LEFT = 0.12;
@@ -10,14 +9,22 @@ const EDGE_HOVER_DELAY_MS = 280;
 const EDGE_SCROLL_SPEED = 18;
 const WHEEL_SCROLL_SPEED = 1.2;
 
+/** Jukebox.js와 동일한 Cover Flow 상수 */
+const COVER_FLOW_ANGLE_DEG = 45;
+const COVER_FLOW_SCALE_CENTER = 1.25;
+const COVER_FLOW_SCALE_SIDE = 0.88;
+const COVER_FLOW_Z_CENTER = '1.5em';
+const COVER_FLOW_Z_SIDE = '0em';
+const COVER_FLOW_Z_INDEX_CENTER = 100;
+const COVER_FLOW_Z_INDEX_SIDE = 1;
+
 /**
- * 중앙에 가장 가까운 카드에 note-card--centered 적용 (호버 시 뒷표지 플립용)
+ * Jukebox와 동일: 뷰포트 기준 카드 위치에 따라 --jukebox-* 변수·z-index·note-card--centered 갱신
  */
-function updateCenteredCard(timelinePage) {
+function updateCardAngles(timelinePage) {
   if (!timelinePage) return;
-  const viewportCenterX = timelinePage.scrollLeft + timelinePage.clientWidth / 2;
-  const halfWidth = timelinePage.clientWidth / 2;
-  const timelineRect = timelinePage.getBoundingClientRect();
+  const viewportCenterX = window.innerWidth / 2;
+  const halfWidth = window.innerWidth / 2;
   const cards = timelinePage.querySelectorAll('.note-card[data-note-id]');
 
   let closestCard = null;
@@ -25,14 +32,46 @@ function updateCenteredCard(timelinePage) {
 
   cards.forEach((card) => {
     const rect = card.getBoundingClientRect();
-    const cardCenterX =
-      rect.left - timelineRect.left + timelinePage.scrollLeft + rect.width / 2;
+    const cardCenterX = rect.left + rect.width / 2;
     const offset = cardCenterX - viewportCenterX;
+    const ratio = Math.max(-1, Math.min(1, offset / halfWidth));
     const absOffset = Math.abs(offset);
     if (absOffset < closestAbsOffset) {
       closestAbsOffset = absOffset;
       closestCard = card;
     }
+
+    const angle = -ratio * COVER_FLOW_ANGLE_DEG;
+    const absRatio = Math.abs(ratio);
+    const scale =
+      COVER_FLOW_SCALE_SIDE +
+      (1 - absRatio) * (COVER_FLOW_SCALE_CENTER - COVER_FLOW_SCALE_SIDE);
+    const translateZ = absRatio > 0.5 ? COVER_FLOW_Z_SIDE : COVER_FLOW_Z_CENTER;
+    const zIndex = Math.round(
+      COVER_FLOW_Z_INDEX_SIDE +
+        (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE)
+    );
+
+    const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
+    const brightness = 1 - (1 - 0.48) * absRatio;
+
+    const gradientSlope = 0.42;
+    const minShadowOpacity = 0.03;
+    const baseShadowOpacity = 0.32;
+    const shadowOpacity =
+      (baseShadowOpacity - absRatio * gradientSlope) * 0.5;
+    const shadowBlur = 22 - Math.round(absRatio * 10);
+
+    card.style.setProperty(
+      '--jukebox-shadow',
+      `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(minShadowOpacity, shadowOpacity).toFixed(2)})`
+    );
+    card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
+    card.style.setProperty('--jukebox-scale', String(scale));
+    card.style.setProperty('--jukebox-translate-z', translateZ);
+    card.style.setProperty('--jukebox-hover-x', hoverX);
+    card.style.setProperty('--jukebox-brightness', String(brightness));
+    card.style.zIndex = String(zIndex);
   });
 
   cards.forEach((card) => {
@@ -41,7 +80,7 @@ function updateCenteredCard(timelinePage) {
 }
 
 /**
- * note-card--centered 클래스 갱신 (호버 플립용, scroll-driven 애니메이션은 CSS 담당)
+ * 스크롤/리사이즈 시 카드 원근감(JS 변수) + note-card--centered 갱신
  */
 export function enableCenterPerspective(timelinePage) {
   if (!timelinePage) return;
@@ -50,7 +89,7 @@ export function enableCenterPerspective(timelinePage) {
       window.removeEventListener('resize', onUpdate);
       return;
     }
-    updateCenteredCard(timelinePage);
+    updateCardAngles(timelinePage);
   };
   timelinePage.addEventListener('scroll', onUpdate, { passive: true });
   window.addEventListener('resize', onUpdate);

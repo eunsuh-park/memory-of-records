@@ -225,35 +225,12 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
 }
 
 /* =============================================================================
-   Cover Flow - Scroll-driven Animations (Jukebox와 동일: 개별 노트에 원근감)
-   - view-timeline으로 카드가 스크롤포트를 지날 때 추적
-   - 카드 전체에 translateZ / rotateY / scale 적용 → 개별 노트 원근감
+   Cover Flow - Jukebox.css 그대로: JS에서 --jukebox-* 변수로 원근감 적용
+   --jukebox-rotate-y, --jukebox-scale, --jukebox-translate-z, --jukebox-shadow,
+   --jukebox-hover-x, --jukebox-brightness (filterNotesGallery.js updateCardAngles)
    ============================================================================= */
 
-@keyframes cover-flow-card {
-  0% {
-    z-index: 1;
-    transform: translateZ(-2em) rotateY(-45deg) scale(0.85);
-  }
-  35% {
-    z-index: 2;
-    transform: translateZ(-0.5em) rotateY(-25deg) scale(0.95);
-  }
-  50% {
-    z-index: 100;
-    transform: translateZ(1em) rotateY(0deg) scale(1.25);
-  }
-  65% {
-    z-index: 2;
-    transform: translateZ(-0.5em) rotateY(25deg) scale(0.95);
-  }
-  100% {
-    z-index: 1;
-    transform: translateZ(-2em) rotateY(45deg) scale(0.85);
-  }
-}
-
-/* note-card: Jukebox처럼 카드 전체에 3D 변환 (원근감) */
+/* note-card: Jukebox .jukebox-gallery > div.jukebox-card와 동일 */
 .note-card {
   background-color: transparent;
   border: none;
@@ -272,22 +249,28 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   margin-left: -2vw;
   white-space: normal;
   position: relative;
-  -webkit-box-reflect: below 0.5em linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
-  view-timeline-name: --note-card-in-view;
-  view-timeline-axis: inline;
-  animation: linear cover-flow-card both;
-  animation-timeline: --note-card-in-view;
+  -webkit-box-reflect: below 0.5em
+    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   transform-origin: center center;
   transform-style: preserve-3d;
+  transform:
+    translate3d(0, 0, var(--jukebox-translate-z, 0))
+    rotateY(var(--jukebox-rotate-y, 0deg))
+    scale(var(--jukebox-scale, 1));
+  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
+  box-shadow: var(--jukebox-shadow, none);
 }
 
-/* 중앙 카드 호버 시: Jukebox와 동일 (앞으로 당기고 확대) */
+/* 호버: Jukebox .jukebox-card.jukebox-card--centered:hover와 동일 */
 .note-card.note-card--centered:hover,
 .note-card.note-card--centered:active {
+  transform:
+    translateX(var(--jukebox-hover-x, 0))
+    translateZ(1.5em)
+    scale(1.25)
+    rotateY(0deg);
   z-index: 101;
-  transform: translateZ(1.5em) rotateY(0deg) scale(1.25);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
-  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
 }
 
 .note-card.note-card--centered:hover .note-cover-inner,
@@ -295,7 +278,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   transform: rotateY(180deg);
 }
 
-/* 카드 위 그라데이션 오버레이 (Jukebox와 동일: 비중앙 0.25, 중앙 0) */
+/* 카드 위 오버레이 (Jukebox와 동일: 비활성·어두운 느낌은 img brightness로만) */
 .note-card::after {
   position: absolute;
   display: block;
@@ -305,15 +288,13 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   bottom: 0;
   transition: opacity 0.2s ease-out;
   background: linear-gradient(90deg, #000, transparent);
-  opacity: 0.25;
+  opacity: 0;
   content: '';
   z-index: 2;
   pointer-events: none;
 }
 
-.note-card.note-card--centered::after,
-.note-card.note-card--centered:hover::after,
-.note-card.note-card--centered:active::after {
+.note-card.note-card--centered:hover::after {
   opacity: 0;
 }
 
@@ -406,19 +387,20 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background: transparent;
 }
 
-/* 이미지 (Jukebox와 동일: 38vh/28vw, 원근감은 카드에서 처리) */
+/* 이미지 (Jukebox와 동일: 38vh/28vw, brightness로 양옆 어둡게) */
 .note-cover-face img.note-cover-image,
 .note-card .note-cover-container img.note-cover-image {
-  width: auto;
-  height: 100%;
-  max-height: 38vh;
-  max-width: 28vw;
   display: block;
   z-index: 1;
   position: relative;
+  height: auto;
+  width: auto;
+  max-height: 38vh;
+  max-width: 28vw;
   object-fit: contain;
   object-position: bottom;
-  transform-origin: center center;
+  filter: brightness(var(--jukebox-brightness, 1));
+  transition: filter 0.2s ease-out;
 }
 
 .note-cover-face--back .note-cover-image {
