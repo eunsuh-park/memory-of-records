@@ -264,13 +264,19 @@ function renderNotesListForType(typeMain, selectedType) {
         pdfUrl
       )}">
           <div class="note-card-link">
-            <div class="note-cover-container">
-              <img src="${escapeHtml(coverSrc)}" alt="노트 표지" class="note-cover-image note-cover-front" loading="lazy" referrerpolicy="no-referrer" />
-              <img src="${escapeHtml(backCoverSrc)}" alt="노트 뒷표지" class="note-cover-image note-cover-back" loading="lazy" referrerpolicy="no-referrer" />
-            </div>
             <div class="note-info">
               <h5 class="note-info-meta">${typeLabel}</h5>
               <p class="note-info-description">${description}</p>
+            </div>
+            <div class="note-cover-container">
+              <div class="note-cover-inner">
+                <div class="note-cover-face note-cover-face--front">
+                  <img src="${escapeHtml(coverSrc)}" alt="노트 표지" class="note-cover-image" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+                <div class="note-cover-face note-cover-face--back">
+                  <img src="${escapeHtml(backCoverSrc)}" alt="노트 뒷표지" class="note-cover-image note-cover-back" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+              </div>
             </div>
           </div>
         </article>
@@ -486,25 +492,19 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
         pdfUrl
       )}">
           <div class="note-card-link">
-            <div class="note-cover-container">
-              <img 
-                src="${escapeHtml(coverSrc)}" 
-                alt="노트 표지" 
-                class="note-cover-image note-cover-front"
-                loading="lazy"
-                referrerpolicy="no-referrer"
-              />
-              <img 
-                src="${escapeHtml(backCoverSrc)}" 
-                alt="노트 뒷표지" 
-                class="note-cover-image note-cover-back"
-                loading="lazy"
-                referrerpolicy="no-referrer"
-              />
-            </div>
             <div class="note-info">
               <h5 class="note-info-meta">${typeLabel}</h5>
               <p class="note-info-description">${description}</p>
+            </div>
+            <div class="note-cover-container">
+              <div class="note-cover-inner">
+                <div class="note-cover-face note-cover-face--front">
+                  <img src="${escapeHtml(coverSrc)}" alt="노트 표지" class="note-cover-image" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+                <div class="note-cover-face note-cover-face--back">
+                  <img src="${escapeHtml(backCoverSrc)}" alt="노트 뒷표지" class="note-cover-image note-cover-back" loading="lazy" referrerpolicy="no-referrer" />
+                </div>
+              </div>
             </div>
           </div>
         </article>

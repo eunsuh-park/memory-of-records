@@ -9,50 +9,15 @@
  */
 
 /* =============================================================================
-   By type 전용: 노트 리스트 (간격 축소, 겹침, 중앙에서 멀어질수록 크기 축소)
+   By type 전용: Timeline/Jukebox와 동일한 갤러리 스타일 (겹침 -2vw, scroll-driven)
    ============================================================================= */
 
-.by-type-page .notes-list {
-  gap: 0;
-}
 .by-type-page .notes-list .note-placeholder,
 .by-type-page .notes-list .type-list-intro {
   margin-right: 0;
 }
 .by-type-page .notes-list .note-card {
-  position: relative;
-  margin-left: -1.5rem; /* 좌우로 겹치게 */
-  margin-right: -1.5rem;
-}
-.by-type-page .note-card.note-focus {
-  z-index: 3;
-}
-.by-type-page .note-card.note-adjacent {
-  z-index: 2;
-}
-.by-type-page .note-card.note-adjacent-adjacent {
-  z-index: 1;
-}
-.by-type-page .note-card.note-outer {
-  z-index: 0;
-}
-.by-type-page .note-card.note-focus {
-  opacity: 1;
-  transform: scale(1);
-}
-.by-type-page .note-card.note-adjacent {
-  opacity: 0.85;
-  transform: scale(0.88);
-}
-.by-type-page .note-card.note-adjacent-adjacent {
-  opacity: 0.55;
-  transform: scale(0.76);
-  filter: saturate(0.5);
-}
-.by-type-page .note-card.note-outer {
-  opacity: 0.3;
-  transform: scale(0.64);
-  filter: saturate(0.2);
+  margin-left: -2vw; /* Timeline/Jukebox와 동일 */
 }
 
 /* =============================================================================

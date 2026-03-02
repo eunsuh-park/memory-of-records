@@ -1,22 +1,27 @@
-/* Timeline 페이지 스타일 */
+/* Timeline 페이지 스타일 - Jukebox와 동일한 디자인 */
 
-/* Timeline 페이지 전용 스타일 오버라이드 (주크박스와 동일한 앱 배경) */
+/* 전역 (Jukebox와 동일) */
 .main-wrapper.timeline-active,
 #main-content.timeline-active,
 .app-main.timeline-active {
-  height: 100vh !important;
-  max-height: 100vh !important;
-  overflow: hidden !important;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   box-sizing: border-box;
-  padding-top: 0 !important;
-  background-color: var(--app-bg) !important;
-  display: flex !important;
-  flex-direction: column !important;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* 배경색 전환 애니메이션 */
 body.timeline-active {
-  background-color: var(--app-bg);
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  overflow: hidden;
+  position: relative;
+  height: 100vh;
+  background: var(--app-bg);
+  user-select: none;
   transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -36,27 +41,44 @@ body.timeline-active.period-after-graduation {
   background-color: var(--app-bg);
 }
 
-/* Jukebox 스타일 갤러리 래퍼 (버튼 + 스크롤 영역) */
+/* 갤러리 래퍼 (Jukebox .jukebox-fullscreen과 동일: 그라데이션 배경) */
 .timeline-gallery-wrap {
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
-  height: 100%;
   position: relative;
   width: 100%;
+  background: linear-gradient(
+    var(--app-bg) 40%,
+    var(--app-bg-alt, #2f3847) 60%,
+    var(--app-bg) 100%
+  );
+  height: 100%;
   display: flex;
 }
 
+/* 스크롤 영역 (Jukebox .jukebox-gallery와 동일: 패딩, 원근, 스냅, 스크롤바 숨김) */
 .timeline-page {
   flex: 1;
   min-width: 0;
   height: 100%;
-  overflow-y: hidden;
+  padding: 40vh 0;
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
   overflow-x: auto;
+  perspective: 60em;
+  perspective-origin: 50% 50%;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   box-sizing: border-box;
+}
+
+.timeline-page::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
 }
 
 /* 이전/다음 버튼 (Jukebox와 동일) */
@@ -109,10 +131,6 @@ body.timeline-active.period-after-graduation {
   transform: scaleX(-1);
 }
 
-.timeline-page::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
 .timeline-loading-overlay {
   position: fixed;
   inset: 0;
@@ -144,15 +162,15 @@ body.timeline-active.period-after-graduation {
 }
 
 .timeline-loading-lottie {
-  width: 160px;
-  height: 160px;
+  width: 140px;
+  height: 140px;
   display: block;
 }
 
 .timeline-loading-text {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 /* 로딩 중에는 상단 서브 메뉴와 하단 서클 인디케이터를 숨겼다가,
@@ -169,15 +187,14 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-/* Jukebox.css 레퍼런스: 이미지 max-height 38vh, max-width 28vw
-   필터(Timeline/By Type) 페이지용으로 카드·이미지 축소 */
+/* 컨테이너 (Jukebox에는 단일 갤러리만 있음; 여기서는 스크롤바·서브메뉴 여백) */
 .timeline-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-height: 100%;
+  height: fit-content;
+  min-height: 0;
   width: fit-content;
-  padding: 100px 0 0 0; /* 상단 서브 메뉴와 겹침 방지 */
+  padding: 0;
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
@@ -186,47 +203,25 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
 
 .timeline-main {
   display: flex;
-  height: 100%;
+  height: auto;
   width: fit-content;
   padding: 0;
   box-sizing: border-box;
   align-items: center;
-  perspective: 60em;
-  perspective-origin: 50% 50%;
+  justify-content: center;
 }
 
-/* 노트 리스트 (모든 노트가 하나의 리스트로 합쳐짐) */
+/* 노트 리스트 (Jukebox와 동일: 카드 겹침 margin-left -2vw, gap 없음) */
 .notes-list {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: 0;
   flex-wrap: nowrap;
-  height: 100%;
   align-items: center;
   width: fit-content;
-  padding: 0 2rem;
+  padding: 0;
   box-sizing: border-box;
-  transition: padding-bottom 0.3s ease; /* 패딩 변경 시 부드러운 전환 */
-  /* 스크롤바 스타일링 */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-}
-
-.notes-list::-webkit-scrollbar {
-  height: 8px;
-}
-
-.notes-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.notes-list::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-radius: 4px;
-}
-
-.notes-list::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
 }
 
 /* =============================================================================
@@ -266,22 +261,26 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   }
 }
 
-/* note-card: view-timeline + z-index 애니메이션. transform은 img에만 적용 */
+/* note-card (Jukebox .jukebox-card와 동일: 겹침 -2vw, 반사, view-timeline) */
 .note-card {
   background-color: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: 0;
   padding: 0;
   overflow: visible;
   flex-shrink: 0;
   height: auto;
   min-height: 38vh;
   width: auto;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   opacity: 1;
   scroll-snap-align: center;
-  /* Scroll-driven: 카드가 스크롤포트를 지날 때 추적 */
+  margin-left: -2vw;
+  white-space: normal;
+  position: relative;
+  -webkit-box-reflect: below 0.5em linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   view-timeline-name: --note-card-in-view;
   view-timeline-axis: inline;
   animation: linear adjust-z-index both;
@@ -289,15 +288,38 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   perspective: 40em;
 }
 
-/* 중앙 카드 호버 시 플립 (뒷표지 표시) */
+/* 중앙 카드 호버 시 플립 + 그림자 (Jukebox와 동일) */
 .note-card.note-card--centered:hover,
 .note-card.note-card--centered:active {
   z-index: 101;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
 }
 
 .note-card.note-card--centered:hover .note-cover-inner,
 .note-card.note-card--centered:active .note-cover-inner {
   transform: rotateY(180deg);
+}
+
+/* 카드 위 그라데이션 오버레이 (Jukebox와 동일: 비중앙 0.25, 중앙 0) */
+.note-card::after {
+  position: absolute;
+  display: block;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transition: opacity 0.2s ease-out;
+  background: linear-gradient(90deg, #000, transparent);
+  opacity: 0.25;
+  content: '';
+  z-index: 2;
+  pointer-events: none;
+}
+
+.note-card.note-card--centered::after,
+.note-card.note-card--centered:hover::after,
+.note-card.note-card--centered:active::after {
+  opacity: 0;
 }
 
 /* 노트 placeholder (첫 번째/마지막 노트 앞뒤의 빈 공간) */
@@ -389,7 +411,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background: transparent;
 }
 
-/* Timeline/By Type 공통: 이미지 사이즈 + Scroll-driven rotate/scale (img에만!) */
+/* 이미지 (Jukebox와 동일: 38vh/28vw, Scroll-driven rotate/scale) */
 .note-cover-face img.note-cover-image,
 .note-card .note-cover-container img.note-cover-image {
   width: auto;
@@ -397,10 +419,11 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   max-height: 38vh;
   max-width: 28vw;
   display: block;
+  z-index: 1;
+  position: relative;
   object-fit: contain;
   object-position: bottom;
   transform-origin: center center;
-  /* Scroll-driven: img가 스크롤포트를 지날 때 rotateY·scale (참고: 데모) */
   animation: linear rotate-cover both;
   animation-timeline: --note-card-in-view;
   -webkit-box-reflect: below 0.5em linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
@@ -529,8 +552,8 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
 }
 
 .note-cover-image--error {
-  outline: 1px dashed rgba(200, 0, 0, 0.4);
-  background: rgba(200, 0, 0, 0.06);
+  outline: 2px dashed rgba(200, 0, 0, 0.5);
+  background: rgba(200, 0, 0, 0.08);
 }
 
 .note-card-fallback {
