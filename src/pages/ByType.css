@@ -60,6 +60,14 @@
    typeOptions.js 의 listTitle, listBody 가 여기서 렌더됨.
    ============================================================================= */
 
+/* Timeline과 동일한 note-info 순서 (위) 유지 */
+.by-type-page .note-card-link .note-info {
+  order: 1;
+}
+.by-type-page .note-card-link .note-cover-container {
+  order: 2;
+}
+
 .type-list-intro {
   flex-shrink: 0;
   display: flex;
@@ -68,11 +76,12 @@
   justify-content: center;
   gap: 0.75rem;
   min-width: 12rem;
-  max-width: 20rem;
-  padding-right: 2rem;
+  max-width: 18rem;
+  padding-right: 1.5rem;
+  margin-right: 1rem;
   color: var(--app-text, #1a1a1a);
   border-right: 1px solid rgba(0, 0, 0, 0.06);
-  margin-right: 0.5rem;
+  /* 노트 정보와 겹치지 않도록 여백 확보 */
 }
 
 .type-list-intro-title {

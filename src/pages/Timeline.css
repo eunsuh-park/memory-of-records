@@ -169,13 +169,15 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
+/* Jukebox.css 레퍼런스: 이미지 max-height 38vh, max-width 28vw
+   필터(Timeline/By Type) 페이지용으로 카드·이미지 축소 */
 .timeline-container {
   display: flex;
   flex-direction: column;
   height: 100%;
   max-height: 100%;
   width: fit-content;
-  padding: 0;
+  padding: 100px 0 0 0; /* 상단 서브 메뉴와 겹침 방지 */
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
@@ -227,7 +229,8 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Jukebox 스타일 Cover Flow: 3D 변환 (JS에서 --timeline-* 변수 설정) */
+/* Jukebox 스타일 Cover Flow: 3D 변환 (JS에서 --timeline-* 변수 설정)
+   Jukebox 카드 max-height 38vh 기준으로 필터 페이지는 축소 */
 .note-card {
   background-color: transparent;
   border: none;
@@ -237,7 +240,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   overflow: visible;
   flex-shrink: 0;
   height: auto;
-  min-height: 60vh;
+  min-height: 38vh;
   width: auto;
   display: flex;
   align-items: center;
@@ -264,7 +267,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
 /* 노트 placeholder (첫 번째/마지막 노트 앞뒤의 빈 공간) */
 .note-placeholder {
   flex-shrink: 0;
-  height: 60vh;
+  height: 38vh;
   width: 0;
   visibility: hidden;
   pointer-events: none;
@@ -310,11 +313,11 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   opacity: 1;
 }
 
-/* 노트 표지 컨테이너 */
+/* 노트 표지 컨테이너 (Jukebox max-height 38vh 기준) */
 .note-cover-container {
   position: relative;
   width: fit-content;
-  height: 60vh;
+  height: 38vh;
   border-radius: 8px;
   overflow: visible;
   background-color: transparent;
@@ -353,6 +356,26 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background: transparent;
 }
 
+/* Timeline/By Type 공통: Jukebox 기준 이미지 사이즈 (기본 38vh, 28vw) */
+.note-cover-face img.note-cover-image,
+.note-card .note-cover-container img.note-cover-image {
+  width: auto;
+  height: 100%;
+  max-height: 38vh;
+  max-width: 28vw;
+  display: block;
+  object-fit: contain;
+  object-position: bottom;
+  filter: brightness(var(--timeline-brightness, 1));
+  transition: filter 0.2s ease-out;
+}
+
+.note-cover-face--back .note-cover-image {
+  max-height: 38vh;
+  max-width: 28vw;
+  object-fit: contain;
+}
+
 .note-info-meta {
   font-size: 0.875rem;
   font-weight: 700;
@@ -368,38 +391,56 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
 }
 
 @media (max-width: 1024px) {
+  .timeline-container {
+    padding-top: 90px;
+  }
+
   .notes-list {
     gap: 1.2rem;
     padding: 0 1.5rem;
   }
 
   .note-card {
-    min-height: 55vh;
+    min-height: 36vh;
   }
 
   .note-cover-container {
-    height: 55vh;
+    height: 36vh;
+  }
+
+  .note-placeholder {
+    height: 36vh;
   }
 }
 
 @media (max-width: 768px) {
+  .timeline-container {
+    padding-top: 80px;
+  }
+
   .notes-list {
     gap: 1rem;
     padding: 0 1rem;
   }
 
   .note-card {
-    min-height: 48vh;
+    min-height: 32vh;
   }
 
   .note-cover-container {
-    height: 48vh;
+    height: 32vh;
   }
 
+  .note-placeholder {
+    height: 32vh;
+  }
+
+  /* Jukebox 768px: max-height 26vh, max-width 32vw */
   .note-cover-face img.note-cover-image,
-  .note-cover-face--back .note-cover-image {
-    max-height: 26vh;
-    max-width: 32vw;
+  .note-cover-face--back .note-cover-image,
+  .note-card .note-cover-container img.note-cover-image {
+    max-height: 26vh !important;
+    max-width: 32vw !important;
   }
 
   .note-info-meta,
@@ -419,22 +460,36 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   }
 }
 
-.note-cover-face img.note-cover-image {
-  width: auto;
-  height: 100%;
-  max-height: 60vh;
-  max-width: 28vw;
-  display: block;
-  object-fit: contain;
-  object-position: bottom;
-  filter: brightness(var(--timeline-brightness, 1));
-  transition: filter 0.2s ease-out;
-}
+@media (max-width: 480px) {
+  .timeline-container {
+    padding-top: 70px;
+  }
 
-.note-cover-face--back .note-cover-image {
-  max-height: 60vh;
-  max-width: 28vw;
-  object-fit: contain;
+  /* Jukebox 480px: max-height 38vh, max-width 42vw */
+  .note-card,
+  .note-cover-container,
+  .note-placeholder {
+    min-height: 38vh;
+    height: 38vh;
+  }
+
+  .note-cover-face img.note-cover-image,
+  .note-cover-face--back .note-cover-image,
+  .note-card .note-cover-container img.note-cover-image {
+    max-height: 38vh !important;
+    max-width: 42vw !important;
+  }
+
+  .timeline-nav {
+    width: 40px;
+    height: 40px;
+  }
+  .timeline-nav--prev {
+    left: 6px;
+  }
+  .timeline-nav--next {
+    right: 6px;
+  }
 }
 
 .note-cover-image--error {
