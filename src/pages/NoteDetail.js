@@ -1,10 +1,9 @@
 /**
  * NoteDetail 페이지
  * 타임라인 노트의 PDF를 표시하는 상세 페이지입니다.
+ * PDF URL은 Notion의 pdf_url 또는 options.pdfUrl에서 가져옵니다.
  */
 
-import { getNotebookAssets } from '../utils/cloudinary.js';
-import { getNotebookContentUrls } from '../utils/notebookContents.js';
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import './NoteDetailPage.css';
 import '../components/NoteDetail.css';
@@ -12,7 +11,6 @@ import '../components/NoteDetail.css';
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_CDN =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-const CLOUDINARY_NOTE_LIMIT = 18;
 const ICONS = {
   arrowsLeftLine:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>arrows_left_line</title><g id='arrows_left_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0h24ZM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036c-.01-.003-.019 0-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.016-.018Zm.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01-.184-.092Z'/><path fill='currentColor' d='M11.707 6.293a1 1 0 0 1 0 1.414L7.414 12l4.293 4.293a1 1 0 0 1-1.414 1.414l-5-5a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0Zm6 0a1 1 0 0 1 0 1.414L13.414 12l4.293 4.293a1 1 0 0 1-1.414 1.414l-5-5a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0Z'/></g></svg>",
@@ -77,41 +75,12 @@ async function ensurePdfJs() {
   await loadScript(PDFJS_CDN);
 }
 
-async function resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey) {
-  try {
-    const data = await getNotebookAssets();
-    const notes = Array.isArray(data?.notes) ? data.notes : [];
-    if (cloudinaryKey) {
-      const matched = notes.find((note) => note.key === cloudinaryKey);
-      return matched?.contents || null;
-    }
-    if (timelineIndex < 0 || timelineIndex >= CLOUDINARY_NOTE_LIMIT) return null;
-    const indexedNote = notes[timelineIndex];
-    const key = indexedNote?.key;
-    if (key) {
-      const matched = notes.find((note) => note.key === key);
-      return matched?.contents || indexedNote?.contents || null;
-    }
-    if (indexedNote?.contents) return indexedNote.contents;
-
-    // /api/cloudinary?folder=Notebooks/Contents 기반 PDF 목록으로 보완
-    const contentUrls = await getNotebookContentUrls();
-    return contentUrls?.[timelineIndex] || null;
-  } catch (error) {
-    console.error('Cloudinary PDF 로드 실패:', error);
-    return null;
-  }
-}
-
 export function renderNotePdfViewer(targetEl, id, options = {}) {
   if (!targetEl) return null;
 
   const noteId = decodeURIComponent(String(id || '')).trim();
   const isModal = options.mode === 'modal';
-  const cloudinaryKey = options.cloudinaryKey || null;
   const preferredPdfUrl = options.pdfUrl || null;
-
-  let timelineIndex = -1;
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
@@ -269,20 +238,12 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
     showOverlay('PDF 목록 불러오는 중...');
     await ensurePdfJs();
     const timelineNotes = await loadTimelineNotes();
-    timelineIndex = timelineNotes.findIndex(note => note.id === noteId);
-    const timelineNote = timelineIndex >= 0 ? timelineNotes[timelineIndex] : null;
+    const timelineNote = timelineNotes.find((note) => note.id === noteId) || null;
     const notionPdfUrl = timelineNote?.pdfUrl || null;
-    if (!timelineNote && !preferredPdfUrl) {
-      showOverlay('노트를 찾을 수 없습니다.');
-      return;
-    }
-    const pdfUrl =
-      preferredPdfUrl ||
-      notionPdfUrl ||
-      (await resolvePdfUrlForNote(noteId, timelineIndex, cloudinaryKey));
+    const pdfUrl = preferredPdfUrl || notionPdfUrl;
 
     if (!pdfUrl) {
-      showOverlay('PDF를 찾을 수 없습니다. Notion/Cloudinary 파일을 확인해주세요.');
+      showOverlay('PDF를 찾을 수 없습니다. Notion의 pdf_url을 확인해주세요.');
       return;
     }
     loadPdf(pdfUrl);
