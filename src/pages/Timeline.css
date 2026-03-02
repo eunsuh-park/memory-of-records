@@ -1,136 +1,14 @@
-/* Timeline 페이지 스타일 - Jukebox와 동일한 디자인 */
+/* Timeline 페이지 - 갤러리/카드/원근감은 Jukebox.css (body.timeline-active)에서 적용 */
 
-/* 전역 (Jukebox와 동일) */
-.main-wrapper.timeline-active,
-#main-content.timeline-active,
-.app-main.timeline-active {
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
-  box-sizing: border-box;
-  padding-top: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-body.timeline-active {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  overflow: hidden;
-  position: relative;
-  height: 100vh;
-  background: var(--app-bg);
-  user-select: none;
-  transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body.timeline-active.period-elementary {
-  background-color: var(--app-bg);
-}
-
-body.timeline-active.period-middle-high {
-  background-color: var(--app-bg);
-}
-
-body.timeline-active.period-university {
-  background-color: var(--app-bg);
-}
-
+/* 기간별 배경 (필요 시 오버라이드) */
+body.timeline-active.period-elementary,
+body.timeline-active.period-middle-high,
+body.timeline-active.period-university,
 body.timeline-active.period-after-graduation {
   background-color: var(--app-bg);
 }
 
-/* 갤러리 래퍼 (Jukebox .jukebox-fullscreen과 동일: 그라데이션 배경) */
-.timeline-gallery-wrap {
-  flex: 1 1 0;
-  min-height: 0;
-  position: relative;
-  width: 100%;
-  background: linear-gradient(
-    var(--app-bg) 40%,
-    var(--app-bg-alt, #2f3847) 60%,
-    var(--app-bg) 100%
-  );
-  height: 100%;
-  display: flex;
-}
-
-/* 스크롤 영역 (Jukebox .jukebox-gallery와 동일: 패딩, 원근, 스냅, 스크롤바 숨김) */
-.timeline-page {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  padding: 40vh 0;
-  width: 100%;
-  text-align: center;
-  overflow: hidden;
-  overflow-x: auto;
-  perspective: 60em;
-  perspective-origin: 50% 50%;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  box-sizing: border-box;
-}
-
-.timeline-page::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  background: transparent;
-}
-
-/* 이전/다음 버튼 (Jukebox와 동일) */
-.timeline-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 50;
-  width: 56px;
-  height: 56px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.35);
-  color: rgba(255, 255, 255, 1);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.timeline-nav:hover {
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-}
-.timeline-nav:active {
-  background: rgba(0, 0, 0, 0.7);
-}
-.timeline-nav--prev {
-  left: 12px;
-}
-.timeline-nav--next {
-  right: 12px;
-}
-.timeline-nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-}
-.timeline-nav-icon svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.timeline-nav-icon--next svg {
-  transform: scaleX(-1);
-}
-
+/* 로딩 오버레이 */
 .timeline-loading-overlay {
   position: fixed;
   inset: 0;
@@ -173,8 +51,7 @@ body.timeline-active.period-after-graduation {
   font-weight: 500;
 }
 
-/* 로딩 중에는 상단 서브 메뉴와 하단 서클 인디케이터를 숨겼다가,
-   리스트가 등장할 때 함께 부드럽게 나타나도록 처리 */
+/* 로딩 중 서브메뉴·스크롤바 숨김 */
 body.timeline-active.timeline-loading-active #sub-menu,
 body.timeline-active.timeline-loading-active .timeline-scrollbar {
   opacity: 0;
@@ -187,7 +64,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-/* 컨테이너 (Jukebox에는 단일 갤러리만 있음; 여기서는 스크롤바·서브메뉴 여백) */
+/* 갤러리 레이아웃: 스크롤바·퀵메뉴와 함께 (카드 스타일은 Jukebox.css) */
 .timeline-container {
   display: flex;
   flex-direction: column;
@@ -211,112 +88,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   justify-content: center;
 }
 
-/* 노트 리스트 (Jukebox와 동일: 카드 겹침 margin-left -2vw, gap 없음) */
-.notes-list {
-  display: flex;
-  flex-direction: row;
-  gap: 0;
-  flex-wrap: nowrap;
-  align-items: center;
-  width: fit-content;
-  padding: 0;
-  box-sizing: border-box;
-  white-space: nowrap;
-}
-
-/* =============================================================================
-   Cover Flow - Jukebox.css 그대로: JS에서 --jukebox-* 변수로 원근감 적용
-   --jukebox-rotate-y, --jukebox-scale, --jukebox-translate-z, --jukebox-shadow,
-   --jukebox-hover-x, --jukebox-brightness (filterNotesGallery.js updateCardAngles)
-   ============================================================================= */
-
-/* note-card: Jukebox .jukebox-gallery > div.jukebox-card와 동일 */
-.note-card {
-  background-color: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  overflow: visible;
-  flex-shrink: 0;
-  height: auto;
-  min-height: 38vh;
-  width: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 1;
-  scroll-snap-align: center;
-  margin-left: -2vw;
-  white-space: normal;
-  position: relative;
-  -webkit-box-reflect: below 0.5em
-    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
-  transform-origin: center center;
-  transform-style: preserve-3d;
-  transform:
-    translate3d(0, 0, var(--jukebox-translate-z, 0))
-    rotateY(var(--jukebox-rotate-y, 0deg))
-    scale(var(--jukebox-scale, 1));
-  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
-  box-shadow: var(--jukebox-shadow, none);
-}
-
-/* 호버: Jukebox .jukebox-card.jukebox-card--centered:hover와 동일 */
-.note-card.note-card--centered:hover,
-.note-card.note-card--centered:active {
-  transform:
-    translateX(var(--jukebox-hover-x, 0))
-    translateZ(1.5em)
-    scale(1.25)
-    rotateY(0deg);
-  z-index: 101;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
-}
-
-.note-card.note-card--centered:hover .note-cover-inner,
-.note-card.note-card--centered:active .note-cover-inner {
-  transform: rotateY(180deg);
-}
-
-/* 카드 위 오버레이 (Jukebox와 동일: 비활성·어두운 느낌은 img brightness로만) */
-.note-card::after {
-  position: absolute;
-  display: block;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  transition: opacity 0.2s ease-out;
-  background: linear-gradient(90deg, #000, transparent);
-  opacity: 0;
-  content: '';
-  z-index: 2;
-  pointer-events: none;
-}
-
-.note-card.note-card--centered:hover::after {
-  opacity: 0;
-}
-
-/* 노트 placeholder (첫 번째/마지막 노트 앞뒤의 빈 공간) */
-.note-placeholder {
-  flex-shrink: 0;
-  height: 38vh;
-  width: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.note-card:hover {
-  box-shadow: none;
-}
-
-/* 노트 상태별: 3D 변환은 CSS scroll-driven, note-focus는 노트 정보 표시용 */
-.note-card.note-focus .note-cover-container {
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12))
-    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
-}
-
+/* 노트 카드 링크·정보 (Timeline/By Type 전용, 갤러리 시각은 Jukebox.css) */
 .note-card-link {
   text-decoration: none;
   color: inherit;
@@ -328,7 +100,6 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   height: 100%;
 }
 
-/* 노트 정보 영역 - 노트 위에 표시 */
 .note-info {
   display: none;
   flex-direction: column;
@@ -347,7 +118,11 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   opacity: 1;
 }
 
-/* 노트 표지 컨테이너 (Jukebox max-height 38vh 기준) */
+.note-card.note-focus .note-cover-container {
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12))
+    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+}
+
 .note-cover-container {
   position: relative;
   width: fit-content;
@@ -361,52 +136,6 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   flex-shrink: 0;
   transition: filter 0.3s ease;
   order: 2;
-}
-
-/* 3D 플립용 inner */
-.note-cover-inner {
-  position: relative;
-  display: inline-block;
-  transform-style: preserve-3d;
-  transition: transform 0.55s ease;
-}
-.note-cover-face {
-  backface-visibility: hidden;
-}
-.note-cover-face--front {
-  display: block;
-  transform-style: preserve-3d;
-}
-.note-cover-face--back {
-  position: absolute;
-  inset: 0;
-  transform: rotateY(180deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-}
-
-/* 이미지 (Jukebox와 동일: 38vh/28vw, brightness로 양옆 어둡게) */
-.note-cover-face img.note-cover-image,
-.note-card .note-cover-container img.note-cover-image {
-  display: block;
-  z-index: 1;
-  position: relative;
-  height: auto;
-  width: auto;
-  max-height: 38vh;
-  max-width: 28vw;
-  object-fit: contain;
-  object-position: bottom;
-  filter: brightness(var(--jukebox-brightness, 1));
-  transition: filter 0.2s ease-out;
-}
-
-.note-cover-face--back .note-cover-image {
-  max-height: 38vh;
-  max-width: 28vw;
-  object-fit: contain;
 }
 
 .note-info-meta {
@@ -427,23 +156,6 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   .timeline-container {
     padding-top: 90px;
   }
-
-  .notes-list {
-    gap: 1.2rem;
-    padding: 0 1.5rem;
-  }
-
-  .note-card {
-    min-height: 36vh;
-  }
-
-  .note-cover-container {
-    height: 36vh;
-  }
-
-  .note-placeholder {
-    height: 36vh;
-  }
 }
 
 @media (max-width: 768px) {
@@ -451,45 +163,13 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
     padding-top: 80px;
   }
 
-  .notes-list {
-    gap: 1rem;
-    padding: 0 1rem;
-  }
-
-  .note-card {
-    min-height: 32vh;
-  }
-
-  .note-cover-container {
-    height: 32vh;
-  }
-
-  .note-placeholder {
-    height: 32vh;
-  }
-
-  /* Jukebox 768px: max-height 26vh, max-width 32vw */
-  .note-cover-face img.note-cover-image,
-  .note-cover-face--back .note-cover-image,
-  .note-card .note-cover-container img.note-cover-image {
-    max-height: 26vh !important;
-    max-width: 32vw !important;
-  }
-
   .note-info-meta,
   .note-info-description {
     font-size: 0.8rem;
   }
 
-  .timeline-nav {
-    width: 48px;
-    height: 48px;
-  }
-  .timeline-nav--prev {
-    left: 8px;
-  }
-  .timeline-nav--next {
-    right: 8px;
+  .note-cover-container {
+    height: 32vh;
   }
 }
 
@@ -498,36 +178,20 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
     padding-top: 70px;
   }
 
-  /* Jukebox 480px: max-height 38vh, max-width 42vw */
-  .note-card,
-  .note-cover-container,
-  .note-placeholder {
-    min-height: 38vh;
+  .note-cover-container {
     height: 38vh;
-  }
-
-  .note-cover-face img.note-cover-image,
-  .note-cover-face--back .note-cover-image,
-  .note-card .note-cover-container img.note-cover-image {
-    max-height: 38vh !important;
-    max-width: 42vw !important;
-  }
-
-  .timeline-nav {
-    width: 40px;
-    height: 40px;
-  }
-  .timeline-nav--prev {
-    left: 6px;
-  }
-  .timeline-nav--next {
-    right: 6px;
   }
 }
 
 .note-cover-image--error {
   outline: 2px dashed rgba(200, 0, 0, 0.5);
   background: rgba(200, 0, 0, 0.08);
+}
+
+.no-notes {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--app-text-muted);
 }
 
 .note-card-fallback {
@@ -558,10 +222,4 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   color: #666;
   line-height: 1.6;
   margin: 0;
-}
-
-.no-notes {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--app-text-muted);
 }

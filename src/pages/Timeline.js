@@ -12,6 +12,7 @@ import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import booksLottie from '../assets/Books.lottie';
 import './Timeline.css';
+import './Jukebox.css';
 
 // base 경로 가져오기
 const BASE_URL = import.meta.env.BASE_URL || '/';

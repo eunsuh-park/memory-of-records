@@ -382,3 +382,312 @@ body.jukebox-active {
     right: 6px;
   }
 }
+
+/* =============================================================================
+   Timeline / By Type: 위 갤러리·카드 스타일을 그대로 적용 (동일 클래스명 매핑)
+   - .timeline-gallery-wrap = .jukebox-fullscreen + .jukebox-gallery-wrap
+   - .timeline-page = .jukebox-gallery (스크롤 컨테이너)
+   - .timeline-page .note-card = .jukebox-gallery > div.jukebox-card
+   - .note-cover-inner = .jukebox-card-inner, .note-cover-face* = .jukebox-card-face*
+   ============================================================================= */
+
+.main-wrapper.timeline-active,
+#main-content.timeline-active,
+.app-main.timeline-active {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.timeline-active {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  font-family: sans-serif;
+  user-select: none;
+  overflow: hidden;
+  position: relative;
+  height: 100vh;
+  background: var(--jukebox-bg);
+}
+
+body.timeline-active .timeline-gallery-wrap {
+  background: linear-gradient(
+    var(--jukebox-bg) 40%,
+    var(--app-bg-alt, #2f3847) 60%,
+    var(--jukebox-bg) 100%
+  );
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  position: relative;
+}
+
+body.timeline-active .timeline-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 1);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.timeline-active .timeline-nav:hover {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+body.timeline-active .timeline-nav:active {
+  background: rgba(0, 0, 0, 0.7);
+}
+body.timeline-active .timeline-nav--prev {
+  left: 12px;
+}
+body.timeline-active .timeline-nav--next {
+  right: 12px;
+}
+body.timeline-active .timeline-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 auto;
+}
+body.timeline-active .timeline-nav-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+body.timeline-active .timeline-nav-icon--next svg,
+body.timeline-active .timeline-nav-icon.timeline-nav-icon--next svg {
+  transform: scaleX(-1);
+}
+
+body.timeline-active .timeline-gallery-wrap::-webkit-scrollbar,
+body.timeline-active .timeline-page::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}
+body.timeline-active .timeline-page::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+body.timeline-active .timeline-page {
+  padding: 40vh 0;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  overflow-x: auto;
+  perspective: 60em;
+  perspective-origin: 50% 50%;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  box-sizing: border-box;
+}
+
+body.timeline-active .timeline-page .notes-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0;
+  align-items: center;
+  width: fit-content;
+  padding: 0;
+  white-space: nowrap;
+}
+
+body.timeline-active .timeline-page .note-placeholder {
+  flex-shrink: 0;
+  display: inline-block;
+  width: 36vw;
+  height: 0;
+  min-height: 0;
+  vertical-align: middle;
+  scroll-snap-align: none;
+  pointer-events: none;
+  margin: 0;
+  overflow: visible;
+  visibility: visible;
+}
+
+body.timeline-active .timeline-page .note-card {
+  white-space: normal;
+  width: auto;
+  height: auto;
+  max-height: 38vh;
+  overflow: visible;
+  -webkit-box-reflect: below 0.5em
+    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
+  display: inline-block;
+  margin-left: -2vw;
+  transform-origin: center center;
+  transform:
+    translate3d(0, 0, var(--jukebox-translate-z, 0))
+    rotateY(var(--jukebox-rotate-y, 0deg))
+    scale(var(--jukebox-scale, 1));
+  position: relative;
+  opacity: 1;
+  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
+  scroll-snap-align: center;
+  box-shadow: var(--jukebox-shadow, none);
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+body.timeline-active .timeline-page .note-card.note-card--centered:hover,
+body.timeline-active .timeline-page .note-card.note-card--centered:active {
+  transform:
+    translateX(var(--jukebox-hover-x, 0))
+    translateZ(1.5em)
+    scale(1.25)
+    rotateY(0deg);
+  z-index: 101;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+}
+
+body.timeline-active .timeline-page .note-card.note-card--centered:hover::after {
+  opacity: 0;
+}
+
+body.timeline-active .timeline-page .note-cover-inner {
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  transition: transform 0.55s ease;
+}
+body.timeline-active .timeline-page .note-card.note-card--centered:hover .note-cover-inner {
+  transform: rotateY(180deg);
+}
+body.timeline-active .timeline-page .note-cover-face {
+  backface-visibility: hidden;
+}
+body.timeline-active .timeline-page .note-cover-face--front {
+  display: block;
+  transform-style: preserve-3d;
+}
+body.timeline-active .timeline-page .note-cover-face--back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+body.timeline-active .timeline-page .note-card img.note-cover-image,
+body.timeline-active .timeline-page .note-cover-face img.note-cover-image {
+  display: block;
+  z-index: 1;
+  position: relative;
+  height: auto;
+  width: auto;
+  max-height: 38vh;
+  max-width: 28vw;
+  object-fit: contain;
+  filter: brightness(var(--jukebox-brightness, 1));
+  transition: filter 0.2s ease-out;
+}
+
+body.timeline-active .timeline-page .note-card .note-cover-image--error {
+  outline: 2px dashed rgba(200, 0, 0, 0.5);
+  background: rgba(200, 0, 0, 0.08);
+}
+
+body.timeline-active .timeline-page .note-card::after {
+  position: absolute;
+  display: block;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transition: opacity 0.2s ease-out;
+  background: linear-gradient(90deg, #000, transparent);
+  opacity: 0;
+  content: '';
+  z-index: 2;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  body.timeline-active .timeline-page {
+    padding: 30vh 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.timeline-active .timeline-page .note-placeholder {
+    width: 34vw;
+  }
+  body.timeline-active .timeline-page .note-card,
+  body.timeline-active .timeline-page .note-card img.note-cover-image {
+    max-height: 26vh;
+    max-width: 32vw;
+  }
+  body.timeline-active .timeline-page .note-card {
+    margin-left: -2.5vw;
+  }
+  body.timeline-active .timeline-nav {
+    width: 48px;
+    height: 48px;
+  }
+  body.timeline-active .timeline-nav--prev {
+    left: 8px;
+  }
+  body.timeline-active .timeline-nav--next {
+    right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  body.timeline-active .timeline-page {
+    padding: 28vh 0;
+  }
+  body.timeline-active .timeline-page .note-placeholder {
+    width: 29vw;
+  }
+  body.timeline-active .timeline-page .note-card,
+  body.timeline-active .timeline-page .note-card img.note-cover-image {
+    max-height: 38vh;
+    max-width: 42vw;
+  }
+  body.timeline-active .timeline-page .note-card {
+    margin-left: -2vw;
+  }
+  body.timeline-active .timeline-nav {
+    width: 40px;
+    height: 40px;
+  }
+  body.timeline-active .timeline-nav--prev {
+    left: 6px;
+  }
+  body.timeline-active .timeline-nav--next {
+    right: 6px;
+  }
+}

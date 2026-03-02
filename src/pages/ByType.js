@@ -12,6 +12,7 @@ import { getNotionTypeItems } from '../utils/notionByType.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import booksLottie from '../assets/Books.lottie';
 import './Timeline.css';
+import './Jukebox.css';
 import './ByType.css';
 
 // base 경로 가져오기
