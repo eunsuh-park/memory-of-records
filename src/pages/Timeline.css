@@ -225,43 +225,35 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
 }
 
 /* =============================================================================
-   Cover Flow - Scroll-driven Animations
-   참고: https://scroll-driven-animations.style/demos/cover-flow/css/
+   Cover Flow - Scroll-driven Animations (Jukebox와 동일: 개별 노트에 원근감)
    - view-timeline으로 카드가 스크롤포트를 지날 때 추적
-   - z-index는 .note-card에, transform(rotateY/scale)은 img에만 (스크롤 거리 유지)
+   - 카드 전체에 translateZ / rotateY / scale 적용 → 개별 노트 원근감
    ============================================================================= */
 
-@keyframes adjust-z-index {
+@keyframes cover-flow-card {
   0% {
     z-index: 1;
+    transform: translateZ(-2em) rotateY(-45deg) scale(0.85);
+  }
+  35% {
+    z-index: 2;
+    transform: translateZ(-0.5em) rotateY(-25deg) scale(0.95);
   }
   50% {
     z-index: 100;
+    transform: translateZ(1em) rotateY(0deg) scale(1.25);
+  }
+  65% {
+    z-index: 2;
+    transform: translateZ(-0.5em) rotateY(25deg) scale(0.95);
   }
   100% {
     z-index: 1;
+    transform: translateZ(-2em) rotateY(45deg) scale(0.85);
   }
 }
 
-@keyframes rotate-cover {
-  0% {
-    transform: translateX(-100%) rotateY(-45deg);
-  }
-  35% {
-    transform: translateX(0) rotateY(-45deg);
-  }
-  50% {
-    transform: rotateY(0deg) translateZ(1em) scale(1.25);
-  }
-  65% {
-    transform: translateX(0) rotateY(45deg);
-  }
-  100% {
-    transform: translateX(100%) rotateY(45deg);
-  }
-}
-
-/* note-card (Jukebox .jukebox-card와 동일: 겹침 -2vw, 반사, view-timeline) */
+/* note-card: Jukebox처럼 카드 전체에 3D 변환 (원근감) */
 .note-card {
   background-color: transparent;
   border: none;
@@ -283,16 +275,19 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   -webkit-box-reflect: below 0.5em linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   view-timeline-name: --note-card-in-view;
   view-timeline-axis: inline;
-  animation: linear adjust-z-index both;
+  animation: linear cover-flow-card both;
   animation-timeline: --note-card-in-view;
-  perspective: 40em;
+  transform-origin: center center;
+  transform-style: preserve-3d;
 }
 
-/* 중앙 카드 호버 시 플립 + 그림자 (Jukebox와 동일) */
+/* 중앙 카드 호버 시: Jukebox와 동일 (앞으로 당기고 확대) */
 .note-card.note-card--centered:hover,
 .note-card.note-card--centered:active {
   z-index: 101;
+  transform: translateZ(1.5em) rotateY(0deg) scale(1.25);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
 }
 
 .note-card.note-card--centered:hover .note-cover-inner,
@@ -411,7 +406,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background: transparent;
 }
 
-/* 이미지 (Jukebox와 동일: 38vh/28vw, Scroll-driven rotate/scale) */
+/* 이미지 (Jukebox와 동일: 38vh/28vw, 원근감은 카드에서 처리) */
 .note-cover-face img.note-cover-image,
 .note-card .note-cover-container img.note-cover-image {
   width: auto;
@@ -424,9 +419,6 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   object-fit: contain;
   object-position: bottom;
   transform-origin: center center;
-  animation: linear rotate-cover both;
-  animation-timeline: --note-card-in-view;
-  -webkit-box-reflect: below 0.5em linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
 }
 
 .note-cover-face--back .note-cover-image {
