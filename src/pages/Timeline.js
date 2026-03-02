@@ -6,7 +6,7 @@
 import { periodOptions } from '../data/notesData.js';
 import { renderFilterSubMenu } from '../components/FilterSubMenu.js';
 import { renderFilterScrollBar, updateFilterScrollBarActive } from '../components/FilterScrollBar.js';
-import { updateNoteAngles, enableCenterPerspective, enableGalleryScroll } from '../utils/filterNotesGallery.js';
+import { enableCenterPerspective, enableGalleryScroll } from '../utils/filterNotesGallery.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotionNotebooks } from '../utils/notionNotebooks.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
@@ -251,12 +251,6 @@ export function renderTimeline(period = 'elementary') {
       </div>
     </div>
   `;
-  
-  // DOM 생성 직후 scroll-snap을 즉시 비활성화하여 브라우저의 자동 snap 동작 방지
-  const timelinePage = document.querySelector('.timeline-page');
-  if (timelinePage) {
-    timelinePage.style.scrollSnapType = 'none';
-  }
   
   // DOM 교체 전에 현재 스크롤 위치 저장 (다른 페이지에서 돌아올 때만)
   if (existingTimelinePage && !periodChanged) {

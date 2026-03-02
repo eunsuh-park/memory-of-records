@@ -371,11 +371,6 @@ export function renderByType(type = 'diary-scheduler') {
     </div>
   `;
 
-  const timelinePage = document.querySelector('.timeline-page');
-  if (timelinePage) {
-    timelinePage.style.scrollSnapType = 'none';
-  }
-
   if (existingTypePage && !typeChanged) {
     savedScrollPosition = existingTypePage.scrollLeft;
   }

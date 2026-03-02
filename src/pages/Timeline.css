@@ -229,14 +229,49 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Jukebox 스타일 Cover Flow: 3D 변환 (JS에서 --timeline-* 변수 설정)
-   Jukebox 카드 max-height 38vh 기준으로 필터 페이지는 축소 */
+/* =============================================================================
+   Cover Flow - Scroll-driven Animations
+   참고: https://scroll-driven-animations.style/demos/cover-flow/css/
+   - view-timeline으로 카드가 스크롤포트를 지날 때 추적
+   - z-index는 .note-card에, transform(rotateY/scale)은 img에만 (스크롤 거리 유지)
+   ============================================================================= */
+
+@keyframes adjust-z-index {
+  0% {
+    z-index: 1;
+  }
+  50% {
+    z-index: 100;
+  }
+  100% {
+    z-index: 1;
+  }
+}
+
+@keyframes rotate-cover {
+  0% {
+    transform: translateX(-100%) rotateY(-45deg);
+  }
+  35% {
+    transform: translateX(0) rotateY(-45deg);
+  }
+  50% {
+    transform: rotateY(0deg) translateZ(1em) scale(1.25);
+  }
+  65% {
+    transform: translateX(0) rotateY(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotateY(45deg);
+  }
+}
+
+/* note-card: view-timeline + z-index 애니메이션. transform은 img에만 적용 */
 .note-card {
   background-color: transparent;
   border: none;
   border-radius: 8px;
   padding: 0;
-  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
   overflow: visible;
   flex-shrink: 0;
   height: auto;
@@ -245,23 +280,24 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   display: flex;
   align-items: center;
   opacity: 1;
-  transform-origin: center center;
-  transform: translate3d(0, 0, var(--timeline-translate-z, 0))
-    rotateY(var(--timeline-rotate-y, 0deg))
-    scale(var(--timeline-scale, 1));
-  box-shadow: var(--timeline-shadow, none);
   scroll-snap-align: center;
+  /* Scroll-driven: 카드가 스크롤포트를 지날 때 추적 */
+  view-timeline-name: --note-card-in-view;
+  view-timeline-axis: inline;
+  animation: linear adjust-z-index both;
+  animation-timeline: --note-card-in-view;
+  perspective: 40em;
 }
 
-/* 중앙 카드 호버 시 살짝 확대 + 플립 (Jukebox와 동일) */
+/* 중앙 카드 호버 시 플립 (뒷표지 표시) */
 .note-card.note-card--centered:hover,
 .note-card.note-card--centered:active {
-  transform: translateX(var(--timeline-hover-x, 0))
-    translateZ(1.5em)
-    scale(1.25)
-    rotateY(0deg);
   z-index: 101;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+}
+
+.note-card.note-card--centered:hover .note-cover-inner,
+.note-card.note-card--centered:active .note-cover-inner {
+  transform: rotateY(180deg);
 }
 
 /* 노트 placeholder (첫 번째/마지막 노트 앞뒤의 빈 공간) */
@@ -277,7 +313,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   box-shadow: none;
 }
 
-/* 노트 상태별: 3D 변환은 updateNoteAngles에서 처리, note-focus는 노트 정보 표시용 */
+/* 노트 상태별: 3D 변환은 CSS scroll-driven, note-focus는 노트 정보 표시용 */
 .note-card.note-focus .note-cover-container {
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12))
     drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
@@ -329,15 +365,12 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   order: 2;
 }
 
-/* 3D 플립용 inner (Jukebox와 동일) */
+/* 3D 플립용 inner */
 .note-cover-inner {
   position: relative;
   display: inline-block;
   transform-style: preserve-3d;
   transition: transform 0.55s ease;
-}
-.note-card.note-card--centered:hover .note-cover-inner {
-  transform: rotateY(180deg);
 }
 .note-cover-face {
   backface-visibility: hidden;
@@ -356,7 +389,7 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   background: transparent;
 }
 
-/* Timeline/By Type 공통: Jukebox 기준 이미지 사이즈 (기본 38vh, 28vw) */
+/* Timeline/By Type 공통: 이미지 사이즈 + Scroll-driven rotate/scale (img에만!) */
 .note-cover-face img.note-cover-image,
 .note-card .note-cover-container img.note-cover-image {
   width: auto;
@@ -366,8 +399,11 @@ body.timeline-active.timeline-loading-active .timeline-scrollbar {
   display: block;
   object-fit: contain;
   object-position: bottom;
-  filter: brightness(var(--timeline-brightness, 1));
-  transition: filter 0.2s ease-out;
+  transform-origin: center center;
+  /* Scroll-driven: img가 스크롤포트를 지날 때 rotateY·scale (참고: 데모) */
+  animation: linear rotate-cover both;
+  animation-timeline: --note-card-in-view;
+  -webkit-box-reflect: below 0.5em linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
 }
 
 .note-cover-face--back .note-cover-image {
