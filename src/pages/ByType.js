@@ -4,8 +4,9 @@
  */
 
 import { typeOptions } from '../data/typeOptions.js';
-import { renderTypeSubMenu } from '../components/TypeSubMenu.js';
-import { renderTypeScrollBar } from '../components/TypeScrollBar.js';
+import { renderFilterSubMenu } from '../components/FilterSubMenu.js';
+import { renderFilterScrollBar, updateFilterScrollBarActive } from '../components/FilterScrollBar.js';
+import { enableCenterPerspective, enableGalleryScroll } from '../utils/filterNotesGallery.js';
 import { renderQuickScrollMenu } from '../components/QuickScrollMenu.js';
 import { getNotionTypeItems } from '../utils/notionByType.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
@@ -30,6 +31,9 @@ const TYPE_LOADING_MESSAGES = [
   '노트들을 상자에서 꺼내는 중...',
   '상자의 먼지를 털어내는 중....'
 ];
+/** 이전/다음 버튼용 화살표 SVG (Timeline/Jukebox와 동일) */
+const NAV_ICON_SVG =
+  `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><title>left_line</title><g fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0z'/><path fill='currentColor' d='M8.293 12.707a1 1 0 0 1 0-1.414l5.657-5.657a1 1 0 1 1 1.414 1.414L10.414 12l4.95 4.95a1 1 0 0 1-1.414 1.414l-5.657-5.657Z'/></g></svg>`;
 const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>close_medium_line</title><g id='close_medium_line' fill='none' fill-rule='nonzero'><path d='M24 0v24H0V0zM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036q-.016-.004-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427q-.004-.016-.016-.018m.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092q.019.005.029-.008l.004-.014-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014-.034.614q.001.018.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></g></svg>"
@@ -319,11 +323,8 @@ export function renderByType(type = 'diary-scheduler') {
     const typeMain = document.getElementById('timeline-main');
     if (typeMain) {
       renderNotesListForType(typeMain, selectedType);
-      renderTypeScrollBar(
-        (getNotesCountByType(allNotesData)[selectedType] ?? 0),
-        getNotesCountByType(allNotesData),
-        selectedType
-      );
+      const countForType = getNotesCountByType(allNotesData)[selectedType] ?? 0;
+      renderFilterScrollBar(countForType, 0);
       setupTimelineDots();
       const notesForType = getNotesForType(allNotesData, selectedType);
       if (notesForType.length > 0) {
@@ -335,7 +336,7 @@ export function renderByType(type = 'diary-scheduler') {
       }
     }
     const notesCountByType = getNotesCountByType(allNotesData);
-    renderTypeSubMenu(selectedType, null, 0, notesCountByType);
+    renderFilterSubMenu(selectedType, '/by-type', typeOptions, notesCountByType);
     currentType = selectedType;
     return;
   }
@@ -357,12 +358,16 @@ export function renderByType(type = 'diary-scheduler') {
   document.body.classList.add('timeline-active');
 
   mainContent.innerHTML = `
-    <div class="timeline-page by-type-page">
-      <div class="timeline-container">
-        <main class="timeline-main" id="timeline-main"></main>
-        <div id="timeline-scrollbar"></div>
+    <div class="timeline-gallery-wrap">
+      <button type="button" class="timeline-nav timeline-nav--prev" id="timeline-prev" aria-label="이전"><span class="timeline-nav-icon">${NAV_ICON_SVG}</span></button>
+      <button type="button" class="timeline-nav timeline-nav--next" id="timeline-next" aria-label="다음"><span class="timeline-nav-icon timeline-nav-icon--next">${NAV_ICON_SVG}</span></button>
+      <div class="timeline-page by-type-page" id="timeline-page">
+        <div class="timeline-container">
+          <main class="timeline-main" id="timeline-main"></main>
+          <div id="timeline-scrollbar"></div>
+        </div>
+        <div id="quick-scroll-menu"></div>
       </div>
-      <div id="quick-scroll-menu"></div>
     </div>
   `;
 
@@ -381,9 +386,9 @@ export function renderByType(type = 'diary-scheduler') {
     0
   );
 
-  renderTypeSubMenu(selectedType, null, totalNotesCount, notesCountByType);
+  renderFilterSubMenu(selectedType, '/by-type', typeOptions, notesCountByType);
   const countForType = notesCountByType[selectedType] ?? 0;
-  renderTypeScrollBar(countForType, notesCountByType, selectedType);
+  renderFilterScrollBar(countForType, 0);
 
   const typeMain = document.getElementById('timeline-main');
   if (!typeMain) return;
@@ -453,9 +458,9 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
       0
     );
 
-    renderTypeSubMenu(selectedType, null, totalNotesCount, notesCountByType);
+    renderFilterSubMenu(selectedType, '/by-type', typeOptions, notesCountByType);
     const countForType = notesCountByType[selectedType] ?? 0;
-    renderTypeScrollBar(countForType, notesCountByType, selectedType);
+    renderFilterScrollBar(countForType, 0);
 
     const notesToShow = getNotesForType(allNotesData, selectedType);
     const allNotesHTML = [];
@@ -562,9 +567,17 @@ async function loadNotionNotesAndRender(typeMain, selectedType) {
     setupNoteFocusSystem();
     setupKeyboardNavigation();
     setupScrollObserver();
-    setupHorizontalWheelScroll();
     setupTimelineDots();
     setupMainAreaDrag();
+    const timelinePageEl = document.getElementById('timeline-page');
+    const galleryWrap = document.querySelector('.timeline-gallery-wrap');
+    enableCenterPerspective(timelinePageEl);
+    enableGalleryScroll(
+      timelinePageEl,
+      galleryWrap,
+      document.getElementById('timeline-prev'),
+      document.getElementById('timeline-next')
+    );
     currentType = selectedType;
   } catch (error) {
     console.warn('노션 노트 로드 실패:', error);
@@ -752,17 +765,10 @@ function focusNote(noteId) {
 }
 
 function updateActiveScrollbarDot(noteId) {
-  const dots = document.querySelectorAll('.scrollbar-dot');
-  if (!dots.length) return;
-
   const notesForCurrentType = getNotesForType(allNotesData, currentType);
   const targetIndex = notesForCurrentType.findIndex((note) => note.id === noteId);
   if (targetIndex === -1) return;
-
-  dots.forEach((dot) => {
-    const dotIndex = parseInt(dot.getAttribute('data-note-index'), 10);
-    dot.classList.toggle('scrollbar-dot--active', dotIndex === targetIndex);
-  });
+  updateFilterScrollBarActive(targetIndex);
 }
 
 function openPdfModal(noteId, pdfUrl = null) {
@@ -910,55 +916,6 @@ function updateActiveMenu(activeTypeId) {
   if (window.location.pathname !== newUrl) {
     window.history.replaceState({}, '', newUrl);
   }
-}
-
-function setupHorizontalWheelScroll() {
-  const timelinePage = document.querySelector('.timeline-page');
-  if (!timelinePage) return;
-
-  let wheelTimeout = null;
-  let canScroll = true;
-
-  timelinePage.addEventListener(
-    'wheel',
-    (e) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        return;
-      }
-
-      e.preventDefault();
-
-      if (isScrollingToTarget || !canScroll) return;
-
-      const allNoteCards = Array.from(document.querySelectorAll('.note-card[data-note-id]'));
-      const currentIndex = allNoteCards.findIndex(
-        (card) => card.getAttribute('data-note-id') === currentFocusedNoteId
-      );
-
-      if (currentIndex === -1) return;
-
-      if (e.deltaY > 0 && currentIndex < allNoteCards.length - 1) {
-        canScroll = false;
-        const nextNoteId = allNoteCards[currentIndex + 1].getAttribute('data-note-id');
-        focusNote(nextNoteId);
-
-        clearTimeout(wheelTimeout);
-        wheelTimeout = setTimeout(() => {
-          canScroll = true;
-        }, 300);
-      } else if (e.deltaY < 0 && currentIndex > 0) {
-        canScroll = false;
-        const prevNoteId = allNoteCards[currentIndex - 1].getAttribute('data-note-id');
-        focusNote(prevNoteId);
-
-        clearTimeout(wheelTimeout);
-        wheelTimeout = setTimeout(() => {
-          canScroll = true;
-        }, 300);
-      }
-    },
-    { passive: false }
-  );
 }
 
 function setupTimelineDots() {
