@@ -57,21 +57,21 @@ export function renderNavigation() {
   container.innerHTML = `
     <nav class="navigation${isHome ? ' navigation--home' : ''}">
       <div class="nav-container">
-        <a href="/" class="logo" data-link>
-          ${backIconSvg}
-          <span class="logo-text">Back</span>
-          <img src="${logo}" alt="Memory of Records" class="logo-image" />
-        </a>
+        <div class="nav-brand">
+          <a href="/" class="logo" data-link>
+            ${backIconSvg}
+            <span class="logo-text">Back</span>
+            <img src="${logo}" alt="Memory of Records" class="logo-image" />
+          </a>
+          <a
+            href="/story"
+            class="nav-brand-link ${currentPath.startsWith('/story') ? 'active' : ''}"
+            data-link
+          >
+            Story
+          </a>
+        </div>
         <ul class="nav-menu">
-          <li>
-            <a
-              href="/story"
-              class="${currentPath.startsWith('/story') ? 'active' : ''}"
-              data-link
-            >
-              Story
-            </a>
-          </li>
           <li>
             <a
               href="/timeline"

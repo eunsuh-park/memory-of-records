@@ -31,6 +31,33 @@
   height: fit-content;
 }
 
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-brand-link {
+  text-decoration: none;
+  color: var(--app-text-muted);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-brand-link:hover,
+.nav-brand-link:focus {
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.15);
+  outline: none;
+}
+
+.nav-brand-link.active {
+  color: var(--app-text);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 .logo {
   text-decoration: none;
   color: inherit;
