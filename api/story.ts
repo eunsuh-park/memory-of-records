@@ -1,10 +1,13 @@
 /**
  * Vercel Serverless Function for Story API
  * Notion API를 통해 Story 데이터를 제공하는 API
- * 
+ *
+ * Story 페이지 전용 DB (노트북/타임라인 DB와 별도)
+ *
  * 환경 변수:
  * - NOTION_API_KEY: Notion API 토큰
- * - NOTION_DB_ID: Notion 데이터베이스 ID
+ * - NOTION_STORY_DB_ID: Story 전용 Notion 데이터베이스 ID (권장)
+ * - NOTION_DB_ID / NOTION_DATABASE_ID: (fallback, 노트북 DB와 동일할 수 있음)
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
@@ -19,12 +22,17 @@ export default async function handler(
   }
 
   const NOTION_API_KEY = process.env.NOTION_API_KEY;
-  const NOTION_DB_ID = process.env.NOTION_DB_ID || process.env.NOTION_DATABASE_ID || '18dfb9c7066e4df99962c5fed616b3db';
+  const NOTION_DB_ID =
+    process.env.NOTION_STORY_DB_ID ||
+    process.env.NOTION_DB_ID ||
+    process.env.NOTION_DATABASE_ID ||
+    null;
 
   if (!NOTION_API_KEY || !NOTION_DB_ID) {
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Notion configuration missing',
-      message: 'NOTION_API_KEY and NOTION_DB_ID environment variables are required'
+      message:
+        'NOTION_API_KEY and NOTION_STORY_DB_ID (or NOTION_DB_ID) environment variables are required for Story API'
     });
   }
 

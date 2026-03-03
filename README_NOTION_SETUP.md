@@ -1,5 +1,7 @@
 # Notion API 연동 설정 가이드
 
+> **📋 전체 Notion DB 정리**: `docs/NOTION_DB_OVERVIEW.md` 참고 (Timeline, Story, By type 별 환경 변수)
+
 ## 필요한 정보
 
 노션 DB와 연동하기 위해 다음 정보가 필요합니다:
@@ -33,10 +35,11 @@
 ## 설정 방법
 
 1. `.env.example` 파일을 `.env`로 복사
-2. `.env` 파일에 실제 값 입력:
+2. `.env` 또는 Vercel 환경 변수에 실제 값 입력:
    ```
-   VITE_NOTION_API_KEY=발급받은_API_키
-   VITE_NOTION_DATABASE_ID=데이터베이스_ID
+   NOTION_API_KEY=발급받은_API_키
+   NOTION_DATABASE_ID=노트북/Timeline_데이터베이스_ID
+   NOTION_STORY_DB_ID=Story_전용_데이터베이스_ID  # Story 페이지용 (별도 DB 권장)
    ```
 3. 노션 데이터베이스에 Integration 연결:
    - 데이터베이스 페이지에서 "..." 메뉴 → "Connections" → 생성한 Integration 선택
