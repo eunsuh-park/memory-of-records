@@ -2,7 +2,6 @@
  * 간단한 SPA 라우터
  */
 
-import { renderHome } from './pages/Home.js';
 import { renderTimeline } from './pages/Timeline.js';
 import { renderByType } from './pages/ByType.js';
 import { renderStory } from './pages/Story.js';
@@ -16,7 +15,7 @@ const BASE_URL = import.meta.env.BASE_URL || '/';
 class Router {
   constructor() {
     this.routes = [
-      { path: '/', handler: renderHome },
+      { path: '/', handler: () => renderTimeline(null) },
       { path: '/timeline', handler: () => renderTimeline(null) },
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/by-type', handler: () => renderByType(null) },
