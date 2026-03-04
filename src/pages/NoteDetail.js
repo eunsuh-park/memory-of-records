@@ -115,6 +115,15 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
       </div>
     `;
 
+  if (!isModal) {
+    const pageEl = targetEl.querySelector('.note-detail-page');
+    if (pageEl) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => pageEl.classList.add('note-detail-page--mounted'));
+      });
+    }
+  }
+
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
   const canvas = targetEl.querySelector('#pdf-canvas');

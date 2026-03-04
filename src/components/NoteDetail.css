@@ -1,4 +1,4 @@
-﻿/* NoteDetail 而댄룷?뚰듃 ?ㅽ???*/
+/* NoteDetail 而댄룷?뚰듃 ?ㅽ???*/
 .note-detail {
   max-width: 800px;
   margin: 0 auto;
@@ -263,7 +263,7 @@ body.pdf-modal-open {
   top: 50%;
   transform: translateY(-50%);
   border: none;
-  background: rgba(17, 24, 39, 0.75);
+  background: rgba(17, 24, 39, 0.6);
   color: #fff;
   padding: 12px 12px;
   border-radius: 999px;
@@ -271,6 +271,8 @@ body.pdf-modal-open {
   cursor: pointer;
   z-index: 2;
   transition: background 0.2s ease, transform 0.2s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .pdf-nav-button svg,
 .pdf-page-indicator button svg {
@@ -304,6 +306,9 @@ body.pdf-modal-open {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  background: rgba(17, 24, 39, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 /* ?꾩옱 ?섏씠吏 踰덊샇??援듦쾶 ?쒖떆 */
 .pdf-page-indicator #pdf-current-page {
@@ -338,6 +343,11 @@ body.pdf-modal-open {
   justify-content: center;
   gap: 6px;
   z-index: 2;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .pdf-zoom-controls button {
   width: 32px;
@@ -375,11 +385,30 @@ body.pdf-modal-open {
   }
 }
 
-/* NoteDetailPage ????: /note/:id?? ?? ?? ?? */
+/* NoteDetailPage: /note/:id 전체 화면 + 등장 애니메이션 + 반투명 글래스 */
 .note-detail-page {
   height: 100vh;
   overflow: hidden;
   padding: 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: scale(0.98);
+  transition: none;
+}
+.note-detail-page.note-detail-page--mounted {
+  animation: note-detail-page-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes note-detail-page-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .note-detail-page .note-detail {
@@ -387,4 +416,9 @@ body.pdf-modal-open {
   padding: 0;
   display: flex;
   flex-direction: column;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
