@@ -1,21 +1,22 @@
 /**
- * FilterSubMenu - Timeline / By Type 공통 사이드 필터 메뉴
+ * FilterSubMenu
  *
- * - Timeline: periodOptions (period_name → Elementary School, University, ...)
- * - By Type:  typeOptions  (notebook_type → 다이어리(일기장), 스케줄러, ...)
+ * Timeline / By Type 페이지의 사이드 필터 메뉴를 렌더링합니다.
+ * 옵션·경로·카운트를 인자로 받아 공통 UI로 그립니다.
  *
- * filterOptions는 각 페이지에서 1:1 매칭용으로 정의된 옵션 배열
+ * - Timeline: filterOptions = periodOptions (시기별)
+ * - By Type:  filterOptions = typeOptions  (노트 타입별)
  */
 
 import './SubMenu.css';
 
 /**
- * 사이드 필터 메뉴 렌더링
- * @param {string} selectedValue - 현재 선택된 필터 값 (opt.value)
- * @param {string} basePath - '/timeline' | '/by-type'
- * @param {Array<{value: string, label: string, years?: string, detail?: string}>} filterOptions
- *        Timeline: periodOptions / By Type: typeOptions
- * @param {Record<string, number>} [countsByFilter] - 필터값별 노트 개수
+ * #sub-menu 컨테이너에 필터 링크 목록을 그립니다.
+ *
+ * @param {string} selectedValue - 현재 선택된 값 (opt.value)
+ * @param {string} basePath - 링크 prefix. '/timeline' 또는 '/by-type'
+ * @param {Array<{value: string, label: string, years?: string, detail?: string}>} filterOptions - 표시할 필터 옵션 배열
+ * @param {Record<string, number>} [countsByFilter] - 옵션별 노트 개수 (메뉴에 숫자 표시)
  */
 export function renderFilterSubMenu(selectedValue, basePath, filterOptions, countsByFilter = {}) {
   const container = document.getElementById('sub-menu');
