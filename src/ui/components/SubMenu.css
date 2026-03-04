@@ -1,11 +1,24 @@
-/* SubMenu 스타일 */
+/**
+ * SubMenu (서브 메뉴) 스타일
+ *
+ * Timeline / By Type 페이지 상단의 필터 탭 메뉴.
+ * FilterSubMenu.js가 #sub-menu 안에 렌더하는 .sub-menu ~ .period-count 구조에 적용됩니다.
+ *
+ * - .sub-menu: 메뉴 컨테이너 (고정 위치, 상단 중앙)
+ * - .sub-nav: 내부 네비 래퍼
+ * - .period-list / .period-item: 탭 목록·항목 (Timeline은 시기, By Type은 타입)
+ * - .period-link: 각 탭 링크 (.active 시 선택 상태)
+ * - .period-label: 탭 라벨 텍스트
+ * - .period-years: 시기별 연도 표시 (Timeline용, typeOptions.detail 등)
+ * - .period-count: 탭별 노트 개수
+ */
 
+/* 서브 메뉴 컨테이너: TopNavigation 하단에 고정, 가로 중앙 정렬 */
 .sub-menu {
-  /* 서브 메뉴를 상단에 고정 및 가운데 정렬 */
   position: fixed;
-  top: 80px; /* TopNavigation 하단 아래 배치 (네비 높이 72px + 여백) */
+  top: 80px; /* TopNavigation 높이 72px + 여백 */
   left: 50%;
-  transform: translateX(-50%); /* 가로만 중앙 정렬 */
+  transform: translateX(-50%);
   background: unset;
   background-color: unset;
   border: none;
@@ -15,6 +28,7 @@
   width: auto;
 }
 
+/* 내부 네비 래퍼 (flex로 목록 중앙 정렬) */
 .sub-nav {
   position: relative;
   top: 0;
@@ -24,6 +38,7 @@
   justify-content: center;
 }
 
+/* 탭 목록: 가로 flex, Timeline 시기 또는 By Type 타입 옵션 나열 */
 .period-list {
   list-style: none;
   margin: 0;
@@ -34,6 +49,7 @@
   color: rgba(0, 0, 0, 0);
 }
 
+/* 탭 한 칸 (각 시기/타입 항목) */
 .period-item {
   margin: 0;
   background: unset;
@@ -41,8 +57,8 @@
   width: auto;
 }
 
+/* 탭 링크: 라벨·연도·개수 표시, 선택 시 .active */
 .period-link {
-  /* 시기 링크 스타일 (주크박스와 동일한 앱 배경에 맞춤) */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,11 +78,13 @@
   width: auto;
 }
 
+/* 비활성(선택 불가) 링크 */
 .period-link[aria-disabled="true"] {
   pointer-events: none;
   cursor: default;
 }
 
+/* 미선택 탭: 흐린 색 */
 .period-link:not(.active) {
   color: var(--app-text-dim);
 }
@@ -75,11 +93,13 @@
   color: var(--app-text-dim);
 }
 
+/* 미선택 탭 호버 */
 .period-link:hover:not(.active) {
   color: var(--app-text);
   background-color: rgba(255, 255, 255, 0.08);
 }
 
+/* 선택된 탭 */
 .period-link.active {
   color: var(--app-text);
   background-color: rgba(255, 255, 255, 0.15);
@@ -89,8 +109,8 @@
   background-color: rgba(255, 255, 255, 0.15);
 }
 
+/* 탭 라벨 (예: "Elementary School", "다이어리(일기장)") */
 .period-label {
-  /* 시기 라벨 (예: "Elementary School") */
   display: block;
   font-size: 0.85rem;
   font-weight: 400;
@@ -105,8 +125,8 @@
   font-weight: 600;
 }
 
+/* 시기 연도/부가 설명 (예: "2005-2010", typeOptions.years/detail) */
 .period-years {
-  /* 시기 연도 (예: "2005-2010") */
   font-size: 0.75rem;
   font-weight: 400;
   color: var(--app-text-muted);
@@ -127,6 +147,7 @@
   font-weight: 500;
 }
 
+/* 탭별 노트 개수 숫자 */
 .period-count {
   font-size: 0.7rem;
   font-weight: 500;
@@ -134,6 +155,7 @@
   margin-left: 0.35rem;
 }
 
+/* 1024px 이하: 선택된 탭만 표시 (나머지 숨김) */
 @media (max-width: 1024px) {
   .period-list {
     gap: 0;

@@ -34,7 +34,7 @@ Timeline과 By Type 페이지는 같은 갤러리 UI(Jukebox) + 사이드 필터
 
 - **Timeline**  
   - Notion → `notionNotebooks.convertNotionPageToNotebook()`  
-  - 노트 필드: `notebookType` (period_name / notebook_type from Notion)  
+  - 노트 필드: `notebookType` (period_name from Notion)  
   - `resolvePeriodKey(notebookType)` → `periodOptions.value` (e.g. `'elementary'`)
 
 - **By Type**  
