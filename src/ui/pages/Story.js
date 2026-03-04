@@ -1,12 +1,14 @@
 /**
  * Story 페이지 (Gallery 형식)
  * Top Nav 숨김 + 좌측 상단 뒤로가기 버튼
+ * - DB에 Title이 "Introduction"인 페이지가 있으면 첫 화면을 해당 페이지의 StoryDetail로 표시
  */
 
 import { router } from '../../router.js';
 import './Story.css';
 import './StoryDetail.css'; /* 좌측 상단 뒤로가기 버튼 스타일 */
-import { fetchNotionPages, convertNotionPageToStoryPost } from '../../services/notion.js';
+import { loadNotionPosts, getStoryPosts } from '../../services/notion.js';
+import { renderStoryDetail } from './StoryDetail.js';
 
 const BACK_BUTTON_SVG = `
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -56,53 +58,40 @@ export async function renderStory() {
     router.navigate('/');
   });
 
-  // 노션 데이터 가져오기
-  let notionPosts = [];
-  
+  // 노션 데이터 가져오기 (캐시 채움 → StoryDetail에서 getStoryById 사용 가능)
+  let posts = [];
   try {
-    console.log('스토리 데이터 가져오기 시작...');
-    const notionPages = await fetchNotionPages();
-    console.log('가져온 노션 페이지:', notionPages);
-    
-    if (notionPages && notionPages.length > 0) {
-      console.log('노션 페이지 변환 시작...');
-      notionPosts = notionPages.map(page => {
-        const post = convertNotionPageToStoryPost(page);
-        console.log('변환된 포스트:', post);
-        return post;
-      });
-      
-      console.log('변환된 노션 포스트 개수:', notionPosts.length);
-      
-      // 노션 페이지에서 이미지 추출 (페이지 내용 가져오기)
+    await loadNotionPosts();
+    posts = getStoryPosts() || [];
+    if (posts.length > 0) {
       const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../../services/notion.js');
-      for (let i = 0; i < notionPosts.length; i++) {
-        if (!notionPosts[i].image && notionPosts[i].notionId) {
+      for (let i = 0; i < posts.length; i++) {
+        if (!posts[i].image && posts[i].notionId) {
           try {
-            const blocks = await fetchNotionPageContent(notionPosts[i].notionId);
+            const blocks = await fetchNotionPageContent(posts[i].notionId);
             const imageUrl = extractFirstImageFromBlocks(blocks);
-            if (imageUrl) {
-              notionPosts[i].image = imageUrl;
-              console.log(`이미지 추출 성공 (${notionPosts[i].title}):`, imageUrl);
-            }
-          } catch (error) {
-            console.warn(`이미지 추출 실패 (${notionPosts[i].notionId}):`, error);
+            if (imageUrl) posts[i].image = imageUrl;
+          } catch (err) {
+            console.warn(`이미지 추출 실패 (${posts[i].notionId}):`, err);
           }
         }
       }
-    } else {
-      console.warn('노션 페이지가 없습니다.');
     }
   } catch (error) {
     console.error('스토리 데이터 로딩 실패:', error);
-    console.error('에러 스택:', error.stack);
   }
 
-  console.log('최종 노션 포스트:', notionPosts);
-  
-  // 노션 데이터만 사용
-  const posts = notionPosts;
-  console.log('최종 포스트 목록:', posts);
+  // DB의 Introduction 페이지가 있으면 첫 화면을 StoryDetail로 표시
+  const introTitleNorm = (t) => String(t || '').trim().toLowerCase();
+  const introductionPost = posts.find(
+    (p) => introTitleNorm(p.title) === 'introduction' || introTitleNorm(p.title) === '소개'
+  );
+  if (introductionPost && introductionPost.notionId) {
+    await renderStoryDetail(introductionPost.notionId, true);
+    return;
+  }
+
+  console.log('최종 포스트 목록 (갤러리):', posts);
   
   // 포스트가 없을 때 안내 메시지 표시
   if (posts.length === 0) {
