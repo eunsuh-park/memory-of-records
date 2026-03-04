@@ -19,15 +19,26 @@ function resolvePeriodKey(notebookType) {
   return match?.value ?? null;
 }
 
+/**
+ * 시기별 노트 개수 집계 (사이드 메뉴 카운트 표시용)
+ * resolvePeriodKey가 null인 노트는 counts에 포함되지 않음 (미분류)
+ * 값이 0이어도 0 그대로 표시됨
+ */
 function getNotesCountByPeriod(notes) {
+  // 각 periodOption.value를 0으로 초기화
   const counts = {};
   periodOptions.forEach((opt) => {
     counts[opt.value] = 0;
   });
+  // 각 노트에 대해 해당 period의 카운트 증가
   (notes || []).forEach((note) => {
     const key = resolvePeriodKey(note.notebookType || note.period);
-    counts[key] = (counts[key] || 0) + 1;
+    if (key && Object.prototype.hasOwnProperty.call(counts, key)) {
+      counts[key] += 1;
+    }
+    // key가 counts에 없으면 무시(미분류)
   });
+  // 모든 시기가 0이어도 0이 그대로 유지됨
   return counts;
 }
 

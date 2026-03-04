@@ -24,7 +24,7 @@
 ## 2. Story
 
 - **API**: `api/story.ts`
-- **환경 변수**: `NOTION_API_KEY`, **`NOTION_STORY_DB_ID`** (권장)
+- **환경 변수**: `NOTION_API_KEY`, **`NOTION_STORY_DB_ID`**
   - fallback: `NOTION_DB_ID`, `NOTION_DATABASE_ID`
 - **Notion DB 필수 속성**:
   - Title (제목)
