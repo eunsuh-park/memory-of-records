@@ -4,10 +4,10 @@
  * - DB에 Title이 "Introduction"인 페이지가 있으면 첫 화면을 해당 페이지의 StoryDetail로 표시
  */
 
-import { router } from '../../router.js';
+import { router } from '../router.js';
 import './Story.css';
 import './StoryDetail.css'; /* 좌측 상단 뒤로가기 버튼 스타일 */
-import { loadNotionPosts, getStoryPosts } from '../../services/notion.js';
+import { loadNotionPosts, getStoryPosts } from '../services/notion.js';
 import { renderStoryDetail } from './StoryDetail.js';
 
 const BACK_BUTTON_SVG = `
@@ -64,7 +64,7 @@ export async function renderStory() {
     await loadNotionPosts();
     posts = getStoryPosts() || [];
     if (posts.length > 0) {
-      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../../services/notion.js');
+      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../services/notion.js');
       for (let i = 0; i < posts.length; i++) {
         if (!posts[i].image && posts[i].notionId) {
           try {

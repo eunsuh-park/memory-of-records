@@ -2,14 +2,14 @@
  * StoryDetail 페이지
  */
 
-import { router } from '../../router.js';
+import { router } from '../router.js';
 import './StoryDetail.css';
-import { fetchNotionPageContent, convertNotionBlocksToHTML, getStoryById, getAdjacentStories, loadNotionPosts } from '../../services/notion.js';
-import image1 from '../../assets/KakaoTalk_20251216_202813467_01.jpg';
-import image2 from '../../assets/KakaoTalk_20251216_202813467_02.jpg';
-import image3 from '../../assets/KakaoTalk_20251216_204415732_01.jpg';
-import image4 from '../../assets/KakaoTalk_20251216_204415732_02.jpg';
-import image5 from '../../assets/KakaoTalk_20251216_204415732_03.jpg';
+import { fetchNotionPageContent, convertNotionBlocksToHTML, getStoryById, getAdjacentStories, loadNotionPosts } from '../services/notion.js';
+import image1 from '../assets/KakaoTalk_20251216_202813467_01.jpg';
+import image2 from '../assets/KakaoTalk_20251216_202813467_02.jpg';
+import image3 from '../assets/KakaoTalk_20251216_204415732_01.jpg';
+import image4 from '../assets/KakaoTalk_20251216_204415732_02.jpg';
+import image5 from '../assets/KakaoTalk_20251216_204415732_03.jpg';
 
 export async function renderStoryDetail(id, skipAnimation = false) {
   const mainContent = document.getElementById('main-content');
@@ -66,7 +66,7 @@ export async function renderStoryDetail(id, skipAnimation = false) {
         
         // 노션 페이지에서 이미지 추출 (이미지가 속성에 없는 경우)
         if (!imageSrc) {
-          const { extractFirstImageFromBlocks } = await import('../../services/notion.js');
+          const { extractFirstImageFromBlocks } = await import('../services/notion.js');
           const extractedImage = extractFirstImageFromBlocks(blocks);
           if (extractedImage) {
             imageSrc = extractedImage;

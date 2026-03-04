@@ -2,8 +2,8 @@
  * Timeline 페이지 = Jukebox + 기간(period) 필터
  */
 
-import { periodOptions } from '../../services/notesData.js';
-import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { periodOptions } from '../services/notesData.js';
+import { getNotionNotebooks } from '../services/notionNotebooks.js';
 import { renderJukeboxWithFilter } from './Jukebox.js';
 
 /** period_name: Notion 태그와 1:1 매칭 */

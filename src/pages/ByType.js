@@ -6,8 +6,8 @@
  * @see typeOptions (src/services/typeOptions.js)
  */
 
-import { typeOptions } from '../../services/typeOptions.js';
-import { getNotionTypeItems } from '../../services/notionByType.js';
+import { typeOptions } from '../services/typeOptions.js';
+import { getNotionTypeItems } from '../services/notionByType.js';
 import { renderJukeboxWithFilter } from './Jukebox.js';
 
 /**

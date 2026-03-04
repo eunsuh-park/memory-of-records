@@ -51,41 +51,38 @@ body.jukebox-active {
   width: 100%;
 }
 
-----------------------------------------NAVIGATION----------------------------------------
-
-/* PC용 이전/다음 버튼: 카드 리스트 양끝에 배치, 정사각·원형 */
+/* 이전/다음 버튼: 화면 세로 중앙, 좌우 양끝. NoteDetail.pdf-nav-button 스타일 참고 */
 .jukebox-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 50;
-  width: 56px;
-  height: 56px;
   margin: 0;
-  padding: 0;
+  padding: 12px;
   border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.35);
-  color: rgba(255, 255, 255, 1);
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.75);
+  color: #fff;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  font-size: 16px;
+  transition: background 0.2s ease, transform 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .jukebox-nav:hover {
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  background: #fff;
+  color: rgba(17, 24, 39, 0.9);
 }
 .jukebox-nav:active {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(255, 255, 255, 0.95);
 }
 .jukebox-nav--prev {
-  left: 12px;
+  left: 14px;
 }
 .jukebox-nav--next {
-  right: 12px;
+  right: 14px;
 }
 .jukebox-nav-icon {
   display: flex;
@@ -93,7 +90,6 @@ body.jukebox-active {
   justify-content: center;
   width: 24px;
   height: 24px;
-  margin: 0 auto;
 }
 .jukebox-nav-icon svg {
   width: 100%;
@@ -339,8 +335,11 @@ body.jukebox-active {
 
   /* 네비 버튼: 정사각·원형 유지 */
   .jukebox-nav {
-    width: 48px;
-    height: 48px;
+    padding: 10px;
+  }
+  .jukebox-nav-icon {
+    width: 20px;
+    height: 20px;
   }
   .jukebox-nav--prev {
     left: 8px;
@@ -372,8 +371,11 @@ body.jukebox-active {
   }
 
   .jukebox-nav {
-    width: 40px;
-    height: 40px;
+    padding: 8px;
+  }
+  .jukebox-nav-icon {
+    width: 18px;
+    height: 18px;
   }
   .jukebox-nav--prev {
     left: 6px;
