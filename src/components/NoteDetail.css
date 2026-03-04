@@ -200,9 +200,9 @@ body.pdf-modal-open {
 */
 .pdf-canvas-wrap {
   position: relative;
-  background: #f3f4f6;
+  background: rgba(243, 244, 246, 0.45);
   border: none;
-  border-radius: 0;
+  border-radius: 18px;
   padding: 0;
   margin: 0;
   min-height: 70vh;
@@ -213,6 +213,9 @@ body.pdf-modal-open {
   height: 100%;
   width: 100%;
   flex: 1;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
 }
 /* ?ㅼ젣 PDF媛 ?뚮뜑留곷릺??canvas ?쒓렇???ㅽ???
    - 以묒븰 諛곗튂 諛??뺣?/異뺤냼 ?④낵瑜??꾪빐 transform ?ъ슜
