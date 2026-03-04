@@ -7,7 +7,6 @@ import { renderByType } from './ui/pages/ByType.js';
 import { renderStory } from './ui/pages/Story.js';
 import { renderStoryDetail } from './ui/pages/StoryDetail.js';
 import { renderNoteDetail } from './ui/pages/NoteDetail.js';
-import { renderLibrary } from './ui/pages/Library.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -23,8 +22,6 @@ class Router {
       { path: '/story', handler: renderStory },
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetail(params.id) },
-      { path: '/jukebox', handler: () => renderLibrary('jukebox') },
-      { path: '/bookshelf', handler: () => renderLibrary('bookshelf') },
     ];
   }
 
@@ -95,15 +92,8 @@ class Router {
       document.body.classList.remove('note-detail-modal');
     }
 
-    // Library(Jukebox/Bookshelf) 페이지가 아닐 때 관련 클래스 제거
-    if (!path.startsWith('/jukebox') && !path.startsWith('/bookshelf')) {
-      document.body.classList.remove('library-active', 'bookshelf-active');
-      mainContent?.classList.remove('library-active', 'bookshelf-active');
-      mainContent?.closest('.main-wrapper')?.classList.remove('library-active', 'bookshelf-active');
-    }
-
-    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type도 Jukebox 사용)
-    if (!path.startsWith('/jukebox') && !path.startsWith('/timeline') && !path.startsWith('/by-type')) {
+    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type에서 사용)
+    if (!path.startsWith('/timeline') && !path.startsWith('/by-type')) {
       document.body.classList.remove('jukebox-active');
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');

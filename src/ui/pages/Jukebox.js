@@ -284,7 +284,7 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
 
 /**
  * 갤러리 DOM에 노트 카드를 채우고 Cover Flow·스크롤을 활성화.
- * Library 페이지에서 Jukebox/Bookshelf 토글 시 재사용.
+ * Timeline/By Type의 renderJukeboxWithFilter에서 호출.
  * @param {HTMLElement} gallery - .jukebox-gallery 요소
  * @param {HTMLElement|null} prevBtn - 이전 버튼
  * @param {HTMLElement|null} nextBtn - 다음 버튼

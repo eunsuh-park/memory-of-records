@@ -90,15 +90,6 @@ export function renderNavigation() {
               By type
             </a>
           </li>
-          <li>
-            <a
-              href="/jukebox"
-              class="${currentPath.startsWith('/jukebox') || currentPath.startsWith('/bookshelf') ? 'active' : ''}"
-              data-link
-            >
-              노트
-            </a>
-          </li>
         </ul>
         <a
           href="/timeline"
