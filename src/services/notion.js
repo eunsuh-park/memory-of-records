@@ -140,7 +140,43 @@ export function extractFirstImageFromBlocks(blocks) {
 }
 
 /**
- * 노션 블록을 HTML로 변환하는 함수
+ * HTML 이스케이프 (XSS 방지)
+ */
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * 노션 rich_text 배열을 서식(굵게, 기울임, 코드, 링크 등)을 반영한 HTML 문자열로 변환
+ * @param {Array} richText - 노션 rich_text 배열
+ * @returns {string} HTML 문자열
+ */
+function richTextToHTML(richText) {
+  if (!richText || richText.length === 0) return '';
+  return richText.map((rt) => {
+    const text = escapeHtml(rt.plain_text || '');
+    if (!text) return '';
+    const ann = rt.annotations || {};
+    const href = rt.href || rt.link?.url;
+    let out = text;
+    if (ann.code) out = `<code>${out}</code>`;
+    if (ann.bold) out = `<strong>${out}</strong>`;
+    if (ann.italic) out = `<em>${out}</em>`;
+    if (ann.strikethrough) out = `<s>${out}</s>`;
+    if (ann.underline) out = `<u>${out}</u>`;
+    if (href) out = `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${out}</a>`;
+    return out;
+  }).join('');
+}
+
+/**
+ * 노션 블록을 HTML로 변환하는 함수 (rich_text 서식 반영: 굵게, 기울임, 코드, 링크 등)
  * @param {Array} blocks - 노션 블록 배열
  * @param {boolean} excludeImages - 이미지 제외 여부 (기본값: false)
  * @returns {string} HTML 문자열
@@ -157,30 +193,24 @@ export function convertNotionBlocksToHTML(blocks, excludeImages = false) {
       return '';
     }
 
+    const textHtml = content.rich_text ? richTextToHTML(content.rich_text) : '';
+
     switch (type) {
       case 'paragraph':
-        const text = content.rich_text?.map(rt => rt.plain_text).join('') || '';
-        return text ? `<p>${text}</p>` : '<br>';
-      
+        return textHtml ? `<p>${textHtml}</p>` : '<br>';
       case 'heading_1':
-        return `<h1>${content.rich_text?.map(rt => rt.plain_text).join('') || ''}</h1>`;
-      
+        return textHtml ? `<h1>${textHtml}</h1>` : '';
       case 'heading_2':
-        return `<h2>${content.rich_text?.map(rt => rt.plain_text).join('') || ''}</h2>`;
-      
+        return textHtml ? `<h2>${textHtml}</h2>` : '';
       case 'heading_3':
-        return `<h3>${content.rich_text?.map(rt => rt.plain_text).join('') || ''}</h3>`;
-      
+        return textHtml ? `<h3>${textHtml}</h3>` : '';
       case 'bulleted_list_item':
-        return `<li>${content.rich_text?.map(rt => rt.plain_text).join('') || ''}</li>`;
-      
+        return textHtml ? `<li>${textHtml}</li>` : '';
       case 'numbered_list_item':
-        return `<li>${content.rich_text?.map(rt => rt.plain_text).join('') || ''}</li>`;
-      
+        return textHtml ? `<li>${textHtml}</li>` : '';
       case 'image':
         const imageUrl = content.file?.url || content.external?.url || '';
-        return imageUrl ? `<img src="${imageUrl}" alt="" />` : '';
-      
+        return imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" />` : '';
       default:
         return '';
     }

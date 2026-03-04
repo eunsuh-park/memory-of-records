@@ -1,7 +1,4 @@
-/* Story 페이지 메인 콘텐츠 배경 - 흰색 */
-body.story-detail-page-active .main-wrapper {
-  background-color: #fff;
-}
+
 
 /* 메인 콘텐츠 영역 - 좌우 분할 */
 .story-detail-main {
@@ -15,6 +12,7 @@ body.story-detail-page-active .main-wrapper {
 
 .story-detail-main > * {
   cursor: default;
+  background-color: var(--jukebox-bg);
 }
 
 /* StoryDetail 페이지 스타일 */
