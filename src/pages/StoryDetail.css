@@ -1,3 +1,8 @@
+/* Story 페이지 메인 콘텐츠 배경 - 흰색 */
+body.story-detail-page-active #main-content,
+body.story-detail-page-active .main-wrapper {
+  background-color: #fff;
+}
 
 /* 메인 콘텐츠 영역 - 좌우 분할 */
 .story-detail-main {
@@ -110,7 +115,64 @@ body.story-detail-page-active #main-content {
   color: #999;
 }
 
-/* 뒤로가기 버튼 */
+/* =============================================================================
+   좌측 상단 고정 뒤로가기 버튼 (Top Nav 숨김 시 대체)
+   - PC/태블릿: 24px 아이콘, 48px 터치 영역
+   - 모바일: safe-area-inset 적용, 최소 44px 터치 타겟 (접근성)
+   ============================================================================= */
+.story-page-back-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #333;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-page-back-button:hover {
+  background-color: #333;
+  color: white;
+  border-color: #333;
+  transform: scale(1.05);
+}
+
+.story-page-back-button svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+/* 모바일: safe-area 반영, 터치 영역 확대 (최소 44px 권장) */
+@media (max-width: 768px) {
+  .story-page-back-button {
+    top: max(0.75rem, env(safe-area-inset-top));
+    left: max(0.75rem, env(safe-area-inset-left));
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .story-page-back-button svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* 뒤로가기 버튼 (책 내부용) */
 .story-back-button {
   display: flex;
   align-items: center;

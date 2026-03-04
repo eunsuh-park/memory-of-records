@@ -87,8 +87,8 @@ class Router {
       return;
     }
 
-    // 상세 페이지가 아닐 때 클래스 제거
-    if (!path.startsWith('/story/')) {
+    /* Story가 아닐 때 story-detail-page-active 제거 (Top Nav 복원) */
+    if (!path.startsWith('/story')) {
       document.body.classList.remove('story-detail-page-active');
     }
     if (!path.startsWith('/note/')) {

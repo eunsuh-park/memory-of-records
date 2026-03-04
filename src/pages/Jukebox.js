@@ -422,6 +422,10 @@ function openPdfModal(noteId, pdfUrl = null) {
 
 /**
  * Jukebox 페이지 + 필터 (Timeline: 기간별, By Type: 타입별)
+ *
+ * Timeline: filterOptions = periodOptions (period_name 1:1)
+ * By Type:  filterOptions = typeOptions  (notebook_type 5개 태그 1:1)
+ *
  * @param {Object} options
  * @param {'period'|'type'} options.filterMode
  * @param {string} options.basePath - '/timeline' | '/by-type'
@@ -429,7 +433,7 @@ function openPdfModal(noteId, pdfUrl = null) {
  * @param {Array<{value, label, years?, detail?}>} options.filterOptions
  * @param {() => Promise<Array>} options.loadNotes
  * @param {(notes: Array) => Record<string, number>} options.getNotesCount
- * @param {(note: Object) => string} options.resolveFilterKey
+ * @param {(note: Object) => string|null} options.resolveFilterKey
  */
 export function renderJukeboxWithFilter(options) {
   const {

@@ -1,5 +1,10 @@
 /* Story 페이지 스타일 */
 
+/* 좌측 상단 고정 뒤로가기 버튼 공간 확보 (Top Nav 숨김 시) */
+body.story-detail-page-active .story-page {
+  padding-top: 1rem;
+}
+
 .story-page {
   min-height: calc(100vh - 200px);
   height: fit-content;

@@ -27,7 +27,15 @@ export async function renderStoryDetail(id, skipAnimation = false) {
   console.log('찾은 포스트:', post);
   
   if (!post) {
+    const backButtonSvg = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
     mainContent.innerHTML = `
+      <button class="story-page-back-button" aria-label="Story 목록으로 돌아가기">
+        ${backButtonSvg}
+      </button>
       <div class="story-detail-page">
         <div class="story-error">
           <p>포스트를 찾을 수 없습니다.</p>
@@ -35,6 +43,7 @@ export async function renderStoryDetail(id, skipAnimation = false) {
         </div>
       </div>
     `;
+    mainContent.querySelector('.story-page-back-button')?.addEventListener('click', () => router.navigate('/story'));
     return;
   }
 
@@ -99,7 +108,17 @@ export async function renderStoryDetail(id, skipAnimation = false) {
     </svg>
   `;
 
+  /* 좌측 상단 고정 뒤로가기 버튼 (Top Nav 숨김 시 대체) */
+  const backButtonSvg = `
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+
   mainContent.innerHTML = `
+    <button class="story-page-back-button" aria-label="Story 목록으로 돌아가기">
+      ${backButtonSvg}
+    </button>
     <main class="story-detail-main">
       <div class="story-book">
         <div class="story-book-side-L"></div>
@@ -220,7 +239,16 @@ export async function renderStoryDetail(id, skipAnimation = false) {
     }
   };
 
-  // 이벤트 리스너
+  /* 좌측 상단 고정 뒤로가기 버튼: Story 목록(/story)으로 이동 */
+  const pageBackButton = mainContent.querySelector('.story-page-back-button');
+  if (pageBackButton) {
+    pageBackButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      goBack();
+    });
+  }
+
+  /* 책 내부 뒤로가기 버튼 */
   const backButton = mainContent.querySelector('.story-back-button');
   if (backButton) {
     backButton.addEventListener('click', (e) => {

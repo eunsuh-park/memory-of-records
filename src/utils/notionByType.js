@@ -69,6 +69,7 @@ export function convertNotionPageToTypeItem(page) {
     parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
     '제목 없음';
   const title = rawTitle.length > 7 ? rawTitle.slice(0, -7).trim() : rawTitle;
+  /* notebook_type: typeOptions와 1:1 매칭 (다이어리(일기장), 스케줄러, 수첩/메모지, 스케치북, 줄공책) */
   const type =
     parseNotionProperty(
       getProperty(

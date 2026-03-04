@@ -1,6 +1,7 @@
 /**
- * TypeSubMenu - By Type용 필터 메뉴 (FilterSubMenu 래퍼)
- * @deprecated FilterSubMenu를 직접 사용하세요.
+ * TypeSubMenu - By Type 사이드 필터 메뉴 (FilterSubMenu 래퍼)
+ * typeOptions 기반 notebook_type 5개 태그 필터
+ * @deprecated Jukebox.renderJukeboxWithFilter에서 FilterSubMenu 직접 사용
  */
 import { typeOptions } from '../data/typeOptions.js';
 import { renderFilterSubMenu } from './FilterSubMenu.js';

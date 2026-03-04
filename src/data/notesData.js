@@ -132,13 +132,13 @@ export const getAdjacentNotes = (currentId) => {
 };
 
 /**
- * 시기별 옵션 정의
+ * 시기별 옵션 정의 (Notion period_name 태그와 1:1 매칭)
  */
 export const periodOptions = [
   { value: "elementary", label: "Elementary School", years: "2005-2010" },
-  { value: "middle-high", label: "Middle & High School", years: "2012-2016" },
   { value: "university", label: "University", years: "2017-2022" },
-  { value: "after-graduation", label: "After Graduation", years: "2022-2024" },
+  { value: "middle-high", label: "Middle & High School", years: "2012-2016" },
+  { value: "after-school", label: "After School", years: "2022-Now" },
 ];
 
 /**

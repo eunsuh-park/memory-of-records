@@ -16,7 +16,7 @@
 - **환경 변수**: `NOTION_API_KEY`, `NOTION_DATABASE_ID` 또는 `NOTION_DB_ID`
 - **기본값**: `18dfb9c7066e4df99962c5fed616b3db`
 - **Notion DB 필수 속성**:
-  - period_name (Select)
+  - period_name (Select): Elementary School, University, Middle & High School, After School (1:1 매칭)
   - period_start, period_end (Date)
   - cover_front_url, cover_back_url (URL)
   - 이름/Name/title (Title)
@@ -39,6 +39,8 @@
 
 - **API**: `api/by-type/notion.js`
 - **환경 변수**: `NOTION_API_KEY`, `NOTION_BY_TYPE_DB_ID` 또는 `NOTION_DATABASE_ID`
+- **Notion DB notebook_type 태그** (1:1 매칭):
+  - 다이어리(일기장), 스케줄러, 수첩/메모지, 스케치북, 줄공책
 
 ---
 

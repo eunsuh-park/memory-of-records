@@ -1,14 +1,25 @@
 /**
  * Story 페이지 (Gallery 형식)
+ * Top Nav 숨김 + 좌측 상단 뒤로가기 버튼
  */
 
 import { router } from '../router.js';
 import './Story.css';
+import './StoryDetail.css'; /* 좌측 상단 뒤로가기 버튼 스타일 */
 import { fetchNotionPages, convertNotionPageToStoryPost } from '../utils/notion.js';
+
+const BACK_BUTTON_SVG = `
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`;
 
 export async function renderStory() {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
+
+  /* Story 페이지: Top Nav 숨김 (슬라이드 업), 전체 화면 활용 */
+  document.body.classList.add('story-detail-page-active');
 
   // 로딩 상태 표시 - 스켈레톤 UI
   const skeletonItems = Array(6).fill(0).map(() => `
@@ -27,6 +38,9 @@ export async function renderStory() {
   `).join('');
   
   mainContent.innerHTML = `
+    <button class="story-page-back-button" data-link aria-label="이전 페이지로 돌아가기">
+      ${BACK_BUTTON_SVG}
+    </button>
     <div class="story-page">
       <main class="story-main">
         <div class="gallery-grid">
@@ -35,6 +49,12 @@ export async function renderStory() {
       </main>
     </div>
   `;
+
+  /* 뒤로가기: 홈(Timeline)으로 이동 */
+  mainContent.querySelector('.story-page-back-button')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    router.navigate('/');
+  });
 
   // 노션 데이터 가져오기
   let notionPosts = [];
@@ -94,12 +114,19 @@ export async function renderStory() {
     `;
     
     mainContent.innerHTML = `
+      <button class="story-page-back-button" data-link aria-label="이전 페이지로 돌아가기">
+        ${BACK_BUTTON_SVG}
+      </button>
       <div class="story-page">
         <main class="story-main">
           ${emptyMessage}
         </main>
       </div>
     `;
+    mainContent.querySelector('.story-page-back-button')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      router.navigate('/');
+    });
     return;
   }
 
@@ -115,6 +142,9 @@ export async function renderStory() {
 
   // 노션 ID를 사용하거나 기존 ID 사용
   mainContent.innerHTML = `
+    <button class="story-page-back-button" data-link aria-label="이전 페이지로 돌아가기">
+      ${BACK_BUTTON_SVG}
+    </button>
     <div class="story-page">
       <main class="story-main">
         <div class="gallery-grid">
@@ -164,6 +194,12 @@ export async function renderStory() {
       </main>
     </div>
   `;
+
+  /* 뒤로가기: 홈(Timeline)으로 이동 */
+  mainContent.querySelector('.story-page-back-button')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    router.navigate('/');
+  });
 
   // 클릭 이벤트 리스너
   mainContent.querySelectorAll('.gallery-item[data-story-id]').forEach(item => {

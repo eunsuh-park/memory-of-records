@@ -4,7 +4,7 @@
 body.timeline-active.period-elementary,
 body.timeline-active.period-middle-high,
 body.timeline-active.period-university,
-body.timeline-active.period-after-graduation {
+body.timeline-active.period-after-school {
   background-color: var(--app-bg);
 }
 

@@ -1,16 +1,21 @@
 /**
- * FilterSubMenu - Timeline / By Type 공통 필터 메뉴
- * SubMenu(period_name) + TypeSubMenu(notebook_type) 통합
+ * FilterSubMenu - Timeline / By Type 공통 사이드 필터 메뉴
+ *
+ * - Timeline: periodOptions (period_name → Elementary School, University, ...)
+ * - By Type:  typeOptions  (notebook_type → 다이어리(일기장), 스케줄러, ...)
+ *
+ * filterOptions는 각 페이지에서 1:1 매칭용으로 정의된 옵션 배열
  */
 
 import './SubMenu.css';
 
 /**
- * @param {Object} params
- * @param {string} selectedValue - 현재 선택된 필터 값
+ * 사이드 필터 메뉴 렌더링
+ * @param {string} selectedValue - 현재 선택된 필터 값 (opt.value)
  * @param {string} basePath - '/timeline' | '/by-type'
  * @param {Array<{value: string, label: string, years?: string, detail?: string}>} filterOptions
- * @param {Record<string, number>} [countsByFilter] - 필터값별 노트 개수 (있으면 카운트 표시)
+ *        Timeline: periodOptions / By Type: typeOptions
+ * @param {Record<string, number>} [countsByFilter] - 필터값별 노트 개수
  */
 export function renderFilterSubMenu(selectedValue, basePath, filterOptions, countsByFilter = {}) {
   const container = document.getElementById('sub-menu');
