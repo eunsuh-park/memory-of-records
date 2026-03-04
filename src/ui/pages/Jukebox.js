@@ -476,6 +476,9 @@ export function renderJukeboxWithFilter(options) {
   const prevBtn = document.getElementById('jukebox-prev');
   const nextBtn = document.getElementById('jukebox-next');
 
+  // 진입 직후 현재 페이지 옵션으로 서브메뉴를 먼저 그림 (이전 페이지 메뉴가 4개/5개로 남는 현상 방지)
+  renderFilterSubMenu(selectedValue, basePath, filterOptions, {});
+
   loadNotes()
     .then((allNotes) => {
       const counts = getNotesCount(allNotes || []);
