@@ -200,7 +200,7 @@ body.pdf-modal-open {
 */
 .pdf-canvas-wrap {
   position: relative;
-  background: rgba(243, 244, 246, 0.45);
+  background: rgba(255, 255, 255, 0.45);
   border: none;
   border-radius: 18px;
   padding: 0;
