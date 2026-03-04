@@ -449,12 +449,8 @@ export function renderJukeboxWithFilter(options) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
 
-  let subMenuContainer = document.getElementById('sub-menu');
-  if (!subMenuContainer) {
-    subMenuContainer = document.createElement('aside');
-    subMenuContainer.id = 'sub-menu';
-    document.body.appendChild(subMenuContainer);
-  }
+  const subMenuContainer = document.getElementById('sub-menu');
+  if (!subMenuContainer) return;
 
   mainContent.className = 'app-main jukebox-active';
   const mainWrapper = mainContent.closest('.main-wrapper');

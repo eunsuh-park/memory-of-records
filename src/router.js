@@ -109,10 +109,10 @@ class Router {
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
 
-    // Timeline/By type 페이지가 아닐 때 서브 메뉴 제거
+    // Timeline/By type 페이지가 아닐 때 서브 메뉴 내용만 비움 (노드는 유지)
     if (!path.startsWith('/timeline') && !path.startsWith('/by-type')) {
       const subMenu = document.getElementById('sub-menu');
-      if (subMenu) subMenu.remove();
+      if (subMenu) subMenu.innerHTML = '';
     }
 
     // 네비게이션 업데이트
