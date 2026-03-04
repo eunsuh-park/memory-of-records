@@ -1,17 +1,14 @@
-/* NoteDetail 컴포넌트 스타일 */
-
+﻿/* NoteDetail 而댄룷?뚰듃 ?ㅽ???*/
 .note-detail {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
 }
-
-/* 노트 표지 이미지 */
+/* ?명듃 ?쒖? ?대?吏 */
 .note-cover-section {
   margin-bottom: 2rem;
   text-align: center;
 }
-
 .note-cover-image-detail {
   max-width: 100%;
   height: auto;
@@ -19,29 +16,25 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   object-fit: contain;
-  transform: scale(0.8); /* 이미지 크기를 0.8배로 축소 */
+  transform: scale(0.8); /* ?대?吏 ?ш린瑜?0.8諛곕줈 異뺤냼 */
 }
-
 .note-error {
   text-align: center;
   padding: 3rem;
   color: #999;
 }
-
-/* 노트 헤더 */
+/* ?명듃 ?ㅻ뜑 */
 .note-header {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 2px solid #e0e0e0;
 }
-
 .note-title {
   font-size: 2.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
   color: #333;
 }
-
 .note-meta {
   display: flex;
   align-items: center;
@@ -49,51 +42,42 @@
   font-size: 1rem;
   color: #666;
 }
-
 .note-period {
   font-weight: 600;
 }
-
 .note-separator {
   color: #ccc;
 }
-
 .note-year {
   color: #999;
 }
-
-/* 노트 본문 */
+/* ?명듃 蹂몃Ц */
 .note-content {
   margin-bottom: 3rem;
   line-height: 1.8;
 }
-
 .note-text {
   font-size: 1.1rem;
   color: #444;
   margin-bottom: 2rem;
 }
-
 .note-text p {
   margin-bottom: 1rem;
 }
-
-/* 노트 이미지 */
+/* ?명듃 ?대?吏 */
 .note-images {
   display: grid;
   gap: 1.5rem;
   margin-top: 2rem;
 }
-
 .note-image {
   width: 100%;
   height: auto;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: scale(0.8); /* 이미지 크기를 0.8배로 축소 */
+  transform: scale(0.8); /* ?대?吏 ?ш린瑜?0.8諛곕줈 異뺤냼 */
 }
-
-/* 노트 네비게이션 */
+/* ?명듃 ?ㅻ퉬寃뚯씠??*/
 .note-navigation {
   display: flex;
   flex-direction: column;
@@ -101,13 +85,11 @@
   padding-top: 2rem;
   border-top: 1px solid #e0e0e0;
 }
-
 .note-nav-buttons {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
 }
-
 .nav-button {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -119,17 +101,14 @@
   cursor: pointer;
   transition: all 0.3s;
 }
-
 .nav-button:hover {
   background-color: #f5f5f5;
   border-color: #333;
 }
-
 .nav-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 .back-button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
@@ -144,18 +123,15 @@
   cursor: pointer;
   transition: background-color 0.3s;
 }
-
 .back-button:hover {
   background-color: #555;
 }
-
 /* =============================================================================
-   PDF 뷰어 · 모달 (통합)
-   - 모달: Timeline/By type에서 노트 클릭 시 뜨는 전체 화면 오버레이
-   - 뷰어: 모달 내부 및 /note/:id 상세 페이지에서 쓰는 PDF 영역
+   PDF 酉곗뼱 쨌 紐⑤떖 (?듯빀)
+   - 紐⑤떖: Timeline/By type?먯꽌 ?명듃 ?대┃ ???⑤뒗 ?꾩껜 ?붾㈃ ?ㅻ쾭?덉씠
+   - 酉곗뼱: 紐⑤떖 ?대? 諛?/note/:id ?곸꽭 ?섏씠吏?먯꽌 ?곕뒗 PDF ?곸뿭
    ============================================================================= */
-
-/* PDF 모달 (Timeline, By type에서 노트 클릭 시) */
+/* PDF 紐⑤떖 (Timeline, By type?먯꽌 ?명듃 ?대┃ ?? */
 .pdf-modal-overlay {
   position: fixed;
   inset: 0;
@@ -165,7 +141,6 @@
   justify-content: center;
   padding: 16px;
 }
-
 .pdf-modal {
   width: min(1400px, 98vw);
   max-height: 95vh;
@@ -176,8 +151,7 @@
   overflow: hidden;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
-
-/* 모달 닫기 버튼 X */
+/* 紐⑤떖 ?リ린 踰꾪듉 X */
 .pdf-modal-close {
   align-self: flex-end;
   border: none;
@@ -190,8 +164,7 @@
   align-items: center;
   justify-content: center;
 }
-
-/* 모달 내부 컨텐츠 영역 */
+/* 紐⑤떖 ?대? 而⑦뀗痢??곸뿭 */
 .pdf-modal-content {
   padding: 0;
   overflow: hidden;
@@ -199,12 +172,10 @@
   display: flex;
   min-height: 0;
 }
-
 body.pdf-modal-open {
   overflow: hidden;
 }
-
-/* PDF 뷰어 공통 */
+/* PDF 酉곗뼱 怨듯넻 */
 .pdf-viewer {
   margin-top: 2rem;
   display: flex;
@@ -212,23 +183,20 @@ body.pdf-modal-open {
   gap: 0.75rem;
   height: 100%;
 }
-
-/* 모달 안에서 쓰일 때 */
+/* 紐⑤떖 ?덉뿉???곗씪 ??*/
 .pdf-viewer--modal {
   margin-top: 0;
   flex: 1;
 }
-
-/* /note/:id 상세 페이지에서 쓸 때 */
+/* /note/:id ?곸꽭 ?섏씠吏?먯꽌 ????*/
 .note-detail-page .pdf-viewer {
   margin-top: 0;
   flex: 1;
 }
-
-/* PDF 캔버스를 감싸는 래퍼 영역
-   - PDF 페이지가 가운데 정렬되도록 설정
-   - min-height는 전체 뷰어 영역 확보
-   - overflow: hidden으로 스크롤바 감춤
+/* PDF 罹붾쾭?ㅻ? 媛먯떥???섑띁 ?곸뿭
+   - PDF ?섏씠吏媛 媛?대뜲 ?뺣젹?섎룄濡??ㅼ젙
+   - min-height???꾩껜 酉곗뼱 ?곸뿭 ?뺣낫
+   - overflow: hidden?쇰줈 ?ㅽ겕濡ㅻ컮 媛먯땄
 */
 .pdf-canvas-wrap {
   position: relative;
@@ -246,11 +214,10 @@ body.pdf-modal-open {
   width: 100%;
   flex: 1;
 }
-
-/* 실제 PDF가 렌더링되는 canvas 태그의 스타일
-   - 중앙 배치 및 확대/축소 효과를 위해 transform 사용
-   - max-width/max-height: none으로 원본 사이즈 표시
-   - opacity 변화 시 트랜지션 적용(페이지 넘길 때 등)
+/* ?ㅼ젣 PDF媛 ?뚮뜑留곷릺??canvas ?쒓렇???ㅽ???
+   - 以묒븰 諛곗튂 諛??뺣?/異뺤냼 ?④낵瑜??꾪빐 transform ?ъ슜
+   - max-width/max-height: none?쇰줈 ?먮낯 ?ъ씠利??쒖떆
+   - opacity 蹂?????몃옖吏???곸슜(?섏씠吏 ?섍만 ????
 */
 .pdf-canvas-wrap canvas {
   position: absolute;
@@ -261,7 +228,6 @@ body.pdf-modal-open {
   max-height: none;
   transition: opacity 0.2s ease;
 }
-
 .pdf-overlay {
   position: absolute;
   inset: 0;
@@ -275,11 +241,9 @@ body.pdf-modal-open {
   text-align: center;
   padding: 16px;
 }
-
 .pdf-overlay.show {
   display: flex;
 }
-
 .pdf-spinner {
   width: 36px;
   height: 36px;
@@ -288,14 +252,12 @@ body.pdf-modal-open {
   border-radius: 50%;
   animation: pdf-spin 0.8s linear infinite;
 }
-
 @keyframes pdf-spin {
   to {
     transform: rotate(360deg);
   }
 }
-
-/* 페이지 이동 버튼 < 랑 > */
+/* ?섏씠吏 ?대룞 踰꾪듉 < ??> */
 .pdf-nav-button {
   position: absolute;
   top: 50%;
@@ -310,31 +272,25 @@ body.pdf-modal-open {
   z-index: 2;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-
 .pdf-nav-button svg,
 .pdf-page-indicator button svg {
   display: block;
 }
-
 .pdf-nav-button:hover {
   background: white;
   color: rgba(17, 24, 39, 0.9);
 }
-
 .pdf-nav-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-
 .pdf-nav-prev {
   left: 14px;
 }
-
 .pdf-nav-next {
   right: 14px;
 }
-
-/* 페이지 번호 표시 영역 */
+/* ?섏씠吏 踰덊샇 ?쒖떆 ?곸뿭 */
 .pdf-page-indicator {
   position: absolute;
   bottom: 12px;
@@ -349,13 +305,11 @@ body.pdf-modal-open {
   align-items: center;
   gap: 8px;
 }
-
-/* 현재 페이지 번호는 굵게 표시 */
+/* ?꾩옱 ?섏씠吏 踰덊샇??援듦쾶 ?쒖떆 */
 .pdf-page-indicator #pdf-current-page {
   font-weight: 700;
 }
-
-/* 페이지 양끝으로 이동하는 버튼 << >> */
+/* ?섏씠吏 ?묐걹?쇰줈 ?대룞?섎뒗 踰꾪듉 << >> */
 .pdf-page-indicator button {
   border: none;
   background: rgba(17, 24, 39, 0.7);
@@ -365,18 +319,15 @@ body.pdf-modal-open {
   border-radius: 999px;
   cursor: pointer;
 }
-
 .pdf-page-indicator button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-
 .pdf-page-indicator button:hover {
   background: rgba(17, 24, 39, 0.9);
   color: #fff;
 }
-
-/* 확대/축소 버튼 영역 */
+/* ?뺣?/異뺤냼 踰꾪듉 ?곸뿭 */
 .pdf-zoom-controls {
   position: absolute;
   bottom: 12px;
@@ -388,7 +339,6 @@ body.pdf-modal-open {
   gap: 6px;
   z-index: 2;
 }
-
 .pdf-zoom-controls button {
   width: 32px;
   height: 32px;
@@ -399,20 +349,17 @@ body.pdf-modal-open {
   font-size: 16px;
   cursor: pointer;
 }
-
-/* 확대/축소 버튼 영역의 첫 번째 버튼은 100% 비율로 초기화하는 버튼*/
+/* ?뺣?/異뺤냼 踰꾪듉 ?곸뿭??泥?踰덉㎏ 踰꾪듉? 100% 鍮꾩쑉濡?珥덇린?뷀븯??踰꾪듉*/
 .pdf-zoom-controls button:first-child {
   font-size: 10px;
   text-align: center;
   font-weight: 700;
   letter-spacing: -0.2px;
 }
-
 .pdf-zoom-controls button:hover {
   background: rgba(17, 24, 39, 0.9);
   color: #fff;
 }
-
 @media (max-width: 640px) {
   .pdf-canvas-wrap {
     min-height: 50vh;
@@ -428,3 +375,16 @@ body.pdf-modal-open {
   }
 }
 
+/* NoteDetailPage ????: /note/:id?? ?? ?? ?? */
+.note-detail-page {
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.note-detail-page .note-detail {
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
