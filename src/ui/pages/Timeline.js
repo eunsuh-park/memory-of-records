@@ -43,7 +43,9 @@ function getNotesCountByPeriod(notes) {
 }
 
 export function renderTimeline(period = null) {
-  const selectedPeriod = period || 'elementary';
+  // URL 파라미터를 periodOptions와 매칭; 없거나 잘못된 값이면 첫 번째 시기 사용
+  const selectedPeriod =
+    (period ? resolvePeriodKey(period) : null) ?? periodOptions[0]?.value ?? 'elementary';
   renderJukeboxWithFilter({
     filterMode: 'period',
     basePath: '/timeline',
