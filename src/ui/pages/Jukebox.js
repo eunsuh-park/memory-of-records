@@ -11,8 +11,8 @@
  * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
  */
 
-import { getNotionNotebooks } from '../utils/notionNotebooks.js';
-import { getNotionTypeItems } from '../utils/notionByType.js';
+import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderFilterSubMenu } from '../components/FilterSubMenu.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
 import './Jukebox.css';

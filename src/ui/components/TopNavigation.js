@@ -3,8 +3,8 @@
  * 모든 페이지에 표시되는 네비게이션 헤더입니다.
  */
 
-import '../components/TopNavigation.css';
-import logo from '../logo.png';
+import './TopNavigation.css';
+import logo from '../../logo.png';
 
 // base 경로 가져오기
 const BASE_URL = import.meta.env.BASE_URL || '/';

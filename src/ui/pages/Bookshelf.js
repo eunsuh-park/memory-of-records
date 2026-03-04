@@ -4,8 +4,8 @@
  * 노트 크기 고정, 100vw·100vh에 맞춰 겹침 적용.
  */
 
-import { getNotionNotebooks } from '../utils/notionNotebooks.js';
-import { getNotionTypeItems } from '../utils/notionByType.js';
+import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { getNotionTypeItems } from '../../services/notionByType.js';
 import './Bookshelf.css';
 
 const TRANSPARENT_PIXEL =

@@ -3,8 +3,8 @@
  * Jukebox와 Bookshelf를 하나의 보기로 묶고, 토글로 전환.
  */
 
-import { getNotionNotebooks } from '../utils/notionNotebooks.js';
-import { getNotionTypeItems } from '../utils/notionByType.js';
+import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { getNotionTypeItems } from '../../services/notionByType.js';
 import { fillJukeboxGallery } from './Jukebox.js';
 import { renderBookshelfContent } from './Bookshelf.js';
 import './Jukebox.css';

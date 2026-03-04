@@ -3,10 +3,10 @@
  * Top Nav 숨김 + 좌측 상단 뒤로가기 버튼
  */
 
-import { router } from '../router.js';
+import { router } from '../../router.js';
 import './Story.css';
 import './StoryDetail.css'; /* 좌측 상단 뒤로가기 버튼 스타일 */
-import { fetchNotionPages, convertNotionPageToStoryPost } from '../utils/notion.js';
+import { fetchNotionPages, convertNotionPageToStoryPost } from '../../services/notion.js';
 
 const BACK_BUTTON_SVG = `
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -75,7 +75,7 @@ export async function renderStory() {
       console.log('변환된 노션 포스트 개수:', notionPosts.length);
       
       // 노션 페이지에서 이미지 추출 (페이지 내용 가져오기)
-      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../utils/notion.js');
+      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../../services/notion.js');
       for (let i = 0; i < notionPosts.length; i++) {
         if (!notionPosts[i].image && notionPosts[i].notionId) {
           try {

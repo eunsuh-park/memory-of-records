@@ -3,7 +3,7 @@
  * 모든 페이지 하단에 표시되는 푸터입니다.
  */
 
-import '../components/Footer.css';
+import './Footer.css';
 
 export function renderFooter() {
   const container = document.getElementById('footer');

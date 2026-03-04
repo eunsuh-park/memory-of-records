@@ -3,7 +3,7 @@
  * typeOptions 기반 notebook_type 5개 태그 필터
  * @deprecated Jukebox.renderJukeboxWithFilter에서 FilterSubMenu 직접 사용
  */
-import { typeOptions } from '../data/typeOptions.js';
+import { typeOptions } from '../../services/typeOptions.js';
 import { renderFilterSubMenu } from './FilterSubMenu.js';
 
 export function renderTypeSubMenu(selectedType, _onChange, _totalCount, notesCountByType = {}) {

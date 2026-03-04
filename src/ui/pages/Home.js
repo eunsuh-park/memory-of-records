@@ -3,7 +3,7 @@
  */
 
 import './Home.css';
-import logo from '../logo.png';
+import logo from '../../logo.png';
 
 export function renderHome() {
   const mainContent = document.getElementById('main-content');

@@ -4,7 +4,7 @@
  * PDF URL은 Notion의 pdf_url 또는 options.pdfUrl에서 가져옵니다.
  */
 
-import { getNotionNotebooks } from '../utils/notionNotebooks.js';
+import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import './NoteDetailPage.css';
 import '../components/NoteDetail.css';
 

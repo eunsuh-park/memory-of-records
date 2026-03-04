@@ -4,8 +4,8 @@
  */
 
 import { router } from './router.js';
-import { renderNavigation } from './components/TopNavigation.js';
-import { renderFooter } from './components/Footer.js';
+import { renderNavigation } from './ui/components/TopNavigation.js';
+import { renderFooter } from './ui/components/Footer.js';
 import './index.css';
 import './App.css';
 
