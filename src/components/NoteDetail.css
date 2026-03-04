@@ -250,6 +250,8 @@ body.pdf-modal-open {
 .pdf-overlay-lottie {
   width: 300px;
   height: 300px;
+  max-width: 80vw;
+  max-height: 60vh;
   flex-shrink: 0;
 }
 .pdf-overlay-lottie::part(canvas) {
