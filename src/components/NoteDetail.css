@@ -244,18 +244,14 @@ body.pdf-modal-open {
 .pdf-overlay.show {
   display: flex;
 }
-.pdf-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #111827;
-  border-radius: 50%;
-  animation: pdf-spin 0.8s linear infinite;
+.pdf-overlay-lottie {
+  width: 300px;
+  height: 300px;
+  flex-shrink: 0;
 }
-@keyframes pdf-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.pdf-overlay-lottie::part(canvas) {
+  max-width: 100%;
+  max-height: 100%;
 }
 /* ?섏씠吏 ?대룞 踰꾪듉 < ??> */
 .pdf-nav-button {
