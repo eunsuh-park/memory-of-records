@@ -51,55 +51,6 @@ body.jukebox-active {
   width: 100%;
 }
 
-/* 이전/다음 버튼: 화면 세로 중앙, 좌우 양끝. NoteDetail.pdf-nav-button 스타일 참고 */
-.jukebox-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 50;
-  margin: 0;
-  padding: 12px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(17, 24, 39, 0.75);
-  color: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s ease, transform 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.jukebox-nav:hover {
-  background: #fff;
-  color: rgba(17, 24, 39, 0.9);
-}
-.jukebox-nav:active {
-  background: rgba(255, 255, 255, 0.95);
-}
-.jukebox-nav--prev {
-  left: 14px;
-}
-.jukebox-nav--next {
-  right: 14px;
-}
-.jukebox-nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-}
-.jukebox-nav-icon svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.jukebox-nav-icon--next svg {
-  transform: scaleX(-1);
-}
-
 /* 갤러리 영역 가로 스크롤 시 브라우저 기본 스크롤바 숨김 */
 .jukebox-fullscreen::-webkit-scrollbar,
 .jukebox-gallery::-webkit-scrollbar {
@@ -334,17 +285,17 @@ body.jukebox-active {
   }
 
   /* 네비 버튼: 정사각·원형 유지 */
-  .jukebox-nav {
+  .jukebox-gallery-wrap .btn--nav {
     padding: 10px;
   }
-  .jukebox-nav-icon {
+  .jukebox-gallery-wrap .btn__nav-icon {
     width: 20px;
     height: 20px;
   }
-  .jukebox-nav--prev {
+  .jukebox-gallery-wrap .btn--nav-prev {
     left: 8px;
   }
-  .jukebox-nav--next {
+  .jukebox-gallery-wrap .btn--nav-next {
     right: 8px;
   }
 }
@@ -370,17 +321,17 @@ body.jukebox-active {
     margin-left: -2vw;
   }
 
-  .jukebox-nav {
+  .jukebox-gallery-wrap .btn--nav {
     padding: 8px;
   }
-  .jukebox-nav-icon {
+  .jukebox-gallery-wrap .btn__nav-icon {
     width: 18px;
     height: 18px;
   }
-  .jukebox-nav--prev {
+  .jukebox-gallery-wrap .btn--nav-prev {
     left: 6px;
   }
-  .jukebox-nav--next {
+  .jukebox-gallery-wrap .btn--nav-next {
     right: 6px;
   }
 }

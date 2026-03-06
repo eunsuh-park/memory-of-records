@@ -15,7 +15,9 @@ import { getNotionNotebooks } from '../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../services/notionByType.js';
 import { renderFilterSubMenu } from '../components/FilterSubMenu.js';
 import { renderNotePdfViewer } from './NoteDetail.js';
+import { render as renderButton } from '../components/Button.js';
 import './Jukebox.css';
+import '../components/Button.css';
 
 const ICONS = {
   close:
@@ -343,8 +345,8 @@ export function renderJukebox() {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"><span class="jukebox-nav-icon">${JUKEBOX_NAV_ICON_SVG}</span></button>
-        <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"><span class="jukebox-nav-icon jukebox-nav-icon--next">${JUKEBOX_NAV_ICON_SVG}</span></button>
+        ${renderButton({ variant: 'navPrev', id: 'jukebox-prev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG })}
+        ${renderButton({ variant: 'navNext', id: 'jukebox-next', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG })}
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
           <div class="jukebox-loading" role="status" aria-live="polite">
           <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
@@ -394,7 +396,7 @@ function openPdfModal(noteId, pdfUrl = null) {
   overlay.className = 'pdf-modal-overlay';
   overlay.innerHTML = `
     <div class="pdf-modal" role="dialog" aria-modal="true">
-      <button class="pdf-modal-close" type="button" aria-label="닫기">${ICONS.close}</button>
+      ${renderButton({ variant: 'icon', ariaLabel: '닫기', content: ICONS.close, className: 'pdf-modal-close' })}
       <div class="pdf-modal-content"></div>
     </div>
   `;
@@ -460,8 +462,8 @@ export function renderJukeboxWithFilter(options) {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        <button type="button" class="jukebox-nav jukebox-nav--prev" id="jukebox-prev" aria-label="이전"><span class="jukebox-nav-icon">${JUKEBOX_NAV_ICON_SVG}</span></button>
-        <button type="button" class="jukebox-nav jukebox-nav--next" id="jukebox-next" aria-label="다음"><span class="jukebox-nav-icon jukebox-nav-icon--next">${JUKEBOX_NAV_ICON_SVG}</span></button>
+        ${renderButton({ variant: 'navPrev', id: 'jukebox-prev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG })}
+        ${renderButton({ variant: 'navNext', id: 'jukebox-next', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG })}
         <div class="jukebox-gallery centerized" id="jukebox-gallery">
           <div class="jukebox-loading" role="status" aria-live="polite">
             <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width:300px;height:300px" autoplay loop></dotlottie-wc>

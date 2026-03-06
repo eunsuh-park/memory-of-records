@@ -151,19 +151,6 @@
   overflow: hidden;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
-/* 紐⑤떖 ?リ린 踰꾪듉 X */
-.pdf-modal-close {
-  align-self: flex-end;
-  border: none;
-  background: transparent;
-  font-size: 20px;
-  padding: 12px 16px 0 0;
-  cursor: pointer;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 /* 紐⑤떖 ?대? 而⑦뀗痢??곸뿭 */
 .pdf-modal-content {
   padding: 0;
@@ -258,41 +245,6 @@ body.pdf-modal-open {
   max-width: 100%;
   max-height: 100%;
 }
-/* ?섏씠吏 ?대룞 踰꾪듉 < ??> */
-.pdf-nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: rgba(17, 24, 39, 0.6);
-  color: #fff;
-  padding: 12px 12px;
-  border-radius: 999px;
-  font-size: 16px;
-  cursor: pointer;
-  z-index: 2;
-  transition: background 0.2s ease, transform 0.2s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-.pdf-nav-button svg,
-.pdf-page-indicator button svg {
-  display: block;
-}
-.pdf-nav-button:hover {
-  background: white;
-  color: rgba(17, 24, 39, 0.9);
-}
-.pdf-nav-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.pdf-nav-prev {
-  left: 14px;
-}
-.pdf-nav-next {
-  right: 14px;
-}
 /* ?섏씠吏 踰덊샇 ?쒖떆 ?곸뿭 */
 .pdf-page-indicator {
   position: absolute;
@@ -315,24 +267,6 @@ body.pdf-modal-open {
 .pdf-page-indicator #pdf-current-page {
   font-weight: 700;
 }
-/* ?섏씠吏 ?묐걹?쇰줈 ?대룞?섎뒗 踰꾪듉 << >> */
-.pdf-page-indicator button {
-  border: none;
-  background: rgba(17, 24, 39, 0.7);
-  color: #fff;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-.pdf-page-indicator button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.pdf-page-indicator button:hover {
-  background: rgba(17, 24, 39, 0.9);
-  color: #fff;
-}
 /* ?뺣?/異뺤냼 踰꾪듉 ?곸뿭 */
 .pdf-zoom-controls {
   position: absolute;
@@ -350,39 +284,9 @@ body.pdf-modal-open {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-.pdf-zoom-controls button {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: none;
-  background: rgba(17, 24, 39, 0.7);
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-}
-/* ?뺣?/異뺤냼 踰꾪듉 ?곸뿭??泥?踰덉㎏ 踰꾪듉? 100% 鍮꾩쑉濡?珥덇린?뷀븯??踰꾪듉*/
-.pdf-zoom-controls button:first-child {
-  font-size: 10px;
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-}
-.pdf-zoom-controls button:hover {
-  background: rgba(17, 24, 39, 0.9);
-  color: #fff;
-}
 @media (max-width: 640px) {
   .pdf-canvas-wrap {
     min-height: 50vh;
-  }
-  .pdf-nav-button {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-  .pdf-zoom-controls button {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
   }
 }
 

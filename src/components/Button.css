@@ -1,0 +1,240 @@
+/**
+ * 통일된 버튼 컴포넌트 스타일
+ * .btn + .btn--back | .btn--back-inline | .btn--nav | .btn--icon | .btn--toolbar
+ */
+
+/* 공통 리셋 */
+.btn {
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ========== 뒤로가기 (좌측 상단 고정) ========== */
+.btn--back {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.btn--back:hover {
+  background-color: #333;
+  color: white;
+  border-color: #333;
+  transform: scale(1.05);
+}
+
+.btn--back svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .btn--back {
+    top: max(0.75rem, env(safe-area-inset-top));
+    left: max(0.75rem, env(safe-area-inset-left));
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn--back svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ========== 뒤로가기 (인라인, 책 내부용) ========== */
+.btn--back-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  border-radius: 50%;
+  color: #333;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.btn--back-inline:hover {
+  background-color: #333;
+  color: white;
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+.btn--back-inline svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ========== 이전/다음 네비 (Jukebox, PDF 뷰어) ========== */
+.btn--nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  padding: 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.75);
+  color: #fff;
+  font-size: 16px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn--nav:hover {
+  background: #fff;
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.btn--nav:active {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.btn--nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--nav-prev {
+  left: 14px;
+}
+
+.btn--nav-next {
+  right: 14px;
+}
+
+.btn__nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.btn__nav-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.btn__nav-icon--next svg {
+  transform: scaleX(-1);
+}
+
+/* PDF 뷰어 내 nav는 z-index 2, 배경 약간 다름 */
+.pdf-canvas-wrap .btn--nav {
+  z-index: 2;
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.pdf-canvas-wrap .btn--nav:hover {
+  background: white;
+  color: rgba(17, 24, 39, 0.9);
+}
+
+@media (max-width: 640px) {
+  .pdf-canvas-wrap .btn--nav {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+/* ========== 아이콘 전용 (닫기 등) ========== */
+.btn--icon {
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  padding: 0;
+}
+
+/* 모달 닫기 버튼 레이아웃 (위치만, 시각은 .btn--icon) */
+.pdf-modal-close {
+  align-self: flex-end;
+  font-size: 20px;
+  padding: 12px 16px 0 0;
+}
+
+/* ========== 툴바 버튼 (PDF 페이지/줌 등) ========== */
+.btn--toolbar {
+  border: none;
+  background: rgba(17, 24, 39, 0.7);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.btn--toolbar:hover {
+  background: rgba(17, 24, 39, 0.9);
+  color: #fff;
+}
+
+.btn--toolbar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--toolbar svg {
+  display: block;
+}
+
+.pdf-zoom-controls .btn--toolbar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 0;
+}
+
+.pdf-zoom-controls .btn--toolbar:first-child {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  width: auto;
+  padding: 4px 8px;
+}
+
+@media (max-width: 640px) {
+  .pdf-zoom-controls .btn--toolbar {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .pdf-zoom-controls .btn--toolbar:first-child {
+    width: auto;
+  }
+}

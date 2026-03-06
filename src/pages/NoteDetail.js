@@ -5,7 +5,9 @@
  */
 
 import { getNotionNotebooks } from '../services/notionNotebooks.js';
+import { render as renderButton } from '../components/Button.js';
 import '../components/NoteDetail.css';
+import '../components/Button.css';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_CDN =
@@ -89,17 +91,17 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
       <div class="pdf-canvas-wrap">
-        <button id="pdf-prev" class="pdf-nav-button pdf-nav-prev" type="button" aria-label="이전 페이지">${ICONS.leftLine}</button>
-        <button id="pdf-next" class="pdf-nav-button pdf-nav-next" type="button" aria-label="다음 페이지">${ICONS.rightLine}</button>
+        ${renderButton({ variant: 'navPrev', id: 'pdf-prev', ariaLabel: '이전 페이지', content: ICONS.leftLine })}
+        ${renderButton({ variant: 'navNext', id: 'pdf-next', ariaLabel: '다음 페이지', content: ICONS.rightLine })}
         <div class="pdf-page-indicator">
-          <button id="pdf-first" type="button" aria-label="처음 페이지">${ICONS.arrowsLeftLine}</button>
+          ${renderButton({ variant: 'toolbar', id: 'pdf-first', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine })}
           <span id="pdf-current-page">1</span>/<span id="pdf-total-pages">-</span>
-          <button id="pdf-last" type="button" aria-label="마지막 페이지">${ICONS.arrowsRightLine}</button>
+          ${renderButton({ variant: 'toolbar', id: 'pdf-last', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine })}
         </div>
         <div class="pdf-zoom-controls">
-          <button id="pdf-zoom-reset" type="button" aria-label="100% 비율로 초기화">100%</button>
-          <button id="pdf-zoom-in" type="button" aria-label="확대">+</button>
-          <button id="pdf-zoom-out" type="button" aria-label="축소">-</button>
+          ${renderButton({ variant: 'toolbar', id: 'pdf-zoom-reset', ariaLabel: '100% 비율로 초기화', content: '100%' })}
+          ${renderButton({ variant: 'toolbar', id: 'pdf-zoom-in', ariaLabel: '확대', content: '+' })}
+          ${renderButton({ variant: 'toolbar', id: 'pdf-zoom-out', ariaLabel: '축소', content: '-' })}
         </div>
         <canvas id="pdf-canvas"></canvas>
         <div id="pdf-overlay" class="pdf-overlay show">

@@ -6,15 +6,10 @@
 
 import { router } from '../router.js';
 import './Story.css';
-import './StoryDetail.css'; /* 좌측 상단 뒤로가기 버튼 스타일 */
+import '../components/Button.css';
+import { render as renderButton } from '../components/Button.js';
 import { loadNotionPosts, getStoryPosts } from '../services/notion.js';
 import { renderStoryDetail } from './StoryDetail.js';
-
-const BACK_BUTTON_SVG = `
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-`;
 
 export async function renderStory() {
   const mainContent = document.getElementById('main-content');
@@ -40,9 +35,7 @@ export async function renderStory() {
   `).join('');
   
   mainContent.innerHTML = `
-    <button class="story-page-back-button" data-link aria-label="이전 페이지로 돌아가기">
-      ${BACK_BUTTON_SVG}
-    </button>
+    ${renderButton({ variant: 'back', ariaLabel: '이전 페이지로 돌아가기', dataLink: true })}
     <div class="story-page">
       <main class="story-main">
         <div class="gallery-grid">
@@ -53,7 +46,7 @@ export async function renderStory() {
   `;
 
   /* 뒤로가기: 홈(Timeline)으로 이동 */
-  mainContent.querySelector('.story-page-back-button')?.addEventListener('click', (e) => {
+  mainContent.querySelector('.btn--back')?.addEventListener('click', (e) => {
     e.preventDefault();
     router.navigate('/');
   });
@@ -103,16 +96,14 @@ export async function renderStory() {
     `;
     
     mainContent.innerHTML = `
-      <button class="story-page-back-button" data-link aria-label="이전 페이지로 돌아가기">
-        ${BACK_BUTTON_SVG}
-      </button>
+      ${renderButton({ variant: 'back', ariaLabel: '이전 페이지로 돌아가기', dataLink: true })}
       <div class="story-page">
         <main class="story-main">
           ${emptyMessage}
         </main>
       </div>
     `;
-    mainContent.querySelector('.story-page-back-button')?.addEventListener('click', (e) => {
+    mainContent.querySelector('.btn--back')?.addEventListener('click', (e) => {
       e.preventDefault();
       router.navigate('/');
     });
@@ -131,9 +122,7 @@ export async function renderStory() {
 
   // 노션 ID를 사용하거나 기존 ID 사용
   mainContent.innerHTML = `
-    <button class="story-page-back-button" data-link aria-label="이전 페이지로 돌아가기">
-      ${BACK_BUTTON_SVG}
-    </button>
+    ${renderButton({ variant: 'back', ariaLabel: '이전 페이지로 돌아가기', dataLink: true })}
     <div class="story-page">
       <main class="story-main">
         <div class="gallery-grid">
@@ -185,7 +174,7 @@ export async function renderStory() {
   `;
 
   /* 뒤로가기: 홈(Timeline)으로 이동 */
-  mainContent.querySelector('.story-page-back-button')?.addEventListener('click', (e) => {
+  mainContent.querySelector('.btn--back')?.addEventListener('click', (e) => {
     e.preventDefault();
     router.navigate('/');
   });
