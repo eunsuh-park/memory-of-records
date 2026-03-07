@@ -1,16 +1,16 @@
 /**
- * SubMenu (서브 메뉴) 스타일
+ * FilterSubMenu 스타일
  *
  * Timeline / By Type 페이지 상단의 필터 탭 메뉴.
- * FilterSubMenu.js가 #sub-menu 안에 렌더하는 .sub-menu ~ .period-count 구조에 적용됩니다.
+ * .sub-menu ~ .filter-count 구조에 적용됩니다.
  *
  * - .sub-menu: 메뉴 컨테이너 (고정 위치, 상단 중앙)
  * - .sub-nav: 내부 네비 래퍼
- * - .period-list / .period-item: 탭 목록·항목 (Timeline은 시기, By Type은 타입)
- * - .period-link: 각 탭 링크 (.active 시 선택 상태)
- * - .period-label: 탭 라벨 텍스트
- * - .period-years: 시기별 연도 표시 (Timeline용, typeOptions.detail 등)
- * - .period-count: 탭별 노트 개수
+ * - .filter-list / .filter-item: 탭 목록·항목 (Timeline 시기, By Type 타입)
+ * - .filter-link: 각 탭 링크 (.active 시 선택 상태)
+ * - .filter-label: 탭 라벨 텍스트
+ * - .filter-sublabel: 부가 설명 (시기별 연도, 타입 설명 등)
+ * - .filter-count: 탭별 노트 개수
  */
 
 /* 서브 메뉴 컨테이너: TopNavigation 하단에 고정, 가로 중앙 정렬 */
@@ -45,7 +45,7 @@
 }
 
 /* 탭 목록: 가로 flex, Timeline 시기 또는 By Type 타입 옵션 나열 */
-.period-list {
+.filter-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -56,7 +56,7 @@
 }
 
 /* 탭 한 칸 (각 시기/타입 항목) */
-.period-item {
+.filter-item {
   margin: 0;
   background: unset;
   background-color: unset;
@@ -64,7 +64,7 @@
 }
 
 /* 탭 링크: 라벨·연도·개수 표시, 선택 시 .active */
-.period-link {
+.filter-link {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -85,38 +85,38 @@
 }
 
 /* 비활성(선택 불가) 링크 */
-.period-link[aria-disabled="true"] {
+.filter-link[aria-disabled="true"] {
   pointer-events: none;
   cursor: default;
 }
 
 /* 미선택 탭: 흐린 색 */
-.period-link:not(.active) {
+.filter-link:not(.active) {
   color: var(--app-text-dim);
 }
 
-.period-link:not(.active) .period-years {
+.filter-link:not(.active) .filter-sublabel {
   color: var(--app-text-dim);
 }
 
 /* 미선택 탭 호버 */
-.period-link:hover:not(.active) {
+.filter-link:hover:not(.active) {
   color: var(--app-text);
   background-color: var(--color-surface-hover);
 }
 
 /* 선택된 탭 */
-.period-link.active {
+.filter-link.active {
   color: var(--app-text);
   background-color: var(--color-surface-active);
 }
 
-.period-link.active:hover {
+.filter-link.active:hover {
   background-color: var(--color-surface-active);
 }
 
 /* 탭 라벨 (예: "Elementary School", "다이어리(일기장)") */
-.period-label {
+.filter-label {
   display: block;
   font-size: 0.85rem;
   font-weight: 400;
@@ -127,12 +127,12 @@
   overflow: hidden;
 }
 
-.period-link.active .period-label {
+.filter-link.active .filter-label {
   font-weight: 600;
 }
 
-/* 시기 연도/부가 설명 (예: "2005-2010", typeOptions.years/detail) */
-.period-years {
+/* 시기 연도/부가 설명 (예: "2005-2010", typeOptions.detail) */
+.filter-sublabel {
   font-size: 0.75rem;
   font-weight: 400;
   color: var(--app-text-muted);
@@ -146,7 +146,7 @@
   display: block;
 }
 
-.period-link.active .period-years {
+.filter-link.active .filter-sublabel {
   max-height: 2rem;
   opacity: 1;
   margin-top: 0.4rem;
@@ -154,7 +154,7 @@
 }
 
 /* 탭별 노트 개수 숫자 */
-.period-count {
+.filter-count {
   font-size: 0.7rem;
   font-weight: 500;
   color: var(--app-text-muted);
@@ -163,16 +163,15 @@
 
 /* 1024px 이하: 선택된 탭만 표시 (나머지 숨김) */
 @media (max-width: 1024px) {
-  .period-list {
+  .filter-list {
     gap: 0;
   }
 
-  .period-item .period-link {
+  .filter-item .filter-link {
     display: none;
   }
 
-  .period-item .period-link.active {
+  .filter-item .filter-link.active {
     display: flex;
   }
 }
-

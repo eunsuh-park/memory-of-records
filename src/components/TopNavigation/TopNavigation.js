@@ -1,10 +1,10 @@
 /**
- * Navigation 컴포넌트
+ * TopNavigation
  * 모든 페이지에 표시되는 네비게이션 헤더입니다.
  */
 
 import './TopNavigation.css';
-import logo from '../logo.png';
+import logo from '../../logo.png';
 
 // base 경로 가져오기
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -14,8 +14,6 @@ function getActualPath(pathname) {
   if (BASE_URL === '/') {
     return pathname;
   }
-  // base 경로가 있으면 제거
-  // BASE_URL은 항상 '/'로 끝나므로, 마지막 '/'를 제거한 길이만큼 슬라이스
   const basePathWithoutTrailingSlash = BASE_URL.endsWith('/')
     ? BASE_URL.slice(0, -1)
     : BASE_URL;
@@ -86,4 +84,3 @@ export function renderNavigation() {
     </nav>
   `;
 }
-

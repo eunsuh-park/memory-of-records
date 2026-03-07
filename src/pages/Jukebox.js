@@ -13,11 +13,10 @@
 
 import { getNotionNotebooks } from '../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../services/notionByType.js';
-import { renderFilterSubMenu } from '../components/FilterSubMenu.js';
-import { renderNotePdfViewer } from './NoteDetail.js';
-import { render as renderButton } from '../components/Button.js';
+import { renderFilterSubMenu } from '../components/FilterSubMenu/FilterSubMenu.js';
+import { renderPdfViewer } from '../components/PdfModal/PdfModal.js';
+import { render as renderButton } from '../components/Button/Button.js';
 import './Jukebox.css';
-import '../components/Button.css';
 
 const ICONS = {
   close:
@@ -404,7 +403,7 @@ function openPdfModal(noteId, pdfUrl = null) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
-  const cleanupViewer = renderNotePdfViewer(content, noteId, { mode: 'modal', pdfUrl });
+  const cleanupViewer = renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl });
 
   const closeModal = () => {
     cleanupViewer?.();

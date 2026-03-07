@@ -1,5 +1,5 @@
 /**
- * Footer 컴포넌트
+ * Footer
  * 모든 페이지 하단에 표시되는 푸터입니다.
  */
 
@@ -17,4 +17,3 @@ export function renderFooter() {
     </footer>
   `;
 }
-

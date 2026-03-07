@@ -4,8 +4,7 @@
 
 import { router } from '../router.js';
 import './StoryDetail.css';
-import '../components/Button.css';
-import { render as renderButton } from '../components/Button.js';
+import { render as renderButton } from '../components/Button/Button.js';
 import { fetchNotionPageContent, convertNotionBlocksToHTML, getStoryById, getAdjacentStories, loadNotionPosts } from '../services/notion.js';
 import image1 from '../assets/KakaoTalk_20251216_202813467_01.jpg';
 import image2 from '../assets/KakaoTalk_20251216_202813467_02.jpg';

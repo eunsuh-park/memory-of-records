@@ -8,7 +8,7 @@
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
  */
 
-import './SubMenu.css';
+import './FilterSubMenu.css';
 
 /**
  * #sub-menu 컨테이너에 필터 링크 목록을 그립니다.
@@ -25,21 +25,21 @@ export function renderFilterSubMenu(selectedValue, basePath, filterOptions, coun
   container.innerHTML = `
     <aside class="sub-menu">
       <nav class="sub-nav">
-        <ul class="period-list">
+        <ul class="filter-list">
           ${filterOptions.map((opt) => {
             const isActive = selectedValue === opt.value;
             const count = countsByFilter[opt.value] ?? 0;
             const sublabel = opt.years || opt.detail || '';
             return `
-              <li class="period-item">
+              <li class="filter-item">
                 <a
                   href="${basePath}/${opt.value}"
-                  class="period-link period-link--${opt.value} ${isActive ? 'active' : ''}"
+                  class="filter-link filter-link--${opt.value} ${isActive ? 'active' : ''}"
                   data-link
                 >
-                  <span class="period-label">${opt.label}</span>
-                  ${sublabel ? `<span class="period-years">${sublabel}</span>` : ''}
-                  ${count > 0 ? `<span class="period-count">${count}</span>` : ''}
+                  <span class="filter-label">${opt.label}</span>
+                  ${sublabel ? `<span class="filter-sublabel">${sublabel}</span>` : ''}
+                  ${count > 0 ? `<span class="filter-count">${count}</span>` : ''}
                 </a>
               </li>
             `;

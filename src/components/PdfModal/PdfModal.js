@@ -1,20 +1,19 @@
 /**
- * NoteDetail 페이지
- * 타임라인 노트의 PDF를 표시하는 상세 페이지입니다.
- * PDF URL은 Notion의 pdf_url 또는 options.pdfUrl에서 가져옵니다.
+ * PdfModal
+ * 노트 PDF 뷰어. 모달 또는 전체 페이지로 표시됩니다.
+ * - 모달: Jukebox에서 노트 클릭 시
+ * - 전체 페이지: /note/:id 경로
  */
 
-import { getNotionNotebooks } from '../services/notionNotebooks.js';
-import { render as renderButton } from '../components/Button.js';
-import '../components/NoteDetail.css';
-import '../components/Button.css';
+import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { render as renderButton } from '../Button/Button.js';
+import './PdfModal.css';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_CDN =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/** NoteDetail PDF 로딩 오버레이용 Lottie */
-const NOTE_DETAIL_LOADING_LOTTIE =
+const PDF_LOADING_LOTTIE =
   'https://lottie.host/ac9f0d95-b144-482c-a2d4-fb707e069f94/lHcmDqwHwt.lottie';
 
 const ICONS = {
@@ -81,7 +80,14 @@ async function ensurePdfJs() {
   await loadScript(PDFJS_CDN);
 }
 
-export function renderNotePdfViewer(targetEl, id, options = {}) {
+/**
+ * PDF 뷰어를 targetEl에 렌더링합니다.
+ * @param {HTMLElement} targetEl - 렌더 대상
+ * @param {string} id - 노트 ID
+ * @param {Object} options - { mode: 'modal' | 'page', pdfUrl?: string }
+ * @returns {Function} cleanup 함수
+ */
+export function renderPdfViewer(targetEl, id, options = {}) {
   if (!targetEl) return null;
 
   const noteId = decodeURIComponent(String(id || '')).trim();
@@ -105,7 +111,7 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
         </div>
         <canvas id="pdf-canvas"></canvas>
         <div id="pdf-overlay" class="pdf-overlay show">
-          <dotlottie-wc class="pdf-overlay-lottie" src="${NOTE_DETAIL_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
+          <dotlottie-wc class="pdf-overlay-lottie" src="${PDF_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
           <div id="pdf-overlay-text">PDF 목록 불러오는 중...</div>
         </div>
       </div>
@@ -153,9 +159,7 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   let scale = initialScale;
 
   function showOverlay(message) {
-    if (overlayText) {
-      overlayText.textContent = message;
-    }
+    if (overlayText) overlayText.textContent = message;
     overlay?.classList.add('show');
   }
 
@@ -166,12 +170,8 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   function updateControls() {
     prevBtn.disabled = pageNum <= 1 || pageRendering;
     nextBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
-    if (firstBtn) {
-      firstBtn.disabled = pageNum <= 1 || pageRendering;
-    }
-    if (lastBtn) {
-      lastBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
-    }
+    if (firstBtn) firstBtn.disabled = pageNum <= 1 || pageRendering;
+    if (lastBtn) lastBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
     currentPageEl.textContent = pageNum;
     totalPagesEl.textContent = pdfDoc ? pdfDoc.numPages : '-';
   }
@@ -181,11 +181,10 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
     updateControls();
     canvas.style.opacity = '0.2';
 
-    pdfDoc.getPage(num).then(page => {
+    pdfDoc.getPage(num).then((page) => {
       const viewport = page.getViewport({ scale });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-
       const renderContext = { canvasContext: ctx, viewport };
       return page.render(renderContext).promise;
     }).then(() => {
@@ -204,16 +203,12 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
   }
 
   function queueRenderPage(num) {
-    if (pageRendering) {
-      pageNumPending = num;
-    } else {
-      renderPage(num);
-    }
+    if (pageRendering) pageNumPending = num;
+    else renderPage(num);
   }
 
   function goToPage(num) {
-    if (!pdfDoc) return;
-    if (num < 1 || num > pdfDoc.numPages) return;
+    if (!pdfDoc || num < 1 || num > pdfDoc.numPages) return;
     pageNum = num;
     queueRenderPage(pageNum);
     updateControls();
@@ -264,48 +259,29 @@ export function renderNotePdfViewer(targetEl, id, options = {}) {
     loadPdf(pdfUrl);
   }
 
-  prevBtn.addEventListener('click', () => {
-    if (pageNum <= 1) return;
-    goToPage(pageNum - 1);
-  });
-
-  nextBtn.addEventListener('click', () => {
-    if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
-    goToPage(pageNum + 1);
-  });
-
-  firstBtn?.addEventListener('click', () => {
-    if (!pdfDoc || pageNum <= 1) return;
-    goToPage(1);
-  });
-
-  lastBtn?.addEventListener('click', () => {
-    if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
-    goToPage(pdfDoc.numPages);
-  });
-
+  prevBtn.addEventListener('click', () => { if (pageNum > 1) goToPage(pageNum - 1); });
+  nextBtn.addEventListener('click', () => { if (pdfDoc && pageNum < pdfDoc.numPages) goToPage(pageNum + 1); });
+  firstBtn?.addEventListener('click', () => { if (pdfDoc && pageNum > 1) goToPage(1); });
+  lastBtn?.addEventListener('click', () => { if (pdfDoc && pageNum < pdfDoc.numPages) goToPage(pdfDoc.numPages); });
   zoomResetBtn.addEventListener('click', resetZoom);
   zoomInBtn.addEventListener('click', () => changeZoom(0.2));
   zoomOutBtn.addEventListener('click', () => changeZoom(-0.2));
 
   const handleKeydown = (event) => {
-    if (event.key === '+' || event.key === '=') {
-      changeZoom(0.2);
-    } else if (event.key === '-') {
-      changeZoom(-0.2);
-    }
+    if (event.key === '+' || event.key === '=') changeZoom(0.2);
+    else if (event.key === '-') changeZoom(-0.2);
   };
   document.addEventListener('keydown', handleKeydown);
 
   initPdfViewer();
-  return () => {
-    document.removeEventListener('keydown', handleKeydown);
-  };
+  return () => document.removeEventListener('keydown', handleKeydown);
 }
 
-export function renderNoteDetail(id) {
+/**
+ * /note/:id 라우트용: main-content에 전체 페이지로 렌더링
+ */
+export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
-  renderNotePdfViewer(mainContent, id);
+  renderPdfViewer(mainContent, id);
 }
-

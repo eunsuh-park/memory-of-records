@@ -1,4 +1,4 @@
-/* Navigation 스타일 */
+/* TopNavigation 스타일 */
 
 /**
  * Story 페이지(/story, /story/:id)에서 Top Nav 슬라이드 업 숨김
@@ -10,7 +10,6 @@ body.story-detail-page-active .navigation {
 }
 
 .navigation {
-  /* 헤더를 페이지 상단에 고정 (주크박스와 동일한 앱 배경) */
   position: fixed;
   top: 0;
   left: 50%;
@@ -142,14 +141,12 @@ body.story-detail-page-active .navigation {
   background-color: var(--color-surface-selected);
 }
 
-/* PC: 한 줄 레이아웃. 모바일이 아닌 화면에서는 back 아이콘 숨김 */
 @media (min-width: 769px) {
   .logo-icon {
     display: none;
   }
 }
 
-/* 모바일: 2줄 레이아웃 (PC와 동일 요소, 줄바꿈) */
 @media (max-width: 768px) {
   .navigation {
     width: calc(100% - 2rem);
@@ -161,13 +158,11 @@ body.story-detail-page-active .navigation {
     padding: 0.75rem 1.25rem;
   }
 
-  /* 1줄: [로고 좌측] ----- [Story 우측] */
   .nav-brand {
     width: 100%;
     justify-content: space-between;
   }
 
-  /* 2줄: [Timeline] [By type] 탭 형식 */
   .nav-menu {
     width: 100%;
     justify-content: flex-start;

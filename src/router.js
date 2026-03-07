@@ -6,7 +6,7 @@ import { renderTimeline } from './pages/Timeline.js';
 import { renderByType } from './pages/ByType.js';
 import { renderStory } from './pages/Story.js';
 import { renderStoryDetail } from './pages/StoryDetail.js';
-import { renderNoteDetail } from './pages/NoteDetail.js';
+import { renderNoteDetailPage } from './components/PdfModal/PdfModal.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -21,7 +21,7 @@ class Router {
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
       { path: '/story', handler: renderStory },
       { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
-      { path: '/note/:id', handler: (params) => renderNoteDetail(params.id) },
+      { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
     ];
   }
 
@@ -106,7 +106,7 @@ class Router {
     }
 
     // 네비게이션 업데이트
-    const { renderNavigation } = await import('./components/TopNavigation.js');
+    const { renderNavigation } = await import('./components/TopNavigation/TopNavigation.js');
     renderNavigation();
 
     // 경로 매칭

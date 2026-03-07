@@ -1,14 +1,19 @@
-/* NoteDetail 而댄룷?뚰듃 ?ㅽ???*/
+/**
+ * PdfModal 스타일
+ * 모달 및 /note/:id 전체 페이지용 PDF 뷰어
+ */
+
 .note-detail {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
 }
-/* ?명듃 ?쒖? ?대?吏 */
+
 .note-cover-section {
   margin-bottom: 2rem;
   text-align: center;
 }
+
 .note-cover-image-detail {
   max-width: 100%;
   height: auto;
@@ -16,25 +21,28 @@
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   object-fit: contain;
-  transform: scale(0.8); /* ?대?吏 ?ш린瑜?0.8諛곕줈 異뺤냼 */
+  transform: scale(0.8);
 }
+
 .note-error {
   text-align: center;
   padding: 3rem;
   color: #999;
 }
-/* ?명듃 ?ㅻ뜑 */
+
 .note-header {
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 2px solid #e0e0e0;
 }
+
 .note-title {
   font-size: 2.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
   color: #333;
 }
+
 .note-meta {
   display: flex;
   align-items: center;
@@ -42,42 +50,48 @@
   font-size: 1rem;
   color: #666;
 }
+
 .note-period {
   font-weight: 600;
 }
+
 .note-separator {
   color: #ccc;
 }
+
 .note-year {
   color: #999;
 }
-/* ?명듃 蹂몃Ц */
+
 .note-content {
   margin-bottom: 3rem;
   line-height: 1.8;
 }
+
 .note-text {
   font-size: 1.1rem;
   color: #444;
   margin-bottom: 2rem;
 }
+
 .note-text p {
   margin-bottom: 1rem;
 }
-/* ?명듃 ?대?吏 */
+
 .note-images {
   display: grid;
   gap: 1.5rem;
   margin-top: 2rem;
 }
+
 .note-image {
   width: 100%;
   height: auto;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transform: scale(0.8); /* ?대?吏 ?ш린瑜?0.8諛곕줈 異뺤냼 */
+  transform: scale(0.8);
 }
-/* ?명듃 ?ㅻ퉬寃뚯씠??*/
+
 .note-navigation {
   display: flex;
   flex-direction: column;
@@ -85,11 +99,13 @@
   padding-top: 2rem;
   border-top: 1px solid #e0e0e0;
 }
+
 .note-nav-buttons {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
 }
+
 .nav-button {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
@@ -101,14 +117,17 @@
   cursor: pointer;
   transition: all 0.3s;
 }
+
 .nav-button:hover {
   background-color: #f5f5f5;
   border-color: #333;
 }
+
 .nav-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .back-button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
@@ -123,15 +142,12 @@
   cursor: pointer;
   transition: background-color 0.3s;
 }
+
 .back-button:hover {
   background-color: #555;
 }
-/* =============================================================================
-   PDF 酉곗뼱 쨌 紐⑤떖 (?듯빀)
-   - 紐⑤떖: Timeline/By type?먯꽌 ?명듃 ?대┃ ???⑤뒗 ?꾩껜 ?붾㈃ ?ㅻ쾭?덉씠
-   - 酉곗뼱: 紐⑤떖 ?대? 諛?/note/:id ?곸꽭 ?섏씠吏?먯꽌 ?곕뒗 PDF ?곸뿭
-   ============================================================================= */
-/* PDF 紐⑤떖 (Timeline, By type?먯꽌 ?명듃 ?대┃ ?? */
+
+/* PDF 모달 오버레이 */
 .pdf-modal-overlay {
   position: fixed;
   inset: 0;
@@ -141,6 +157,7 @@
   justify-content: center;
   padding: 16px;
 }
+
 .pdf-modal {
   width: min(1400px, 98vw);
   max-height: 95vh;
@@ -151,7 +168,7 @@
   overflow: hidden;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
-/* 紐⑤떖 ?대? 而⑦뀗痢??곸뿭 */
+
 .pdf-modal-content {
   padding: 0;
   overflow: hidden;
@@ -159,10 +176,12 @@
   display: flex;
   min-height: 0;
 }
+
 body.pdf-modal-open {
   overflow: hidden;
 }
-/* PDF 酉곗뼱 怨듯넻 */
+
+/* PDF 뷰어 */
 .pdf-viewer {
   margin-top: 2rem;
   display: flex;
@@ -170,21 +189,18 @@ body.pdf-modal-open {
   gap: 0.75rem;
   height: 100%;
 }
-/* 紐⑤떖 ?덉뿉???곗씪 ??*/
+
 .pdf-viewer--modal {
   margin-top: 0;
   flex: 1;
 }
-/* /note/:id ?곸꽭 ?섏씠吏?먯꽌 ????*/
+
 .note-detail-page .pdf-viewer {
   margin-top: 0;
   flex: 1;
 }
-/* PDF 罹붾쾭?ㅻ? 媛먯떥???섑띁 ?곸뿭
-   - PDF ?섏씠吏媛 媛?대뜲 ?뺣젹?섎룄濡??ㅼ젙
-   - min-height???꾩껜 酉곗뼱 ?곸뿭 ?뺣낫
-   - overflow: hidden?쇰줈 ?ㅽ겕濡ㅻ컮 媛먯땄
-*/
+
+/* PDF 캔버스 래퍼 */
 .pdf-canvas-wrap {
   position: relative;
   background: rgba(255, 255, 255, 0.45);
@@ -204,11 +220,7 @@ body.pdf-modal-open {
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
 }
-/* ?ㅼ젣 PDF媛 ?뚮뜑留곷릺??canvas ?쒓렇???ㅽ???
-   - 以묒븰 諛곗튂 諛??뺣?/異뺤냼 ?④낵瑜??꾪빐 transform ?ъ슜
-   - max-width/max-height: none?쇰줈 ?먮낯 ?ъ씠利??쒖떆
-   - opacity 蹂?????몃옖吏???곸슜(?섏씠吏 ?섍만 ????
-*/
+
 .pdf-canvas-wrap canvas {
   position: absolute;
   top: 50%;
@@ -218,6 +230,8 @@ body.pdf-modal-open {
   max-height: none;
   transition: opacity 0.2s ease;
 }
+
+/* PDF 로딩 오버레이 */
 .pdf-overlay {
   position: absolute;
   inset: 0;
@@ -231,9 +245,11 @@ body.pdf-modal-open {
   text-align: center;
   padding: 16px;
 }
+
 .pdf-overlay.show {
   display: flex;
 }
+
 .pdf-overlay-lottie {
   width: 300px;
   height: 300px;
@@ -241,11 +257,13 @@ body.pdf-modal-open {
   max-height: 60vh;
   flex-shrink: 0;
 }
+
 .pdf-overlay-lottie::part(canvas) {
   max-width: 100%;
   max-height: 100%;
 }
-/* ?섏씠吏 踰덊샇 ?쒖떆 ?곸뿭 */
+
+/* 페이지 인디케이터 */
 .pdf-page-indicator {
   position: absolute;
   bottom: 12px;
@@ -263,11 +281,12 @@ body.pdf-modal-open {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-/* ?꾩옱 ?섏씠吏 踰덊샇??援듦쾶 ?쒖떆 */
+
 .pdf-page-indicator #pdf-current-page {
   font-weight: 700;
 }
-/* ?뺣?/異뺤냼 踰꾪듉 ?곸뿭 */
+
+/* 줌 컨트롤 */
 .pdf-zoom-controls {
   position: absolute;
   bottom: 12px;
@@ -284,13 +303,14 @@ body.pdf-modal-open {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
 @media (max-width: 640px) {
   .pdf-canvas-wrap {
     min-height: 50vh;
   }
 }
 
-/* NoteDetailPage: /note/:id 전체 화면 + 등장 애니메이션 + 반투명 글래스 */
+/* /note/:id 전체 페이지 + 등장 애니메이션 */
 .note-detail-page {
   height: 100vh;
   overflow: hidden;
@@ -302,9 +322,11 @@ body.pdf-modal-open {
   transform: scale(0.98);
   transition: none;
 }
+
 .note-detail-page.note-detail-page--mounted {
   animation: note-detail-page-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
 @keyframes note-detail-page-enter {
   from {
     opacity: 0;

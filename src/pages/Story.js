@@ -6,8 +6,7 @@
 
 import { router } from '../router.js';
 import './Story.css';
-import '../components/Button.css';
-import { render as renderButton } from '../components/Button.js';
+import { render as renderButton } from '../components/Button/Button.js';
 import { loadNotionPosts, getStoryPosts } from '../services/notion.js';
 import { renderStoryDetail } from './StoryDetail.js';
 
