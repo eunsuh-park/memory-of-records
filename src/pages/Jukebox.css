@@ -283,21 +283,6 @@ body.jukebox-active {
   .jukebox-gallery > div.jukebox-card {
     margin-left: -2.5vw;
   }
-
-  /* 네비 버튼: 정사각·원형 유지 */
-  .jukebox-gallery-wrap .btn--nav {
-    padding: 10px;
-  }
-  .jukebox-gallery-wrap .btn__nav-icon {
-    width: 20px;
-    height: 20px;
-  }
-  .jukebox-gallery-wrap .btn--nav-prev {
-    left: 8px;
-  }
-  .jukebox-gallery-wrap .btn--nav-next {
-    right: 8px;
-  }
 }
 
 /* 초소형 모바일 (480px 이하): 한 화면에 카드 1장이 주인공이 되도록 (-webkit-overflow-scrolling은 768px 미디어쿼리에서 상속) */
@@ -319,20 +304,6 @@ body.jukebox-active {
 
   .jukebox-gallery > div.jukebox-card {
     margin-left: -2vw;
-  }
-
-  .jukebox-gallery-wrap .btn--nav {
-    padding: 8px;
-  }
-  .jukebox-gallery-wrap .btn__nav-icon {
-    width: 18px;
-    height: 18px;
-  }
-  .jukebox-gallery-wrap .btn--nav-prev {
-    left: 6px;
-  }
-  .jukebox-gallery-wrap .btn--nav-next {
-    right: 6px;
   }
 }
 
