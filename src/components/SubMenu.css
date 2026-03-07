@@ -16,7 +16,7 @@
 /* 서브 메뉴 컨테이너: TopNavigation 하단에 고정, 가로 중앙 정렬 */
 .sub-menu {
   position: fixed;
-  top: 80px; /* TopNavigation 높이 72px + 여백 */
+  top: 80px; /* TopNavigation 하단 */
   left: 50%;
   transform: translateX(-50%);
   background: unset;
@@ -26,6 +26,12 @@
   z-index: 1001;
   transition: transform 0.3s ease, opacity 0.3s ease;
   width: auto;
+}
+
+@media (max-width: 768px) {
+  .sub-menu {
+    top: 7rem; /* TopNav 2줄 레이아웃 */
+  }
 }
 
 /* 내부 네비 래퍼 (flex로 목록 중앙 정렬) */
@@ -96,17 +102,17 @@
 /* 미선택 탭 호버 */
 .period-link:hover:not(.active) {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--color-surface-hover);
 }
 
 /* 선택된 탭 */
 .period-link.active {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-surface-active);
 }
 
 .period-link.active:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-surface-active);
 }
 
 /* 탭 라벨 (예: "Elementary School", "다이어리(일기장)") */

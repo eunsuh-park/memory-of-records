@@ -1,0 +1,64 @@
+/**
+ * 다크 모드 색상 팔레트 (기본 모드)
+ *
+ * 사용: var(--color-*) 또는 var(--app-*)
+ * --app-* 은 기존 호환용 별칭
+ */
+
+:root {
+  /* === 배경 === */
+  --color-bg: #29323f;
+  --color-bg-alt: #2f3847;
+
+  /* === 텍스트 === */
+  --color-text: rgba(255, 255, 255, 0.92);
+  --color-text-muted: rgba(255, 255, 255, 0.7);
+  --color-text-dim: rgba(255, 255, 255, 0.5);
+
+  /* === 서피스 (호버·액티브·선택) === */
+  --color-surface-hover: rgba(255, 255, 255, 0.08);
+  --color-surface-active: rgba(255, 255, 255, 0.15);
+  --color-surface-selected: rgba(255, 255, 255, 0.2);
+
+  /* === 버튼·액센트 === */
+  --color-primary: #ffd966;
+  --color-primary-hover: #555;
+  --color-primary-on: #fff;
+
+  /* === 경계·구분선 === */
+  --color-border: rgba(255, 255, 255, 0.15);
+  --color-border-light: rgba(0, 0, 0, 0.12);
+
+  /* === 오버레이·모달 === */
+  --color-overlay: rgba(0, 0, 0, 0.75);
+  --color-overlay-dark: rgba(17, 24, 39, 0.9);
+  --color-overlay-medium: rgba(17, 24, 39, 0.75);
+  --color-overlay-light: rgba(17, 24, 39, 0.5);
+
+  /* === 에러 === */
+  --color-error: rgba(200, 0, 0, 0.5);
+  --color-error-bg: rgba(200, 0, 0, 0.08);
+
+  /* === 그림자 === */
+  --color-shadow-sm: rgba(0, 0, 0, 0.12);
+  --color-shadow: rgba(0, 0, 0, 0.2);
+  --color-shadow-lg: rgba(0, 0, 0, 0.28);
+
+  /* === 반사·그라데이션 (주크박스 등) === */
+  --color-reflect: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
+  --color-fade-edge: linear-gradient(90deg, #000, transparent);
+
+  /* === 기존 호환용 별칭 (--app-*) === */
+  --app-bg: var(--color-bg);
+  --app-bg-alt: var(--color-bg-alt);
+  --app-text: var(--color-text);
+  --app-text-muted: var(--color-text-muted);
+  --app-text-dim: var(--color-text-dim);
+
+  /* === 전역 스타일·레거시 호환 === */
+  --primary-color: var(--color-primary);
+  --secondary-color: #666;
+  --background-color: var(--color-bg);
+  --border-color: var(--color-border);
+  --hover-color: var(--color-primary-hover);
+}

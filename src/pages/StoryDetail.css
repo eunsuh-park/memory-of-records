@@ -12,7 +12,7 @@
 
 .story-detail-main > * {
   cursor: default;
-  background-color: var(--jukebox-bg);
+  background-color: var(--app-bg);
 }
 
 /* StoryDetail 페이지 스타일 */

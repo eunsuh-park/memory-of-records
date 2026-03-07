@@ -15,10 +15,11 @@ body.story-detail-page-active .navigation {
   top: 0;
   left: 50%;
   transform: translateX(-50%);
+  padding-top: env(safe-area-inset-top, 0);
   background-color: var(--app-bg);
   border: none;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   border-bottom-left-radius: 48px;
   border-bottom-right-radius: 48px;
   z-index: 1000;
@@ -27,12 +28,7 @@ body.story-detail-page-active .navigation {
   width: calc(100% - 3rem);
 }
 
-
-
-/* 상세 페이지에서 네비게이션은 항상 숨김 상태 유지 */
-
 .nav-container {
-  /* 컨테이너 스타일 */
   padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -53,18 +49,21 @@ body.story-detail-page-active .navigation {
   padding: 0.5rem 1rem;
   border-radius: 999px;
   transition: background-color 0.3s, color 0.3s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .nav-brand-link:hover,
 .nav-brand-link:focus {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-surface-active);
   outline: none;
 }
 
 .nav-brand-link.active {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-surface-selected);
 }
 
 .logo {
@@ -73,6 +72,12 @@ body.story-detail-page-active .navigation {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.25rem 0;
+}
+
+.logo:focus {
+  outline: none;
 }
 
 .logo-icon {
@@ -102,7 +107,6 @@ body.story-detail-page-active .navigation {
 }
 
 .nav-menu {
-  /* 메뉴 리스트 스타일 */
   display: flex;
   list-style: none;
   gap: 2rem;
@@ -111,82 +115,66 @@ body.story-detail-page-active .navigation {
 }
 
 .nav-menu li a {
-  /* 메뉴 링크 스타일 (주크박스와 동일한 앱 배경에 맞춤) */
   text-decoration: none;
   color: var(--app-text-muted);
   font-weight: 500;
   transition: background-color 0.3s, color 0.3s;
   padding: 0.5rem 1rem;
   border-radius: 999px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .nav-menu li a:hover {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-surface-active);
 }
 
 .nav-menu li a:focus {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-surface-active);
   outline: none;
 }
 
 .nav-menu li a.active {
   color: var(--app-text);
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-surface-selected);
 }
 
-.nav-hamburger {
-  border: none;
-  background: transparent;
-  padding: 0.35rem;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 4px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.nav-hamburger-icon {
-  display: block;
-  width: 24px;
-  height: 24px;
-}
-
-@media (max-width: 768px) {
-  .nav-container {
-    padding: 0.75rem 1.25rem;
-  }
-
-  .navigation--home .logo-icon {
-    display: none;
-  }
-
-  .logo-image {
-    display: none;
-  }
-
-  .logo-icon {
-    display: block;
-  }
-
-  .nav-menu {
-    display: none;
-  }
-
-  .nav-hamburger {
-    display: inline-flex;
-  }
-}
-
+/* PC: 한 줄 레이아웃. 모바일이 아닌 화면에서는 back 아이콘 숨김 */
 @media (min-width: 769px) {
   .logo-icon {
     display: none;
   }
-
-  .nav-hamburger {
-    display: none;
-  }
 }
 
+/* 모바일: 2줄 레이아웃 (PC와 동일 요소, 줄바꿈) */
+@media (max-width: 768px) {
+  .navigation {
+    width: calc(100% - 2rem);
+  }
 
+  .nav-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem 1.25rem;
+  }
+
+  /* 1줄: [로고 좌측] ----- [Story 우측] */
+  .nav-brand {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* 2줄: [Timeline] [By type] 탭 형식 */
+  .nav-menu {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .nav-menu li a {
+    padding: 0.5rem 1rem;
+  }
+}

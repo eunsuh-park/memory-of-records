@@ -30,8 +30,19 @@ body,
   width: 100%;
   height: 100%;
   vertical-align: bottom;
-  padding-top: 72px; /* TopNavigation 높이만큼 여백 추가 */
+  padding-top: 80px; /* TopNavigation 높이만큼 여백 */
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  /* 모바일: TopNav 2줄 레이아웃으로 높이 증가 */
+  .main-wrapper {
+    height: calc(100vh - 7rem);
+  }
+
+  .app-main {
+    padding-top: 7rem;
+  }
 }
 
 #main-content {

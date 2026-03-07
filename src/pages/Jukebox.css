@@ -3,10 +3,7 @@
    https://scroll-driven-animations.style/demos/cover-flow/css/
    ============================================================================= */
 
-/* --- 전역 (주크박스 전용; 앱 공통 색은 index.css --app-bg) --- */
-:root {
-  --jukebox-bg: var(--app-bg, #29323f);
-}
+/* --- 전역 (주크박스 전용; 앱 공통 색은 styles/colors.css) --- */
 
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
@@ -27,15 +24,15 @@ body.jukebox-active {
   overflow: hidden;
   position: relative;
   height: 100vh;
-  background: var(--jukebox-bg);
+  background: var(--app-bg);
 }
 
 /* --- 레이아웃 --- */
 .jukebox-fullscreen {
   background: linear-gradient(
-    var(--jukebox-bg) 40%,
-    var(--app-bg-alt, #2f3847) 60%,
-    var(--jukebox-bg) 100%
+    var(--app-bg) 40%,
+    var(--app-bg-alt) 60%,
+    var(--app-bg) 100%
   );
   height: 100%;
   width: 100%;
@@ -138,7 +135,7 @@ body.jukebox-active {
     scale(1.25)
     rotateY(0deg);
   z-index: 101;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 10px 32px var(--color-shadow-lg);
 }
 
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
@@ -195,8 +192,8 @@ body.jukebox-active {
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-cover-image--error {
-  outline: 2px dashed rgba(200, 0, 0, 0.5);
-  background: rgba(200, 0, 0, 0.08);
+  outline: 2px dashed var(--color-error);
+  background: var(--color-error-bg);
 }
 
 /* 오버레이 비활성(투명). 어두운 느낌은 img brightness로만 처리 */
@@ -218,7 +215,7 @@ body.jukebox-active {
 /* 로딩/빈 상태: 카드 3D·반사·오버레이 스타일 제외 */
 .jukebox-gallery > div.jukebox-loading,
 .jukebox-gallery > div.jukebox-empty {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--app-text-muted);
   font-size: 1rem;
   text-align: center;
   padding: 2rem;

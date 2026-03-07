@@ -3,20 +3,9 @@
  * 애플리케이션 전체에 적용되는 기본 스타일을 정의합니다.
  */
 
+@import './styles/colors.css';
+
 :root {
-  /* 색상 변수 정의 - 필요에 따라 수정 가능 */
-  --primary-color: #FFD966;
-  --secondary-color: #666;
-  --background-color: #fafafa;
-  --border-color: #e0e0e0;
-  --hover-color: #555;
-  /* 주크박스와 동일한 앱 배경 (다크 블루그레이) */
-  --app-bg: #29323f;
-  --app-bg-alt: #2f3847;
-  --app-text: rgba(255, 255, 255, 0.92);
-  --app-text-muted: rgba(255, 255, 255, 0.7);
-  --app-text-dim: rgba(255, 255, 255, 0.5);
-  
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
