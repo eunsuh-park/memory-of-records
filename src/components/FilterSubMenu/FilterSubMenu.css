@@ -9,7 +9,6 @@
  * - .filter-list / .filter-item: 탭 목록·항목 (Timeline 시기, By Type 타입)
  * - .filter-link: 각 탭 링크 (.active 시 선택 상태)
  * - .filter-label: 탭 라벨 텍스트
- * - .filter-sublabel: 부가 설명 (시기별 연도, 타입 설명 등)
  * - .filter-count: 탭별 노트 개수
  */
 
@@ -93,11 +92,12 @@
   width: auto;
 }
 
-/* 탭 링크: 라벨·연도·개수 표시, 선택 시 .active */
+/* 탭 링크: 라벨·개수 표시, 선택 시 .active */
 .filter-link {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.25rem;
   padding: 0.5rem 0.75rem;
   text-decoration: none;
   color: var(--app-text);
@@ -122,10 +122,6 @@
 
 /* 미선택 탭: 흐린 색 */
 .filter-link:not(.active) {
-  color: var(--app-text-dim);
-}
-
-.filter-link:not(.active) .filter-sublabel {
   color: var(--app-text-dim);
 }
 
@@ -161,34 +157,11 @@
   font-weight: 700;
 }
 
-/* 시기 연도/부가 설명 (예: "2005-2010", typeOptions.detail) */
-.filter-sublabel {
-  font-size: 0.75rem;
-  font-weight: 400;
-  color: var(--app-text-muted);
-  line-height: 100%;
-  text-align: center;
-  margin-top: 0;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.3s ease-in-out, font-weight 0.3s ease;
-  display: block;
-}
-
-.filter-link.active .filter-sublabel {
-  max-height: 2rem;
-  opacity: 1;
-  margin-top: 0.4rem;
-  font-weight: 500;
-}
-
-/* 탭별 노트 개수 숫자 */
+/* 탭별 노트 개수 숫자 (라벨과 개수 사이 gap은 .filter-link gap으로 통일) */
 .filter-count {
   font-size: 0.7rem;
   font-weight: 500;
   color: var(--app-text-muted);
-  margin-left: 0.35rem;
 }
 
 /* ========== 타블렛 (1024px 이하): 스케일 축소, 전부 표시 ========== */
@@ -217,18 +190,8 @@
     font-size: 0.78rem;
   }
 
-  .filter-sublabel {
-    font-size: 0.68rem;
-  }
-
-  .filter-link.active .filter-sublabel {
-    max-height: 1.75rem;
-    margin-top: 0.3rem;
-  }
-
   .filter-count {
     font-size: 0.65rem;
-    margin-left: 0.25rem;
   }
 }
 
@@ -275,18 +238,8 @@
     font-size: 0.72rem;
   }
 
-  .filter-sublabel {
-    font-size: 0.62rem;
-  }
-
-  .filter-link.active .filter-sublabel {
-    max-height: 1.5rem;
-    margin-top: 0.25rem;
-  }
-
   .filter-count {
     font-size: 0.6rem;
-    margin-left: 0.2rem;
   }
 }
 
@@ -312,17 +265,7 @@
     font-size: 0.68rem;
   }
 
-  .filter-sublabel {
-    font-size: 0.58rem;
-  }
-
-  .filter-link.active .filter-sublabel {
-    max-height: 1.35rem;
-    margin-top: 0.2rem;
-  }
-
   .filter-count {
     font-size: 0.55rem;
-    margin-left: 0.18rem;
   }
 }

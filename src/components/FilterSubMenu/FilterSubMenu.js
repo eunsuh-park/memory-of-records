@@ -16,7 +16,7 @@ import './FilterSubMenu.css';
  *
  * @param {string} selectedValue - 현재 선택된 값 (opt.value)
  * @param {string} basePath - 링크 prefix. '/timeline' 또는 '/by-type'
- * @param {Array<{value: string, label: string, years?: string, detail?: string}>} filterOptions - 표시할 필터 옵션 배열
+ * @param {Array<{value: string, label: string}>} filterOptions - 표시할 필터 옵션 배열
  * @param {Record<string, number>} [countsByFilter] - 옵션별 노트 개수 (메뉴에 숫자 표시)
  * @param {{ current: 'timeline'|'type' }} [viewModeToggle] - 뷰 모드 토글 (Timeline | By Type)
  */
@@ -41,7 +41,6 @@ export function renderFilterSubMenu(selectedValue, basePath, filterOptions, coun
           ${filterOptions.map((opt) => {
             const isActive = selectedValue === opt.value;
             const count = countsByFilter[opt.value] ?? 0;
-            const sublabel = opt.years || opt.detail || '';
             return `
               <li class="filter-item">
                 <a
@@ -50,7 +49,6 @@ export function renderFilterSubMenu(selectedValue, basePath, filterOptions, coun
                   data-link
                 >
                   <span class="filter-label">${opt.label}</span>
-                  ${sublabel ? `<span class="filter-sublabel">${sublabel}</span>` : ''}
                   ${count > 0 ? `<span class="filter-count">${count}</span>` : ''}
                 </a>
               </li>

@@ -432,7 +432,7 @@ function openPdfModal(noteId, pdfUrl = null) {
  * @param {'period'|'type'} options.filterMode
  * @param {string} options.basePath - '/timeline' | '/by-type'
  * @param {string} options.selectedValue - 현재 선택된 필터 값
- * @param {Array<{value, label, years?, detail?}>} options.filterOptions
+ * @param {Array<{value: string, label: string}>} options.filterOptions
  * @param {() => Promise<Array>} options.loadNotes
  * @param {(notes: Array) => Record<string, number>} options.getNotesCount
  * @param {(note: Object) => string|null} options.resolveFilterKey
