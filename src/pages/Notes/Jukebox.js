@@ -11,11 +11,11 @@
  * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
  */
 
-import { getNotionNotebooks } from '../services/notionNotebooks.js';
-import { getNotionTypeItems } from '../services/notionByType.js';
-import { renderFilterSubMenu } from '../components/FilterSubMenu/FilterSubMenu.js';
-import { renderPdfViewer } from '../components/PdfModal/PdfModal.js';
-import { render as renderButton } from '../components/Button/Button.js';
+import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { getNotionTypeItems } from '../../services/notionByType.js';
+import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
+import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
+import { render as renderButton } from '../../components/Button/Button.js';
 import './Jukebox.css';
 
 const ICONS = {
@@ -344,9 +344,9 @@ export function renderJukebox() {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        ${renderButton({ variant: 'navPrev', id: 'jukebox-prev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG })}
-        ${renderButton({ variant: 'navNext', id: 'jukebox-next', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG })}
-        <div class="jukebox-gallery centerized" id="jukebox-gallery">
+        ${renderButton({ variant: 'navPrev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-prev' })}
+        ${renderButton({ variant: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
+        <div class="jukebox-gallery centerized">
           <div class="jukebox-loading" role="status" aria-live="polite">
           <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
           <p class="jukebox-loading-text">노트를 불러오는 중...</p>
@@ -356,9 +356,10 @@ export function renderJukebox() {
     </div>
   `;
 
-  const gallery = document.getElementById('jukebox-gallery');
-  const prevBtn = document.getElementById('jukebox-prev');
-  const nextBtn = document.getElementById('jukebox-next');
+  const galleryWrap = mainContent.querySelector('.jukebox-gallery-wrap');
+  const gallery = mainContent.querySelector('.jukebox-gallery');
+  const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
+  const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
 
   /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 */
   Promise.allSettled([getNotionNotebooks(), getNotionTypeItems()])
@@ -462,9 +463,9 @@ export function renderJukeboxWithFilter(options) {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        ${renderButton({ variant: 'navPrev', id: 'jukebox-prev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG })}
-        ${renderButton({ variant: 'navNext', id: 'jukebox-next', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG })}
-        <div class="jukebox-gallery centerized" id="jukebox-gallery">
+        ${renderButton({ variant: 'navPrev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-prev' })}
+        ${renderButton({ variant: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
+        <div class="jukebox-gallery centerized">
           <div class="jukebox-loading" role="status" aria-live="polite">
             <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width:300px;height:300px" autoplay loop></dotlottie-wc>
             <p class="jukebox-loading-text">노트를 불러오는 중...</p>
@@ -474,9 +475,10 @@ export function renderJukeboxWithFilter(options) {
     </div>
   `;
 
-  const gallery = document.getElementById('jukebox-gallery');
-  const prevBtn = document.getElementById('jukebox-prev');
-  const nextBtn = document.getElementById('jukebox-next');
+  const galleryWrap = mainContent.querySelector('.jukebox-gallery-wrap');
+  const gallery = mainContent.querySelector('.jukebox-gallery');
+  const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
+  const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
 
   // 진입 직후 현재 페이지 옵션으로 서브메뉴를 먼저 그림 (이전 페이지 메뉴가 4개/5개로 남는 현상 방지)
   renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle);

@@ -1,0 +1,156 @@
+/**
+ * PageHeader 스타일
+ * [로고] --- [FilterSubMenu 중앙] --- [Story 링크]
+ * 양끝정렬(space-between)
+ */
+
+/* Story 페이지: 헤더 숨김 */
+body.story-detail-page-active .page-header {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.page-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  background-color: var(--app-bg);
+  border-bottom-left-radius: 48px;
+  border-bottom-right-radius: 48px;
+  max-width: 1200px;
+  width: calc(100% - 3rem);
+  margin: 0 auto;
+  box-sizing: border-box;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.page-header__left,
+.page-header__center,
+.page-header__right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.page-header__center {
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* FilterSubMenu가 PageHeader 안에 있을 때 fixed 해제 */
+.page-header #sub-menu {
+  position: static;
+  transform: none;
+}
+
+.page-header #sub-menu .sub-menu {
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+}
+
+/* 로고 */
+.page-header__logo {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.25rem 0;
+}
+
+.page-header__logo:focus {
+  outline: none;
+}
+
+.page-header__logo-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 769px) {
+  .page-header__logo-icon {
+    display: none;
+  }
+}
+
+.page-header__logo-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.page-header__logo-image {
+  height: auto;
+  max-height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Story 링크 */
+.page-header__story-link {
+  text-decoration: none;
+  color: var(--app-text-muted);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  transition: background-color 0.3s, color 0.3s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.page-header__story-link:hover,
+.page-header__story-link:focus {
+  color: var(--app-text);
+  background-color: var(--color-surface-active);
+  outline: none;
+}
+
+.page-header__story-link.active {
+  color: var(--app-text);
+  background-color: var(--color-surface-selected);
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: calc(100% - 2rem);
+    padding: 0.75rem 1.25rem;
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .page-header__left {
+    order: 1;
+  }
+
+  .page-header__right {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .page-header__center {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}

@@ -97,17 +97,17 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
       <div class="pdf-canvas-wrap">
-        ${renderButton({ variant: 'navPrev', id: 'pdf-prev', ariaLabel: '이전 페이지', content: ICONS.leftLine })}
-        ${renderButton({ variant: 'navNext', id: 'pdf-next', ariaLabel: '다음 페이지', content: ICONS.rightLine })}
+        ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'pdf-nav-prev' })}
+        ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.rightLine, className: 'pdf-nav-next' })}
         <div class="pdf-page-indicator">
-          ${renderButton({ variant: 'toolbar', id: 'pdf-first', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine })}
+          ${renderButton({ variant: 'toolbar', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine, className: 'pdf-nav-first' })}
           <span id="pdf-current-page">1</span>/<span id="pdf-total-pages">-</span>
-          ${renderButton({ variant: 'toolbar', id: 'pdf-last', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine })}
+          ${renderButton({ variant: 'toolbar', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine, className: 'pdf-nav-last' })}
         </div>
         <div class="pdf-zoom-controls">
-          ${renderButton({ variant: 'toolbar', id: 'pdf-zoom-reset', ariaLabel: '100% 비율로 초기화', content: '100%' })}
-          ${renderButton({ variant: 'toolbar', id: 'pdf-zoom-in', ariaLabel: '확대', content: '+' })}
-          ${renderButton({ variant: 'toolbar', id: 'pdf-zoom-out', ariaLabel: '축소', content: '-' })}
+          ${renderButton({ variant: 'toolbar', ariaLabel: '100% 비율로 초기화', content: '100%', className: 'pdf-zoom-reset' })}
+          ${renderButton({ variant: 'toolbar', ariaLabel: '확대', content: '+', className: 'pdf-zoom-in' })}
+          ${renderButton({ variant: 'toolbar', ariaLabel: '축소', content: '-', className: 'pdf-zoom-out' })}
         </div>
         <canvas id="pdf-canvas"></canvas>
         <div id="pdf-overlay" class="pdf-overlay show">
@@ -141,15 +141,15 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
   const canvas = targetEl.querySelector('#pdf-canvas');
   const ctx = canvas.getContext('2d');
-  const prevBtn = targetEl.querySelector('#pdf-prev');
-  const nextBtn = targetEl.querySelector('#pdf-next');
-  const firstBtn = targetEl.querySelector('#pdf-first');
-  const lastBtn = targetEl.querySelector('#pdf-last');
+  const prevBtn = targetEl.querySelector('.pdf-nav-prev');
+  const nextBtn = targetEl.querySelector('.pdf-nav-next');
+  const firstBtn = targetEl.querySelector('.pdf-nav-first');
+  const lastBtn = targetEl.querySelector('.pdf-nav-last');
   const currentPageEl = targetEl.querySelector('#pdf-current-page');
   const totalPagesEl = targetEl.querySelector('#pdf-total-pages');
-  const zoomResetBtn = targetEl.querySelector('#pdf-zoom-reset');
-  const zoomOutBtn = targetEl.querySelector('#pdf-zoom-out');
-  const zoomInBtn = targetEl.querySelector('#pdf-zoom-in');
+  const zoomResetBtn = targetEl.querySelector('.pdf-zoom-reset');
+  const zoomOutBtn = targetEl.querySelector('.pdf-zoom-out');
+  const zoomInBtn = targetEl.querySelector('.pdf-zoom-in');
 
   let pdfDoc = null;
   let pageNum = 1;

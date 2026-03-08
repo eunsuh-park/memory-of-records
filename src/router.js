@@ -2,10 +2,10 @@
  * 간단한 SPA 라우터
  */
 
-import { renderTimeline } from './pages/Timeline.js';
-import { renderByType } from './pages/ByType.js';
-import { renderStory } from './pages/Story.js';
-import { renderStoryDetail } from './pages/StoryDetail.js';
+import { renderTimeline } from './pages/Notes/Timeline.js';
+import { renderByType } from './pages/Notes/ByType.js';
+import { renderStory } from './pages/Story/Story.js';
+import { renderStoryDetail } from './pages/StoryDetail/StoryDetail.js';
 import { renderNoteDetailPage } from './components/PdfModal/PdfModal.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
@@ -106,9 +106,9 @@ class Router {
       if (subMenu) subMenu.innerHTML = '';
     }
 
-    // 네비게이션 업데이트
-    const { renderNavigation } = await import('./components/TopNavigation/TopNavigation.js');
-    renderNavigation();
+    // PageHeader 업데이트
+    const { renderPageHeader } = await import('./widgets/PageHeader/PageHeader.js');
+    renderPageHeader();
 
     // 경로 매칭
     for (const route of this.routes) {

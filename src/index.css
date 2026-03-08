@@ -53,8 +53,8 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-/* 버튼 기본 스타일 */
-button {
+/* 버튼 기본 스타일 (Button 컴포넌트(.btn) 제외 - Button.css가 우선) */
+button:not(.btn) {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -67,7 +67,7 @@ button {
   transition: all 0.25s;
 }
 
-button:hover {
+button:not(.btn):hover {
   background-color: var(--hover-color);
 }
 

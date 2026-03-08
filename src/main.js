@@ -5,7 +5,7 @@
 
 import { router } from './router.js';
 import { render as renderButton } from './components/Button/Button.js';
-import { renderNavigation } from './components/TopNavigation/TopNavigation.js';
+import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
 import { renderFooter } from './components/Footer/Footer.js';
 import './index.css';
 import './App.css';
@@ -24,8 +24,7 @@ async function initApp() {
     // 앱 구조 생성
     app.innerHTML = `
       <div class="app">
-        <div id="navigation"></div>
-        <aside id="sub-menu"></aside>
+        <div id="page-header"></div>
         <div class="main-wrapper">
           <main class="app-main" id="main-content"></main>
         </div>
@@ -33,9 +32,9 @@ async function initApp() {
       </div>
     `;
 
-    // 네비게이션과 푸터 렌더링
+    // PageHeader와 푸터 렌더링
     try {
-      renderNavigation();
+      renderPageHeader();
       renderFooter();
       console.log('✅ 네비게이션과 푸터 렌더링 완료');
     } catch (error) {
@@ -70,11 +69,11 @@ async function initApp() {
           <p>애플리케이션을 초기화하는 중 오류가 발생했습니다.</p>
           <p style="color: #999; font-size: 12px;">${error.message}</p>
           <div style="margin-top: 20px;">
-            ${renderButton({ variant: 'toolbar', id: 'app-error-reload', ariaLabel: '페이지 새로고침', content: '페이지 새로고침', className: 'app-error-reload-btn' })}
+            ${renderButton({ variant: 'toolbar', ariaLabel: '페이지 새로고침', content: '페이지 새로고침', className: 'app-error-reload-btn' })}
           </div>
         </div>
       `;
-      app.querySelector('#app-error-reload')?.addEventListener('click', () => location.reload());
+      app.querySelector('.app-error-reload-btn')?.addEventListener('click', () => location.reload());
     }
   }
 }

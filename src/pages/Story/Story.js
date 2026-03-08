@@ -4,11 +4,11 @@
  * - DB에 Title이 "Introduction"인 페이지가 있으면 첫 화면을 해당 페이지의 StoryDetail로 표시
  */
 
-import { router } from '../router.js';
+import { router } from '../../router.js';
 import './Story.css';
-import { render as renderButton } from '../components/Button/Button.js';
-import { loadNotionPosts, getStoryPosts } from '../services/notion.js';
-import { renderStoryDetail } from './StoryDetail.js';
+import { render as renderButton } from '../../components/Button/Button.js';
+import { loadNotionPosts, getStoryPosts } from '../../services/notion.js';
+import { renderStoryDetail } from '../StoryDetail/StoryDetail.js';
 
 export async function renderStory() {
   const mainContent = document.getElementById('main-content');
@@ -56,7 +56,7 @@ export async function renderStory() {
     await loadNotionPosts();
     posts = getStoryPosts() || [];
     if (posts.length > 0) {
-      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../services/notion.js');
+      const { fetchNotionPageContent, extractFirstImageFromBlocks } = await import('../../services/notion.js');
       for (let i = 0; i < posts.length; i++) {
         if (!posts[i].image && posts[i].notionId) {
           try {
