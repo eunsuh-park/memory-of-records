@@ -4,6 +4,7 @@
  */
 
 import { router } from './router.js';
+import { render as renderButton } from './components/Button/Button.js';
 import { renderNavigation } from './components/TopNavigation/TopNavigation.js';
 import { renderFooter } from './components/Footer/Footer.js';
 import './index.css';
@@ -68,11 +69,12 @@ async function initApp() {
           <h1>앱 로딩 오류</h1>
           <p>애플리케이션을 초기화하는 중 오류가 발생했습니다.</p>
           <p style="color: #999; font-size: 12px;">${error.message}</p>
-          <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">
-            페이지 새로고침
-          </button>
+          <div style="margin-top: 20px;">
+            ${renderButton({ variant: 'toolbar', id: 'app-error-reload', ariaLabel: '페이지 새로고침', content: '페이지 새로고침', className: 'app-error-reload-btn' })}
+          </div>
         </div>
       `;
+      app.querySelector('#app-error-reload')?.addEventListener('click', () => location.reload());
     }
   }
 }

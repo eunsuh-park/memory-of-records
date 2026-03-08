@@ -84,3 +84,9 @@ button {
   font-size: inherit;
 }
 
+/* 앱 로딩 오류 시 새로고침 버튼 (Button 컴포넌트 toolbar variant 확장) */
+.app-error-reload-btn {
+  padding: 10px 20px !important;
+  font-size: 0.9rem !important;
+}
+

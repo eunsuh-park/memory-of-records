@@ -60,26 +60,6 @@ export function renderNavigation() {
             Story
           </a>
         </div>
-        <ul class="nav-menu">
-          <li>
-            <a
-              href="/timeline"
-              class="${currentPath === '/' || currentPath.startsWith('/timeline') ? 'active' : ''}"
-              data-link
-            >
-              Timeline
-            </a>
-          </li>
-          <li>
-            <a
-              href="/by-type"
-              class="${currentPath.startsWith('/by-type') ? 'active' : ''}"
-              data-link
-            >
-              By type
-            </a>
-          </li>
-        </ul>
       </div>
     </nav>
   `;
