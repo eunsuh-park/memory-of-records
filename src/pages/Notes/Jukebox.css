@@ -59,7 +59,7 @@ body.jukebox-active {
   background: transparent;
 }
 
-------------------------------------------GALLERY------------------------------------------
+/* --- 갤러리 센터 정렬 --- */
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
@@ -307,4 +307,33 @@ body.jukebox-active {
 /* Timeline/By Type: 동일 Jukebox DOM 사용 → 필터만 다름. 서브메뉴 전환만 추가 */
 body.jukebox-active #sub-menu {
   transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Jukebox 이전/다음 버튼: 화면 세로 중앙, 양끝 정렬 (Button 컴포넌트 nav variant 사용) */
+body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev,
+body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+}
+
+body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev {
+  left: 1rem;
+  right: auto;
+}
+
+body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
+  left: auto;
+  right: 1rem;
+}
+
+@media (max-width: 768px) {
+  body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev {
+    left: max(0.75rem, env(safe-area-inset-left));
+  }
+
+  body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
+    right: max(0.75rem, env(safe-area-inset-right));
+  }
 }
