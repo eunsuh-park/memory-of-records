@@ -60,7 +60,7 @@
 
 @media (max-width: 768px) {
   .sub-menu {
-    top: 7rem; /* TopNav 2줄 레이아웃 */
+    top: 7rem; /* PageHeader 2줄 레이아웃 */
   }
 }
 
@@ -135,14 +135,14 @@
   background-color: var(--color-surface-hover);
 }
 
-/* 선택된 탭 */
+/* 선택된 탭: 배경 없음, font-weight 강조 */
 .filter-link.active {
   color: var(--app-text);
-  background-color: var(--color-surface-active);
+  background-color: transparent;
 }
 
 .filter-link.active:hover {
-  background-color: var(--color-surface-active);
+  background-color: transparent;
 }
 
 /* 탭 라벨 (예: "Elementary School", "다이어리(일기장)") */
@@ -158,7 +158,7 @@
 }
 
 .filter-link.active .filter-label {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* 시기 연도/부가 설명 (예: "2005-2010", typeOptions.detail) */
@@ -191,17 +191,138 @@
   margin-left: 0.35rem;
 }
 
-/* 1024px 이하: 선택된 탭만 표시 (나머지 숨김) */
+/* ========== 타블렛 (1024px 이하): 스케일 축소, 전부 표시 ========== */
 @media (max-width: 1024px) {
+  .view-mode-toggle {
+    gap: 0.2rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .view-mode-link {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
   .filter-list {
-    gap: 0;
+    gap: 0.35rem;
   }
 
-  .filter-item .filter-link {
-    display: none;
+  .filter-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
   }
 
-  .filter-item .filter-link.active {
-    display: flex;
+  .filter-label {
+    font-size: 0.78rem;
+  }
+
+  .filter-sublabel {
+    font-size: 0.68rem;
+  }
+
+  .filter-link.active .filter-sublabel {
+    max-height: 1.75rem;
+    margin-top: 0.3rem;
+  }
+
+  .filter-count {
+    font-size: 0.65rem;
+    margin-left: 0.25rem;
+  }
+}
+
+/* ========== 모바일 (768px 이하): 스케일 추가 축소, 가로 스크롤 허용 ========== */
+@media (max-width: 768px) {
+  .view-mode-toggle {
+    gap: 0.15rem;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.3rem;
+  }
+
+  .view-mode-link {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .sub-nav {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .filter-list {
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-bottom: 0.25rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin: 0 -0.5rem;
+  }
+
+  .filter-link {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .filter-label {
+    font-size: 0.72rem;
+  }
+
+  .filter-sublabel {
+    font-size: 0.62rem;
+  }
+
+  .filter-link.active .filter-sublabel {
+    max-height: 1.5rem;
+    margin-top: 0.25rem;
+  }
+
+  .filter-count {
+    font-size: 0.6rem;
+    margin-left: 0.2rem;
+  }
+}
+
+/* ========== 초소형 모바일 (480px 이하): 최소 스케일 ========== */
+@media (max-width: 480px) {
+  .view-mode-toggle {
+    gap: 0.12rem;
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .view-mode-link {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  .filter-link {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  .filter-label {
+    font-size: 0.68rem;
+  }
+
+  .filter-sublabel {
+    font-size: 0.58rem;
+  }
+
+  .filter-link.active .filter-sublabel {
+    max-height: 1.35rem;
+    margin-top: 0.2rem;
+  }
+
+  .filter-count {
+    font-size: 0.55rem;
+    margin-left: 0.18rem;
   }
 }
