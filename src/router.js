@@ -92,15 +92,16 @@ class Router {
       document.body.classList.remove('note-detail-modal');
     }
 
-    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type에서 사용)
-    if (!path.startsWith('/timeline') && !path.startsWith('/by-type')) {
+    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type 통합 페이지에서 사용)
+    const isNotesPage = path === '/' || path.startsWith('/timeline') || path.startsWith('/by-type');
+    if (!isNotesPage) {
       document.body.classList.remove('jukebox-active');
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
 
     // Timeline/By type 페이지가 아닐 때 서브 메뉴 내용만 비움 (노드는 유지)
-    if (!path.startsWith('/timeline') && !path.startsWith('/by-type')) {
+    if (!isNotesPage) {
       const subMenu = document.getElementById('sub-menu');
       if (subMenu) subMenu.innerHTML = '';
     }

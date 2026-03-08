@@ -67,6 +67,7 @@ export function renderByType(type = null) {
     filterOptions: typeOptions,
     loadNotes: getNotionTypeItems,
     getNotesCount: getNotesCountByType,
-    resolveFilterKey: (note) => resolveTypeKey(note.type || note.notebookType || note.title)
+    resolveFilterKey: (note) => resolveTypeKey(note.type || note.notebookType || note.title),
+    viewModeToggle: { current: 'type' }
   });
 }

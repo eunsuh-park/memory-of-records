@@ -13,6 +13,36 @@
  * - .filter-count: 탭별 노트 개수
  */
 
+/* 뷰 모드 토글 (Timeline | By type) - 통합 노트 페이지에서 사용 */
+.view-mode-toggle {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-surface-hover, rgba(0, 0, 0, 0.06));
+}
+
+.view-mode-link {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--app-text-dim);
+  background: transparent;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.view-mode-link:hover {
+  color: var(--app-text);
+  background-color: var(--color-surface-hover);
+}
+
+.view-mode-link.active {
+  color: var(--app-text);
+  /*background-color: var(--color-surface-active);*/
+}
+
 /* 서브 메뉴 컨테이너: TopNavigation 하단에 고정, 가로 중앙 정렬 */
 .sub-menu {
   position: fixed;

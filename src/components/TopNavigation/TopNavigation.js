@@ -64,7 +64,7 @@ export function renderNavigation() {
           <li>
             <a
               href="/timeline"
-              class="${currentPath.startsWith('/timeline') ? 'active' : ''}"
+              class="${currentPath === '/' || currentPath.startsWith('/timeline') ? 'active' : ''}"
               data-link
             >
               Timeline

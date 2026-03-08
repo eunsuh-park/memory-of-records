@@ -53,6 +53,7 @@ export function renderTimeline(period = null) {
     filterOptions: periodOptions,
     loadNotes: getNotionNotebooks,
     getNotesCount: getNotesCountByPeriod,
-    resolveFilterKey: (note) => resolvePeriodKey(note.notebookType)
+    resolveFilterKey: (note) => resolvePeriodKey(note.notebookType),
+    viewModeToggle: { current: 'timeline' }
   });
 }

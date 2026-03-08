@@ -444,7 +444,8 @@ export function renderJukeboxWithFilter(options) {
     filterOptions,
     loadNotes,
     getNotesCount,
-    resolveFilterKey
+    resolveFilterKey,
+    viewModeToggle = null
   } = options;
 
   const mainContent = document.getElementById('main-content');
@@ -478,12 +479,12 @@ export function renderJukeboxWithFilter(options) {
   const nextBtn = document.getElementById('jukebox-next');
 
   // 진입 직후 현재 페이지 옵션으로 서브메뉴를 먼저 그림 (이전 페이지 메뉴가 4개/5개로 남는 현상 방지)
-  renderFilterSubMenu(selectedValue, basePath, filterOptions, {});
+  renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle);
 
   loadNotes()
     .then((allNotes) => {
       const counts = getNotesCount(allNotes || []);
-      renderFilterSubMenu(selectedValue, basePath, filterOptions, counts);
+      renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle);
 
       const filtered = (allNotes || []).filter((note) => resolveFilterKey(note) === selectedValue);
       fillJukeboxGallery(gallery, prevBtn, nextBtn, filtered);
@@ -509,7 +510,7 @@ export function renderJukeboxWithFilter(options) {
     })
     .catch((err) => {
       console.warn('Jukebox filter: 노트 로드 실패', err);
-      renderFilterSubMenu(selectedValue, basePath, filterOptions, {});
+      renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle);
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
     });
 }

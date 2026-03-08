@@ -6,6 +6,7 @@
  *
  * - Timeline: filterOptions = periodOptions (시기별)
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
+ * - viewModeToggle: Timeline|By Type 뷰 모드 토글 (통합 페이지에서 사용)
  */
 
 import './FilterSubMenu.css';
@@ -17,14 +18,25 @@ import './FilterSubMenu.css';
  * @param {string} basePath - 링크 prefix. '/timeline' 또는 '/by-type'
  * @param {Array<{value: string, label: string, years?: string, detail?: string}>} filterOptions - 표시할 필터 옵션 배열
  * @param {Record<string, number>} [countsByFilter] - 옵션별 노트 개수 (메뉴에 숫자 표시)
+ * @param {{ current: 'timeline'|'type' }} [viewModeToggle] - 뷰 모드 토글 (Timeline | By Type)
  */
-export function renderFilterSubMenu(selectedValue, basePath, filterOptions, countsByFilter = {}) {
+export function renderFilterSubMenu(selectedValue, basePath, filterOptions, countsByFilter = {}, viewModeToggle = null) {
   const container = document.getElementById('sub-menu');
   if (!container) return;
+
+  const timelineHref = viewModeToggle?.current === 'timeline' && selectedValue ? `/timeline/${selectedValue}` : '/timeline';
+  const byTypeHref = viewModeToggle?.current === 'type' && selectedValue ? `/by-type/${selectedValue}` : '/by-type';
+  const viewToggleHtml = viewModeToggle ? `
+    <div class="view-mode-toggle">
+      <a href="${timelineHref}" class="view-mode-link ${viewModeToggle.current === 'timeline' ? 'active' : ''}" data-link>Timeline</a>
+      <a href="${byTypeHref}" class="view-mode-link ${viewModeToggle.current === 'type' ? 'active' : ''}" data-link>By type</a>
+    </div>
+  ` : '';
 
   container.innerHTML = `
     <aside class="sub-menu">
       <nav class="sub-nav">
+        ${viewToggleHtml}
         <ul class="filter-list">
           ${filterOptions.map((opt) => {
             const isActive = selectedValue === opt.value;
