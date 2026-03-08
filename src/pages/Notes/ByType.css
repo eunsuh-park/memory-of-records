@@ -33,6 +33,21 @@
   order: 2;
 }
 
+/* By Type Jukebox: 뒷표지 이미지 패딩·그림자 제거 */
+.by-type-jukebox .jukebox-gallery .jukebox-card .jukebox-card-face--back {
+  padding: 0;
+}
+.by-type-jukebox .jukebox-gallery .jukebox-card .jukebox-card-back-cover {
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  filter: none;
+}
+/* 뒷표지 보일 때(호버·플립) 카드 그림자 제거 */
+.by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover {
+  box-shadow: none;
+}
+
 .type-list-intro {
   flex-shrink: 0;
   display: flex;

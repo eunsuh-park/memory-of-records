@@ -15,6 +15,7 @@ import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
+import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
 import './Jukebox.css';
 
@@ -328,6 +329,17 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
 
   enableCenterPerspective(gallery);
   enableGalleryScroll(gallery, prevBtn, nextBtn);
+
+  /* 첫 번째 카드를 중앙에 배치하여 active 상태로 표시 */
+  const firstCard = gallery.querySelector(':scope > div.jukebox-card');
+  if (firstCard) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const targetScroll = firstCard.offsetLeft + firstCard.offsetWidth / 2 - gallery.clientWidth / 2;
+        gallery.scrollLeft = Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll));
+      });
+    });
+  }
 }
 
 export function renderJukebox() {
@@ -389,6 +401,12 @@ export function renderJukebox() {
 }
 
 function openPdfModal(noteId, pdfUrl = null) {
+  const hasPdf = pdfUrl && String(pdfUrl).trim();
+  if (!hasPdf) {
+    showToast('노트 상세 이미지가 없습니다.');
+    return;
+  }
+
   const existing = document.querySelector('.pdf-modal-overlay');
   if (existing) existing.remove();
 
@@ -455,7 +473,7 @@ export function renderJukeboxWithFilter(options) {
   const subMenuContainer = document.getElementById('sub-menu');
   if (!subMenuContainer) return;
 
-  mainContent.className = 'app-main jukebox-active';
+  mainContent.className = 'app-main jukebox-active' + (filterMode === 'type' ? ' by-type-jukebox' : '');
   const mainWrapper = mainContent.closest('.main-wrapper');
   if (mainWrapper) mainWrapper.classList.add('jukebox-active');
   document.body.classList.add('jukebox-active');
