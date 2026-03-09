@@ -276,6 +276,11 @@ body.story-page-active #main-content {
   .story-main {
     min-height: 100vh;
     cursor: default;
+    background-color: #1a1a1a;
+  }
+
+  .story-main > * {
+    background-color: #1a1a1a;
   }
 
   /* 책형 장식·애니메이션 제거 */
@@ -335,7 +340,7 @@ body.story-page-active #main-content {
     width: 30%;
   }
 
-  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩 */
+  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩, 어두운 배경 + 흰색 글자 */
   .story-book-content-R {
     width: 100%;
     height: auto;
@@ -343,11 +348,11 @@ body.story-page-active #main-content {
     padding: 2rem 1.5rem 3rem;
     margin-right: 0;
     overflow: visible;
-    background-color: var(--app-bg, #fff);
+    background-color: #1a1a1a;
   }
 
   .story-book-content-R:hover {
-    background-color: var(--app-bg, #fff);
+    background-color: #1a1a1a;
   }
 
   .story-header {
@@ -356,10 +361,38 @@ body.story-page-active #main-content {
 
   .story-title {
     font-size: 2rem;
+    color: #fff;
+  }
+
+  .story-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .story-date {
+    color: rgba(255, 255, 255, 0.75);
   }
 
   .story-content {
     padding-top: 0;
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .story-content p,
+  .story-content h3,
+  .story-content li {
+    color: inherit;
+  }
+
+  .story-content small {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .story-caption {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .story-caption small {
+    color: rgba(255, 255, 255, 0.65);
   }
 }
 
