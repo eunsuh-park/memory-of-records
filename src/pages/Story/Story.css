@@ -258,3 +258,126 @@ body.story-page-active #main-content {
   color: #888;
   line-height: 1.6;
 }
+
+/* ========== 타블렛 이하 (1024px): 책형 장식 제거, 화면 꽉 차게 읽기용 ========== */
+@media (max-width: 1024px) {
+  body.story-page-active {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  body.story-page-active #main-content {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .story-main {
+    min-height: 100vh;
+    cursor: default;
+  }
+
+  /* 책형 장식·애니메이션 제거 */
+  .story-book {
+    margin: 0;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    transform: none;
+    transition: none;
+  }
+
+  .story-book.slide-in,
+  .story-book.slide-out {
+    transform: none;
+  }
+
+  .story-book-side-L,
+  .story-book-side-R {
+    display: none;
+  }
+
+  .story-book-content {
+    flex-direction: column;
+  }
+
+  /* 이미지: 상단 전체 너비, 고정 비율 */
+  .story-book-content-L {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    flex-shrink: 0;
+  }
+
+  .story-book-content-L::after {
+    display: none;
+  }
+
+  .story-book-content-L:hover {
+    opacity: 1;
+  }
+
+  .story-image-container,
+  .story-image {
+    height: 100%;
+    min-height: 200px;
+  }
+
+  .story-placeholder-image {
+    min-height: 200px;
+  }
+
+  .gallery-placeholder-icon {
+    width: 30%;
+  }
+
+  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩 */
+  .story-book-content-R {
+    width: 100%;
+    height: auto;
+    flex: 1;
+    padding: 2rem 1.5rem 3rem;
+    margin-right: 0;
+    overflow: visible;
+    background-color: var(--app-bg, #fff);
+  }
+
+  .story-book-content-R:hover {
+    background-color: var(--app-bg, #fff);
+  }
+
+  .story-header {
+    padding-bottom: 0;
+  }
+
+  .story-title {
+    font-size: 2rem;
+  }
+
+  .story-content {
+    padding-top: 0;
+  }
+}
+
+/* 모바일 (768px 이하) */
+@media (max-width: 768px) {
+  .story-book-content-R {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .story-title {
+    font-size: 1.6rem;
+  }
+
+  .story-subtitle {
+    font-size: 1rem;
+  }
+
+  .story-content {
+    font-size: 1rem;
+  }
+}
