@@ -48,7 +48,10 @@ export function renderFilterSubMenu(selectedValue, basePath, filterOptions, coun
                   class="filter-link filter-link--${opt.value} ${isActive ? 'active' : ''}"
                   data-link
                 >
-                  <span class="filter-label">${opt.label}</span>
+                  ${opt.labelMobile
+                    ? `<span class="filter-label filter-label--desktop">${opt.label}</span><span class="filter-label filter-label--mobile">${opt.labelMobile}</span>`
+                    : `<span class="filter-label">${opt.label}</span>`
+                  }
                   ${count > 0 ? `<span class="filter-count">${count}</span>` : ''}
                 </a>
               </li>

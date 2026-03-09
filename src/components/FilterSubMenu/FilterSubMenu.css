@@ -157,6 +157,22 @@
   font-weight: 700;
 }
 
+/* 모바일용 짧은 라벨: 기본 숨김 */
+.filter-label--mobile {
+  display: none;
+  white-space: normal;
+}
+
+/* 모바일(768px 이하): 짧은 라벨 표시 */
+@media (max-width: 768px) {
+  .filter-label--desktop {
+    display: none;
+  }
+  .filter-label--mobile {
+    display: block;
+  }
+}
+
 /* 탭별 노트 개수 숫자 (라벨과 개수 사이 gap은 .filter-link gap으로 통일) */
 .filter-count {
   font-size: 0.7rem;

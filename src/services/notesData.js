@@ -132,16 +132,6 @@ export const getAdjacentNotes = (currentId) => {
 };
 
 /**
- * 시기별 옵션 정의 (Notion period_name 태그와 1:1 매칭)
- */
-export const periodOptions = [
-  { value: "elementary", label: "Elementary School" },
-  { value: "university", label: "University" },
-  { value: "middle-high", label: "Middle & High School" },
-  { value: "after-school", label: "After School" },
-];
-
-/**
  * 사용 가능한 연도 목록을 가져오는 함수
  * @returns {Array} 연도 배열 (내림차순 정렬)
  */
