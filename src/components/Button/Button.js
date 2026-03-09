@@ -34,7 +34,10 @@ export function render(options) {
   } = options;
 
   const baseClass = 'btn';
-  const variantClass = `btn--${variant}`;
+  let variantClass = `btn--${variant}`;
+  // navPrev/navNext → btn--nav + btn--nav-prev / btn--nav-next (CSS와 일치)
+  if (variant === 'navPrev') variantClass = 'btn--nav btn--nav-prev';
+  else if (variant === 'navNext') variantClass = 'btn--nav btn--nav-next';
   const extra = [className].filter(Boolean).join(' ');
   const classAttr = [baseClass, variantClass, extra].filter(Boolean).join(' ');
   const idAttr = id ? ` id="${id}"` : '';

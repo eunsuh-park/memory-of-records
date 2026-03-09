@@ -25,8 +25,19 @@
 
 - **로컬에서 테스트할 수 있도록 임시 데이터를 이용하기** - API를 이용하는 기능은 로컬 환경에서 테스트해보기가 어려움. 일단 기능 작동되는 거 확인했으면, 디자인을 확인하기 위해서 임시 이미지를 사용하라고 하기. 그리고 아이콘은 SVG로 삽입.
 
+---
 
+## 📝 변수명 규칙 (통일)
 
+| 구분 | 규칙 | 예시 |
+|------|------|------|
+| 변수, 함수, 매개변수 | **camelCase** | `currentPage`, `getPageNumber()` |
+| 상수 (변경 없음) | **UPPER_SNAKE_CASE** | `MAX_PAGES`, `API_URL` |
+| 클래스, 컴포넌트명 | **PascalCase** | `PdfModal`, `FilterSubMenu` |
+| CSS 클래스 | **kebab-case** | `pdf-nav-prev`, `btn--toolbar` |
+| 파일/폴더명 | 컴포넌트는 PascalCase, 나머지는 kebab-case | `PdfModal.js`, `optimize-image-url.js` |
+
+---
 
 ## 🧹 마무리할 때
 
