@@ -25,7 +25,7 @@ function resolveTypeKey(notebookType) {
   const match = typeOptions.find(
     (opt) =>
       opt.value.toLowerCase() === normalized ||
-      opt.label.toLowerCase() === normalized
+      (opt.labelKr || opt.label || '').toLowerCase() === normalized
   );
   return match?.value ?? null;
 }

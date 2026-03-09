@@ -9,45 +9,53 @@
  *   5. 줄공책
  *
  * - value: URL 경로용 슬러그 (/by-type/:value)
- * - label: 사이드 메뉴 표시 텍스트 (Notion 태그명과 동일)
+ * - labelKr: 사이드 메뉴 표시 텍스트 한글 (Notion 태그명과 동일)
  * - labelMobile: 모바일 해상도(768px 이하)에서 표시할 짧은 라벨 (HTML 허용)
- * - listTitle, listBody: 타입별 리스트 왼쪽 설명 영역
  */
 export const typeOptions = [
   {
     value: 'diary',
-    label: '다이어리(일기장)',
-    labelMobile: '다이어리<br>일기장',
-    listTitle: '매일의 기록, 다이어리',
-    listBody: '다이어리는 줄노트나 그리드, 모눈종이 내지로 만든 양장 노트라면 가리지 않고 좋아합니다. 매일의 일기가 메인이고, 그외 독서노트 등 용도는 다양합니다. 일기의 내용도 그 구성에 따라서 다양한 기록물로 분류할 수 있다는 것을 깨닫고, 올해는 여러 노트로 나누어 기록을 이어가고 있습니다.'
+    label: 'Diary & Journal',
+    labelKr: '다이어리(일기장)',
+    labelMobile: '다이어리<br>일기장'
   },
   {
     value: 'scheduler',
-    label: '스케줄러',
-    labelMobile: '스케줄러',
-    listTitle: '시간 관리를 위한 기록 도구, 스케줄러',
-    listBody: '포켓에 들어가는 슬림한 사이즈의 주간 스케줄러를 씁니다. 매번 다른 브랜드의 스케줄러를 써보면서 제게 맞는 포맷을 찾아가고 있습니다.'
+    label: 'Scheduler',
+    labelKr: '스케줄러',
+    labelMobile: '스케줄러'
   },
   {
     value: 'notebook-memo',
-    label: '수첩/메모지',
-    labelMobile: '수첩<br>메모',
-    listTitle: '기록의 부담을 덜어주는 작은 기록 도구, 수첩',
-    listBody: '일기, 메모, 독서노트, 주간/일간 계획 등 다양한 용도로 수첩을 활용하고 있습니다. 가능하면 항시 몸에 휴대하고 있으려 노력합니다. 아카이브할 정보는 추후 정식 노트에 옮겨적고, 일상 속에서는 수첩에 빠르게 메모해두는 식으로 활용합니다.'
+    label: 'Handy Notebook',
+    labelKr: '수첩/메모지',
+    labelMobile: '수첩<br>메모'
   },
   {
     value: 'sketchbook',
-    label: '스케치북',
-    labelMobile: '스케치',
-    listTitle: '그림을 그리는 데 특화된 기록 도구, 스케치북',
-    listBody: '스케치북은 수채화가 가능한 것, 그렇지 않은 것으로 크게 나뉩니다. 수채화 전용지는 비싸기 때문에 주로 한 번에 완성하는 것을 목적으로 사물을 그리는 경우가 대부분입니다. 크로키는 여전히 스트레스 해소에 좋아 종종 그리곤 합니다.'
+    label: 'Sketchbook',
+    labelKr: '스케치북',
+    labelMobile: '스케치'
   },
   {
     value: 'lined-notebook',
-    label: '줄공책',
-    labelMobile: '줄공책',
-    listTitle: '공부와 연구를 위한 기록 도구, 줄공책',
-    listBody: '줄공책은 가장 오래, 가장 많이 소비한 노트라고 해도 좋을 것 입니다. 학교를 모두 졸업한 이후에도 공부가 끝나지 않는다는 것을 알고난 이후부터는, 학습 노트에도 디자인이나 기록 방식, 습관에 취향을 녹여내고자 노력해보고 있습니다.'
+    label: 'Lined-notebook',
+    labelKr: '줄공책',
+    labelMobile: '줄공책'
   }
 ];
 
+/*
+ * listTitle, listBody: 타입별 리스트 왼쪽 설명 영역 (현재 미사용. 리스트 뷰 추가 시 사용)
+ *
+ * diary:      listTitle: '매일의 기록, 다이어리',
+ *             listBody: '다이어리는 줄노트나 그리드...'
+ * scheduler:  listTitle: '시간 관리를 위한 기록 도구, 스케줄러',
+ *             listBody: '포켓에 들어가는 슬림한 사이즈의 주간 스케줄러를 씁니다...'
+ * notebook-memo: listTitle: '기록의 부담을 덜어주는 작은 기록 도구, 수첩',
+ *             listBody: '일기, 메모, 독서노트, 주간/일간 계획 등...'
+ * sketchbook: listTitle: '그림을 그리는 데 특화된 기록 도구, 스케치북',
+ *             listBody: '스케치북은 수채화가 가능한 것, 그렇지 않은 것으로...'
+ * lined-notebook: listTitle: '공부와 연구를 위한 기록 도구, 줄공책',
+ *             listBody: '줄공책은 가장 오래, 가장 많이 소비한 노트라고...'
+ */

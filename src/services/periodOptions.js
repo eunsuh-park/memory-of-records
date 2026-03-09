@@ -9,8 +9,24 @@
  * - labelMobile: 모바일 해상도(768px 이하)에서 표시할 짧은 라벨 (HTML 허용)
  */
 export const periodOptions = [
-  { value: 'elementary', label: 'Elementary School', labelMobile: 'Elementary<br>School' },
-  { value: 'university', label: 'University', labelMobile: 'Univ' },
-  { value: 'middle-high', label: 'Middle & High School', labelMobile: 'Mid & High<br>School' },
-  { value: 'after-school', label: 'After School', labelMobile: 'After' },
+  {
+    value: 'elementary',
+    label: 'Elementary School',
+    labelMobile: 'Elementary<br>School'
+  },
+  {
+    value: 'university',
+    label: 'University',
+    labelMobile: 'Univ'
+  },
+  {
+    value: 'middle-high',
+    label: 'Middle & High School',
+    labelMobile: 'Mid & High<br>School'
+  },
+  {
+    value: 'after-school',
+    label: 'After School',
+    labelMobile: 'After'
+  }
 ];
