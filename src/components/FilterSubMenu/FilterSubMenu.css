@@ -157,14 +157,14 @@
   font-weight: 700;
 }
 
-/* 모바일용 짧은 라벨: 기본 숨김 */
+/* 모바일용 짧은 라벨: 기본 숨김 (타블렛·데스크톱에서는 label 사용) */
 .filter-label--mobile {
   display: none;
   white-space: normal;
 }
 
-/* 모바일(768px 이하): 짧은 라벨 표시 */
-@media (max-width: 768px) {
+/* 모바일(600px 이하): 짧은 라벨 표시 (타블렛 601~1024px에서는 label) */
+@media (max-width: 600px) {
   .filter-label--desktop {
     display: none;
   }
