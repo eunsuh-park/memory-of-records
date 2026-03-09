@@ -148,26 +148,6 @@
   transform: scaleX(-1);
 }
 
-/* PDF 뷰어 내 nav는 z-index 2, 배경 약간 다름 */
-.pdf-canvas-wrap .btn--nav {
-  z-index: 2;
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.pdf-canvas-wrap .btn--nav:hover {
-  background: white;
-  color: rgba(17, 24, 39, 0.9);
-}
-
-@media (max-width: 640px) {
-  .pdf-canvas-wrap .btn--nav {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-}
-
 /* ========== 아이콘 전용 (닫기 등) ========== */
 .btn--icon {
   border: none;
@@ -177,13 +157,6 @@
   justify-content: center;
   color: #333;
   padding: 0;
-}
-
-/* 모달 닫기 버튼 레이아웃 (위치만, 시각은 .btn--icon) */
-.pdf-modal-close {
-  align-self: flex-end;
-  font-size: 20px;
-  padding: 12px 16px 0 0;
 }
 
 /* ========== 툴바 버튼 (PDF 페이지/줌 등) ========== */
@@ -209,32 +182,4 @@
 
 .btn--toolbar svg {
   display: block;
-}
-
-.pdf-zoom-controls .btn--toolbar {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  font-size: 16px;
-  padding: 0;
-}
-
-.pdf-zoom-controls .btn--toolbar:first-child {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  width: auto;
-  padding: 4px 8px;
-}
-
-@media (max-width: 640px) {
-  .pdf-zoom-controls .btn--toolbar {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-
-  .pdf-zoom-controls .btn--toolbar:first-child {
-    width: auto;
-  }
 }

@@ -190,6 +190,62 @@ body.pdf-modal-open {
   transition: opacity 0.2s ease;
 }
 
+/* 좌우 이동 버튼: z-index 최상위 (Button 컴포넌트 사용) */
+.pdf-canvas-wrap .btn--nav {
+  z-index: 9999;
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.pdf-canvas-wrap .btn--nav:hover {
+  background: white;
+  color: rgba(17, 24, 39, 0.9);
+}
+
+@media (max-width: 640px) {
+  .pdf-canvas-wrap .btn--nav {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+}
+
+/* PDF 모달 닫기 버튼 (Jukebox 모달 오버레이) */
+.pdf-modal-close {
+  align-self: flex-end;
+  font-size: 20px;
+  padding: 12px 16px 0 0;
+}
+
+/* PDF 줌/페이지 버튼 (Button toolbar variant) */
+.pdf-zoom-controls .btn--toolbar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  padding: 0;
+}
+
+.pdf-zoom-controls .btn--toolbar:first-child {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  width: auto;
+  padding: 4px 8px;
+}
+
+@media (max-width: 640px) {
+  .pdf-zoom-controls .btn--toolbar {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .pdf-zoom-controls .btn--toolbar:first-child {
+    width: auto;
+  }
+}
+
 /* PDF 로딩 오버레이 */
 .pdf-overlay {
   position: absolute;
