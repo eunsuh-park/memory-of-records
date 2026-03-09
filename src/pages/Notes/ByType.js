@@ -9,7 +9,7 @@
 import { typeOptions } from '../../services/typeOptions.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderJukeboxWithFilter } from './Jukebox.js';
-import './Timeline.css';
+import './Jukebox.css';
 
 /**
  * Notion notebook_type 값 → typeOptions.value 매핑 (1:1)

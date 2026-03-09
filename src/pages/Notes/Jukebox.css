@@ -1,9 +1,12 @@
-/* =============================================================================
-   Jukebox 페이지
-   https://scroll-driven-animations.style/demos/cover-flow/css/
-   ============================================================================= */
+/**
+ * Jukebox 페이지
+ * Timeline + By Type 공통 스타일 (Cover Flow 갤러리, 로딩, 노트 카드 등)
+ * https://scroll-driven-animations.style/demos/cover-flow/css/
+ */
 
-/* --- 전역 (주크박스 전용; 앱 공통 색은 styles/colors.css) --- */
+/* =============================================================================
+   전역 (주크박스 활성 시)
+   ============================================================================= */
 
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
@@ -27,7 +30,344 @@ body.jukebox-active {
   background: var(--app-bg);
 }
 
-/* --- 레이아웃 --- */
+/* 기간별 배경 (Timeline period 필터 시 오버라이드용) */
+body.jukebox-active.period-elementary,
+body.jukebox-active.period-middle-high,
+body.jukebox-active.period-university,
+body.jukebox-active.period-after-school {
+  background-color: var(--app-bg);
+}
+
+/* =============================================================================
+   로딩 UI (Timeline/Jukebox 공통 - 접두어 없이 통일)
+   ============================================================================= */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background-color: var(--app-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+}
+
+.loading-overlay--fading {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.loading-overlay--hidden {
+  display: none;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  color: var(--app-text);
+  padding: 24px;
+}
+
+.loading-lottie {
+  width: 140px;
+  height: 140px;
+  display: block;
+}
+
+.loading-text {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* 로딩 중 서브메뉴·스크롤바 숨김 */
+body.jukebox-active.loading-active #sub-menu,
+body.jukebox-active.loading-active .notes-scrollbar {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+#sub-menu,
+.notes-scrollbar {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* =============================================================================
+   갤러리 레이아웃 (notes-container / notes-main - 접두어 통일)
+   ============================================================================= */
+
+.notes-container {
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  min-height: 0;
+  width: fit-content;
+  padding: 0;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.notes-main {
+  display: flex;
+  height: auto;
+  width: fit-content;
+  padding: 0;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1024px) {
+  .notes-container {
+    padding-top: 90px;
+  }
+}
+
+@media (max-width: 768px) {
+  .notes-container {
+    padding-top: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notes-container {
+    padding-top: 70px;
+  }
+}
+
+/* =============================================================================
+   note-info 관련 (현재 미사용. 리스트/갤러리 뷰에서 노트 포커스 시 정보 표시용.
+   나중에 리스트 뷰 추가 시 사용 가능)
+   ============================================================================= */
+/*
+.note-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+}
+
+.note-info {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 300px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  order: 1;
+}
+
+.note-card.note-focus .note-info {
+  display: flex;
+  opacity: 1;
+}
+
+.note-card.note-focus .note-cover-container {
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12))
+    drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+}
+
+.note-cover-container {
+  position: relative;
+  width: fit-content;
+  height: 38vh;
+  border-radius: 8px;
+  overflow: visible;
+  background-color: transparent;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: filter 0.3s ease;
+  order: 2;
+}
+
+.note-info-meta {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--app-text-muted);
+}
+
+.note-info-description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+  color: var(--app-text-muted);
+}
+
+@media (max-width: 768px) {
+  .note-info-meta,
+  .note-info-description {
+    font-size: 0.8rem;
+  }
+
+  .note-cover-container {
+    height: 32vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .note-cover-container {
+    height: 38vh;
+  }
+}
+*/
+
+/* =============================================================================
+   노트 카드 공통 (오류/폴백 등)
+   ============================================================================= */
+
+.note-cover-image--error {
+  outline: 2px dashed rgba(200, 0, 0, 0.5);
+  background: rgba(200, 0, 0, 0.08);
+}
+
+.no-notes {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--app-text-muted);
+}
+
+.note-card-fallback {
+  padding: 1.5rem;
+}
+
+.note-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.note-card-meta {
+  margin-bottom: 1rem;
+}
+
+.note-card-year {
+  font-size: 0.9rem;
+  color: #666;
+  padding: 0.25rem 0.75rem;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
+.note-card-preview {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* =============================================================================
+   By Type 전용
+   ============================================================================= */
+
+.by-type-page .notes-list .note-placeholder,
+.by-type-page .notes-list .type-list-intro {
+  margin-right: 0;
+}
+
+.by-type-page .notes-list .note-card {
+  margin-left: -2vw;
+}
+
+.by-type-page .note-card-link .note-info {
+  order: 1;
+}
+
+.by-type-page .note-card-link .note-cover-container {
+  order: 2;
+}
+
+/* By Type Jukebox: 뒷표지 이미지 패딩·그림자 제거 */
+.by-type-jukebox .jukebox-gallery .jukebox-card .jukebox-card-face--back {
+  padding: 0;
+}
+
+.by-type-jukebox .jukebox-gallery .jukebox-card .jukebox-card-back-cover {
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+  filter: none;
+}
+
+.by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover {
+  box-shadow: none;
+}
+
+/* 타입별 리스트 왼쪽 설명 영역 */
+.type-list-intro {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.75rem;
+  min-width: 12rem;
+  max-width: 18rem;
+  padding-right: 1.5rem;
+  margin-right: 1rem;
+  color: var(--app-text, #1a1a1a);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.type-list-intro-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
+.type-list-intro-body {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: white;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.type-list-intro-scroll {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: white;
+  animation: type-list-scroll-blink 2.2s ease-in-out infinite;
+}
+
+@keyframes type-list-scroll-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* =============================================================================
+   Jukebox Cover Flow 갤러리
+   ============================================================================= */
+
 .jukebox-fullscreen {
   background: linear-gradient(
     var(--app-bg) 40%,
@@ -40,7 +380,6 @@ body.jukebox-active {
   flex-direction: column;
 }
 
-/* --- 갤러리 --- */
 .jukebox-gallery-wrap {
   flex: 1 1 0;
   min-height: 0;
@@ -48,18 +387,17 @@ body.jukebox-active {
   width: 100%;
 }
 
-/* 갤러리 영역 가로 스크롤 시 브라우저 기본 스크롤바 숨김 */
 .jukebox-fullscreen::-webkit-scrollbar,
 .jukebox-gallery::-webkit-scrollbar {
   width: 0;
   height: 0;
   background: transparent;
 }
+
 .jukebox-gallery::-webkit-scrollbar-thumb {
   background: transparent;
 }
 
-/* --- 갤러리 센터 정렬 --- */
 .jukebox-gallery.centerized {
   position: absolute;
   left: 0;
@@ -68,7 +406,6 @@ body.jukebox-active {
   transform: translate3d(0, -50%, 0);
 }
 
-/* 갤러리 (PC 기준): 가로 스크롤, 3D 원근, 스냅. 마우스 휠·드래그로 스크롤 */
 .jukebox-gallery {
   padding: 40vh 0;
   width: 100%;
@@ -77,15 +414,11 @@ body.jukebox-active {
   white-space: nowrap;
   overflow: hidden;
   overflow-x: auto;
-  /* 3D 원근감: 자식(카드)의 rotateY가 입체처럼 보이도록 시점 거리. 값이 작을수록 왜곡이 강하고, 클수록 평면에 가깝게 보임 */
   perspective: 60em;
-  /* 원근의 소실점: 뷰포트 정중앙(50% 50%)을 기준으로 원근 적용. 카드가 중앙에서 벌어질수록 옆으로 기울어 보이게 함 */
   perspective-origin: 50% 50%;
-  /* 가로 스크롤 스냅: 스크롤이 멈출 때 스냅 포인트(scroll-snap-align: center인 카드)에 맞춰짐. 휠/드래그 후 카드가 중앙에 정렬 */
   scroll-snap-type: x mandatory;
 }
 
-/* 좌우 스페이서: 첫/끝 카드가 중앙에 올 수 있도록 빈 공간 (50vw - 카드 절반 너비) */
 .jukebox-gallery > div.jukebox-spacer {
   display: inline-block;
   width: 36vw;
@@ -98,8 +431,6 @@ body.jukebox-active {
   overflow: visible;
 }
 
-/* --- 카드: Cover Flow (회전·scale·z), JS 변수 사용 ---  
-   --jukebox-rotate-y, --jukebox-scale, --jukebox-translate-z, --jukebox-brightness */
 .jukebox-gallery > div.jukebox-card {
   white-space: normal;
   width: auto;
@@ -109,7 +440,6 @@ body.jukebox-active {
   -webkit-box-reflect: below 0.5em
     linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   display: inline-block;
-  /* 노트(카드) 간 간격: 음수면 겹침(-4vw), 양수면 떨어짐(예: 2vw) */
   margin-left: -2vw;
   transform-origin: center center;
   transform:
@@ -120,13 +450,9 @@ body.jukebox-active {
   opacity: 1;
   transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
   scroll-snap-align: center;
-  /* JS에서 위치별로 설정: 양끝일수록 --jukebox-shadow가 더 진함 */
   box-shadow: var(--jukebox-shadow, none);
 }
 
-/* 중앙(앞) 카드도 box-shadow는 위에서 var(--jukebox-shadow)로 적용됨. 호버 시만 아래에서 강조 */
-
-/* 호버: 중앙 포커스 카드(.jukebox-card--centered)에만 적용 */
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover,
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:active {
   transform:
@@ -142,23 +468,26 @@ body.jukebox-active {
   opacity: 0;
 }
 
-/* 카드 플립: 중앙 카드 호버 시 뒷표지(back cover) 표시 */
 .jukebox-gallery > div.jukebox-card .jukebox-card-inner {
   position: relative;
   display: inline-block;
   transform-style: preserve-3d;
   transition: transform 0.55s ease;
 }
+
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
   transform: rotateY(180deg);
 }
+
 .jukebox-gallery > div.jukebox-card .jukebox-card-face {
   backface-visibility: hidden;
 }
+
 .jukebox-gallery > div.jukebox-card .jukebox-card-face--front {
   display: block;
   transform-style: preserve-3d;
 }
+
 .jukebox-gallery > div.jukebox-card .jukebox-card-face--back {
   position: absolute;
   inset: 0;
@@ -168,6 +497,7 @@ body.jukebox-active {
   justify-content: center;
   background: transparent;
 }
+
 .jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
   display: block;
   height: auto;
@@ -177,7 +507,6 @@ body.jukebox-active {
   object-fit: contain;
 }
 
-/* 카드 이미지: 양옆은 brightness로만 어둡게 (PNG 투명 영역 유지), 한 화면에 보이는 개수 감소를 위해 크기 확대 */
 .jukebox-gallery > div.jukebox-card img {
   display: block;
   z-index: 1;
@@ -196,7 +525,6 @@ body.jukebox-active {
   background: var(--color-error-bg);
 }
 
-/* 오버레이 비활성(투명). 어두운 느낌은 img brightness로만 처리 */
 .jukebox-gallery > div.jukebox-card::after {
   position: absolute;
   display: block;
@@ -212,7 +540,6 @@ body.jukebox-active {
   pointer-events: none;
 }
 
-/* 로딩/빈 상태: 카드 3D·반사·오버레이 스타일 제외 */
 .jukebox-gallery > div.jukebox-loading,
 .jukebox-gallery > div.jukebox-empty {
   color: var(--app-text-muted);
@@ -234,43 +561,22 @@ body.jukebox-active {
   gap: 1rem;
 }
 
-.jukebox-loading-lottie {
-  width: 140px;
-  height: 140px;
-  display: block;
-}
-
-.jukebox-loading-text {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
 .jukebox-gallery > div.jukebox-loading::after,
 .jukebox-gallery > div.jukebox-empty::after {
   display: none;
 }
 
-/* =============================================================================
-   반응형
-   - 768px 이하: 태블릿·세로 모바일. 카드 축소, 갤러리 패딩·네비 버튼 조정.
-   - 480px 이하: 초소형 모바일. 카드 비율 확대(한 화면에 1장 강조), 스페이서·간격 재조정.
-   ============================================================================= */
-
-/* 태블릿·모바일 (768px 이하) */
+/* 반응형 */
 @media (max-width: 768px) {
-  /* 갤러리: 상하 여백 축소 + 터치 스와이프 부드럽게 (iOS 등 모멘텀 스크롤) */
   .jukebox-gallery {
     padding: 30vh 0;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 좌우 스페이서: 좁은 화면에서 첫/끝 카드 중앙 정렬 유지. (50vw - 카드 절반)에 맞춰 34vw */
   .jukebox-gallery > div.jukebox-spacer {
     width: 34vw;
   }
 
-  /* 카드·이미지: 카드만 대상(.jukebox-spacer·로딩·빈 상태 제외). 높이 줄여 한 화면에 여유 */
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card img {
     max-height: 26vh;
@@ -282,13 +588,11 @@ body.jukebox-active {
   }
 }
 
-/* 초소형 모바일 (480px 이하): 한 화면에 카드 1장이 주인공이 되도록 (-webkit-overflow-scrolling은 768px 미디어쿼리에서 상속) */
 @media (max-width: 480px) {
   .jukebox-gallery {
     padding: 28vh 0;
   }
 
-  /* 스페이서: 카드가 42vw까지 커지므로 50vw - 21vw = 29vw */
   .jukebox-gallery > div.jukebox-spacer {
     width: 29vw;
   }
@@ -304,12 +608,10 @@ body.jukebox-active {
   }
 }
 
-/* Timeline/By Type: 동일 Jukebox DOM 사용 → 필터만 다름. 서브메뉴 전환만 추가 */
 body.jukebox-active #sub-menu {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-/* Jukebox 이전/다음 버튼: 화면 세로 중앙, 양끝 정렬 (Button 컴포넌트 nav variant 사용) */
 body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev,
 body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
   position: fixed;

@@ -3,7 +3,7 @@
  */
 
 import { periodOptions } from '../../services/notesData.js';
-import './Timeline.css';
+import './Jukebox.css';
 import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { renderJukeboxWithFilter } from './Jukebox.js';
 

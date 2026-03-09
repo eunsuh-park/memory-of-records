@@ -369,8 +369,8 @@ export function renderJukebox() {
         ${renderButton({ variant: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
         <div class="jukebox-gallery centerized">
           <div class="jukebox-loading" role="status" aria-live="polite">
-          <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
-          <p class="jukebox-loading-text">노트를 불러오는 중...</p>
+<dotlottie-wc class="loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
+            <p class="loading-text">노트를 불러오는 중...</p>
         </div>
         </div>
       </div>
@@ -494,8 +494,8 @@ export function renderJukeboxWithFilter(options) {
         ${renderButton({ variant: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
         <div class="jukebox-gallery centerized">
           <div class="jukebox-loading" role="status" aria-live="polite">
-            <dotlottie-wc class="jukebox-loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width:300px;height:300px" autoplay loop></dotlottie-wc>
-            <p class="jukebox-loading-text">노트를 불러오는 중...</p>
+            <dotlottie-wc class="loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width:300px;height:300px" autoplay loop></dotlottie-wc>
+            <p class="loading-text">노트를 불러오는 중...</p>
           </div>
         </div>
       </div>
