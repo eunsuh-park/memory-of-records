@@ -259,28 +259,31 @@ body.story-page-active #main-content {
   line-height: 1.6;
 }
 
-/* ========== 타블렛 이하 (1024px): 책형 장식 제거, 화면 꽉 차게 읽기용 ========== */
+/* ========== 타블렛 이하 (1024px): 책형 장식 제거, 화면 꽉 차게 읽기용, 전체 스크롤 ========== */
 @media (max-width: 1024px) {
   body.story-page-active {
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     height: auto;
     min-height: 100vh;
+    -webkit-overflow-scrolling: touch;
   }
 
   body.story-page-active #main-content {
-    overflow: auto;
+    overflow: visible;
     height: auto;
     min-height: 100vh;
   }
 
   .story-main {
     min-height: 100vh;
+    overflow: visible;
     cursor: default;
-    background-color: #1a1a1a;
+    background-color: var(--app-bg);
   }
 
   .story-main > * {
-    background-color: #1a1a1a;
+    background-color: var(--app-bg);
   }
 
   /* 책형 장식·애니메이션 제거 */
@@ -289,11 +292,16 @@ body.story-page-active #main-content {
     width: 100%;
     height: auto;
     min-height: 100vh;
+    overflow: visible;
     border-radius: 0;
     box-shadow: none;
     border: none;
     transform: none;
     transition: none;
+  }
+
+  .story-book-content {
+    overflow: visible;
   }
 
   .story-book.slide-in,
@@ -340,7 +348,7 @@ body.story-page-active #main-content {
     width: 30%;
   }
 
-  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩, 어두운 배경 + 흰색 글자 */
+  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩, 사이트 다크 배경 + 흰색 글자 */
   .story-book-content-R {
     width: 100%;
     height: auto;
@@ -348,11 +356,11 @@ body.story-page-active #main-content {
     padding: 2rem 1.5rem 3rem;
     margin-right: 0;
     overflow: visible;
-    background-color: #1a1a1a;
+    background-color: var(--app-bg);
   }
 
   .story-book-content-R:hover {
-    background-color: #1a1a1a;
+    background-color: var(--app-bg);
   }
 
   .story-header {
@@ -361,20 +369,20 @@ body.story-page-active #main-content {
 
   .story-title {
     font-size: 2rem;
-    color: #fff;
+    color: var(--app-text);
   }
 
   .story-subtitle {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--app-text-muted);
   }
 
   .story-date {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--app-text-dim);
   }
 
   .story-content {
     padding-top: 0;
-    color: rgba(255, 255, 255, 0.95);
+    color: var(--app-text);
   }
 
   .story-content p,
@@ -384,15 +392,15 @@ body.story-page-active #main-content {
   }
 
   .story-content small {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--app-text-muted);
   }
 
   .story-caption {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--app-text-dim);
   }
 
   .story-caption small {
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--app-text-dim);
   }
 }
 
