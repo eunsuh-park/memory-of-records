@@ -4,7 +4,7 @@
  */
 
 import './TopNavigation.css';
-import logo from '../../logo.png';
+import logo from '../../assets/logo.png';
 
 // base 경로 가져오기
 const BASE_URL = import.meta.env.BASE_URL || '/';

@@ -5,7 +5,7 @@
  */
 
 import './PageHeader.css';
-import logo from '../../logo.png';
+import logo from '../../assets/logo.png';
 
 const BASE_URL = import.meta.env.BASE_URL || '/';
 

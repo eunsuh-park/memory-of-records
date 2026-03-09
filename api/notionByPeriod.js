@@ -1,8 +1,8 @@
 /**
- * Vercel Serverless Function: Notion Notebook DB Proxy
+ * Vercel Serverless Function: Notion By Period DB Proxy
  *
- * GET /api/notebooks/notion
- * Notion DB에서 노트북 목록을 가져옵니다.
+ * GET /api/notionByPeriod
+ * Notion DB에서 시기(period)별 노트북 목록을 가져옵니다.
  *
  * 필요 환경 변수:
  * - NOTION_API_KEY: Notion API 토큰
@@ -10,7 +10,7 @@
  */
 
 /** Notion DB ID: 환경 변수 우선, 없으면 기본값 사용 */
-const NOTEBOOK_DB_ID = process.env.NOTION_DATABASE_ID || process.env.NOTION_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
+const PERIOD_DB_ID = process.env.NOTION_DATABASE_ID || process.env.NOTION_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
 
 /**
  * Vercel Serverless 함수 핸들러
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const queryUrl = `https://api.notion.com/v1/databases/${NOTEBOOK_DB_ID}/query`;
+    const queryUrl = `https://api.notion.com/v1/databases/${PERIOD_DB_ID}/query`;
     const results = [];
     let hasMore = true;
     let nextCursor = null;
@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     // 4) 전체 결과 반환
     return res.status(200).json({ results });
   } catch (error) {
-    console.error('Notion notebooks API error:', error);
+    console.error('Notion by period API error:', error);
     return res.status(500).json({
       error: 'Notion API error',
       message: error?.message || 'Unknown error'

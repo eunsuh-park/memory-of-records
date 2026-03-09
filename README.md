@@ -1,3 +1,9 @@
+# memory-of-records
+
+프로젝트 문서는 [`docs/`](docs/) 폴더에 있습니다. (설정·배포·트러블슈팅·구조 등)
+
+---
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

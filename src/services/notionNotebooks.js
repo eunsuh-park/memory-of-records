@@ -201,7 +201,7 @@ export function convertNotionPageToNotebook(page) {
 }
 
 export async function fetchNotionNotebooks() {
-  const response = await fetch('/api/notebooks/notion', {
+  const response = await fetch('/api/notionByPeriod', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });

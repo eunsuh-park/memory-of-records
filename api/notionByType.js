@@ -1,7 +1,7 @@
 /**
  * Vercel Serverless Function: Notion By Type DB Proxy
  *
- * GET /api/by-type/notion
+ * GET /api/notionByType
  * Notion DB에서 타입별 이미지 목록을 가져옵니다.
  *
  * 필요 환경 변수:
@@ -75,4 +75,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

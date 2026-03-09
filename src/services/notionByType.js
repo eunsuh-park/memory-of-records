@@ -168,7 +168,7 @@ export function convertNotionPageToTypeItem(page) {
 }
 
 export async function fetchNotionTypeItems() {
-  const response = await fetch('/api/by-type/notion', {
+  const response = await fetch('/api/notionByType', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
