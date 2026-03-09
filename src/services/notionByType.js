@@ -2,6 +2,7 @@
  * Notion 타입별 이미지 데이터 로딩 유틸
  */
 import { parseNotionProperty } from './notion.js';
+import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 
 const cachedNotionTypeItems = {
   data: null,
@@ -147,8 +148,10 @@ export function convertNotionPageToTypeItem(page) {
   );
   const rawCoverFront = parseNotionProperty(coverFrontProperty);
   const rawCoverBack = parseNotionProperty(coverBackProperty);
-  const coverFrontUrl = normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
-  const coverBackUrl = normalizeUrlValue(rawCoverBack);
+  const rawFront = normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
+  const rawBack = normalizeUrlValue(rawCoverBack);
+  const coverFrontUrl = rawFront ? optimizeImageUrl(rawFront) || rawFront : null;
+  const coverBackUrl = rawBack ? optimizeImageUrl(rawBack) || rawBack : null;
   const pdfUrl = normalizeUrlValue(
     parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'))
   );

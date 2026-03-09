@@ -2,6 +2,7 @@
  * Notion 노트북 데이터 로딩 유틸
  */
 import { parseNotionProperty } from './notion.js';
+import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 
 const NOTEBOOK_DB_ID = '18dfb9c7066e4df99962c5fed616b3db';
 
@@ -178,9 +179,11 @@ export function convertNotionPageToNotebook(page) {
     );
   }
 
-  const coverFrontUrl =
+  const rawFront =
     normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
-  const coverBackUrl = normalizeUrlValue(rawCoverBack);
+  const rawBack = normalizeUrlValue(rawCoverBack);
+  const coverFrontUrl = rawFront ? optimizeImageUrl(rawFront) || rawFront : null;
+  const coverBackUrl = rawBack ? optimizeImageUrl(rawBack) || rawBack : null;
   const pdfUrl = normalizeUrlValue(
     parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'))
   );

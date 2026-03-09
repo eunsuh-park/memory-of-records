@@ -2,6 +2,7 @@
  * Notion API 유틸리티
  * 노션 데이터 변환 및 파싱 함수들
  */
+import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 
 // 노션 데이터 캐시
 let notionPostsCache = null;
@@ -78,8 +79,11 @@ export function parseNotionProperty(property) {
       return property.checkbox || false;
     case 'url':
       return property.url || null;
-    case 'files':
-      return property.files?.[0]?.file?.url || property.files?.[0]?.external?.url || null;
+    case 'files': {
+      const raw =
+        property.files?.[0]?.file?.url || property.files?.[0]?.external?.url || null;
+      return raw ? optimizeImageUrl(raw) || raw : null;
+    }
     default:
       return null;
   }
@@ -105,7 +109,10 @@ export function convertNotionPageToStoryPost(page) {
     content: '', // 페이지 내용은 별도로 가져와야 함
     publishDate: parseNotionProperty(properties.Date) || new Date().toISOString().split('T')[0],
     preview: parseNotionProperty(properties.Preview) || '',
-    image: parseNotionProperty(properties.Image) || null,
+    image: (() => {
+      const raw = parseNotionProperty(properties.Image);
+      return raw ? optimizeImageUrl(raw) || raw : null;
+    })(),
   };
   
   console.log('변환된 포스트:', post);
@@ -125,8 +132,8 @@ export function extractFirstImageFromBlocks(blocks) {
     const content = block[type];
 
     if (type === 'image') {
-      const imageUrl = content.file?.url || content.external?.url || '';
-      if (imageUrl) return imageUrl;
+      const raw = content.file?.url || content.external?.url || '';
+      if (raw) return optimizeImageUrl(raw) || raw;
     }
     
     // 자식 블록이 있으면 재귀적으로 검색
@@ -208,9 +215,11 @@ export function convertNotionBlocksToHTML(blocks, excludeImages = false) {
         return textHtml ? `<li>${textHtml}</li>` : '';
       case 'numbered_list_item':
         return textHtml ? `<li>${textHtml}</li>` : '';
-      case 'image':
-        const imageUrl = content.file?.url || content.external?.url || '';
+      case 'image': {
+        const raw = content.file?.url || content.external?.url || '';
+        const imageUrl = raw ? optimizeImageUrl(raw) || raw : '';
         return imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" />` : '';
+      }
       default:
         return '';
     }
