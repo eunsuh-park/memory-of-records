@@ -236,11 +236,15 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
   /**
    * 이전/다음 버튼: 카드 한 장씩 이동.
    * 현재 뷰포트 중앙에 가장 가까운 카드 기준으로 이전/다음 카드로 부드럽게 스크롤.
+   * 첫 번째 카드는 좌측 스페이서 덕분에 scrollLeft=0이 정확한 위치이므로, 공식 계산 대신 0 사용.
    */
   function scrollToCenterCard(card) {
     if (!card) return;
-    const targetScroll =
-      card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
+    const cards = getCards();
+    const isFirstCard = cards.length > 0 && card === cards[0];
+    const targetScroll = isFirstCard
+      ? 0
+      : card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
     gallery.scrollTo({
       left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
       behavior: 'smooth'
@@ -330,16 +334,21 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   enableCenterPerspective(gallery);
   enableGalleryScroll(gallery, prevBtn, nextBtn);
 
-  /* 첫 번째 카드를 중앙에 배치하여 active 상태로 표시 */
-  const firstCard = gallery.querySelector(':scope > div.jukebox-card');
-  if (firstCard) {
+  /*
+   * 첫 번째 카드 중앙 배치
+   * - 좌측 스페이서(36vw) 덕분에 scrollLeft=0일 때 첫 카드가 중앙에 옴
+   * - scroll-snap이 비동기로 두 번째 카드로 스냅하는 현상 방지:
+   *   초기화 동안 scroll-snap 비활성화 → scrollLeft=0 설정 → 한 프레임 후 snap 복원
+   */
+  gallery.style.scrollSnapType = 'none';
+  gallery.scrollLeft = 0;
+  requestAnimationFrame(() => {
+    gallery.style.removeProperty('scroll-snap-type');
+    gallery.scrollLeft = 0;
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const targetScroll = firstCard.offsetLeft + firstCard.offsetWidth / 2 - gallery.clientWidth / 2;
-        gallery.scrollLeft = Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll));
-      });
+      updateCardAngles(gallery);
     });
-  }
+  });
 }
 
 export function renderJukebox() {

@@ -73,19 +73,6 @@ body.story-detail-page-active .page-header {
   outline: none;
 }
 
-.page-header__logo-icon {
-  display: block;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-@media (min-width: 769px) {
-  .page-header__logo-icon {
-    display: none;
-  }
-}
-
 .page-header__logo-text {
   position: absolute;
   width: 1px;
@@ -135,8 +122,12 @@ body.story-detail-page-active .page-header {
     flex-wrap: wrap;
     gap: 0.75rem;
     width: calc(100% - 2rem);
-    padding: 0.75rem 1.25rem;
+    padding: 0.75rem 0;
     padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+
+  .page-header__story-link {
+    padding: 0.5rem;
   }
 
   .page-header__left {
