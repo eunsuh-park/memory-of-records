@@ -22,6 +22,7 @@ export async function renderStory() {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
 
+  document.documentElement.classList.add('story-page-active');
   document.body.classList.add('story-page-active');
 
   /* ============================================================

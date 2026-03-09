@@ -261,7 +261,32 @@ body.story-page-active #main-content {
 
 /* ========== 타블렛 이하 (1024px): 책형 장식 제거, 화면 꽉 차게 읽기용, 전체 스크롤 ========== */
 @media (max-width: 1024px) {
+  /* App.css overflow: hidden 오버라이드 - 상위 컨테이너 스크롤 허용 */
+  html.story-page-active {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    -webkit-overflow-scrolling: touch;
+  }
+
   body.story-page-active {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.story-page-active #app,
+  body.story-page-active .app,
+  body.story-page-active .main-wrapper {
+    overflow: visible;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  body.story-page-active .app-main {
     overflow-y: auto;
     overflow-x: hidden;
     height: auto;
