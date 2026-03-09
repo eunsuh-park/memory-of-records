@@ -218,7 +218,7 @@ body.story-page-active #main-content {
 }
 
 .story-title {
-  font-size: 2.5rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #333;
   line-height: 1.2;
@@ -253,10 +253,26 @@ body.story-page-active #main-content {
   height: fit-content;
 }
 
+.story-content ul {
+  padding-left: 2.5em;
+}
+
+.story-content ul li {
+  padding-left: 0.5em;
+}
+
 .story-caption {
   font-size: 0.9rem;
   color: #888;
   line-height: 1.6;
+}
+
+.story-caption p {
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.6;
+  border-left: 2px solid white;
+  padding-left: 1em;
 }
 
 /* ========== 타블렛 이하 (1024px): 책형 장식 제거, 화면 꽉 차게 읽기용, 전체 스크롤 ========== */
@@ -398,7 +414,9 @@ body.story-page-active #main-content {
   }
 
   .story-subtitle {
-    color: var(--app-text-muted);
+    color: var(--app-text);
+    font-weight: 600;
+    font-size: 1.25rem;
   }
 
   .story-date {

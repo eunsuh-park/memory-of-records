@@ -36,7 +36,6 @@ export async function renderStory() {
   const imageSrc = null; // TODO: 예) import myImage from '../../assets/your-image.jpg';
   const title = 'Introduction'; // TODO: 하드코딩
   const subtitle = `Memory of Records은<br>제 창작의 씨앗인 아날로그 기록들을<br>아카이브하는 공간입니다.`;   // TODO: 하드코딩 (없으면 빈 문자열)
-  const publishDate = '2026.3.9'; // TODO: 예) '2025.01.01'
   const contentHTML = '<p>본문 내용을 여기에 작성하세요.</p>'; // TODO: HTML 하드코딩
 
   mainContent.innerHTML = `
@@ -67,7 +66,6 @@ export async function renderStory() {
             <div class="story-header">
               <h1 class="story-title">${title}</h1>
               ${subtitle ? `<div class="story-subtitle">${subtitle}</div>` : ''}
-              <div class="story-date">${publishDate}</div>
             </div>
             <div class="story-content">
             <div class="story-caption">
@@ -76,25 +74,24 @@ export async function renderStory() {
                   현재까지 웹사이트에 공개된 68권의 노트는<br>
                   2005년부터 지금까지 실제로 사용하고 보관 중인 노트들입니다.<br>
                   이 웹사이트는 100% 창작물이며, 바이브코딩으로 직접 제작하였습니다.<br>
-                  모든 사진과 글의 저작권은 저에게 있으며, 허가 없는 개인 및 상업적 이용은 불가합니다.
+                  모든 사진과 글에 대한 개인 및 상업적 이용은 불가합니다.
                 </small>
               </p>
             </div>
               <p>
-                이 웹사이트는 제가 애착을 가지고 정성껏 사용해온 노트들을 추억하기 위해 만든 공간입니다.<br>
-                또한 아날로그 레코드의 미학(Aesthetics)적인 감성을 웹 디자인에 녹여내고자 했습니다.
+                <br><br>이 웹사이트는 제가 애착을 가지고 정성껏 사용해온 노트들을 추억하기 위해 만든 공간입니다. 또한 아날로그 레코드의 미학(Aesthetics)적인 감성을 웹 디자인에 녹여내고자 했습니다.<br><br>
               </p>
-              <h3>그밖에 주제</h3>
+              <h3><br>그밖에 주제</h3><br>
               <ul>
                 <li>기록하는 행위</li>
                 <li>생산성 도구</li>  
                 <li>개인적인 역사</li>
               </ul>
               <p>
-                저처럼 창작자로 태어났지만 그 열정과 즐거움을 잊어가는 사람,<br>
-                비범한 자신의 인생을 전시하는 개성있는 방식을 찾아보고 있는 사람,<br>
+                <br><br>저처럼 창작자로 태어났지만 그 열정과 즐거움을 잊어가는 사람,<br>
+                자신의 인생을 전시하는 개성있는 방식을 배우고 있는 사람,<br>
                 모종의 이유로 지난 인생을 가만히 돌아보는 중인 사람,<br>
-                그저 과거에 대한 향수를 가지고, 그 시절의 추억을 타인과 나누고 싶은 사람—
+                그저 과거에 대한 향수를 가지고, 그 시절의 추억을 타인과 나누고 싶은 사람—<br><br>
               </p>
               <p>어떤 목적으로 이곳에 방문하셨든지 환영합니다.</p>
               <p>
