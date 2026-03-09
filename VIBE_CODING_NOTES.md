@@ -29,7 +29,7 @@
 
 ## 🎵 Jukebox
 
-- **재로딩 시 첫 번째 요소에 포커스** — Jukebox가 재로딩되는 모든 순간에, 목록의 첫 번째 요소(카드)에 포커스한다. `fillJukeboxGallery` 내부에서 첫 카드에 `focus()`를 호출한다.
+- **재로딩 시 첫 번째 요소에 포커스** — Jukebox가 재로딩되는 모든 순간에, 목록의 첫 번째 요소(카드)가 **가운데(중앙)**에 오도록 한다. DOM focus가 아니라 Cover Flow에서 중앙에 배치되는 카드(jukebox-card--centered)를 말함. `fillJukeboxGallery`에서 `scrollLeft=0`으로 스크롤 초기화하면 좌측 스페이서 덕분에 첫 카드가 중앙에 옴.
 
 ---
 
