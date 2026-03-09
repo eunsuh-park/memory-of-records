@@ -1,10 +1,10 @@
 /* TopNavigation 스타일 */
 
 /**
- * Story 페이지(/story, /story/:id)에서 Top Nav 슬라이드 업 숨김
+ * Story 페이지(/story)에서 Top Nav 슬라이드 업 숨김
  * 대신 좌측 상단 고정 뒤로가기 버튼이 표시됨
  */
-body.story-detail-page-active .navigation {
+body.story-page-active .navigation {
   transform: translateX(-50%) translateY(-100%);
   pointer-events: none;
 }

@@ -5,7 +5,7 @@
  */
 
 /* Story 페이지: 헤더 숨김 */
-body.story-detail-page-active .page-header {
+body.story-page-active .page-header {
   transform: translateY(-100%);
   pointer-events: none;
 }

@@ -50,8 +50,8 @@ body,
   background-color: unset;
 }
 
-/* Story 페이지(/story, /story/:id): padding-top 제거, Top Nav 숨김, 전체 화면 사용 */
-body.story-detail-page-active .app-main {
+/* Story 페이지(/story): padding-top 제거, Top Nav 숨김, 전체 화면 사용 */
+body.story-page-active .app-main {
   padding-top: 0;
 }
 
