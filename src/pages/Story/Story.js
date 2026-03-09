@@ -5,6 +5,7 @@
 
 import { router } from '../../router.js';
 import './Story.css';
+import '../../components/Footer/Footer.css';
 import { render as renderButton } from '../../components/Button/Button.js';
 
 /* ========== 이미지 플레이스홀더 SVG (이미지 없을 때 표시) ========== */
@@ -105,6 +106,11 @@ export async function renderStory() {
         <!-- [오른쪽 책등] -->
         <div class="story-book-side-R"></div>
       </div>
+      <footer class="story-footer">
+        <div class="footer-container">
+          <p>© 2026 Memory of Records. PES All rights reserved.</p>
+        </div>
+      </footer>
     </main>
   `;
 
