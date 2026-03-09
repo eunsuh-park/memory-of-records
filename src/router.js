@@ -5,7 +5,6 @@
 import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
 import { renderStory } from './pages/Story/Story.js';
-import { renderStoryDetail } from './pages/StoryDetail/StoryDetail.js';
 import { renderNoteDetailPage } from './components/PdfModal/PdfModal.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
@@ -20,7 +19,6 @@ class Router {
       { path: '/by-type', handler: () => renderByType(null) },
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
       { path: '/story', handler: renderStory },
-      { path: '/story/:id', handler: (params) => renderStoryDetail(params.id) },
       { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
     ];
   }
