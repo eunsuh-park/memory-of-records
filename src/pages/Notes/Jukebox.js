@@ -308,7 +308,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
       return `
-        <div class="jukebox-card">
+        <div class="jukebox-card" tabindex="0" role="button">
           <div class="jukebox-card-inner">
             <div class="jukebox-card-face jukebox-card-face--front">
               <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
@@ -347,6 +347,9 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     gallery.scrollLeft = 0;
     requestAnimationFrame(() => {
       updateCardAngles(gallery);
+      /* 재로딩 시마다 목록 첫 번째 요소에 포커스 */
+      const firstCard = gallery.querySelector(':scope > div.jukebox-card');
+      firstCard?.focus();
     });
   });
 }

@@ -63,15 +63,6 @@ export async function renderStory() {
             </div>
           </div>
           <div class="story-book-content-R">
-            <div class="story-image-top" aria-hidden="true">
-              ${imageSrc ? `
-                <img src="${imageSrc}" alt="" loading="eager" />
-              ` : `
-                <div class="story-placeholder-image">
-                  <div class="gallery-placeholder-icon">${placeholderIconSvg}</div>
-                </div>
-              `}
-            </div>
             <div class="story-header">
               <h1 class="story-title">${title}</h1>
               ${subtitle ? `<div class="story-subtitle">${subtitle}</div>` : ''}
