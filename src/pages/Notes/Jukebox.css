@@ -453,6 +453,11 @@ body.jukebox-active.loading-active .notes-scrollbar {
   box-shadow: var(--jukebox-shadow, none);
 }
 
+/* 첫 카드가 왼쪽으로 밀려 2번째 카드가 먼저 중앙 포커스되는 현상 방지 */
+.jukebox-gallery > div.jukebox-spacer + div.jukebox-card {
+  margin-left: 0;
+}
+
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover,
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:active {
   transform:
