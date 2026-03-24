@@ -103,11 +103,6 @@ body.story-page-active #main-content {
   height: 100%;
   overflow: hidden;
   cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.story-book-content-L:hover {
-  opacity: 0.8;
 }
 
 .story-book-content-L::after {
@@ -177,7 +172,6 @@ body.story-page-active #main-content {
   box-sizing: border-box;
   background-color: #fff;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
 }
@@ -206,10 +200,6 @@ body.story-page-active #main-content {
   display: none;
   width: 0;
   height: 0;
-}
-
-.story-book-content-R:hover {
-  background-color: #efefefee;
 }
 
 .story-header {
