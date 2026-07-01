@@ -27,7 +27,9 @@ const ICONS = {
   rightLine:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>right_line</title><g id='right_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0h24ZM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018Zm.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01-.184-.092Z'/><path fill='currentColor' d='M15.707 11.293a1 1 0 0 1 0 1.414l-5.657 5.657a1 1 0 1 1-1.414-1.414l4.95-4.95-4.95-4.95a1 1 0 0 1 1.414-1.414l5.657 5.657Z'/></g></svg>",
   refreshLine:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>refresh_anticlockwise_1_line</title><g id='refresh_anticlockwise_1_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0zM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036c-.01-.003-.019 0-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.016-.018m.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M14.07 19.727a8.003 8.003 0 0 1-9.146-3.99 1 1 0 0 0-1.77.933c2.13 4.04 6.836 6.221 11.434 4.99 5.335-1.43 8.5-6.914 7.071-12.248-1.43-5.335-6.913-8.5-12.247-7.071a10.003 10.003 0 0 0-7.414 9.58c-.007.903.995 1.402 1.713.919l2.673-1.801c1.008-.68.332-2.251-.854-1.986l-1.058.236a8 8 0 1 1 9.598 10.439Z'/></g></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>refresh_anticlockwise_1_line</title><g id='refresh_anticlockwise_1_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0zM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036c-.01-.003-.019 0-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.016-.018m.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M14.07 19.727a8.003 8.003 0 0 1-9.146-3.99 1 1 0 0 0-1.77.933c2.13 4.04 6.836 6.221 11.434 4.99 5.335-1.43 8.5-6.914 7.071-12.248-1.43-5.335-6.913-8.5-12.247-7.071a10.003 10.003 0 0 0-7.414 9.58c-.007.903.995 1.402 1.713.919l2.673-1.801c1.008-.68.332-2.251-.854-1.986l-1.058.236a8 8 0 1 1 9.598 10.439Z'/></g></svg>",
+  bookOpen:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>book_open</title><g fill='none'><path d='M24 0v24H0V0zM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M12 2c.912 0 1.758.482 2.214 1.192C15.548 3.622 17.081 4 18.5 4c1.168 0 2.302-.258 3.295-.728.45-.212.705-.279.876-.287A1 1 0 0 1 24 4v13a1 1 0 0 1-.553.894c-.123.061-.27.106-.54.207-1.134.427-2.536.899-4.407.899-1.92 0-3.452-.378-4.714-1.192A3.022 3.022 0 0 1 12 18a3.022 3.022 0 0 1-1.786-.192C8.952 18.622 7.42 19 5.5 19c-1.871 0-3.273-.472-4.407-.9-.27-.1-.417-.145-.54-.206A1 1 0 0 1 0 17V4a1 1 0 0 1 1.33-.986c.17.008.425.075.875.287C3.198 3.742 4.332 4 5.5 4c1.419 0 2.952-.378 3.786-.808C9.742 2.482 10.588 2 11.5 2Zm0 2c-.088 0-.42.141-.886.442C10.298 5.122 8.581 6 5.5 6c-.832 0-1.61-.158-2.5-.442V16.5c1.121.358 2.29.5 3 .5 1.581 0 2.952-.378 3.786-.808.456-.3.788-.442.714-.442V4Zm2 0v11.75c-.074 0 .258.141.714.442C15.548 16.622 17.081 17 18.5 17c.71 0 1.879-.142 3-.5V5.558c-.89.284-1.668.442-2.5.442-3.081 0-4.798-.878-5.614-1.558C13.42 4.141 13.088 4 13 4Z'/></g></svg>"
 };
 
 let cachedTimelineNotes = null;
@@ -108,11 +110,15 @@ export function renderPdfViewer(targetEl, id, options = {}) {
           ${renderButton({ variant: 'toolbar', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine, className: 'pdf-nav-last' })}
         </div>
         <div class="pdf-zoom-controls">
+          ${renderButton({ variant: 'toolbar', ariaLabel: '양면 보기 전환', content: ICONS.bookOpen, className: 'pdf-toggle-spread' })}
           ${renderButton({ variant: 'toolbar', ariaLabel: '100% 비율로 초기화', content: ICONS.refreshLine, className: 'pdf-zoom-reset' })}
           ${renderButton({ variant: 'toolbar', ariaLabel: '확대', content: '+', className: 'pdf-zoom-in' })}
           ${renderButton({ variant: 'toolbar', ariaLabel: '축소', content: '-', className: 'pdf-zoom-out' })}
         </div>
-        <canvas id="pdf-canvas"></canvas>
+        <div class="pdf-canvas-container">
+          <canvas id="pdf-canvas-left"></canvas>
+          <canvas id="pdf-canvas-right"></canvas>
+        </div>
         <div id="pdf-overlay" class="pdf-overlay show">
           <dotlottie-wc class="pdf-overlay-lottie" src="${PDF_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
           <div id="pdf-overlay-text">PDF 목록 불러오는 중...</div>
@@ -142,14 +148,18 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
-  const canvas = targetEl.querySelector('#pdf-canvas');
-  const ctx = canvas.getContext('2d');
+  const canvasLeft = targetEl.querySelector('#pdf-canvas-left');
+  const canvasRight = targetEl.querySelector('#pdf-canvas-right');
+  const canvasContainer = targetEl.querySelector('.pdf-canvas-container');
+  const ctxLeft = canvasLeft.getContext('2d');
+  const ctxRight = canvasRight.getContext('2d');
   const prevBtn = targetEl.querySelector('.pdf-nav-prev');
   const nextBtn = targetEl.querySelector('.pdf-nav-next');
   const firstBtn = targetEl.querySelector('.pdf-nav-first');
   const lastBtn = targetEl.querySelector('.pdf-nav-last');
   const currentPageEl = targetEl.querySelector('#pdf-current-page');
   const totalPagesEl = targetEl.querySelector('#pdf-total-pages');
+  const toggleSpreadBtn = targetEl.querySelector('.pdf-toggle-spread');
   const zoomResetBtn = targetEl.querySelector('.pdf-zoom-reset');
   const zoomOutBtn = targetEl.querySelector('.pdf-zoom-out');
   const zoomInBtn = targetEl.querySelector('.pdf-zoom-in');
@@ -158,8 +168,9 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   let pageNum = 1;
   let pageRendering = false;
   let pageNumPending = null;
-  const initialScale = 0.6;
+  const initialScale = 1.0;
   let scale = initialScale;
+  let isSpreadMode = false;
 
   function showOverlay(message) {
     if (overlayText) overlayText.textContent = message;
@@ -171,38 +182,81 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   }
 
   function updateControls() {
+    const step = isSpreadMode ? 2 : 1;
     prevBtn.disabled = pageNum <= 1 || pageRendering;
     nextBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
     if (firstBtn) firstBtn.disabled = pageNum <= 1 || pageRendering;
     if (lastBtn) lastBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
-    currentPageEl.textContent = pageNum;
+    
+    if (isSpreadMode && pdfDoc) {
+      const endPage = Math.min(pageNum + 1, pdfDoc.numPages);
+      currentPageEl.textContent = `${pageNum}-${endPage}`;
+    } else {
+      currentPageEl.textContent = pageNum;
+    }
     totalPagesEl.textContent = pdfDoc ? pdfDoc.numPages : '-';
+    
+    if (toggleSpreadBtn) {
+      toggleSpreadBtn.style.opacity = isSpreadMode ? '1' : '0.6';
+    }
   }
 
-  function renderPage(num) {
+  async function renderPage(num) {
+    if (!pdfDoc) return;
+    
     pageRendering = true;
     updateControls();
-    canvas.style.opacity = '0.2';
+    canvasLeft.style.opacity = '0.3';
+    canvasRight.style.opacity = '0.3';
 
-    pdfDoc.getPage(num).then((page) => {
-      const viewport = page.getViewport({ scale });
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const renderContext = { canvasContext: ctx, viewport };
-      return page.render(renderContext).promise;
-    }).then(() => {
+    try {
+      if (isSpreadMode) {
+        canvasContainer.classList.add('spread-mode');
+        canvasRight.style.display = 'block';
+        
+        const pageLeft = await pdfDoc.getPage(num);
+        const viewportLeft = pageLeft.getViewport({ scale });
+        canvasLeft.width = viewportLeft.width;
+        canvasLeft.height = viewportLeft.height;
+        await pageLeft.render({ canvasContext: ctxLeft, viewport: viewportLeft }).promise;
+        canvasLeft.style.opacity = '1';
+        
+        if (num + 1 <= pdfDoc.numPages) {
+          const pageRight = await pdfDoc.getPage(num + 1);
+          const viewportRight = pageRight.getViewport({ scale });
+          canvasRight.width = viewportRight.width;
+          canvasRight.height = viewportRight.height;
+          await pageRight.render({ canvasContext: ctxRight, viewport: viewportRight }).promise;
+          canvasRight.style.opacity = '1';
+        } else {
+          ctxRight.clearRect(0, 0, canvasRight.width, canvasRight.height);
+          canvasRight.style.opacity = '0';
+        }
+      } else {
+        canvasContainer.classList.remove('spread-mode');
+        canvasRight.style.display = 'none';
+        
+        const page = await pdfDoc.getPage(num);
+        const viewport = page.getViewport({ scale });
+        canvasLeft.width = viewport.width;
+        canvasLeft.height = viewport.height;
+        await page.render({ canvasContext: ctxLeft, viewport }).promise;
+        canvasLeft.style.opacity = '1';
+      }
+
       pageRendering = false;
-      canvas.style.opacity = '1';
       updateControls();
+      
       if (pageNumPending !== null) {
         const pending = pageNumPending;
         pageNumPending = null;
         renderPage(pending);
       }
-    }).catch(() => {
+    } catch (error) {
       pageRendering = false;
       showOverlay('페이지 렌더링 실패');
-    });
+      console.error('Page render error:', error);
+    }
   }
 
   function queueRenderPage(num) {
@@ -227,6 +281,11 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   function resetZoom() {
     if (scale === initialScale) return;
     scale = initialScale;
+    queueRenderPage(pageNum);
+  }
+
+  function toggleSpreadMode() {
+    isSpreadMode = !isSpreadMode;
     queueRenderPage(pageNum);
   }
 
@@ -262,10 +321,19 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     loadPdf(pdfUrl);
   }
 
-  prevBtn.addEventListener('click', () => { if (pageNum > 1) goToPage(pageNum - 1); });
-  nextBtn.addEventListener('click', () => { if (pdfDoc && pageNum < pdfDoc.numPages) goToPage(pageNum + 1); });
+  prevBtn.addEventListener('click', () => { 
+    const step = isSpreadMode ? 2 : 1;
+    if (pageNum > 1) goToPage(Math.max(1, pageNum - step)); 
+  });
+  nextBtn.addEventListener('click', () => { 
+    if (pdfDoc) {
+      const step = isSpreadMode ? 2 : 1;
+      if (pageNum < pdfDoc.numPages) goToPage(Math.min(pdfDoc.numPages, pageNum + step)); 
+    }
+  });
   firstBtn?.addEventListener('click', () => { if (pdfDoc && pageNum > 1) goToPage(1); });
   lastBtn?.addEventListener('click', () => { if (pdfDoc && pageNum < pdfDoc.numPages) goToPage(pdfDoc.numPages); });
+  toggleSpreadBtn.addEventListener('click', toggleSpreadMode);
   zoomResetBtn.addEventListener('click', resetZoom);
   zoomInBtn.addEventListener('click', () => changeZoom(0.2));
   zoomOutBtn.addEventListener('click', () => changeZoom(-0.2));
@@ -273,6 +341,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const handleKeydown = (event) => {
     if (event.key === '+' || event.key === '=') changeZoom(0.2);
     else if (event.key === '-') changeZoom(-0.2);
+    else if (event.key === 's' || event.key === 'S') toggleSpreadMode();
   };
   document.addEventListener('keydown', handleKeydown);
 
