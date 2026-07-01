@@ -14,9 +14,5 @@
     "sharp": "^0.34.5",
     "vite": "^7.2.4"
   },
-  "dependencies": {
-    "next": "^16.1.4",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
-  }
+  "dependencies": {}
 }
