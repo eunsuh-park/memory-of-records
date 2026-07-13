@@ -407,6 +407,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
 }
 
 .jukebox-gallery {
+  --jukebox-edge-spacer: 36vw;
+  --jukebox-left-extra-spacer: 8vw;
   padding: 40vh 0;
   width: 100%;
   height: auto;
@@ -421,7 +423,7 @@ body.jukebox-active.loading-active .notes-scrollbar {
 
 .jukebox-gallery > div.jukebox-spacer {
   display: inline-block;
-  width: 36vw;
+  width: var(--jukebox-edge-spacer);
   height: 0;
   min-height: 0;
   vertical-align: middle;
@@ -429,6 +431,11 @@ body.jukebox-active.loading-active .notes-scrollbar {
   pointer-events: none;
   margin: 0;
   overflow: visible;
+}
+
+/* 첫 카드 앞에 보이지 않는 여백을 추가로 확보해 첫 카드 접근/포커스를 안정화 */
+.jukebox-gallery > div.jukebox-spacer--left {
+  width: calc(var(--jukebox-edge-spacer) + var(--jukebox-left-extra-spacer));
 }
 
 .jukebox-gallery > div.jukebox-card {
@@ -501,18 +508,21 @@ body.jukebox-active.loading-active .notes-scrollbar {
   align-items: center;
   justify-content: center;
   background: transparent;
+  overflow: hidden;
 }
 
+/* 뒷표지는 앞면이 만든 카드 박스에 맞춰 채움 (해상도별 max 값 불일치 방지) */
 .jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
   display: block;
-  height: auto;
-  width: auto;
-  max-height: 38vh;
-  max-width: 28vw;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: contain;
+  object-position: center;
 }
 
-.jukebox-gallery > div.jukebox-card img {
+.jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
   display: block;
   z-index: 1;
   position: relative;
@@ -574,16 +584,14 @@ body.jukebox-active.loading-active .notes-scrollbar {
 /* 반응형 */
 @media (max-width: 768px) {
   .jukebox-gallery {
+    --jukebox-edge-spacer: 34vw;
+    --jukebox-left-extra-spacer: 8vw;
     padding: 30vh 0;
     -webkit-overflow-scrolling: touch;
   }
 
-  .jukebox-gallery > div.jukebox-spacer {
-    width: 34vw;
-  }
-
   .jukebox-gallery > div.jukebox-card,
-  .jukebox-gallery > div.jukebox-card img {
+  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
     max-height: 26vh;
     max-width: 32vw;
   }
@@ -595,15 +603,13 @@ body.jukebox-active.loading-active .notes-scrollbar {
 
 @media (max-width: 480px) {
   .jukebox-gallery {
+    --jukebox-edge-spacer: 29vw;
+    --jukebox-left-extra-spacer: 9vw;
     padding: 28vh 0;
   }
 
-  .jukebox-gallery > div.jukebox-spacer {
-    width: 29vw;
-  }
-
   .jukebox-gallery > div.jukebox-card,
-  .jukebox-gallery > div.jukebox-card img {
+  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
     max-height: 38vh;
     max-width: 42vw;
   }

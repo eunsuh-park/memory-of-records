@@ -103,7 +103,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
       <div class="pdf-canvas-wrap">
         ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'pdf-nav-prev' })}
-        ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.rightLine, className: 'pdf-nav-next' })}
+        ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'pdf-nav-next' })}
         <div class="pdf-page-indicator">
           ${renderButton({ variant: 'toolbar', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine, className: 'pdf-nav-first' })}
           <span id="pdf-current-page">1</span>/<span id="pdf-total-pages">-</span>

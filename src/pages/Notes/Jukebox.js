@@ -122,6 +122,15 @@ function updateCardAngles(gallery) {
     card.style.zIndex = String(zIndex);
   });
 
+  /*
+   * 스크롤 시작점 근처에서는 첫 카드를 우선 활성화.
+   * 브라우저의 snap/반올림 오차로 두 번째 카드가 간헐적으로 선택되는 현상을 막는다.
+   */
+  const firstCard = cards[0] || null;
+  if (firstCard && gallery.scrollLeft <= Math.max(24, firstCard.offsetWidth * 0.25)) {
+    closestCard = firstCard;
+  }
+
   /* 중앙에 가장 가까운 카드에만 포커스 클래스 (호버 효과는 이 카드에만 적용) */
   cards.forEach((card) => {
     card.classList.toggle('jukebox-card--centered', card === closestCard);
