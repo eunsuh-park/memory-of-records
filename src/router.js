@@ -5,7 +5,7 @@
 import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
 import { renderStory } from './pages/Story/Story.js';
-import { renderNoteDetailPage } from './components/PdfModal/PdfModal.js';
+import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';

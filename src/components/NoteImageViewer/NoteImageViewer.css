@@ -1,0 +1,38 @@
+/**
+ * NoteImageViewer 스타일
+ * 뷰어 프레임(.pdf-viewer, .pdf-canvas-wrap, .pdf-overlay, .pdf-page-indicator 등)은
+ * PdfModal.css의 스타일을 그대로 재사용하고, 페이지 이미지 관련 스타일만 정의합니다.
+ */
+
+.niv-image-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.niv-page-image {
+  max-width: 100%;
+  max-height: 85vh;
+  height: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.2s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* src가 비어 있는 초기 상태에서는 빈 이미지 테두리가 보이지 않도록 숨김 */
+.niv-page-image:not([src]) {
+  display: none;
+}
+
+.niv-current-page {
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .niv-page-image {
+    max-height: 70vh;
+  }
+}
