@@ -15,6 +15,7 @@ import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
+import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
 import './Jukebox.css';
@@ -418,9 +419,11 @@ export function renderJukebox() {
     });
 }
 
-function openPdfModal(noteId, pdfUrl = null) {
-  const hasPdf = pdfUrl && String(pdfUrl).trim();
-  if (!hasPdf) {
+function openNoteModal(note) {
+  const noteId = note?.id || '';
+  const pdfFolderUrl = note?.pdfFolderUrl ? String(note.pdfFolderUrl).trim() : '';
+  const pdfUrl = note?.pdfUrl ? String(note.pdfUrl).trim() : '';
+  if (!pdfFolderUrl && !pdfUrl) {
     showToast('노트 상세 이미지가 없습니다.');
     return;
   }
@@ -440,7 +443,14 @@ function openPdfModal(noteId, pdfUrl = null) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
-  const cleanupViewer = renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl });
+  /* pdf_folder_url이 있으면 새 이미지 뷰어, 없으면 기존 PDF 뷰어로 폴백 */
+  const cleanupViewer = pdfFolderUrl
+    ? renderNoteImageViewer(content, noteId, {
+        mode: 'modal',
+        pdfFolderUrl,
+        pageCount: note?.pageCount
+      })
+    : renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl });
 
   const closeModal = () => {
     cleanupViewer?.();
@@ -535,7 +545,7 @@ export function renderJukeboxWithFilter(options) {
         card.setAttribute('data-pdf-url', note.pdfUrl || '');
         card.addEventListener('click', () => {
           if (card.classList.contains('jukebox-card--centered')) {
-            openPdfModal(note.id, note.pdfUrl || null);
+            openNoteModal(note);
           } else {
             const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
             gallery.scrollTo({
