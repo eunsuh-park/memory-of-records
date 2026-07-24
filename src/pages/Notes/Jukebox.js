@@ -40,8 +40,8 @@ const EDGE_ZONE_LEFT = 0.12;
 const EDGE_ZONE_RIGHT = 0.12;
 /** 가장자리 호버 시 스크롤 시작 전 대기(ms). 짧게 지나갈 때는 스크롤 안 함 */
 const EDGE_HOVER_DELAY_MS = 280;
-/** 가장자리 스크롤 최대 속도 (px/10ms) */
-const EDGE_SCROLL_SPEED = 18;
+/** 가장자리 스크롤 최대 속도 (px/frame, requestAnimationFrame 기준 약 60fps) */
+const EDGE_SCROLL_SPEED = 28;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -54,108 +54,155 @@ function escapeHtml(value) {
 
 /**
  * Cover Flow 스타일 상수 (참고: https://scroll-driven-animations.style/demos/cover-flow/css/)
- * - 양옆에 늘어선 카드는 옆으로 회전(rotateY ±45°), 중앙은 정면 + 살짝 확대 + 앞으로(translateZ)
+ * - 양옆에 늘어선 카드는 옆으로 회전(rotateY ±45°), 중앙은 정면 + 확대 + 앞으로(translateZ)
  */
 const COVER_FLOW_ANGLE_DEG = 45; /* 양끝 카드 rotateY (왼쪽 +45°, 오른쪽 -45°) */
-const COVER_FLOW_SCALE_CENTER = 1.25; /* 중앙 카드 scale */
+const COVER_FLOW_SCALE_CENTER = 1.375; /* 중앙 카드 scale (포커스 강조: 기존 1.25 대비 10% 확대) */
 const COVER_FLOW_SCALE_SIDE = 0.88; /* 양옆 카드 scale */
-const COVER_FLOW_Z_CENTER = '1.5em'; /* 중앙 카드 translateZ (앞으로) */
-const COVER_FLOW_Z_SIDE = '0em';
+const COVER_FLOW_Z_CENTER_EM = 1.5; /* 중앙 카드 translateZ(em). 양옆으로 갈수록 0까지 연속 감소 */
 const COVER_FLOW_Z_INDEX_CENTER = 100; /* 중앙에 가까울수록 위에 보이도록 */
 const COVER_FLOW_Z_INDEX_SIDE = 1;
+const COVER_FLOW_BRIGHTNESS_SIDE = 0.36; /* 양끝 카드 밝기 (중앙 1, 끝으로 갈수록 어둡게) */
+/** 바닥 반사 적용 범위: 중앙 카드 기준 좌우 몇 장까지 반사할지 (그 밖은 반사 없음) */
+const REFLECTION_MAX_DISTANCE = 2;
+
+/**
+ * 카드 레이아웃 좌표 캐시
+ * - offsetLeft/offsetWidth는 transform의 영향을 받지 않는 레이아웃 값이므로,
+ *   회전·확대 중에도 포커스 판정이 흔들리지 않는다.
+ * - 스크롤마다 getBoundingClientRect를 읽으면 강제 리플로우가 발생하므로,
+ *   fill/resize/이미지 로드 시에만 캐시를 갱신하고 스크롤 중에는 캐시만 읽는다.
+ */
+const galleryMetricsCache = new WeakMap();
+
+function refreshCardMetrics(gallery) {
+  const cards = Array.from(gallery.querySelectorAll(':scope > div.jukebox-card'));
+  const metrics = cards.map((el) => ({
+    el,
+    center: el.offsetLeft + el.offsetWidth / 2,
+    lastRatio: null,
+    lastReflectLevel: null,
+    lastCentered: null
+  }));
+  galleryMetricsCache.set(gallery, metrics);
+  return metrics;
+}
+
+function getCardMetrics(gallery) {
+  return galleryMetricsCache.get(gallery) || refreshCardMetrics(gallery);
+}
 
 /**
  * [애니메이션 1] Cover Flow 스타일 – 중앙 기준 3D 원근 + 양옆 회전
  * 각 카드의 화면 내 위치(ratio -1~1)에 따라:
  * - rotateY: 양옆 ±45°, 중앙 0° (데모와 동일)
- * - scale: 중앙 1.25, 양옆 0.88
- * - translateZ: 중앙에서 앞으로, 양옆 0
+ * - scale: 중앙 1.375, 양옆 0.88
+ * - translateZ: 중앙에서 앞으로, 양옆으로 갈수록 연속적으로 0
  * - z-index: 중앙에 가까울수록 높게 (겹침 시 중앙 카드가 위로)
+ * - 바닥 반사: 중앙 카드와 좌우 2장까지만, 멀수록 옅게
  */
 function updateCardAngles(gallery) {
   if (!gallery) return;
-  const viewportCenterX = window.innerWidth / 2;
-  const halfWidth = window.innerWidth / 2;
-  const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
+  const metrics = getCardMetrics(gallery);
+  if (metrics.length === 0) return;
+  const halfWidth = gallery.clientWidth / 2;
+  if (halfWidth <= 0) return;
+  const viewportCenterX = gallery.scrollLeft + halfWidth;
 
-  let closestCard = null;
-  let closestAbsOffset = Infinity;
-
-  cards.forEach((card) => {
-    const rect = card.getBoundingClientRect();
-    const cardCenterX = rect.left + rect.width / 2;
-    const offset = cardCenterX - viewportCenterX;
-    const ratio = Math.max(-1, Math.min(1, offset / halfWidth)); /* -1(왼쪽 끝) ~ 1(오른쪽 끝), 0=중앙 */
-    const absOffset = Math.abs(offset);
-    if (absOffset < closestAbsOffset) {
-      closestAbsOffset = absOffset;
-      closestCard = card;
+  let closestIdx = 0;
+  let closestDist = Infinity;
+  metrics.forEach((m, i) => {
+    const dist = Math.abs(m.center - viewportCenterX);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestIdx = i;
     }
-
-    const angle = -ratio * COVER_FLOW_ANGLE_DEG;
-    const absRatio = Math.abs(ratio);
-    const scale = COVER_FLOW_SCALE_SIDE + (1 - absRatio) * (COVER_FLOW_SCALE_CENTER - COVER_FLOW_SCALE_SIDE);
-    const translateZ = absRatio > 0.5 ? COVER_FLOW_Z_SIDE : COVER_FLOW_Z_CENTER;
-    const zIndex = Math.round(COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE));
-
-    /* 호버 시 중앙 쪽으로 옆 이동 (중앙 포커스 카드에만 호버 적용) */
-    const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
-
-    /* 양옆 카드는 이미지 더 어둡게. 중앙 1, 양끝 0.48 (끝으로 갈수록 더 어둡게) */
-    const brightness = 1 - (1 - 0.48) * absRatio;
-
-    /* 바닥 그림자: 비추는 정도만 줄임. 중앙↔끝 그라데이션 비율을 더 짧뚱하게(가파르게) */
-    // 원래: (0.32 - absRatio * 0.26) * 0.5;
-    // "짧뚱하게": 그라데이션이 더 짧은 구간에서 끝나도록 absRatio 가중치를 늘려 더 급격하게 변화하게 조정
-    const gradientSlope = 0.42; // absRatio 가중치 증가
-    const minShadowOpacity = 0.03;
-    const baseShadowOpacity = 0.32;
-    const shadowOpacity = (baseShadowOpacity - absRatio * gradientSlope) * 0.5;
-    const shadowBlur = 22 - Math.round(absRatio * 10);
-
-    card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(minShadowOpacity, shadowOpacity).toFixed(2)})`);
-
-    card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
-    card.style.setProperty('--jukebox-scale', String(scale));
-    card.style.setProperty('--jukebox-translate-z', translateZ);
-    card.style.setProperty('--jukebox-hover-x', hoverX);
-    card.style.setProperty('--jukebox-brightness', String(brightness));
-    card.style.zIndex = String(zIndex);
   });
 
-  /*
-   * 스크롤 시작점 근처에서는 첫 카드를 우선 활성화.
-   * 브라우저의 snap/반올림 오차로 두 번째 카드가 간헐적으로 선택되는 현상을 막는다.
-   */
-  const firstCard = cards[0] || null;
-  if (firstCard && gallery.scrollLeft <= Math.max(24, firstCard.offsetWidth * 0.25)) {
-    closestCard = firstCard;
-  }
+  metrics.forEach((m, i) => {
+    const card = m.el;
+    const ratio = Math.max(-1, Math.min(1, (m.center - viewportCenterX) / halfWidth));
 
-  /* 중앙에 가장 가까운 카드에만 포커스 클래스 (호버 효과는 이 카드에만 적용) */
-  cards.forEach((card) => {
-    card.classList.toggle('jukebox-card--centered', card === closestCard);
+    /* 화면 밖에서 ratio ±1로 고정된 카드는 스타일 재계산 생략 (스크롤 성능) */
+    if (ratio !== m.lastRatio) {
+      m.lastRatio = ratio;
+
+      const angle = -ratio * COVER_FLOW_ANGLE_DEG;
+      const absRatio = Math.abs(ratio);
+      const scale = COVER_FLOW_SCALE_SIDE + (1 - absRatio) * (COVER_FLOW_SCALE_CENTER - COVER_FLOW_SCALE_SIDE);
+      const translateZ = (1 - absRatio) * COVER_FLOW_Z_CENTER_EM;
+      const zIndex = Math.round(COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE));
+
+      /* 양옆 카드는 이미지 더 어둡게. 중앙 1 → 양끝 COVER_FLOW_BRIGHTNESS_SIDE */
+      const brightness = 1 - (1 - COVER_FLOW_BRIGHTNESS_SIDE) * absRatio;
+
+      /* 바닥 그림자: 중앙에서 진하고 양옆으로 갈수록 옅게 (플립되는 요소에 적용됨) */
+      const gradientSlope = 0.42;
+      const minShadowOpacity = 0.03;
+      const baseShadowOpacity = 0.32;
+      const shadowOpacity = (baseShadowOpacity - absRatio * gradientSlope) * 0.5;
+      const shadowBlur = 22 - Math.round(absRatio * 10);
+
+      card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(minShadowOpacity, shadowOpacity).toFixed(2)})`);
+      card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
+      card.style.setProperty('--jukebox-scale', String(scale));
+      card.style.setProperty('--jukebox-translate-z', `${translateZ.toFixed(3)}em`);
+      card.style.setProperty('--jukebox-brightness', String(brightness));
+      card.style.zIndex = String(zIndex);
+    }
+
+    /* 바닥 반사: 중앙(0)·양옆 1~2장만 반사, 멀수록 옅게. 그 외에는 반사 없음 */
+    const distFromCenter = Math.abs(i - closestIdx);
+    const reflectLevel = distFromCenter <= REFLECTION_MAX_DISTANCE ? distFromCenter : -1;
+    if (reflectLevel !== m.lastReflectLevel) {
+      m.lastReflectLevel = reflectLevel;
+      card.classList.toggle('jukebox-card--reflect-0', reflectLevel === 0);
+      card.classList.toggle('jukebox-card--reflect-1', reflectLevel === 1);
+      card.classList.toggle('jukebox-card--reflect-2', reflectLevel === 2);
+    }
+
+    /* 중앙에 가장 가까운 카드에만 포커스 클래스 (호버 플립은 이 카드에만 적용) */
+    const centered = i === closestIdx;
+    if (centered !== m.lastCentered) {
+      m.lastCentered = centered;
+      card.classList.toggle('jukebox-card--centered', centered);
+    }
   });
 }
 
 /**
  * Cover Flow 스크롤 연동
- * 갤러리 scroll 이벤트·리사이즈 시 updateCardAngles 호출 → 카드별 위치에 따라 3D 변환 갱신.
- * (휠/터치/마우스 자동 스크롤 모두 scrollLeft를 바꾸므로 동일하게 scroll 이벤트로 연동됨.)
- * 반응형: window.innerWidth 기준으로 ratio 계산하므로 뷰포트 변경 시 resize 이벤트로 자동 재계산됨.
+ * scroll 이벤트를 requestAnimationFrame으로 스로틀해 프레임당 1회만 updateCardAngles 실행.
+ * 리사이즈 시에는 레이아웃 캐시를 갱신한 뒤 다시 그린다.
  */
 function enableCenterPerspective(gallery) {
   if (!gallery) return;
-  const onUpdate = () => {
+  let rafId = null;
+
+  const onScroll = () => {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      if (!gallery.isConnected) {
+        window.removeEventListener('resize', onResize);
+        return;
+      }
+      updateCardAngles(gallery);
+    });
+  };
+
+  const onResize = () => {
     if (!gallery.isConnected) {
-      window.removeEventListener('resize', onUpdate);
+      window.removeEventListener('resize', onResize);
       return;
     }
-    updateCardAngles(gallery);
+    refreshCardMetrics(gallery);
+    onScroll();
   };
-  gallery.addEventListener('scroll', onUpdate, { passive: true });
-  window.addEventListener('resize', onUpdate);
-  onUpdate();
+
+  gallery.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize);
+  updateCardAngles(gallery);
 }
 
 /**
@@ -165,35 +212,122 @@ function enableCenterPerspective(gallery) {
  * - 이전/다음 버튼: 클릭 시 카드 한 장씩 이동.
  * 반응형: 터치 기기에서는 mousemove가 없어 호버 스크롤은 동작하지 않음. 스와이프·버튼·휠만 사용.
  */
-function enableGalleryScroll(gallery, prevBtn, nextBtn) {
+function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: false }) {
   if (!gallery) return;
-  let scrolling = null;
+  let edgeRafId = null;
   let edgeDelayTimer = null;
+  let edgeDirection = 0;
+  let wheelSettleTimer = null;
+  /* 수동 스크롤(휠/가장자리 호버) 진행 중 여부. true인 동안은 snap 복원을 미룬다 */
+  let interacting = false;
 
-  function tick(direction) {
-    const maxScroll = gallery.scrollWidth - gallery.clientWidth;
-    if (maxScroll <= 0) return;
-    if (direction < 0) {
-      gallery.scrollLeft = Math.max(0, gallery.scrollLeft - Math.abs(direction));
-    } else if (direction > 0) {
-      gallery.scrollLeft = Math.min(maxScroll, gallery.scrollLeft + Math.abs(direction));
-    }
+  function maxScrollLeft() {
+    return gallery.scrollWidth - gallery.clientWidth;
   }
 
-  function stopScroll() {
+  function restoreSnap() {
+    gallery.style.removeProperty('scroll-snap-type');
+  }
+
+  /* 중앙에 가장 가까운 카드가 정확히 중앙에 오는 scrollLeft */
+  function nearestCardScrollLeft() {
+    const metrics = getCardMetrics(gallery);
+    if (metrics.length === 0) return null;
+    const half = gallery.clientWidth / 2;
+    const viewCenter = gallery.scrollLeft + half;
+    let best = null;
+    let bestDist = Infinity;
+    metrics.forEach((m) => {
+      const dist = Math.abs(m.center - viewCenter);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = m;
+      }
+    });
+    if (!best) return null;
+    return Math.max(0, Math.min(maxScrollLeft(), best.center - half));
+  }
+
+  /*
+   * CSS scroll-snap(mandatory)과 JS의 scrollLeft 직접 조작이 동시에 일어나면
+   * 서로 위치를 뺏으려 해서 스크롤이 걸리거나 튀는 원인이 된다.
+   * 수동 스크롤 동안 snap을 잠시 끄고, 부드러운 스크롤로 목표(=snap 지점)에
+   * 도달한 뒤 snap을 복원한다. (복원 시점 위치가 snap 지점과 일치하므로 튀지 않음)
+   */
+  function smoothScrollTo(target) {
+    gallery.style.scrollSnapType = 'none';
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      /* 직전 스크롤의 scrollend가 뒤늦게 도착하는 레이스 방어: 목표 도달 전이면 무시 */
+      if (Math.abs(gallery.scrollLeft - target) > 2) return;
+      finished = true;
+      gallery.removeEventListener('scrollend', finish);
+      if (!interacting) restoreSnap();
+    };
+    const fallback = () => {
+      if (finished) return;
+      finished = true;
+      gallery.removeEventListener('scrollend', finish);
+      if (interacting) return;
+      /* 어떤 이유로든 목표에 못 갔으면 즉시 정렬 후 snap 복원 (복원 시 튐 방지) */
+      if (Math.abs(gallery.scrollLeft - target) > 2) gallery.scrollLeft = target;
+      restoreSnap();
+    };
+    gallery.addEventListener('scrollend', finish);
+    setTimeout(fallback, 1000); /* scrollend 미지원/미발화 폴백 */
+    gallery.scrollTo({ left: target, behavior: 'smooth' });
+  }
+
+  /* 수동 스크롤 종료 후: 가장 가까운 카드로 정렬하고 snap 복원 */
+  function settleToNearestCard() {
+    interacting = false;
+    const target = nearestCardScrollLeft();
+    if (target === null || Math.abs(target - gallery.scrollLeft) < 1) {
+      restoreSnap();
+      return;
+    }
+    smoothScrollTo(target);
+  }
+
+  function tick(direction) {
+    const maxScroll = maxScrollLeft();
+    if (maxScroll <= 0) return;
+    gallery.scrollLeft = Math.max(0, Math.min(maxScroll, gallery.scrollLeft + direction));
+  }
+
+  function stopEdgeScroll() {
     if (edgeDelayTimer) {
       clearTimeout(edgeDelayTimer);
       edgeDelayTimer = null;
     }
-    if (scrolling) {
-      clearInterval(scrolling);
-      scrolling = null;
+    if (edgeRafId !== null) {
+      cancelAnimationFrame(edgeRafId);
+      edgeRafId = null;
+      settleToNearestCard();
     }
   }
 
-  function startScrollIfEdge(pageX) {
-    const screenWidth = window.innerWidth;
-    const ratio = pageX / screenWidth;
+  /* 가장자리 자동 스크롤: setInterval(10ms) 대신 프레임에 맞춘 rAF 루프 사용 */
+  function startEdgeLoop() {
+    if (edgeRafId !== null) return;
+    state.userScrolled = true;
+    interacting = true;
+    gallery.style.scrollSnapType = 'none';
+    const step = () => {
+      if (!gallery.isConnected) {
+        edgeRafId = null;
+        return;
+      }
+      tick(edgeDirection);
+      edgeRafId = requestAnimationFrame(step);
+    };
+    edgeRafId = requestAnimationFrame(step);
+  }
+
+  gallery.addEventListener('mousemove', (e) => {
+    const pageX = e.clientX ?? e.screenX ?? 0;
+    const ratio = pageX / window.innerWidth;
     let direction = 0;
     if (ratio < EDGE_ZONE_LEFT) {
       direction = -EDGE_SCROLL_SPEED * (1 - ratio / EDGE_ZONE_LEFT);
@@ -201,79 +335,65 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
       direction = EDGE_SCROLL_SPEED * ((ratio - (1 - EDGE_ZONE_RIGHT)) / EDGE_ZONE_RIGHT);
     }
     if (direction === 0) {
-      stopScroll();
+      stopEdgeScroll();
       return;
     }
-    stopScroll();
+    /* 이미 스크롤/대기 중이면 재시작하지 않고 속도만 갱신 (mousemove마다 재시작하면 끊김) */
+    edgeDirection = direction;
+    if (edgeRafId !== null || edgeDelayTimer) return;
     edgeDelayTimer = setTimeout(() => {
       edgeDelayTimer = null;
-      scrolling = setInterval(() => tick(direction), 10);
+      startEdgeLoop();
     }, EDGE_HOVER_DELAY_MS);
-  }
-
-  gallery.addEventListener('mousemove', (e) => {
-    const pageX = e.clientX ?? e.screenX ?? 0;
-    const ratio = pageX / window.innerWidth;
-    if (ratio >= EDGE_ZONE_LEFT && ratio <= 1 - EDGE_ZONE_RIGHT) {
-      stopScroll();
-      return;
-    }
-    startScrollIfEdge(pageX);
   }, { passive: true });
 
-  gallery.addEventListener('mouseleave', stopScroll);
+  gallery.addEventListener('mouseleave', stopEdgeScroll);
 
-  /* 마우스 휠: 세로 휠을 가로 스크롤로 변환 (휠 아래 = 오른쪽, 휠 위 = 왼쪽) */
+  /* 마우스 휠: 세로 휠을 가로 스크롤로 변환 (휠 아래 = 오른쪽, 휠 위 = 왼쪽)
+     휠이 도는 동안 snap을 끄고, 멈추면 가장 가까운 카드로 부드럽게 정렬 */
   const WHEEL_SCROLL_SPEED = 1.2;
+  const WHEEL_SETTLE_DELAY_MS = 140;
   gallery.addEventListener(
     'wheel',
     (e) => {
-      const maxScroll = gallery.scrollWidth - gallery.clientWidth;
+      const maxScroll = maxScrollLeft();
       if (maxScroll <= 0) return;
       const delta = e.deltaY * WHEEL_SCROLL_SPEED;
-      const newScroll = gallery.scrollLeft + delta;
-      if (delta > 0 && newScroll < maxScroll) {
-        e.preventDefault();
-        gallery.scrollLeft = Math.min(maxScroll, newScroll);
-      } else if (delta < 0 && newScroll > 0) {
-        e.preventDefault();
-        gallery.scrollLeft = Math.max(0, newScroll);
-      }
+      const canScroll = (delta > 0 && gallery.scrollLeft < maxScroll) || (delta < 0 && gallery.scrollLeft > 0);
+      if (!canScroll) return;
+      e.preventDefault();
+      state.userScrolled = true;
+      interacting = true;
+      gallery.style.scrollSnapType = 'none';
+      gallery.scrollLeft = Math.max(0, Math.min(maxScroll, gallery.scrollLeft + delta));
+      clearTimeout(wheelSettleTimer);
+      wheelSettleTimer = setTimeout(settleToNearestCard, WHEEL_SETTLE_DELAY_MS);
     },
     { passive: false }
   );
 
-  /**
-   * 이전/다음 버튼: 카드 한 장씩 이동.
-   * 현재 뷰포트 중앙에 가장 가까운 카드 기준으로 이전/다음 카드로 부드럽게 스크롤.
-   * 첫 번째 카드는 좌측 스페이서 덕분에 scrollLeft=0이 정확한 위치이므로, 공식 계산 대신 0 사용.
-   */
-  function scrollToCenterCard(card) {
+  /* 카드 한 장을 정확히 중앙으로 (이전/다음 버튼·카드 클릭 공용) */
+  function scrollCardToCenter(card) {
     if (!card) return;
-    const cards = getCards();
-    const isFirstCard = cards.length > 0 && card === cards[0];
-    const targetScroll = isFirstCard
-      ? 0
-      : card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
-    gallery.scrollTo({
-      left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
-      behavior: 'smooth'
-    });
+    state.userScrolled = true;
+    clearTimeout(wheelSettleTimer);
+    interacting = false;
+    const metrics = getCardMetrics(gallery);
+    const m = metrics.find((item) => item.el === card);
+    const center = m ? m.center : card.offsetLeft + card.offsetWidth / 2;
+    smoothScrollTo(Math.max(0, Math.min(maxScrollLeft(), center - gallery.clientWidth / 2)));
   }
-
-  function getCards() {
-    return Array.from(gallery.querySelectorAll(':scope > div.jukebox-card'));
-  }
+  /* 카드 클릭 핸들러(renderJukeboxWithFilter)에서 재사용할 수 있도록 노출 */
+  gallery.jukeboxScrollCardToCenter = scrollCardToCenter;
 
   function getClosestCardIndex() {
-    const cards = getCards();
-    if (cards.length === 0) return -1;
-    const viewportCenterX = gallery.scrollLeft + gallery.clientWidth / 2;
+    const metrics = getCardMetrics(gallery);
+    if (metrics.length === 0) return -1;
+    const viewCenter = gallery.scrollLeft + gallery.clientWidth / 2;
     let closestIdx = 0;
     let closestDist = Infinity;
-    cards.forEach((card, i) => {
-      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
-      const dist = Math.abs(cardCenter - viewportCenterX);
+    metrics.forEach((m, i) => {
+      const dist = Math.abs(m.center - viewCenter);
       if (dist < closestDist) {
         closestDist = dist;
         closestIdx = i;
@@ -284,17 +404,17 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn) {
 
   /* 이전 버튼: 중앙에 가장 가까운 카드의 이전 카드로 스크롤 (맨 앞이면 첫 카드로) */
   prevBtn?.addEventListener('click', () => {
+    const metrics = getCardMetrics(gallery);
     const idx = getClosestCardIndex();
-    const cards = getCards();
-    if (idx > 0) scrollToCenterCard(cards[idx - 1]);
-    else if (cards.length > 0) scrollToCenterCard(cards[0]);
+    if (idx > 0) scrollCardToCenter(metrics[idx - 1].el);
+    else if (metrics.length > 0) scrollCardToCenter(metrics[0].el);
   });
   /* 다음 버튼: 중앙에 가장 가까운 카드의 다음 카드로 스크롤 (맨 뒤면 마지막 카드로) */
   nextBtn?.addEventListener('click', () => {
+    const metrics = getCardMetrics(gallery);
     const idx = getClosestCardIndex();
-    const cards = getCards();
-    if (idx >= 0 && idx < cards.length - 1) scrollToCenterCard(cards[idx + 1]);
-    else if (cards.length > 0) scrollToCenterCard(cards[cards.length - 1]);
+    if (idx >= 0 && idx < metrics.length - 1) scrollCardToCenter(metrics[idx + 1].el);
+    else if (metrics.length > 0) scrollCardToCenter(metrics[metrics.length - 1].el);
   });
 }
 
@@ -317,14 +437,21 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
       const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
+      /*
+       * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
+       * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
+       * .jukebox-card-inner: 호버 플립 + 그림자
+       */
       return `
         <div class="jukebox-card">
-          <div class="jukebox-card-inner">
-            <div class="jukebox-card-face jukebox-card-face--front">
-              <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
-            </div>
-            <div class="jukebox-card-face jukebox-card-face--back">
-              <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+          <div class="jukebox-card-3d">
+            <div class="jukebox-card-inner">
+              <div class="jukebox-card-face jukebox-card-face--front">
+                <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+              </div>
+              <div class="jukebox-card-face jukebox-card-face--back">
+                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+              </div>
             </div>
           </div>
         </div>
@@ -341,23 +468,49 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
   });
 
+  /* 사용자가 스크롤을 시작하기 전까지만 첫 카드 자동 재정렬을 허용하는 플래그 */
+  const state = { userScrolled: false };
+  const markUserScrolled = () => {
+    state.userScrolled = true;
+  };
+  gallery.addEventListener('touchstart', markUserScrolled, { passive: true });
+  gallery.addEventListener('pointerdown', markUserScrolled, { passive: true });
+
   enableCenterPerspective(gallery);
-  enableGalleryScroll(gallery, prevBtn, nextBtn);
+  enableGalleryScroll(gallery, prevBtn, nextBtn, state);
+
+  /* 첫 카드를 정확히 중앙에 (양쪽 스페이서 50vw 덕분에 첫/끝 카드 모두 중앙 도달 가능) */
+  const centerFirstCard = () => {
+    const metrics = refreshCardMetrics(gallery);
+    if (metrics.length === 0) return;
+    gallery.scrollLeft = Math.max(0, metrics[0].center - gallery.clientWidth / 2);
+    updateCardAngles(gallery);
+  };
+
+  /* 이미지가 로드되면 카드 폭이 확정되므로 좌표 캐시를 갱신 */
+  gallery.querySelectorAll('.jukebox-card-face--front img').forEach((img) => {
+    img.addEventListener(
+      'load',
+      () => {
+        if (!gallery.isConnected) return;
+        refreshCardMetrics(gallery);
+        if (!state.userScrolled) centerFirstCard();
+        else updateCardAngles(gallery);
+      },
+      { once: true }
+    );
+  });
 
   /*
-   * 첫 번째 카드 중앙 배치
-   * - 좌측 스페이서(36vw) 덕분에 scrollLeft=0일 때 첫 카드가 중앙에 옴
-   * - scroll-snap이 비동기로 두 번째 카드로 스냅하는 현상 방지:
-   *   초기화 동안 scroll-snap 비활성화 → scrollLeft=0 설정 → 한 프레임 후 snap 복원
+   * 초기 배치: scroll-snap을 잠시 끄고 첫 카드를 정확히 중앙에 둔 뒤 snap 복원.
+   * (복원 시점의 scrollLeft가 정확한 snap 지점이므로 튀지 않음)
    */
   gallery.style.scrollSnapType = 'none';
-  gallery.scrollLeft = 0;
+  centerFirstCard();
   requestAnimationFrame(() => {
+    if (!gallery.isConnected) return;
+    if (!state.userScrolled) centerFirstCard();
     gallery.style.removeProperty('scroll-snap-type');
-    gallery.scrollLeft = 0;
-    requestAnimationFrame(() => {
-      updateCardAngles(gallery);
-    });
   });
 }
 
@@ -546,6 +699,8 @@ export function renderJukeboxWithFilter(options) {
         card.addEventListener('click', () => {
           if (card.classList.contains('jukebox-card--centered')) {
             openNoteModal(note);
+          } else if (typeof gallery.jukeboxScrollCardToCenter === 'function') {
+            gallery.jukeboxScrollCardToCenter(card);
           } else {
             const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
             gallery.scrollTo({
