@@ -57,12 +57,15 @@
 
 ```html
 <div class="jukebox-card">
-  <div class="jukebox-card-inner">
-    <div class="jukebox-card-face jukebox-card-face--front">
-      <img src="앞표지-url" alt="..." />
-    </div>
-    <div class="jukebox-card-face jukebox-card-face--back">
-      <img src="뒷표지-url" alt="... (뒷표지)" class="jukebox-card-back-cover" />
+  <!-- 3D 변환 전용 래퍼: 스냅 대상(.jukebox-card)에 transform을 주면 스냅 위치가 어긋나므로 분리 -->
+  <div class="jukebox-card-3d">
+    <div class="jukebox-card-inner">
+      <div class="jukebox-card-face jukebox-card-face--front">
+        <img src="앞표지-url" alt="..." />
+      </div>
+      <div class="jukebox-card-face jukebox-card-face--back">
+        <img src="뒷표지-url" alt="... (뒷표지)" class="jukebox-card-back-cover" />
+      </div>
     </div>
   </div>
 </div>
@@ -83,14 +86,14 @@
 
 ### 카드 필수 스타일
 
-- **레이아웃**: `display: inline-block`, `scroll-snap-align: center`
-- **변환**: `transform` 에 다음 CSS 변수를 사용 (JS가 매 스크롤마다 설정)
+- **레이아웃**: `.jukebox-card` 에 `display: inline-block`, `scroll-snap-align: center`, `transform-style: preserve-3d` (transform은 주지 않음 — 스냅은 transform 적용 후 박스를 기준으로 계산되므로, 스냅 대상에 transform을 주면 정지 위치가 어긋남)
+- **변환**: 자식 `.jukebox-card-3d` 의 `transform` 에 다음 CSS 변수를 사용 (JS가 매 스크롤마다 설정)
   - `--jukebox-rotate-y`: 예) `-45deg` ~ `0deg` ~ `45deg`
-  - `--jukebox-scale`: 예) `0.88` ~ `1.25`
-  - `--jukebox-translate-z`: 예) `0em` / `1.5em`
-  - `--jukebox-hover-x`: 호버 시 살짝 이동 (중앙 카드만)
-  - `--jukebox-brightness`: 양옆 카드 어둡게 (예: `0.48` ~ `1`)
-  - `--jukebox-shadow`: 카드별 그림자
+  - `--jukebox-scale`: 예) `0.88` ~ `1.375`
+  - `--jukebox-translate-z`: 예) `0em` ~ `1.5em` (중앙으로 갈수록 연속 증가)
+  - `--jukebox-brightness`: 양옆 카드 어둡게 (예: `0.36` ~ `1`)
+  - `--jukebox-shadow`: 카드별 그림자 (플립되는 `.jukebox-card-inner`에 적용)
+- **바닥 반사**: JS가 중앙 카드 기준 거리(0~2)에 따라 `jukebox-card--reflect-0/1/2` 클래스를 토글. 반사 세기는 클래스별 `-webkit-box-reflect` 그라데이션으로 조절하며, 그 외 카드는 반사 없음
 
 ### 카드 플립(뒷면) 스타일
 
@@ -110,37 +113,22 @@
 ### 4.1 Cover Flow 각도/스케일 갱신 (필수)
 
 - **함수**: `updateCardAngles(gallery)`
-- **역할**: 각 카드의 뷰포트 내 위치(중앙으로부터의 비율)를 계산해 `--jukebox-rotate-y`, `--jukebox-scale`, `--jukebox-translate-z`, `--jukebox-brightness`, `--jukebox-shadow`, `--jukebox-hover-x` 와 `z-index` 를 설정. 중앙에 가장 가까운 카드에만 `jukebox-card--centered` 클래스를 붙임.
-- **호출**: 스크롤·리사이즈 시마다 실행되어야 하므로 `enableCenterPerspective(gallery)` 로 등록하는 것이 좋음.
+- **역할**: 각 카드의 뷰포트 내 위치(중앙으로부터의 비율)를 계산해 `--jukebox-rotate-y`, `--jukebox-scale`, `--jukebox-translate-z`, `--jukebox-brightness`, `--jukebox-shadow` 와 `z-index` 를 설정. 중앙에 가장 가까운 카드에만 `jukebox-card--centered` 클래스, 중앙 기준 좌우 2장까지 `jukebox-card--reflect-0/1/2` 클래스를 붙임.
+- **좌표 계산**: transform의 영향을 받지 않는 `offsetLeft` 기반 레이아웃 좌표를 캐시(`refreshCardMetrics`)해서 사용. 스크롤 중에는 캐시만 읽으므로 강제 리플로우가 없음. 카드 크기가 바뀌면(리사이즈·이미지 로드) 캐시를 갱신해야 함.
+- **호출**: scroll 이벤트를 `requestAnimationFrame` 으로 스로틀해 실행하는 `enableCenterPerspective(gallery)` 로 등록하는 것이 좋음.
 
 ### 4.2 스크롤 연동 (필수)
 
 - **함수**: `enableCenterPerspective(gallery)`
-- **역할**: `gallery` 의 `scroll` 이벤트와 `window` 의 `resize` 이벤트에 `updateCardAngles(gallery)` 를 연결하고, 초기 1회 실행.
-
-```js
-function enableCenterPerspective(gallery) {
-  if (!gallery) return;
-  const onUpdate = () => {
-    if (!gallery.isConnected) {
-      window.removeEventListener('resize', onUpdate);
-      return;
-    }
-    updateCardAngles(gallery);
-  };
-  gallery.addEventListener('scroll', onUpdate, { passive: true });
-  window.addEventListener('resize', onUpdate);
-  onUpdate();
-}
-```
+- **역할**: `gallery` 의 `scroll` 이벤트를 `requestAnimationFrame` 으로 스로틀해 프레임당 1회만 `updateCardAngles(gallery)` 를 실행. `window` 의 `resize` 시에는 레이아웃 캐시(`refreshCardMetrics`)를 갱신한 뒤 다시 그림. 초기 1회 실행 포함.
 
 ### 4.3 휠 + 이전/다음 버튼 (권장)
 
-- **함수**: `enableGalleryScroll(gallery, prevBtn, nextBtn)`
+- **함수**: `enableGalleryScroll(gallery, prevBtn, nextBtn, state)`
 - **역할**
-  - **휠**: `wheel` 이벤트에서 `deltaY` 를 가로 스크롤(`scrollLeft`)로 변환. 스크롤 가능할 때만 `preventDefault()`.
-  - **이전/다음**: 클릭 시 “현재 중앙에 가장 가까운 카드”의 이전/다음 카드가 중앙에 오도록 `scrollTo({ left: ..., behavior: 'smooth' })` 호출.
-- **선택**: 가장자리 호버 스크롤도 이 함수 안에 있음. 사용하지 않으면 해당 `mousemove` / `mouseleave` 리스너만 제거하면 됨.
+  - **휠**: `wheel` 이벤트에서 `deltaY` 를 가로 스크롤(`scrollLeft`)로 변환. 스크롤 가능할 때만 `preventDefault()`. 휠이 도는 동안 `scroll-snap-type` 을 잠시 꺼서 CSS snap과 JS 스크롤이 서로 싸우지 않게 하고, 휠이 멈추면 가장 가까운 카드로 부드럽게 정렬한 뒤 snap을 복원.
+  - **이전/다음**: 클릭 시 “현재 중앙에 가장 가까운 카드”의 이전/다음 카드가 중앙에 오도록 부드럽게 스크롤 (`gallery.jukeboxScrollCardToCenter(card)` 로도 노출됨).
+- **선택**: 가장자리 호버 스크롤(rAF 루프)도 이 함수 안에 있음. 사용하지 않으면 해당 `mousemove` / `mouseleave` 리스너만 제거하면 됨.
 
 ### 4.4 커스텀 스크롤바 (선택)
 
@@ -174,7 +162,7 @@ if (wrap && track && thumb) enableCustomScrollbar(gallery, wrap, track, thumb);
 
 - [ ] **갤러리 루트**: `#my-gallery` 등 원하는 id/class. JS는 “갤러리 한 개”만 받음.
 - [ ] **카드 선택자**: `gallery.querySelectorAll(':scope > div.jukebox-card')` 와 동일한 구조 유지. 클래스 이름을 바꾸면 JS 내부의 `jukebox-card` 를 해당 이름으로 변경.
-- [ ] **스페이서**: 첫/끝 카드가 뷰포트 중앙에 올 수 있도록 갤러리 양끝에 빈 `div.jukebox-spacer` 를 두는 것을 권장. 너비는 `36vw` 등으로 조정 가능.
+- [ ] **스페이서**: 첫/끝 카드가 뷰포트 **정중앙**까지 스크롤될 수 있도록 갤러리 양끝에 빈 `div.jukebox-spacer` 를 둠. 너비는 `50vw`(뷰포트 절반) 이상이어야 끝쪽 카드가 중앙에 못 오고 한쪽으로 쏠리는 문제가 없음.
 - [ ] **플립 미사용**: 카드를 `<div class="jukebox-card"><img ... /></div>` 만 두고, CSS에서 `.jukebox-card-inner` / `.jukebox-card-face` 관련 규칙과 호버 플립을 제거하면 됨.
 - [ ] **스크롤바 미사용**: HTML에서 스크롤바 블록 제거하고 `enableCustomScrollbar` 호출만 하지 않으면 됨.
 - [ ] **전체 화면이 아닌 영역**: `.jukebox-fullscreen` 등 전체 화면용 레이아웃/배경은 사용하지 않고, `.jukebox-gallery-wrap` + `.jukebox-gallery` 만 필요한 영역에 넣으면 됨.
@@ -187,11 +175,12 @@ if (wrap && track && thumb) enableCustomScrollbar(gallery, wrap, track, thumb);
 | 변수 | 설명 | 예시 |
 |------|------|------|
 | `--jukebox-rotate-y` | Y축 회전 (중앙 0°, 양옆 ±45°) | `-45deg`, `0deg`, `45deg` |
-| `--jukebox-scale` | 배율 (중앙 크게, 양옆 작게) | `0.88` ~ `1.25` |
-| `--jukebox-translate-z` | Z축 이동 (중앙이 앞으로) | `0em`, `1.5em` |
-| `--jukebox-hover-x` | 중앙 카드 호버 시 X 이동 | `-3vw`, `0`, `3vw` |
-| `--jukebox-brightness` | 이미지 밝기 (양옆 어둡게) | `0.48` ~ `1` |
-| `--jukebox-shadow` | 카드 box-shadow | `0 6px 22px rgba(0,0,0,0.16)` 등 |
+| `--jukebox-scale` | 배율 (중앙 크게, 양옆 작게) | `0.88` ~ `1.375` |
+| `--jukebox-translate-z` | Z축 이동 (중앙이 앞으로, 연속 변화) | `0em` ~ `1.5em` |
+| `--jukebox-brightness` | 이미지 밝기 (양옆 어둡게) | `0.36` ~ `1` |
+| `--jukebox-shadow` | 카드 box-shadow (`.jukebox-card-inner`에 적용해 플립과 함께 회전) | `0 6px 22px rgba(0,0,0,0.16)` 등 |
+
+이 밖에 JS가 토글하는 클래스: `jukebox-card--centered`(중앙 포커스), `jukebox-card--reflect-0/1/2`(바닥 반사, 중앙 기준 거리별 세기).
 
 카드의 `transform` / `box-shadow` / 이미지 `filter` 에 이 변수를 사용하도록 CSS를 작성하면, JS는 스크롤만 갱신해 주면 됩니다.
 

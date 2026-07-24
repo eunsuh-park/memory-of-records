@@ -306,7 +306,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
   filter: none;
 }
 
-.by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover {
+/* 그림자는 플립되는 .jukebox-card-inner에 있으므로 호버(뒷표지) 시 여기서 제거 */
+.by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
   box-shadow: none;
 }
 
@@ -407,8 +408,9 @@ body.jukebox-active.loading-active .notes-scrollbar {
 }
 
 .jukebox-gallery {
-  --jukebox-edge-spacer: 36vw;
-  --jukebox-left-extra-spacer: 8vw;
+  /* 뷰포트 절반: 첫/끝 카드도 정확히 화면 정중앙까지 스크롤할 수 있도록 확보
+     (스페이서가 부족하면 끝쪽 카드가 중앙에 못 오고 왼쪽으로 쏠림) */
+  --jukebox-edge-spacer: 50vw;
   padding: 40vh 0;
   width: 100%;
   height: auto;
@@ -433,31 +435,56 @@ body.jukebox-active.loading-active .notes-scrollbar {
   overflow: visible;
 }
 
-/* 첫 카드 앞에 보이지 않는 여백을 추가로 확보해 첫 카드 접근/포커스를 안정화 */
-.jukebox-gallery > div.jukebox-spacer--left {
-  width: calc(var(--jukebox-edge-spacer) + var(--jukebox-left-extra-spacer));
-}
-
+/*
+ * 스냅 대상 카드에는 transform을 주지 않는다.
+ * scroll-snap은 transform이 적용된 박스 기준으로 스냅 지점을 계산하므로,
+ * 회전/확대 중인 카드가 스냅 대상이면 정지 위치가 중앙에서 어긋난다(왼쪽 쏠림의 원인).
+ * 3D 변환은 자식 .jukebox-card-3d 에서 수행.
+ */
 .jukebox-gallery > div.jukebox-card {
   white-space: normal;
   width: auto;
   height: auto;
   max-height: 38vh;
   overflow: visible;
-  -webkit-box-reflect: below 0.5em
-    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
   display: inline-block;
   margin-left: -2vw;
+  position: relative;
+  opacity: 1;
+  scroll-snap-align: center;
+  /* 갤러리의 perspective를 .jukebox-card-3d 변환까지 전달 */
+  transform-style: preserve-3d;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+  display: inline-block;
   transform-origin: center center;
   transform:
     translate3d(0, 0, var(--jukebox-translate-z, 0))
     rotateY(var(--jukebox-rotate-y, 0deg))
     scale(var(--jukebox-scale, 1));
-  position: relative;
-  opacity: 1;
-  transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
-  scroll-snap-align: center;
-  box-shadow: var(--jukebox-shadow, none);
+  will-change: transform;
+}
+
+/*
+ * 바닥 반사: 중앙 카드(reflect-0)와 그 양옆 2장(reflect-1/2)까지만 적용 (JS가 클래스 토글).
+ * 중앙에서 멀어질수록 옅어지고, 그 외 카드는 아예 비치지 않음.
+ * 반사는 3D 변환되는 요소에 붙여 카드 회전을 자연스럽게 따라가게 한다.
+ * (스냅 대상인 .jukebox-card에 붙이면 box-reflect가 preserve-3d를 무효화해 원근이 사라짐)
+ */
+.jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d {
+  -webkit-box-reflect: below 0.5em
+    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
+}
+
+.jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d {
+  -webkit-box-reflect: below 0.5em
+    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.13));
+}
+
+.jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+  -webkit-box-reflect: below 0.5em
+    linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.06));
 }
 
 /* 첫 카드가 왼쪽으로 밀려 2번째 카드가 먼저 중앙 포커스되는 현상 방지 */
@@ -465,15 +492,14 @@ body.jukebox-active.loading-active .notes-scrollbar {
   margin-left: 0;
 }
 
+/*
+ * 호버 시 카드 자체의 transform은 건드리지 않는다.
+ * (호버로 카드를 이동/확대하면 위치 재계산과 맞물려 카드가 흔들림.
+ *  중앙 카드는 스냅으로 이미 정중앙·정면·최대 배율 상태이므로 플립만 수행)
+ */
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover,
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:active {
-  transform:
-    translateX(var(--jukebox-hover-x, 0))
-    translateZ(1.5em)
-    scale(1.25)
-    rotateY(0deg);
   z-index: 101;
-  box-shadow: 0 10px 32px var(--color-shadow-lg);
 }
 
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
@@ -485,6 +511,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
   display: inline-block;
   transform-style: preserve-3d;
   transition: transform 0.55s ease;
+  /* 그림자는 회전(플립)하는 요소에 부여해 노트를 따라 자연스럽게 회전 */
+  box-shadow: var(--jukebox-shadow, none);
 }
 
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
@@ -533,6 +561,7 @@ body.jukebox-active.loading-active .notes-scrollbar {
   object-fit: contain;
   filter: brightness(var(--jukebox-brightness, 1));
   transition: filter 0.2s ease-out;
+  will-change: filter;
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-cover-image--error {
@@ -584,8 +613,6 @@ body.jukebox-active.loading-active .notes-scrollbar {
 /* 반응형 */
 @media (max-width: 768px) {
   .jukebox-gallery {
-    --jukebox-edge-spacer: 34vw;
-    --jukebox-left-extra-spacer: 8vw;
     padding: 30vh 0;
     -webkit-overflow-scrolling: touch;
   }
@@ -603,8 +630,6 @@ body.jukebox-active.loading-active .notes-scrollbar {
 
 @media (max-width: 480px) {
   .jukebox-gallery {
-    --jukebox-edge-spacer: 29vw;
-    --jukebox-left-extra-spacer: 9vw;
     padding: 28vh 0;
   }
 
