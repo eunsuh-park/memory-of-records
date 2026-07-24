@@ -7,6 +7,7 @@ import { router } from './router.js';
 import { render as renderButton } from './components/Button/Button.js';
 import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
 import { renderFooter } from './components/Footer/Footer.js';
+import { requestPdfFolderSync } from './services/pdfFolderSync.js';
 import './index.css';
 import './App.css';
 
@@ -59,6 +60,9 @@ async function initApp() {
     }
     
     console.log('✅ 앱 초기화 완료');
+
+    /* Cloudinary → Notion pdf_folder_url 자동 채움 (백그라운드, 세션당 1회) */
+    requestPdfFolderSync();
   } catch (error) {
     console.error('❌ 앱 초기화 중 치명적 오류:', error);
     const app = document.getElementById('app');
