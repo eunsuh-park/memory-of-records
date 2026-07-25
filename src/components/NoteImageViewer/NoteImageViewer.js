@@ -45,6 +45,34 @@ export function buildPageImageUrl(folderUrl, pageNumber) {
   return `${base}/page-${String(pageNumber).padStart(6, '0')}.jpg`;
 }
 
+/** folderUrl → Promise<Set<number>> (숨김 페이지 조회 캐시) */
+const hiddenPagesCache = new Map();
+
+/**
+ * Cloudinary metadata의 visible=false 페이지 번호 목록 조회
+ * 조회 실패 시 빈 Set을 반환해 기존처럼 전체 페이지를 노출합니다(fail-open).
+ * @param {string} folderUrl - Cloudinary 폴더 base URL
+ * @returns {Promise<Set<number>>}
+ */
+function fetchHiddenPages(folderUrl) {
+  const key = String(folderUrl || '').trim();
+  if (!key) return Promise.resolve(new Set());
+  if (hiddenPagesCache.has(key)) return hiddenPagesCache.get(key);
+
+  const promise = fetch(`/api/cloudinaryHiddenPages?folder=${encodeURIComponent(key)}`)
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      const list = Array.isArray(data?.hiddenPages) ? data.hiddenPages : [];
+      return new Set(list.map(Number).filter((n) => Number.isFinite(n) && n > 0));
+    })
+    .catch(() => {
+      hiddenPagesCache.delete(key);
+      return new Set();
+    });
+  hiddenPagesCache.set(key, promise);
+  return promise;
+}
+
 async function findNoteById(noteId) {
   const [notebookResult, typeResult] = await Promise.allSettled([
     getNotionNotebooks(),
@@ -134,8 +162,43 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let pageNum = 1;
   let ready = false;
   let renderToken = 0;
+  /** Cloudinary metadata visible=false 페이지 번호 (뷰어에서 건너뜀) */
+  let hiddenPages = new Set();
   /** pageNum → HTMLImageElement (preload 캐시) */
   const preloadedImages = new Map();
+
+  /**
+   * from부터 direction 방향으로 숨김이 아닌 첫 페이지 번호 반환 (없으면 null)
+   * @param {number} from
+   * @param {1|-1} direction
+   */
+  function findVisiblePage(from, direction) {
+    let num = from;
+    while (num >= 1 && (totalPages === null || num <= totalPages)) {
+      if (!hiddenPages.has(num)) return num;
+      num += direction;
+    }
+    return null;
+  }
+
+  /** 숨김 페이지를 제외한 현재 페이지의 표시 순번 */
+  function visibleOrdinal(num) {
+    let hiddenBefore = 0;
+    hiddenPages.forEach((hidden) => {
+      if (hidden <= num) hiddenBefore += 1;
+    });
+    return num - hiddenBefore;
+  }
+
+  /** 숨김 페이지를 제외한 전체 표시 페이지 수 (page_count 미확정 시 null) */
+  function visibleTotal() {
+    if (totalPages === null) return null;
+    let hiddenCount = 0;
+    hiddenPages.forEach((hidden) => {
+      if (hidden <= totalPages) hiddenCount += 1;
+    });
+    return totalPages - hiddenCount;
+  }
 
   function showOverlay(message) {
     if (overlayText) overlayText.textContent = message;
@@ -147,14 +210,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function updateControls() {
-    const atFirst = pageNum <= 1;
-    const atLast = totalPages !== null && pageNum >= totalPages;
+    const atFirst = findVisiblePage(pageNum - 1, -1) === null;
+    const atLast = totalPages !== null && findVisiblePage(pageNum + 1, 1) === null;
     prevBtn.disabled = !ready || atFirst;
     nextBtn.disabled = !ready || atLast;
     firstBtn.disabled = !ready || atFirst;
     lastBtn.disabled = !ready || totalPages === null || atLast;
-    currentPageEl.textContent = String(pageNum);
-    totalPagesEl.textContent = totalPages !== null ? String(totalPages) : '?';
+    const total = visibleTotal();
+    currentPageEl.textContent = String(visibleOrdinal(pageNum));
+    totalPagesEl.textContent = total !== null ? String(total) : '?';
   }
 
   function preloadPage(num) {
@@ -167,10 +231,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     return img;
   }
 
-  /* lazy loading: 현재 페이지 앞뒤 PRELOAD_RADIUS장만 미리 로드 */
+  /* lazy loading: 현재 페이지 앞뒤로 표시 가능한 PRELOAD_RADIUS장만 미리 로드 */
   function preloadAround(num) {
-    for (let n = num - PRELOAD_RADIUS; n <= num + PRELOAD_RADIUS; n += 1) {
-      if (n !== num) preloadPage(n);
+    let forward = num;
+    let backward = num;
+    for (let i = 0; i < PRELOAD_RADIUS; i += 1) {
+      forward = forward === null ? null : findVisiblePage(forward + 1, 1);
+      if (forward !== null) preloadPage(forward);
+      backward = backward === null ? null : findVisiblePage(backward - 1, -1);
+      if (backward !== null) preloadPage(backward);
     }
   }
 
@@ -204,8 +273,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       /* page_count 미지정 시: 실패한 페이지 직전을 마지막 페이지로 확정 */
       if (!hasKnownPageCount && num > 1) {
         totalPages = num - 1;
-        showPage(totalPages);
-        return;
+        const lastVisible = findVisiblePage(totalPages, -1);
+        if (lastVisible !== null) {
+          showPage(lastVisible);
+          return;
+        }
       }
       showOverlay('페이지 이미지를 불러올 수 없습니다. pdf_folder_url을 확인해주세요.');
       console.error('Note page image load error:', buildPageImageUrl(folderUrl, num));
@@ -226,53 +298,60 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function goToPage(num) {
-    if (!ready || num < 1) return;
+    if (!ready || num === null || num < 1) return;
     if (totalPages !== null && num > totalPages) return;
     if (num === pageNum) return;
     showPage(num);
   }
 
   function startViewer() {
+    const firstVisible = findVisiblePage(1, 1);
+    if (firstVisible === null) {
+      ready = false;
+      updateControls();
+      showOverlay('표시할 수 있는 페이지가 없습니다.');
+      return;
+    }
     ready = true;
     updateControls();
-    showPage(1);
+    showPage(firstVisible);
   }
 
   async function initViewer() {
-    if (folderUrl) {
-      startViewer();
-      return;
-    }
-    /* /note/:id 직접 진입: 노트 조회 후 뷰어 선택 */
-    showOverlay('노트 불러오는 중...');
-    const note = await findNoteById(noteId);
-    if (note?.pdfFolderUrl) {
-      folderUrl = String(note.pdfFolderUrl).trim();
-      if (totalPages === null && note.pageCount) {
-        totalPages = note.pageCount;
+    if (!folderUrl) {
+      /* /note/:id 직접 진입: 노트 조회 후 뷰어 선택 */
+      showOverlay('노트 불러오는 중...');
+      const note = await findNoteById(noteId);
+      if (note?.pdfFolderUrl) {
+        folderUrl = String(note.pdfFolderUrl).trim();
+        if (totalPages === null && note.pageCount) {
+          totalPages = note.pageCount;
+        }
+      } else if (note?.pdfUrl || !isModal) {
+        /* 아직 마이그레이션 전(pdf_folder_url 없음): 기존 PDF 뷰어로 폴백 */
+        cleanup();
+        renderPdfViewer(targetEl, noteId, isModal ? { mode: 'modal', pdfUrl: note?.pdfUrl } : {});
+        return;
+      } else {
+        showOverlay('노트 페이지 이미지를 찾을 수 없습니다. Notion의 pdf_folder_url을 확인해주세요.');
+        return;
       }
-      startViewer();
-      return;
     }
-    if (note?.pdfUrl || !isModal) {
-      /* 아직 마이그레이션 전(pdf_folder_url 없음): 기존 PDF 뷰어로 폴백 */
-      cleanup();
-      renderPdfViewer(targetEl, noteId, isModal ? { mode: 'modal', pdfUrl: note?.pdfUrl } : {});
-      return;
-    }
-    showOverlay('노트 페이지 이미지를 찾을 수 없습니다. Notion의 pdf_folder_url을 확인해주세요.');
+    /* Cloudinary metadata visible=false 페이지 목록 조회 후 시작 (실패 시 전체 노출) */
+    hiddenPages = await fetchHiddenPages(folderUrl);
+    startViewer();
   }
 
-  prevBtn.addEventListener('click', () => goToPage(pageNum - 1));
-  nextBtn.addEventListener('click', () => goToPage(pageNum + 1));
-  firstBtn.addEventListener('click', () => goToPage(1));
+  prevBtn.addEventListener('click', () => goToPage(findVisiblePage(pageNum - 1, -1)));
+  nextBtn.addEventListener('click', () => goToPage(findVisiblePage(pageNum + 1, 1)));
+  firstBtn.addEventListener('click', () => goToPage(findVisiblePage(1, 1)));
   lastBtn.addEventListener('click', () => {
-    if (totalPages !== null) goToPage(totalPages);
+    if (totalPages !== null) goToPage(findVisiblePage(totalPages, -1));
   });
 
   const handleKeydown = (event) => {
-    if (event.key === 'ArrowLeft') goToPage(pageNum - 1);
-    else if (event.key === 'ArrowRight') goToPage(pageNum + 1);
+    if (event.key === 'ArrowLeft') goToPage(findVisiblePage(pageNum - 1, -1));
+    else if (event.key === 'ArrowRight') goToPage(findVisiblePage(pageNum + 1, 1));
   };
   document.addEventListener('keydown', handleKeydown);
 

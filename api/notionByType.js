@@ -8,6 +8,8 @@
  * - NOTION_API_KEY: Notion API 토큰
  * - NOTION_BY_TYPE_DB_ID: By type 데이터베이스 ID
  */
+import { isNotionPageVisible } from './_lib/visibility.js';
+
 const BY_TYPE_DB_ID =
   process.env.NOTION_DATABASE_ID || process.env.NOTION_BY_TYPE_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
 
@@ -66,7 +68,8 @@ export default async function handler(req, res) {
       nextCursor = data?.next_cursor || null;
     }
 
-    return res.status(200).json({ results });
+    /* visible 컬럼이 false인 페이지 제외 후 반환 (컬럼이 없으면 모두 노출) */
+    return res.status(200).json({ results: results.filter(isNotionPageVisible) });
   } catch (error) {
     console.error('Notion by type API error:', error);
     return res.status(500).json({
