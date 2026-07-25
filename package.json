@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel:dev": "vercel dev"
+    "vercel:dev": "vercel dev",
+    "migrate:cloudinary": "node scripts/cloudinary-notion-migrate.mjs"
   },
   "devDependencies": {
     "@vercel/node": "^5.5.16",
