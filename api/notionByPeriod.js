@@ -8,6 +8,7 @@
  * - NOTION_API_KEY: Notion API 토큰
  * - NOTION_DATABASE_ID 또는 NOTION_DB_ID: 노션 데이터베이스 ID
  */
+import { isNotionPageVisible } from './_lib/visibility.js';
 
 /** Notion DB ID: 환경 변수 우선, 없으면 기본값 사용 */
 const PERIOD_DB_ID = process.env.NOTION_DATABASE_ID || process.env.NOTION_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
@@ -75,8 +76,8 @@ export default async function handler(req, res) {
       nextCursor = data?.next_cursor || null;
     }
 
-    // 4) 전체 결과 반환
-    return res.status(200).json({ results });
+    // 4) visible 컬럼이 false인 페이지 제외 후 반환 (컬럼이 없으면 모두 노출)
+    return res.status(200).json({ results: results.filter(isNotionPageVisible) });
   } catch (error) {
     console.error('Notion by period API error:', error);
     return res.status(500).json({
