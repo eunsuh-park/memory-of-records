@@ -93,6 +93,32 @@ body.story-page-active .page-header {
 }
 
 /* Story 링크 */
+.page-header__right {
+  gap: 0.35rem;
+}
+
+.page-header__theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.page-header__theme-toggle:hover,
+.page-header__theme-toggle:focus-visible {
+  color: var(--app-text);
+  background-color: var(--color-surface-active);
+  outline: none;
+}
+
 .page-header__story-link {
   text-decoration: none;
   color: var(--app-text-muted);

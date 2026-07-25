@@ -44,13 +44,23 @@
 3. 노션 데이터베이스에 Integration 연결:
    - 데이터베이스 페이지에서 "..." 메뉴 → "Connections" → 생성한 Integration 선택
 
+## 노트 사이즈 (size)
+
+- Notion DB에 `size` 컬럼(Select 또는 Rich text)을 추가하면 캐러셀 정보·뷰어 종횡비에 사용됩니다.
+- 권장 값: `A4`, `A5`, `A6`, `B5`, `B6` 또는 `148x210` 형태.
+- 값이 채워지면 이미지 뷰어의 1페이지/2페이지(양면) 표시 비율이 해당 사이즈로 고정됩니다.
+
 ## 노출 제어 (visible)
 
 - **Notion**: DB에 `visible` 컬럼(Checkbox 권장, Select/Rich text/Formula도 지원)을 추가하면,
-  값이 false인 노트는 API 응답에서 제외되어 웹사이트에 표시되지 않습니다.
+  값이 false인 노트는 기본(`visibility=public`) API 응답에서 제외됩니다.
+  사이트 필터에서 비공개/전체를 고르면 `?visibility=private|all`로 조회합니다.
   `visible` 컬럼이 없는 DB는 기존과 동일하게 전체 노출됩니다.
-- **Cloudinary**: 페이지 이미지의 metadata(구조화 메타데이터) 또는 context에 `visible=false`를
-  지정하면 노트 뷰어에서 해당 페이지를 건너뜁니다. 이를 위해 Vercel 환경 변수가 필요합니다:
+- **Cloudinary**: 페이지 이미지의 **Context**(또는 Structured metadata)에 `visible=false`를
+  지정하면 노트 뷰어에서 해당 페이지를 건너뜁니다.
+  Media Library에서 이미지 선택 → Metadata → Context → key `visible`, value `false`.
+  (파일명/태그/설명란에 적으면 인식하지 않습니다. 반드시 Context 또는 Structured metadata.)
+  이를 위해 Vercel 환경 변수가 필요합니다:
   ```
   CLOUDINARY_URL=cloudinary://{api_key}:{api_secret}@{cloud_name}
   # 또는 개별 변수:
@@ -59,6 +69,7 @@
   CLOUDINARY_CLOUD_NAME=...   # pdf_folder_url이 delivery URL이면 생략 가능
   ```
   환경 변수가 없거나 조회에 실패하면 안전하게 전체 페이지를 노출합니다(fail-open).
+  참고: CDN 캐시가 있어 메타데이터 변경 후 최대 약 5분 뒤에 반영될 수 있습니다.
 
 ## 사용 방법
 

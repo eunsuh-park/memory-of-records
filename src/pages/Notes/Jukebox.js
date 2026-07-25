@@ -18,6 +18,7 @@ import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
+import { formatNoteSizeLabel } from '../../utils/noteSize.js';
 import './Jukebox.css';
 
 const ICONS = {
@@ -166,6 +167,12 @@ function updateCardAngles(gallery) {
     if (centered !== m.lastCentered) {
       m.lastCentered = centered;
       card.classList.toggle('jukebox-card--centered', centered);
+      if (centered) {
+        const noteId = card.getAttribute('data-note-id');
+        gallery.dispatchEvent(
+          new CustomEvent('jukebox:centered', { detail: { noteId, index: i } })
+        );
+      }
     }
   });
 }
@@ -176,7 +183,11 @@ function updateCardAngles(gallery) {
  * 리사이즈 시에는 레이아웃 캐시를 갱신한 뒤 다시 그린다.
  */
 function enableCenterPerspective(gallery) {
-  if (!gallery) return;
+  if (!gallery || gallery._jukeboxPerspectiveEnabled) {
+    if (gallery) updateCardAngles(gallery);
+    return;
+  }
+  gallery._jukeboxPerspectiveEnabled = true;
   let rafId = null;
 
   const onScroll = () => {
@@ -213,7 +224,8 @@ function enableCenterPerspective(gallery) {
  * 반응형: 터치 기기에서는 mousemove가 없어 호버 스크롤은 동작하지 않음. 스와이프·버튼·휠만 사용.
  */
 function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: false }) {
-  if (!gallery) return;
+  if (!gallery || gallery._jukeboxScrollEnabled) return;
+  gallery._jukeboxScrollEnabled = true;
   let edgeRafId = null;
   let edgeDelayTimer = null;
   let edgeDirection = 0;
@@ -469,12 +481,17 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   });
 
   /* 사용자가 스크롤을 시작하기 전까지만 첫 카드 자동 재정렬을 허용하는 플래그 */
-  const state = { userScrolled: false };
-  const markUserScrolled = () => {
-    state.userScrolled = true;
-  };
-  gallery.addEventListener('touchstart', markUserScrolled, { passive: true });
-  gallery.addEventListener('pointerdown', markUserScrolled, { passive: true });
+  const state = gallery._jukeboxScrollState || { userScrolled: false };
+  gallery._jukeboxScrollState = state;
+  if (!gallery._jukeboxUserScrollBound) {
+    gallery._jukeboxUserScrollBound = true;
+    const markUserScrolled = () => {
+      state.userScrolled = true;
+    };
+    gallery.addEventListener('touchstart', markUserScrolled, { passive: true });
+    gallery.addEventListener('pointerdown', markUserScrolled, { passive: true });
+  }
+  state.userScrolled = false;
 
   enableCenterPerspective(gallery);
   enableGalleryScroll(gallery, prevBtn, nextBtn, state);
@@ -587,8 +604,8 @@ function openNoteModal(note) {
   const overlay = document.createElement('div');
   overlay.className = 'pdf-modal-overlay';
   overlay.innerHTML = `
+    ${renderButton({ variant: 'icon', ariaLabel: '닫기', content: ICONS.close, className: 'pdf-modal-close' })}
     <div class="pdf-modal" role="dialog" aria-modal="true">
-      ${renderButton({ variant: 'icon', ariaLabel: '닫기', content: ICONS.close, className: 'pdf-modal-close' })}
       <div class="pdf-modal-content"></div>
     </div>
   `;
@@ -601,9 +618,10 @@ function openNoteModal(note) {
     ? renderNoteImageViewer(content, noteId, {
         mode: 'modal',
         pdfFolderUrl,
-        pageCount: note?.pageCount
+        pageCount: note?.pageCount,
+        size: note?.size
       })
-    : renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl });
+    : renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl, size: note?.size });
 
   const closeModal = () => {
     cleanupViewer?.();
@@ -616,9 +634,81 @@ function openNoteModal(note) {
     if (e.key === 'Escape') closeModal();
   };
 
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-  overlay.querySelector('.pdf-modal-close')?.addEventListener('click', closeModal);
+  /* 딤(오버레이)·캔버스 여백 클릭 시 닫기. 이미지/캔버스/버튼은 제외 */
+  overlay.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    if (t.closest('.pdf-modal-close')) return;
+    if (t.closest('canvas, .niv-page-image, .btn, .pdf-page-indicator, .pdf-zoom-controls')) {
+      return;
+    }
+    if (
+      t === overlay ||
+      t.classList.contains('pdf-modal') ||
+      t.classList.contains('pdf-modal-content') ||
+      t.classList.contains('pdf-viewer') ||
+      t.classList.contains('pdf-canvas-wrap') ||
+      t.classList.contains('niv-image-container') ||
+      t.classList.contains('pdf-canvas-container')
+    ) {
+      closeModal();
+    }
+  });
+  overlay.querySelector('.pdf-modal-close')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeModal();
+  });
   document.addEventListener('keydown', handleEscape);
+}
+
+function filterByVisibility(notes, visibility) {
+  if (visibility === 'all') return notes || [];
+  if (visibility === 'private') {
+    return (notes || []).filter((n) => n.visible === false);
+  }
+  return (notes || []).filter((n) => n.visible !== false);
+}
+
+function sortNotes(notes, sortKey) {
+  const list = [...(notes || [])];
+  if (sortKey === 'title') {
+    list.sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko'));
+  } else if (sortKey === 'pages') {
+    list.sort((a, b) => (Number(b.pageCount) || 0) - (Number(a.pageCount) || 0));
+  } else if (sortKey === 'size') {
+    list.sort((a, b) =>
+      String(a.size || '').localeCompare(String(b.size || ''), 'ko', { numeric: true })
+    );
+  }
+  return list;
+}
+
+function categoryLabel(note, filterMode) {
+  if (filterMode === 'type') return note.type || note.notebookType || '';
+  return note.notebookType || note.type || '';
+}
+
+function renderFocusedNoteInfo(note, filterMode) {
+  if (!note) {
+    return `<div class="jukebox-focus-info" aria-live="polite"><p class="jukebox-focus-info__empty">노트를 선택하세요</p></div>`;
+  }
+  const title = escapeHtml(note.title || '제목 없음');
+  const category = escapeHtml(categoryLabel(note, filterMode));
+  const pages =
+    note.pageCount != null ? `${escapeHtml(String(note.pageCount))}장` : '';
+  const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
+  const memo = escapeHtml(note.description || '');
+  const visibility = note.visible === false ? '비공개' : '공개';
+
+  const metaParts = [category, pages, size, visibility].filter(Boolean);
+
+  return `
+    <div class="jukebox-focus-info" aria-live="polite">
+      <h2 class="jukebox-focus-info__title">${title}</h2>
+      ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
+      ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
+    </div>
+  `;
 }
 
 /**
@@ -654,6 +744,11 @@ export function renderJukeboxWithFilter(options) {
   const subMenuContainer = document.getElementById('sub-menu');
   if (!subMenuContainer) return;
 
+  let visibility = 'public';
+  let sortKey = 'default';
+  /** @type {Array|null} */
+  let allNotesCache = null;
+
   mainContent.className = 'app-main jukebox-active' + (filterMode === 'type' ? ' by-type-jukebox' : '');
   const mainWrapper = mainContent.closest('.main-wrapper');
   if (mainWrapper) mainWrapper.classList.add('jukebox-active');
@@ -671,49 +766,106 @@ export function renderJukeboxWithFilter(options) {
           </div>
         </div>
       </div>
+      <div class="jukebox-focus-slot">${renderFocusedNoteInfo(null, filterMode)}</div>
     </div>
   `;
 
   const galleryWrap = mainContent.querySelector('.jukebox-gallery-wrap');
   const gallery = mainContent.querySelector('.jukebox-gallery');
+  const focusSlot = mainContent.querySelector('.jukebox-focus-slot');
   const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
   const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
 
-  // 진입 직후 현재 페이지 옵션으로 서브메뉴를 먼저 그림 (이전 페이지 메뉴가 4개/5개로 남는 현상 방지)
-  renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle);
+  function updateFocusInfo(notes) {
+    const centered = gallery.querySelector('.jukebox-card--centered');
+    const noteId = centered?.getAttribute('data-note-id');
+    const note = (notes || []).find((n) => n.id === noteId) || notes?.[0] || null;
+    if (focusSlot) focusSlot.innerHTML = renderFocusedNoteInfo(note, filterMode);
+  }
+
+  function bindGallery(notes) {
+    fillJukeboxGallery(gallery, prevBtn, nextBtn, notes);
+
+    const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
+    cards.forEach((card, i) => {
+      const note = notes[i];
+      if (!note) return;
+      card.setAttribute('data-note-id', note.id);
+      card.setAttribute('data-pdf-url', note.pdfUrl || '');
+      card.addEventListener('click', () => {
+        if (card.classList.contains('jukebox-card--centered')) {
+          openNoteModal(note);
+        } else if (typeof gallery.jukeboxScrollCardToCenter === 'function') {
+          gallery.jukeboxScrollCardToCenter(card);
+        } else {
+          const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
+          gallery.scrollTo({
+            left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+
+    if (gallery._jukeboxFocusHandler) {
+      gallery.removeEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
+    }
+    gallery._jukeboxFocusHandler = () => updateFocusInfo(notes);
+    gallery.addEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
+    updateFocusInfo(notes);
+  }
+
+  function applyFiltersAndRender() {
+    if (!allNotesCache) return;
+    const byPeriodOrType = (allNotesCache || []).filter(
+      (note) => resolveFilterKey(note) === selectedValue
+    );
+    const visibleFiltered = filterByVisibility(byPeriodOrType, visibility);
+    const sorted = sortNotes(visibleFiltered, sortKey);
+    bindGallery(sorted);
+
+    const countsSource = filterByVisibility(allNotesCache, visibility);
+    const counts = getNotesCount(countsSource);
+    renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle, {
+      visibility,
+      sortKey,
+      onVisibilityChange: (value) => {
+        visibility = value;
+        applyFiltersAndRender();
+      },
+      onSortChange: (value) => {
+        sortKey = value;
+        applyFiltersAndRender();
+      }
+    });
+  }
+
+  // 진입 직후 현재 페이지 옵션으로 서브메뉴를 먼저 그림
+  renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle, {
+    visibility,
+    sortKey,
+    onVisibilityChange: (value) => {
+      visibility = value;
+      applyFiltersAndRender();
+    },
+    onSortChange: (value) => {
+      sortKey = value;
+      applyFiltersAndRender();
+    }
+  });
 
   loadNotes()
     .then((allNotes) => {
-      const counts = getNotesCount(allNotes || []);
-      renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle);
-
-      const filtered = (allNotes || []).filter((note) => resolveFilterKey(note) === selectedValue);
-      fillJukeboxGallery(gallery, prevBtn, nextBtn, filtered);
-
-      const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
-      cards.forEach((card, i) => {
-        const note = filtered[i];
-        if (!note) return;
-        card.setAttribute('data-note-id', note.id);
-        card.setAttribute('data-pdf-url', note.pdfUrl || '');
-        card.addEventListener('click', () => {
-          if (card.classList.contains('jukebox-card--centered')) {
-            openNoteModal(note);
-          } else if (typeof gallery.jukeboxScrollCardToCenter === 'function') {
-            gallery.jukeboxScrollCardToCenter(card);
-          } else {
-            const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
-            gallery.scrollTo({
-              left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
-              behavior: 'smooth'
-            });
-          }
-        });
-      });
+      allNotesCache = allNotes || [];
+      applyFiltersAndRender();
     })
     .catch((err) => {
       console.warn('Jukebox filter: 노트 로드 실패', err);
-      renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle);
+      renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle, {
+        visibility,
+        sortKey
+      });
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
+      if (focusSlot) focusSlot.innerHTML = renderFocusedNoteInfo(null, filterMode);
     });
 }

@@ -68,8 +68,18 @@ export default async function handler(req, res) {
       nextCursor = data?.next_cursor || null;
     }
 
-    /* visible 컬럼이 false인 페이지 제외 후 반환 (컬럼이 없으면 모두 노출) */
-    return res.status(200).json({ results: results.filter(isNotionPageVisible) });
+    /* visibility 쿼리: public(기본) | private | all */
+    const visibility = String(req.query?.visibility || 'public').toLowerCase();
+    let filtered = results;
+    if (visibility === 'private') {
+      filtered = results.filter((page) => !isNotionPageVisible(page));
+    } else if (visibility === 'all') {
+      filtered = results;
+    } else {
+      filtered = results.filter(isNotionPageVisible);
+    }
+
+    return res.status(200).json({ results: filtered });
   } catch (error) {
     console.error('Notion by type API error:', error);
     return res.status(500).json({
