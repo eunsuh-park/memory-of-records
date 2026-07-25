@@ -8,6 +8,7 @@ import { render as renderButton } from './components/Button/Button.js';
 import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
 import { renderFooter } from './components/Footer/Footer.js';
 import { requestPdfFolderSync } from './services/pdfFolderSync.js';
+import { initTheme } from './utils/theme.js';
 import './index.css';
 import './App.css';
 
@@ -15,6 +16,7 @@ import './App.css';
 async function initApp() {
   try {
     console.log('🚀 앱 초기화 시작...');
+    initTheme();
     
     const app = document.getElementById('app');
     if (!app) {

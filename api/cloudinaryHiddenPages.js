@@ -27,25 +27,146 @@ function getCloudinaryCredentials() {
   };
 }
 
+function decodePathSegment(segment) {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return segment;
+  }
+}
+
 /**
- * folder 파라미터에서 cloud name과 public_id prefix 추출
+ * folder 파라미터에서 cloud name과 폴더 path 추출
  * - delivery URL이면 upload/ 뒤에서 버전(v123...)·변환(f_auto,q_auto 등) 세그먼트 제거
- * - URL이 아니면 값 자체를 prefix로 사용
+ * - URL 인코딩된 한글 경로를 디코딩 (Admin API prefix/asset_folder는 디코딩된 public_id 기준)
+ * - URL이 아니면 값 자체를 path로 사용
  */
 function parseFolderParam(folder) {
   const trimmed = String(folder || '').trim().replace(/\/+$/, '');
-  if (!trimmed) return { cloudName: null, prefix: null };
+  if (!trimmed) return { cloudName: null, folderPath: null };
 
   const deliveryMatch = trimmed.match(
     /^https?:\/\/res\.cloudinary\.com\/([^/]+)\/image\/upload\/(.+)$/i
   );
-  if (!deliveryMatch) return { cloudName: null, prefix: trimmed };
+  if (!deliveryMatch) {
+    return { cloudName: null, folderPath: decodePathSegment(trimmed) };
+  }
 
   const segments = deliveryMatch[2].split('/').filter(Boolean);
   while (segments.length && (/^v\d+$/.test(segments[0]) || segments[0].includes(','))) {
     segments.shift();
   }
-  return { cloudName: deliveryMatch[1], prefix: segments.join('/') };
+  return {
+    cloudName: deliveryMatch[1],
+    folderPath: segments.map(decodePathSegment).join('/')
+  };
+}
+
+/** public_id에서 페이지 번호 추출 (고유접미사 page-000001_ab3k9x 포함) */
+function extractPageNumber(publicId) {
+  const match = String(publicId || '').match(/page-(\d+)(?:_[a-z0-9]+)?$/i);
+  return match ? Number(match[1]) : null;
+}
+
+async function fetchJson(url, authHeader, init = {}) {
+  const response = await fetch(url, {
+    ...init,
+    headers: { Authorization: authHeader, ...(init.headers || {}) }
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const error = new Error(data?.error?.message || 'Cloudinary API error');
+    error.status = response.status;
+    error.details = data;
+    throw error;
+  }
+  return data;
+}
+
+async function fetchAllGetPages(url, authHeader) {
+  const resources = [];
+  let nextCursor = null;
+
+  do {
+    const endpoint = new URL(url);
+    if (nextCursor) endpoint.searchParams.set('next_cursor', nextCursor);
+    const data = await fetchJson(endpoint.toString(), authHeader);
+    resources.push(...(data?.resources || []));
+    nextCursor = data?.next_cursor || null;
+  } while (nextCursor);
+
+  return resources;
+}
+
+async function searchFolderResources({ cloudName, folderPath, authHeader }) {
+  const resources = [];
+  let nextCursor = null;
+  const escaped = folderPath.replace(/"/g, '\\"');
+  /* fixed folder(folder/public_id) + dynamic folder(asset_folder) 모두 커버 */
+  const expression =
+    `(folder="${escaped}" OR folder="${escaped}/*" OR asset_folder="${escaped}" OR public_id:${escaped}/*)`;
+
+  do {
+    const body = {
+      expression,
+      with_field: ['context', 'metadata', 'tags'],
+      max_results: 500
+    };
+    if (nextCursor) body.next_cursor = nextCursor;
+
+    const data = await fetchJson(
+      `https://api.cloudinary.com/v1_1/${cloudName}/resources/search`,
+      authHeader,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }
+    );
+    resources.push(...(data?.resources || []));
+    nextCursor = data?.next_cursor || null;
+  } while (nextCursor);
+
+  return resources;
+}
+
+/**
+ * Search API를 우선 사용하고, 실패 시 prefix / asset_folder 목록으로 폴백합니다.
+ */
+async function listFolderResources({ cloudName, folderPath, authHeader }) {
+  try {
+    const searched = await searchFolderResources({ cloudName, folderPath, authHeader });
+    if (searched.length) return searched;
+  } catch (error) {
+    console.warn('Cloudinary search fallback:', error?.message || error);
+  }
+
+  const common = 'max_results=500&context=true&metadata=true';
+  const byPrefixUrl =
+    `https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload` +
+    `?prefix=${encodeURIComponent(`${folderPath}/`)}&${common}`;
+  const byAssetFolderUrl =
+    `https://api.cloudinary.com/v1_1/${cloudName}/resources/by_asset_folder` +
+    `?asset_folder=${encodeURIComponent(folderPath)}&${common}`;
+
+  const [prefixResult, assetFolderResult] = await Promise.allSettled([
+    fetchAllGetPages(byPrefixUrl, authHeader),
+    fetchAllGetPages(byAssetFolderUrl, authHeader)
+  ]);
+
+  if (prefixResult.status === 'rejected' && assetFolderResult.status === 'rejected') {
+    throw prefixResult.reason;
+  }
+
+  const merged = new Map();
+  for (const result of [prefixResult, assetFolderResult]) {
+    if (result.status !== 'fulfilled') continue;
+    for (const resource of result.value) {
+      const key = resource?.asset_id || resource?.public_id;
+      if (key) merged.set(key, resource);
+    }
+  }
+  return [...merged.values()];
 }
 
 /**
@@ -57,8 +178,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { cloudName: urlCloudName, prefix } = parseFolderParam(req.query?.folder);
-  if (!prefix) {
+  const { cloudName: urlCloudName, folderPath } = parseFolderParam(req.query?.folder);
+  if (!folderPath) {
     return res.status(400).json({
       error: 'Invalid folder',
       message: 'folder query parameter is required'
@@ -76,48 +197,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`;
     const authHeader = `Basic ${Buffer.from(
       `${credentials.apiKey}:${credentials.apiSecret}`
     ).toString('base64')}`;
+
+    const resources = await listFolderResources({
+      cloudName,
+      folderPath,
+      authHeader
+    });
+
     const hiddenPages = [];
-    let nextCursor = null;
-
-    // Admin API 페이지네이션 루프 (500건 제한 대응)
-    do {
-      const params = new URLSearchParams({
-        prefix: `${prefix}/`,
-        max_results: '500',
-        context: 'true',
-        metadata: 'true'
-      });
-      if (nextCursor) params.set('next_cursor', nextCursor);
-
-      const response = await fetch(`${endpoint}?${params.toString()}`, {
-        headers: { Authorization: authHeader }
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        return res.status(response.status).json({
-          error: 'Cloudinary API error',
-          details: data
-        });
-      }
-
-      for (const resource of data?.resources || []) {
-        if (isCloudinaryResourceVisible(resource)) continue;
-        const pageMatch = String(resource?.public_id || '').match(/page-(\d+)$/i);
-        if (pageMatch) hiddenPages.push(Number(pageMatch[1]));
-      }
-      nextCursor = data?.next_cursor || null;
-    } while (nextCursor);
+    for (const resource of resources) {
+      if (isCloudinaryResourceVisible(resource)) continue;
+      const pageNum = extractPageNumber(resource?.public_id);
+      if (pageNum) hiddenPages.push(pageNum);
+    }
 
     /* Admin API 호출량 절약: CDN에서 5분 캐시 */
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
-    return res.status(200).json({ hiddenPages: hiddenPages.sort((a, b) => a - b) });
+    return res.status(200).json({
+      hiddenPages: [...new Set(hiddenPages)].sort((a, b) => a - b)
+    });
   } catch (error) {
     console.error('Cloudinary hidden pages API error:', error);
+    if (error?.status) {
+      return res.status(error.status).json({
+        error: 'Cloudinary API error',
+        details: error.details
+      });
+    }
     return res.status(500).json({
       error: 'Cloudinary API error',
       message: error?.message || 'Unknown error'

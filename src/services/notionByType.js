@@ -3,11 +3,10 @@
  */
 import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
+import { isNotionPageVisible } from '../utils/noteVisibility.js';
 
-const cachedNotionTypeItems = {
-  data: null,
-  promise: null
-};
+/** visibility → { data, promise } */
+const cachedNotionTypeItems = new Map();
 
 function normalizePropertyKey(name) {
   return String(name || '')
@@ -166,22 +165,34 @@ export function convertNotionPageToTypeItem(page) {
   );
   const pageCount =
     Number.isFinite(rawPageCount) && rawPageCount > 0 ? Math.floor(rawPageCount) : null;
+  const size =
+    parseNotionProperty(
+      getProperty(properties, 'size', 'Size', '사이즈', '노트 사이즈', 'note_size', 'Note Size')
+    ) || null;
+  const visible = isNotionPageVisible(page);
 
   return {
     id: page?.id || '',
     title,
     type,
-    description,
+    description: description != null && String(description).trim() ? String(description).trim() : null,
     coverFrontUrl,
     coverBackUrl,
     pdfUrl,
     pdfFolderUrl,
-    pageCount
+    pageCount,
+    size: size != null && String(size).trim() ? String(size).trim() : null,
+    visible
   };
 }
 
-export async function fetchNotionTypeItems() {
-  const response = await fetch('/api/notionByType', {
+/**
+ * @param {{ visibility?: 'public'|'private'|'all' }} [options]
+ */
+export async function fetchNotionTypeItems(options = {}) {
+  const visibility = options.visibility || 'all';
+  const qs = `?visibility=${encodeURIComponent(visibility)}`;
+  const response = await fetch(`/api/notionByType${qs}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -201,25 +212,34 @@ export async function fetchNotionTypeItems() {
   return pages.map(convertNotionPageToTypeItem);
 }
 
-export async function getNotionTypeItems() {
-  if (cachedNotionTypeItems.data) return cachedNotionTypeItems.data;
-  if (cachedNotionTypeItems.promise) return cachedNotionTypeItems.promise;
+/**
+ * @param {{ visibility?: 'public'|'private'|'all' }} [options]
+ */
+export async function getNotionTypeItems(options = {}) {
+  const visibility = options.visibility || 'all';
+  const cached = cachedNotionTypeItems.get(visibility) || { data: null, promise: null };
 
-  cachedNotionTypeItems.promise = fetchNotionTypeItems()
+  if (cached.data) return cached.data;
+  if (cached.promise) return cached.promise;
+
+  cached.promise = fetchNotionTypeItems({ visibility })
     .then((items) => {
-      cachedNotionTypeItems.data = items;
+      cached.data = items;
+      cachedNotionTypeItems.set(visibility, cached);
       return items;
     })
     .catch((error) => {
-      cachedNotionTypeItems.data = null;
-      cachedNotionTypeItems.promise = null;
+      cached.data = null;
+      cached.promise = null;
+      cachedNotionTypeItems.set(visibility, cached);
       throw error;
     });
 
-  return cachedNotionTypeItems.promise;
+  cachedNotionTypeItems.set(visibility, cached);
+  return cached.promise;
 }
 
-export function getCachedNotionTypeItems() {
-  return cachedNotionTypeItems.data || [];
+export function getCachedNotionTypeItems(visibility = 'all') {
+  return cachedNotionTypeItems.get(visibility)?.data || [];
 }
 

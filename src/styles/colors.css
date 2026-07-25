@@ -1,11 +1,13 @@
 /**
- * 다크 모드 색상 팔레트 (기본 모드)
+ * 색상 팔레트
+ * 기본: 다크 모드 (`data-theme="dark"` 또는 미지정)
+ * 라이트: `html[data-theme="light"]`
  *
  * 사용: var(--color-*) 또는 var(--app-*)
- * --app-* 은 기존 호환용 별칭
  */
 
-:root {
+:root,
+[data-theme='dark'] {
   /* === 배경 === */
   --color-bg: #29323f;
   --color-bg-alt: #2f3847;
@@ -34,6 +36,7 @@
   --color-overlay-dark: rgba(17, 24, 39, 0.9);
   --color-overlay-medium: rgba(17, 24, 39, 0.75);
   --color-overlay-light: rgba(17, 24, 39, 0.5);
+  --color-viewer-loading: rgba(0, 0, 0, 0.35);
 
   /* === 에러 === */
   --color-error: rgba(200, 0, 0, 0.5);
@@ -43,6 +46,7 @@
   --color-shadow-sm: rgba(0, 0, 0, 0.12);
   --color-shadow: rgba(0, 0, 0, 0.2);
   --color-shadow-lg: rgba(0, 0, 0, 0.28);
+  --color-drop-shadow: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
 
   /* === 반사·그라데이션 (주크박스 등) === */
   --color-reflect: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
@@ -60,5 +64,45 @@
   --secondary-color: #666;
   --background-color: var(--color-bg);
   --border-color: var(--color-border);
+  --hover-color: var(--color-primary-hover);
+}
+
+[data-theme='light'] {
+  --color-bg: #e8ebe9;
+  --color-bg-alt: #dfe3e0;
+
+  --color-text: rgba(28, 36, 44, 0.92);
+  --color-text-muted: rgba(28, 36, 44, 0.68);
+  --color-text-dim: rgba(28, 36, 44, 0.48);
+
+  --color-surface-hover: rgba(28, 36, 44, 0.06);
+  --color-surface-active: rgba(28, 36, 44, 0.1);
+  --color-surface-selected: rgba(28, 36, 44, 0.14);
+
+  --color-primary: #c4a035;
+  --color-primary-hover: #333;
+  --color-primary-on: #fff;
+
+  --color-border: rgba(28, 36, 44, 0.14);
+  --color-border-light: rgba(0, 0, 0, 0.08);
+
+  --color-overlay: rgba(20, 28, 36, 0.55);
+  --color-overlay-dark: rgba(255, 255, 255, 0.92);
+  --color-overlay-medium: rgba(255, 255, 255, 0.8);
+  --color-overlay-light: rgba(255, 255, 255, 0.65);
+  --color-viewer-loading: rgba(20, 28, 36, 0.28);
+
+  --color-error: rgba(180, 40, 40, 0.55);
+  --color-error-bg: rgba(180, 40, 40, 0.08);
+
+  --color-shadow-sm: rgba(20, 28, 36, 0.08);
+  --color-shadow: rgba(20, 28, 36, 0.14);
+  --color-shadow-lg: rgba(20, 28, 36, 0.22);
+  --color-drop-shadow: drop-shadow(0 8px 18px rgba(20, 28, 36, 0.28));
+
+  --color-reflect: linear-gradient(rgb(255 255 255 / 0), rgb(20 28 36 / 0.12));
+  --color-fade-edge: linear-gradient(90deg, #e8ebe9, transparent);
+
+  --secondary-color: #666;
   --hover-color: var(--color-primary-hover);
 }

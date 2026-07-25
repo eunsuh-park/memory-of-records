@@ -370,6 +370,7 @@ body.jukebox-active.loading-active .notes-scrollbar {
    ============================================================================= */
 
 .jukebox-fullscreen {
+  position: relative;
   background: linear-gradient(
     var(--app-bg) 40%,
     var(--app-bg-alt) 60%,
@@ -642,6 +643,63 @@ body.jukebox-active.loading-active .notes-scrollbar {
   .jukebox-gallery > div.jukebox-card {
     margin-left: -2vw;
   }
+}
+
+/* 캐러셀 중앙 포커스 노트 정보 */
+.jukebox-focus-slot {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  width: min(420px, calc(100% - 2rem));
+  pointer-events: none;
+  text-align: center;
+}
+
+.jukebox-focus-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--app-bg) 72%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.jukebox-focus-info__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--app-text);
+  line-height: 1.3;
+}
+
+.jukebox-focus-info__meta {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--app-text-muted);
+}
+
+.jukebox-focus-info__memo {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--app-text-dim);
+  max-width: 36ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.jukebox-focus-info__empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--app-text-dim);
 }
 
 body.jukebox-active #sub-menu {

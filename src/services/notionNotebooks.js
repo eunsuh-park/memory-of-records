@@ -3,13 +3,12 @@
  */
 import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
+import { isNotionPageVisible } from '../utils/noteVisibility.js';
 
 const NOTEBOOK_DB_ID = '18dfb9c7066e4df99962c5fed616b3db';
 
-const cachedNotionNotebooks = {
-  data: null,
-  promise: null
-};
+/** visibility → { data, promise } */
+const cachedNotionNotebooks = new Map();
 
 function normalizePropertyKey(name) {
   return String(name || '')
@@ -198,6 +197,26 @@ export function convertNotionPageToNotebook(page) {
   );
   const pageCount =
     Number.isFinite(rawPageCount) && rawPageCount > 0 ? Math.floor(rawPageCount) : null;
+  const size =
+    parseNotionProperty(
+      getProperty(properties, 'size', 'Size', '사이즈', '노트 사이즈', 'note_size', 'Note Size')
+    ) || null;
+  const description =
+    parseNotionProperty(
+      getProperty(
+        properties,
+        'description',
+        'Description',
+        'desc',
+        '설명',
+        '메모',
+        'memo',
+        'Memo',
+        'note',
+        'Note'
+      )
+    ) || null;
+  const visible = isNotionPageVisible(page);
 
   return {
     id: page?.id || '',
@@ -209,12 +228,20 @@ export function convertNotionPageToNotebook(page) {
     coverBackUrl,
     pdfUrl,
     pdfFolderUrl,
-    pageCount
+    pageCount,
+    size: size != null && String(size).trim() ? String(size).trim() : null,
+    description: description != null && String(description).trim() ? String(description).trim() : null,
+    visible
   };
 }
 
-export async function fetchNotionNotebooks() {
-  const response = await fetch('/api/notionByPeriod', {
+/**
+ * @param {{ visibility?: 'public'|'private'|'all' }} [options]
+ */
+export async function fetchNotionNotebooks(options = {}) {
+  const visibility = options.visibility || 'all';
+  const qs = `?visibility=${encodeURIComponent(visibility)}`;
+  const response = await fetch(`/api/notionByPeriod${qs}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -231,26 +258,36 @@ export async function fetchNotionNotebooks() {
   return pages.map(convertNotionPageToNotebook);
 }
 
-export async function getNotionNotebooks() {
-  if (cachedNotionNotebooks.data) return cachedNotionNotebooks.data;
-  if (cachedNotionNotebooks.promise) return cachedNotionNotebooks.promise;
+/**
+ * @param {{ visibility?: 'public'|'private'|'all' }} [options]
+ * 기본 visibility=all (클라이언트에서 공개/비공개 필터)
+ */
+export async function getNotionNotebooks(options = {}) {
+  const visibility = options.visibility || 'all';
+  const cached = cachedNotionNotebooks.get(visibility) || { data: null, promise: null };
 
-  cachedNotionNotebooks.promise = fetchNotionNotebooks()
+  if (cached.data) return cached.data;
+  if (cached.promise) return cached.promise;
+
+  cached.promise = fetchNotionNotebooks({ visibility })
     .then((notebooks) => {
-      cachedNotionNotebooks.data = notebooks;
+      cached.data = notebooks;
+      cachedNotionNotebooks.set(visibility, cached);
       return notebooks;
     })
     .catch((error) => {
-      cachedNotionNotebooks.data = null;
-      cachedNotionNotebooks.promise = null;
+      cached.data = null;
+      cached.promise = null;
+      cachedNotionNotebooks.set(visibility, cached);
       throw error;
     });
 
-  return cachedNotionNotebooks.promise;
+  cachedNotionNotebooks.set(visibility, cached);
+  return cached.promise;
 }
 
-export function getCachedNotionNotebooks() {
-  return cachedNotionNotebooks.data || [];
+export function getCachedNotionNotebooks(visibility = 'all') {
+  return cachedNotionNotebooks.get(visibility)?.data || [];
 }
 
 export function getNotebookDbId() {
