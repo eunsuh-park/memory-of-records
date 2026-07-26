@@ -6,6 +6,11 @@
  */
 
 import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import {
+  fitAspectBox,
+  isLandscapeSpread,
+  resolveDisplayAspect
+} from '../../utils/noteSize.js';
 import { render as renderButton } from '../Button/Button.js';
 import '../Button/Button.css';
 import './PdfModal.css';
@@ -98,6 +103,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const noteId = decodeURIComponent(String(id || '')).trim();
   const isModal = options.mode === 'modal';
   const preferredPdfUrl = options.pdfUrl || null;
+  let noteSize = options.size || null;
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
@@ -148,6 +154,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
+  const canvasWrap = targetEl.querySelector('.pdf-canvas-wrap');
   const canvasLeft = targetEl.querySelector('#pdf-canvas-left');
   const canvasRight = targetEl.querySelector('#pdf-canvas-right');
   const canvasContainer = targetEl.querySelector('.pdf-canvas-container');
@@ -171,6 +178,45 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const initialScale = 1.0;
   let scale = initialScale;
   let isSpreadMode = false;
+
+  /**
+   * size 비율(또는 페이지 고유 비율) 박스에 맞게 CSS로 늘림 — 크롭 없음.
+   * 가로형 단일 페이지는 2페이지 스캔으로 판정.
+   */
+  function applyCanvasFrame(canvas, { halfOfPair = false } = {}) {
+    if (!canvas || !canvas.width || !canvas.height) return;
+    const bounds = canvasWrap?.getBoundingClientRect();
+    const maxW = Math.max(
+      80,
+      (halfOfPair
+        ? ((bounds?.width || window.innerWidth) - 24) / 2
+        : (bounds?.width || window.innerWidth) * 0.98) - 8
+    );
+    const maxH = Math.max(80, ((bounds?.height || window.innerHeight) * 0.92) - 8);
+
+    const spreadAsset =
+      !isSpreadMode && !halfOfPair && isLandscapeSpread(canvas.width, canvas.height);
+    const aspect =
+      resolveDisplayAspect(noteSize, { spreadAsset }) || {
+        width: canvas.width,
+        height: canvas.height
+      };
+
+    const box = fitAspectBox(aspect.width, aspect.height, maxW, maxH);
+    canvas.style.width = `${box.width}px`;
+    canvas.style.height = `${box.height}px`;
+    canvas.style.maxWidth = 'none';
+    canvas.style.maxHeight = 'none';
+  }
+
+  function refreshCanvasFrames() {
+    if (canvasLeft?.width) {
+      applyCanvasFrame(canvasLeft, { halfOfPair: isSpreadMode });
+    }
+    if (isSpreadMode && canvasRight?.width && canvasRight.style.display !== 'none') {
+      applyCanvasFrame(canvasRight, { halfOfPair: true });
+    }
+  }
 
   function showOverlay(message) {
     if (overlayText) overlayText.textContent = message;
@@ -219,6 +265,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
         canvasLeft.width = viewportLeft.width;
         canvasLeft.height = viewportLeft.height;
         await pageLeft.render({ canvasContext: ctxLeft, viewport: viewportLeft }).promise;
+        applyCanvasFrame(canvasLeft, { halfOfPair: true });
         canvasLeft.style.opacity = '1';
         
         if (num + 1 <= pdfDoc.numPages) {
@@ -227,6 +274,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
           canvasRight.width = viewportRight.width;
           canvasRight.height = viewportRight.height;
           await pageRight.render({ canvasContext: ctxRight, viewport: viewportRight }).promise;
+          applyCanvasFrame(canvasRight, { halfOfPair: true });
           canvasRight.style.opacity = '1';
         } else {
           ctxRight.clearRect(0, 0, canvasRight.width, canvasRight.height);
@@ -241,6 +289,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
         canvasLeft.width = viewport.width;
         canvasLeft.height = viewport.height;
         await page.render({ canvasContext: ctxLeft, viewport }).promise;
+        applyCanvasFrame(canvasLeft, { halfOfPair: false });
         canvasLeft.style.opacity = '1';
       }
 
@@ -312,6 +361,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     const timelineNotes = await loadTimelineNotes();
     const timelineNote = timelineNotes.find((note) => note.id === noteId) || null;
     const notionPdfUrl = timelineNote?.pdfUrl || null;
+    if (!noteSize && timelineNote?.size) noteSize = timelineNote.size;
     const pdfUrl = preferredPdfUrl || notionPdfUrl;
 
     if (!pdfUrl) {
@@ -345,8 +395,19 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   };
   document.addEventListener('keydown', handleKeydown);
 
+  let resizeTimer = null;
+  const handleResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => refreshCanvasFrames(), 80);
+  };
+  window.addEventListener('resize', handleResize);
+
   initPdfViewer();
-  return () => document.removeEventListener('keydown', handleKeydown);
+  return () => {
+    document.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener('resize', handleResize);
+    clearTimeout(resizeTimer);
+  };
 }
 
 /**
