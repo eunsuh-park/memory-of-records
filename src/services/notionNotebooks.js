@@ -239,7 +239,7 @@ export function convertNotionPageToNotebook(page) {
  * @param {{ visibility?: 'public'|'private'|'all' }} [options]
  */
 export async function fetchNotionNotebooks(options = {}) {
-  const visibility = options.visibility || 'all';
+  const visibility = options.visibility || 'public';
   const qs = `?visibility=${encodeURIComponent(visibility)}`;
   const response = await fetch(`/api/notionByPeriod${qs}`, {
     method: 'GET',
@@ -260,10 +260,10 @@ export async function fetchNotionNotebooks(options = {}) {
 
 /**
  * @param {{ visibility?: 'public'|'private'|'all' }} [options]
- * 기본 visibility=all (클라이언트에서 공개/비공개 필터)
+ * 기본 visibility=public
  */
 export async function getNotionNotebooks(options = {}) {
-  const visibility = options.visibility || 'all';
+  const visibility = options.visibility || 'public';
   const cached = cachedNotionNotebooks.get(visibility) || { data: null, promise: null };
 
   if (cached.data) return cached.data;
@@ -286,7 +286,7 @@ export async function getNotionNotebooks(options = {}) {
   return cached.promise;
 }
 
-export function getCachedNotionNotebooks(visibility = 'all') {
+export function getCachedNotionNotebooks(visibility = 'public') {
   return cachedNotionNotebooks.get(visibility)?.data || [];
 }
 

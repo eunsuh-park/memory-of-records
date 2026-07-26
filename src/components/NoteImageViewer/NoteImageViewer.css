@@ -1,6 +1,9 @@
 /**
  * NoteImageViewer 스타일
- * 뷰어 프레임은 PdfModal.css 재사용, 페이지 이미지·양면 보기만 정의
+ * 뷰어 프레임은 PdfModal.css 재사용, 페이지 이미지·양면·줌만 정의
+ *
+ * size 컬럼: 종횡비만 고정 (object-fit: contain → 크롭 없음)
+ * 확대/축소: .niv-zoom-stage transform scale (휠 / 핀치)
  */
 
 .niv-image-container {
@@ -9,30 +12,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.niv-zoom-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 12px;
+  max-width: 100%;
+  max-height: 100%;
+  transform-origin: center center;
+  will-change: transform;
+  transition: transform 0.05s linear;
 }
 
 .niv-page-image {
-  max-width: 100%;
-  max-height: 85vh;
+  display: block;
   width: auto;
   height: auto;
+  max-width: 100%;
+  max-height: min(85vh, 100%);
+  aspect-ratio: var(--niv-aspect, auto);
   object-fit: contain;
+  object-position: center;
   border-radius: 6px;
   box-shadow: none;
   filter: var(--color-drop-shadow);
   transition: opacity 0.2s ease;
   user-select: none;
   -webkit-user-drag: none;
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 0;
 }
 
-/* size 프로퍼티가 있으면 종횡비 고정 (단페이지 / 양면) */
-.niv-page-image[style*='--niv-aspect'] {
-  aspect-ratio: var(--niv-aspect);
+.note-image-viewer.spread-mode .niv-zoom-stage {
+  width: min(100%, 1400px);
 }
 
 .note-image-viewer.spread-mode .niv-page-image {
+  /* 양면: 각자 size 비율 유지, 가로 절반 안에서 contain */
   max-width: calc(50% - 6px);
+  max-height: min(85vh, 100%);
 }
 
 .note-image-viewer.spread-mode .niv-page-image--right {
@@ -46,19 +69,28 @@
 /* src가 비어 있는 초기 상태에서는 빈 이미지 테두리가 보이지 않도록 숨김 */
 .niv-page-image:not([src]),
 .niv-page-image[src=''] {
-  display: none;
+  display: none !important;
 }
 
 .niv-current-page {
   font-weight: 700;
 }
 
+/* 타블렛·모바일에서도 size 비율 유지 (max-height만 뷰포트에 맞춤) */
+@media (max-width: 1024px) {
+  .niv-page-image,
+  .note-image-viewer.spread-mode .niv-page-image {
+    max-height: min(80vh, 100%);
+  }
+}
+
 @media (max-width: 640px) {
-  .niv-page-image {
-    max-height: 70vh;
+  .niv-zoom-stage {
+    gap: 8px;
   }
 
-  .niv-image-container {
-    gap: 8px;
+  .niv-page-image,
+  .note-image-viewer.spread-mode .niv-page-image {
+    max-height: min(72vh, 100%);
   }
 }

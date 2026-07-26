@@ -661,14 +661,6 @@ function openNoteModal(note) {
   document.addEventListener('keydown', handleEscape);
 }
 
-function filterByVisibility(notes, visibility) {
-  if (visibility === 'all') return notes || [];
-  if (visibility === 'private') {
-    return (notes || []).filter((n) => n.visible === false);
-  }
-  return (notes || []).filter((n) => n.visible !== false);
-}
-
 function sortNotes(notes, sortKey) {
   const list = [...(notes || [])];
   if (sortKey === 'title') {
@@ -698,9 +690,8 @@ function renderFocusedNoteInfo(note, filterMode) {
     note.pageCount != null ? `${escapeHtml(String(note.pageCount))}장` : '';
   const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
   const memo = escapeHtml(note.description || '');
-  const visibility = note.visible === false ? '비공개' : '공개';
 
-  const metaParts = [category, pages, size, visibility].filter(Boolean);
+  const metaParts = [category, pages, size].filter(Boolean);
 
   return `
     <div class="jukebox-focus-info" aria-live="polite">
@@ -744,7 +735,6 @@ export function renderJukeboxWithFilter(options) {
   const subMenuContainer = document.getElementById('sub-menu');
   if (!subMenuContainer) return;
 
-  let visibility = 'public';
   let sortKey = 'default';
   /** @type {Array|null} */
   let allNotesCache = null;
@@ -820,19 +810,12 @@ export function renderJukeboxWithFilter(options) {
     const byPeriodOrType = (allNotesCache || []).filter(
       (note) => resolveFilterKey(note) === selectedValue
     );
-    const visibleFiltered = filterByVisibility(byPeriodOrType, visibility);
-    const sorted = sortNotes(visibleFiltered, sortKey);
+    const sorted = sortNotes(byPeriodOrType, sortKey);
     bindGallery(sorted);
 
-    const countsSource = filterByVisibility(allNotesCache, visibility);
-    const counts = getNotesCount(countsSource);
+    const counts = getNotesCount(allNotesCache);
     renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle, {
-      visibility,
       sortKey,
-      onVisibilityChange: (value) => {
-        visibility = value;
-        applyFiltersAndRender();
-      },
       onSortChange: (value) => {
         sortKey = value;
         applyFiltersAndRender();
@@ -842,12 +825,7 @@ export function renderJukeboxWithFilter(options) {
 
   // 진입 직후 현재 페이지 옵션으로 서브메뉴를 먼저 그림
   renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle, {
-    visibility,
     sortKey,
-    onVisibilityChange: (value) => {
-      visibility = value;
-      applyFiltersAndRender();
-    },
     onSortChange: (value) => {
       sortKey = value;
       applyFiltersAndRender();
@@ -862,7 +840,6 @@ export function renderJukeboxWithFilter(options) {
     .catch((err) => {
       console.warn('Jukebox filter: 노트 로드 실패', err);
       renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle, {
-        visibility,
         sortKey
       });
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';

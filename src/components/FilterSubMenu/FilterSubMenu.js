@@ -7,22 +7,16 @@
  * - Timeline: filterOptions = periodOptions (시기별)
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
  * - viewModeToggle: Timeline|By Type 뷰 모드 토글
- * - controls: 공개/비공개 필터 + 정렬
+ * - controls: 정렬
  */
 
 import './FilterSubMenu.css';
 
-const VISIBILITY_OPTIONS = [
-  { value: 'public', label: '공개' },
-  { value: 'private', label: '비공개' },
-  { value: 'all', label: '전체' }
-];
-
 const SORT_OPTIONS = [
-  { value: 'default', label: '기본' },
-  { value: 'title', label: '제목' },
-  { value: 'pages', label: '장수' },
-  { value: 'size', label: '사이즈' }
+  { value: 'default', label: '기본순' },
+  { value: 'title', label: '제목순' },
+  { value: 'pages', label: '장수순' },
+  { value: 'size', label: '사이즈순' }
 ];
 
 /**
@@ -34,9 +28,7 @@ const SORT_OPTIONS = [
  * @param {Record<string, number>} [countsByFilter] - 옵션별 노트 개수 (메뉴에 숫자 표시)
  * @param {{ current: 'timeline'|'type' }} [viewModeToggle] - 뷰 모드 토글 (Timeline | By Type)
  * @param {{
- *   visibility?: string,
  *   sortKey?: string,
- *   onVisibilityChange?: (value: string) => void,
  *   onSortChange?: (value: string) => void
  * }} [controls]
  */
@@ -66,31 +58,16 @@ export function renderFilterSubMenu(
   `
     : '';
 
-  const visibility = controls?.visibility || 'public';
   const sortKey = controls?.sortKey || 'default';
   const controlsHtml = controls
     ? `
     <div class="filter-controls">
-      <div class="filter-control" role="group" aria-label="공개 여부">
-        ${VISIBILITY_OPTIONS.map(
-          (opt) => `
-          <button
-            type="button"
-            class="filter-control__btn ${visibility === opt.value ? 'active' : ''}"
-            data-visibility="${opt.value}"
-          >${opt.label}</button>
-        `
+      <select class="filter-sort__select" aria-label="정렬">
+        ${SORT_OPTIONS.map(
+          (opt) =>
+            `<option value="${opt.value}" ${sortKey === opt.value ? 'selected' : ''}>${opt.label}</option>`
         ).join('')}
-      </div>
-      <label class="filter-sort">
-        <span class="filter-sort__label">정렬</span>
-        <select class="filter-sort__select" aria-label="정렬">
-          ${SORT_OPTIONS.map(
-            (opt) =>
-              `<option value="${opt.value}" ${sortKey === opt.value ? 'selected' : ''}>${opt.label}</option>`
-          ).join('')}
-        </select>
-      </label>
+      </select>
     </div>
   `
     : '';
@@ -129,15 +106,6 @@ export function renderFilterSubMenu(
   `;
 
   if (!controls) return;
-
-  container.querySelectorAll('[data-visibility]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const value = btn.getAttribute('data-visibility');
-      if (value && typeof controls.onVisibilityChange === 'function') {
-        controls.onVisibilityChange(value);
-      }
-    });
-  });
 
   const sortSelect = container.querySelector('.filter-sort__select');
   sortSelect?.addEventListener('change', () => {

@@ -10,9 +10,9 @@ import { getStoredTheme, toggleTheme } from '../../utils/theme.js';
 const BASE_URL = import.meta.env.BASE_URL || '/';
 
 const THEME_ICON_SUN =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><circle cx='12' cy='12' r='4' stroke='currentColor' stroke-width='1.8'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 2v2.2M12 19.8V22M4.93 4.93l1.56 1.56M17.51 17.51l1.56 1.56M2 12h2.2M19.8 12H22M4.93 19.07l1.56-1.56M17.51 6.49l1.56-1.56'/></svg>";
+  "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><circle cx='12' cy='12' r='3.6' fill='currentColor'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 2.5v2.2M12 19.3V21.5M4.6 4.6l1.55 1.55M17.85 17.85l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.55-1.55M17.85 6.15l1.55-1.55'/></svg>";
 const THEME_ICON_MOON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linejoin='round' d='M20.5 14.3A7.5 7.5 0 0 1 9.7 3.5 8.2 8.2 0 1 0 20.5 14.3Z'/></svg>";
+  "<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path fill='currentColor' d='M20.2 14.6A7.6 7.6 0 0 1 9.4 3.8 8.4 8.4 0 1 0 20.2 14.6Z'/></svg>";
 
 function getActualPath(pathname) {
   if (BASE_URL === '/') return pathname;
@@ -27,10 +27,6 @@ function getActualPath(pathname) {
 
 function themeToggleLabel(theme) {
   return theme === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환';
-}
-
-function themeToggleIcon(theme) {
-  return theme === 'light' ? THEME_ICON_MOON : THEME_ICON_SUN;
 }
 
 export function renderPageHeader() {
@@ -54,11 +50,16 @@ export function renderPageHeader() {
       <div class="page-header__right">
         <button
           type="button"
-          class="page-header__theme-toggle"
+          class="theme-switch"
+          data-theme="${theme}"
           aria-label="${themeToggleLabel(theme)}"
           title="${themeToggleLabel(theme)}"
           data-theme-toggle
-        >${themeToggleIcon(theme)}</button>
+        >
+          <span class="theme-switch__thumb" aria-hidden="true"></span>
+          <span class="theme-switch__icon theme-switch__icon--sun">${THEME_ICON_SUN}</span>
+          <span class="theme-switch__icon theme-switch__icon--moon">${THEME_ICON_MOON}</span>
+        </button>
         <a
           href="/story"
           class="page-header__story-link ${currentPath.startsWith('/story') ? 'active' : ''}"
@@ -73,8 +74,8 @@ export function renderPageHeader() {
   const themeBtn = container.querySelector('[data-theme-toggle]');
   themeBtn?.addEventListener('click', () => {
     const next = toggleTheme();
+    themeBtn.setAttribute('data-theme', next);
     themeBtn.setAttribute('aria-label', themeToggleLabel(next));
     themeBtn.setAttribute('title', themeToggleLabel(next));
-    themeBtn.innerHTML = themeToggleIcon(next);
   });
 }
