@@ -197,15 +197,21 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const initialScale = 1.0;
   let scale = initialScale;
   let isSpreadMode = false;
+  /** 실제로 단페이지 두 장을 나란히 보여주는 중일 때만 true */
+  let isPairing = false;
 
   function invalidateLockedBoxes() {
     lockedBoxes = null;
   }
 
+  function isSpreadAssetPage(width, height) {
+    return isLandscapeSpread(width, height, noteSize);
+  }
+
   /** size 없을 때 1페이지 비율 고정. 가로형이면 절반 폭을 1페이지로 간주 */
   function ensureFallbackFromDims(width, height) {
     if (noteSize || fallbackSingleAspect || !(width > 0 && height > 0)) return;
-    if (isLandscapeSpread(width, height)) {
+    if (isSpreadAssetPage(width, height)) {
       fallbackSingleAspect = { width: width / 2, height };
     } else {
       fallbackSingleAspect = { width, height };
@@ -222,15 +228,14 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   /**
    * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
-   * lockedBoxes로 페이지마다 동일한 가로·세로(px)를 적용한다.
-   * 가로형(2페이지 스캔)은 양면 모드에서도 spread 박스 한 장으로 표시.
+   * 2페이지 스캔은 항상 spread 박스. half는 실제로 짝을 이룰 때만.
    */
   function applyCanvasFrame(canvas, { halfOfPair = false } = {}) {
     if (!canvas || !canvas.width || !canvas.height) return;
 
     ensureFallbackFromDims(canvas.width, canvas.height);
 
-    const spreadAsset = isLandscapeSpread(canvas.width, canvas.height);
+    const spreadAsset = isSpreadAssetPage(canvas.width, canvas.height);
     const boxes = getLockedBoxes();
     const box = spreadAsset
       ? boxes.spread
@@ -247,19 +252,10 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   }
 
   function refreshCanvasFrames() {
-    const leftIsSpread =
-      canvasLeft?.width > 0 && isLandscapeSpread(canvasLeft.width, canvasLeft.height);
     if (canvasLeft?.width) {
-      applyCanvasFrame(canvasLeft, {
-        halfOfPair: isSpreadMode && !leftIsSpread
-      });
+      applyCanvasFrame(canvasLeft, { halfOfPair: isPairing });
     }
-    if (
-      isSpreadMode &&
-      !leftIsSpread &&
-      canvasRight?.width &&
-      canvasRight.style.display !== 'none'
-    ) {
+    if (isPairing && canvasRight?.width && canvasRight.style.display !== 'none') {
       applyCanvasFrame(canvasRight, { halfOfPair: true });
     }
   }
@@ -273,14 +269,8 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     overlay?.classList.remove('show');
   }
 
-  function currentPdfPageIsSpreadAsset() {
-    return Boolean(
-      canvasLeft?.width && isLandscapeSpread(canvasLeft.width, canvasLeft.height)
-    );
-  }
-
   function navigationStep() {
-    return isSpreadMode && !currentPdfPageIsSpreadAsset() ? 2 : 1;
+    return isSpreadMode && isPairing ? 2 : 1;
   }
 
   function updateControls() {
@@ -297,7 +287,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     if (firstBtn) firstBtn.disabled = atFirst;
     if (lastBtn) lastBtn.disabled = atLast;
     
-    if (isSpreadMode && pdfDoc && !currentPdfPageIsSpreadAsset()) {
+    if (isPairing && pdfDoc) {
       const endPage = Math.min(pageNum + 1, pdfDoc.numPages);
       currentPageEl.textContent = `${pageNum}-${endPage}`;
     } else {
@@ -314,6 +304,8 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     if (!pdfDoc) return;
     
     pageRendering = true;
+    isPairing = false;
+    canvasContainer.classList.remove('spread-mode');
     updateControls();
     canvasLeft.style.opacity = '0.3';
     canvasRight.style.opacity = '0.3';
@@ -326,34 +318,39 @@ export function renderPdfViewer(targetEl, id, options = {}) {
       canvasLeft.height = viewportLeft.height;
       await pageLeft.render({ canvasContext: ctxLeft, viewport: viewportLeft }).promise;
 
-      const leftIsSpreadAsset = isLandscapeSpread(canvasLeft.width, canvasLeft.height);
+      const leftIsSpreadAsset = isSpreadAssetPage(canvasLeft.width, canvasLeft.height);
       /*
-       * 양면 모드라도 현재 페이지가 2페이지 스캔(가로형)이면
-       * 오른쪽 페이지를 붙이지 않고 그 한 장만 표시한다.
+       * 2페이지 스캔본은 이미 양면이 들어 있으므로
+       * 양면 모드여도 그 페이지 한 장만 표시한다.
        */
-      const showPair = isSpreadMode && !leftIsSpreadAsset;
-
-      applyCanvasFrame(canvasLeft, { halfOfPair: showPair });
-      canvasLeft.style.opacity = '1';
+      let showPair = isSpreadMode && !leftIsSpreadAsset && num + 1 <= pdfDoc.numPages;
 
       if (showPair) {
-        canvasContainer.classList.add('spread-mode');
-        if (num + 1 <= pdfDoc.numPages) {
-          canvasRight.style.display = 'block';
-          const pageRight = await pdfDoc.getPage(num + 1);
-          const viewportRight = pageRight.getViewport({ scale });
+        const pageRight = await pdfDoc.getPage(num + 1);
+        const viewportRight = pageRight.getViewport({ scale });
+        /* 오른쪽이 스캔본이면 짝짓지 않음 */
+        if (isSpreadAssetPage(viewportRight.width, viewportRight.height)) {
+          showPair = false;
+        } else {
           canvasRight.width = viewportRight.width;
           canvasRight.height = viewportRight.height;
           await pageRight.render({ canvasContext: ctxRight, viewport: viewportRight }).promise;
-          applyCanvasFrame(canvasRight, { halfOfPair: true });
-          canvasRight.style.opacity = '1';
-        } else {
-          ctxRight.clearRect(0, 0, canvasRight.width, canvasRight.height);
-          canvasRight.style.opacity = '0';
         }
+      }
+
+      isPairing = showPair;
+      applyCanvasFrame(canvasLeft, { halfOfPair: isPairing });
+      canvasLeft.style.opacity = '1';
+
+      if (isPairing) {
+        canvasContainer.classList.add('spread-mode');
+        canvasRight.style.display = 'block';
+        applyCanvasFrame(canvasRight, { halfOfPair: true });
+        canvasRight.style.opacity = '1';
       } else {
         canvasContainer.classList.remove('spread-mode');
         canvasRight.style.display = 'none';
+        ctxRight.clearRect(0, 0, canvasRight.width, canvasRight.height);
       }
 
       pageRendering = false;
@@ -366,6 +363,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
       }
     } catch (error) {
       pageRendering = false;
+      isPairing = false;
       showOverlay('페이지 렌더링 실패');
       console.error('Page render error:', error);
     }
