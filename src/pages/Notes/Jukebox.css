@@ -705,6 +705,24 @@ body.jukebox-active.loading-active .notes-scrollbar {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* 라이트 모드: 글자 뒤 그림자 제거 + 그림자 전반 완화 */
+[data-theme='light'] .jukebox-focus-info__title,
+[data-theme='light'] .jukebox-focus-info__meta,
+[data-theme='light'] .jukebox-focus-info__memo,
+[data-theme='light'] .jukebox-focus-info__empty {
+  text-shadow: none;
+}
+
+[data-theme='light'] .jukebox-focus-info {
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(28, 36, 44, 0.06);
+  box-shadow: none;
+}
+
+[data-theme='light'] .jukebox-card-inner {
+  box-shadow: 0 2px 8px rgba(20, 28, 36, 0.08) !important;
+}
+
 .jukebox-focus-info__empty {
   margin: 0;
   font-size: 0.85rem;

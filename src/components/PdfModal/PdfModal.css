@@ -224,6 +224,16 @@ body.pdf-modal-open {
   color: rgba(17, 24, 39, 0.9);
 }
 
+.pdf-canvas-wrap .btn--nav:disabled:hover,
+.pdf-canvas-wrap .btn--nav:disabled:active,
+.pdf-canvas-wrap .btn--nav.is-at-end:hover,
+.pdf-canvas-wrap .btn--nav.is-at-end:active,
+.pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover,
+.pdf-canvas-wrap .btn--nav[aria-disabled='true']:active {
+  background: rgba(17, 24, 39, 0.6);
+  color: #fff;
+}
+
 @media (max-width: 640px) {
   .pdf-canvas-wrap .btn--nav {
     padding: 10px 12px;
@@ -321,6 +331,10 @@ body.pdf-modal-open {
 .pdf-overlay .niv-overlay-text {
   color: rgba(255, 255, 255, 0.88);
   font-size: 0.9rem;
+}
+
+[data-theme='dark'] .pdf-overlay #pdf-overlay-text,
+[data-theme='dark'] .pdf-overlay .niv-overlay-text {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
 }
 

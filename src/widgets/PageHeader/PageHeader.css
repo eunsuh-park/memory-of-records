@@ -107,8 +107,10 @@ body.story-page-active .page-header {
   padding: 0;
   border: none;
   border-radius: 999px;
-  background: #ffffff;
-  box-shadow: 0 2px 10px rgba(20, 28, 36, 0.14);
+  /* global button:not(.btn) 의 primary(노랑) 덮어쓰기 */
+  background: #ffffff !important;
+  color: inherit;
+  box-shadow: 0 1px 4px rgba(20, 28, 36, 0.1);
   cursor: pointer;
   flex-shrink: 0;
   transition: box-shadow 0.2s ease;
@@ -116,8 +118,13 @@ body.story-page-active .page-header {
 
 .theme-switch:hover,
 .theme-switch:focus-visible {
-  box-shadow: 0 3px 14px rgba(20, 28, 36, 0.2);
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(20, 28, 36, 0.14);
   outline: none;
+}
+
+[data-theme='light'] .theme-switch {
+  box-shadow: 0 1px 3px rgba(20, 28, 36, 0.08);
 }
 
 .theme-switch__thumb {
