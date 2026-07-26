@@ -106,25 +106,24 @@ body.story-page-active .page-header {
   height: 34px;
   padding: 0;
   border: none;
-  border-radius: 999px;
+  border-radius: 99px;
   /* global button:not(.btn) 의 primary(노랑) 덮어쓰기 */
-  background: #ffffff !important;
+  background: transparent !important;
   color: inherit;
-  box-shadow: 0 1px 4px rgba(20, 28, 36, 0.1);
+  box-shadow: none;
   cursor: pointer;
   flex-shrink: 0;
-  transition: box-shadow 0.2s ease;
 }
 
 .theme-switch:hover,
 .theme-switch:focus-visible {
-  background: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(20, 28, 36, 0.14);
+  background: transparent !important;
+  box-shadow: none;
   outline: none;
 }
 
 [data-theme='light'] .theme-switch {
-  box-shadow: 0 1px 3px rgba(20, 28, 36, 0.08);
+  box-shadow: none;
 }
 
 .theme-switch__thumb {

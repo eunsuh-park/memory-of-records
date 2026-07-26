@@ -57,12 +57,29 @@ export function parseNoteSize(raw) {
 }
 
 /**
- * 가로가 더 긴 이미지/페이지 → 2페이지 스캔으로 판정
+ * 2페이지 스캔(한 장에 양면이 들어 있는 이미지/페이지) 판정.
+ * - 가로 ≥ 세로 → 스캔본
+ * - size가 있으면 단페이지 비율보다 가로가 뚜렷이 긴 경우도 스캔본
  * @param {number} width
  * @param {number} height
+ * @param {string|number|null|undefined} [rawSize]
  */
-export function isLandscapeSpread(width, height) {
-  return Number(width) > 0 && Number(height) > 0 && Number(width) > Number(height);
+export function isLandscapeSpread(width, height, rawSize = null) {
+  const w = Number(width);
+  const h = Number(height);
+  if (!(w > 0 && h > 0)) return false;
+
+  const imageAspect = w / h;
+  /* 정사각형·가로형 = 이미 두 페이지가 한 장에 있는 스캔으로 본다 */
+  if (imageAspect >= 1) return true;
+
+  const single = resolveDisplayAspect(rawSize, { spreadAsset: false });
+  if (single?.width && single?.height) {
+    const singleAspect = single.width / single.height;
+    return imageAspect >= singleAspect * 1.3;
+  }
+
+  return false;
 }
 
 /**
