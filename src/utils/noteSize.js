@@ -113,6 +113,60 @@ export function fitAspectBox(aspectW, aspectH, maxW, maxH) {
 }
 
 /**
+ * 뷰포트 안에서의 최대 표시 영역
+ * @param {DOMRect|{width:number,height:number}|null} bounds
+ * @param {{ half?: boolean }} [options]
+ */
+export function getViewportMax(bounds, options = {}) {
+  const viewW = bounds?.width || window.innerWidth;
+  const viewH = bounds?.height || window.innerHeight;
+  const maxW = Math.max(
+    80,
+    (options.half ? (viewW - 24) / 2 : viewW * 0.98) - 8
+  );
+  const maxH = Math.max(80, viewH * 0.92 - 8);
+  return { maxW, maxH };
+}
+
+/**
+ * 노트당 표시 박스 2종만 계산 (1페이지 / 2페이지).
+ * 같은 노트의 1페이지 이미지들은 항상 동일한 single 박스를 씁니다.
+ *
+ * @param {string|number|null|undefined} rawSize
+ * @param {DOMRect|{width:number,height:number}|null} bounds
+ * @param {{ width: number, height: number }|null} [fallbackSingleAspect] size 없을 때 1페이지 비율
+ * @returns {{
+ *   single: {width:number,height:number}|null,
+ *   singleHalf: {width:number,height:number}|null,
+ *   spread: {width:number,height:number}|null
+ * }}
+ */
+export function computeNoteDisplayBoxes(rawSize, bounds, fallbackSingleAspect = null) {
+  const singleAspect =
+    resolveDisplayAspect(rawSize, { spreadAsset: false }) || fallbackSingleAspect || null;
+  const spreadAspect =
+    resolveDisplayAspect(rawSize, { spreadAsset: true }) ||
+    (fallbackSingleAspect
+      ? { width: fallbackSingleAspect.width * 2, height: fallbackSingleAspect.height }
+      : null);
+
+  const full = getViewportMax(bounds, { half: false });
+  const half = getViewportMax(bounds, { half: true });
+
+  return {
+    single: singleAspect
+      ? fitAspectBox(singleAspect.width, singleAspect.height, full.maxW, full.maxH)
+      : null,
+    singleHalf: singleAspect
+      ? fitAspectBox(singleAspect.width, singleAspect.height, half.maxW, half.maxH)
+      : null,
+    spread: spreadAspect
+      ? fitAspectBox(spreadAspect.width, spreadAspect.height, full.maxW, full.maxH)
+      : null
+  };
+}
+
+/**
  * 표시용 사이즈 문자열
  * @param {string|number|null|undefined} rawSize
  * @returns {string}

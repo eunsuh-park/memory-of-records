@@ -14,9 +14,8 @@ import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderPdfViewer } from '../PdfModal/PdfModal.js';
 import { render as renderButton } from '../Button/Button.js';
 import {
-  fitAspectBox,
-  isLandscapeSpread,
-  resolveDisplayAspect
+  computeNoteDisplayBoxes,
+  isLandscapeSpread
 } from '../../utils/noteSize.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -176,6 +175,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       : null;
   const hasKnownPageCount = totalPages !== null;
   let noteSize = options.size || null;
+  /** size 없을 때: 첫 1페이지 이미지 비율을 노트 전체에 고정 */
+  let fallbackSingleAspect = null;
 
   let pageNum = 1;
   let ready = false;
@@ -190,45 +191,44 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const preloadedImages = new Map();
 
   /**
-   * size 비율 박스를 만들고 object-fit:fill 로 늘림 (크롭 없음).
-   * 가로>세로 원본 → 2페이지 스캔으로 보고 size 가로×2 비율 사용.
+   * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
+   * 같은 노트의 1페이지 이미지는 항상 동일한 가로·세로(px)로 늘림.
    */
   function applyImageFrame(img, sourceImg) {
     if (!img) return;
     const nw = sourceImg?.naturalWidth || img.naturalWidth || 0;
     const nh = sourceImg?.naturalHeight || img.naturalHeight || 0;
-    /* 수동 양면(두 장)일 때는 각 장을 1페이지 비율로. 한 장이 가로형이면 2페이지 스캔 */
+    /* 가로형 한 장 = 2페이지 스캔. 수동 양면 모드의 각 장은 1페이지 */
     const spreadAsset = !isSpreadMode && isLandscapeSpread(nw, nh);
-    const aspect =
-      resolveDisplayAspect(noteSize, { spreadAsset }) ||
-      (nw > 0 && nh > 0 ? { width: nw, height: nh } : null);
+
+    if (!noteSize && !spreadAsset && nw > 0 && nh > 0 && !fallbackSingleAspect) {
+      fallbackSingleAspect = { width: nw, height: nh };
+    }
+
+    const bounds = canvasWrap?.getBoundingClientRect() || null;
+    const boxes = computeNoteDisplayBoxes(noteSize, bounds, fallbackSingleAspect);
+    const box = spreadAsset
+      ? boxes.spread
+      : isSpreadMode
+        ? boxes.singleHalf
+        : boxes.single;
 
     img.classList.toggle('niv-page-image--spread-asset', spreadAsset);
 
-    const bounds = canvasWrap?.getBoundingClientRect();
-    const maxW = Math.max(
-      80,
-      (isSpreadMode && !spreadAsset
-        ? ((bounds?.width || window.innerWidth) - 24) / 2
-        : (bounds?.width || window.innerWidth) * 0.98) - 8
-    );
-    const maxH = Math.max(80, ((bounds?.height || window.innerHeight) * 0.92) - 8);
-
-    if (!aspect) {
+    if (!box) {
+      const maxH = Math.max(80, (bounds?.height || window.innerHeight) * 0.92);
       img.style.width = 'auto';
       img.style.height = `${maxH}px`;
-      img.style.maxWidth = `${maxW}px`;
+      img.style.maxWidth = '98%';
       img.style.objectFit = 'fill';
       return;
     }
 
-    const box = fitAspectBox(aspect.width, aspect.height, maxW, maxH);
     img.style.width = `${box.width}px`;
     img.style.height = `${box.height}px`;
     img.style.maxWidth = 'none';
     img.style.maxHeight = 'none';
     img.style.objectFit = 'fill';
-    img.style.aspectRatio = `${aspect.width} / ${aspect.height}`;
   }
 
   function refreshImageFrames() {
