@@ -12,6 +12,7 @@ import {
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { render as renderButton } from '../Button/Button.js';
+import { showToast } from '../Toast/Toast.js';
 import '../Button/Button.css';
 import './PdfModal.css';
 
@@ -264,11 +265,18 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   }
 
   function updateControls() {
-    const step = isSpreadMode ? 2 : 1;
-    prevBtn.disabled = pageNum <= 1 || pageRendering;
-    nextBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
-    if (firstBtn) firstBtn.disabled = pageNum <= 1 || pageRendering;
-    if (lastBtn) lastBtn.disabled = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
+    const atFirst = pageNum <= 1 || pageRendering;
+    const atLast = !pdfDoc || pageNum >= pdfDoc.numPages || pageRendering;
+    prevBtn.disabled = atFirst;
+    /* 마지막 페이지: 시각적으로 disabled, 클릭 시 토스트를 위해 disabled 속성은 쓰지 않음 */
+    nextBtn.disabled = pageRendering || !pdfDoc;
+    nextBtn.classList.toggle('is-at-end', Boolean(pdfDoc) && !pageRendering && pageNum >= pdfDoc.numPages);
+    nextBtn.setAttribute(
+      'aria-disabled',
+      pdfDoc && !pageRendering && pageNum >= pdfDoc.numPages ? 'true' : 'false'
+    );
+    if (firstBtn) firstBtn.disabled = atFirst;
+    if (lastBtn) lastBtn.disabled = atLast;
     
     if (isSpreadMode && pdfDoc) {
       const endPage = Math.min(pageNum + 1, pdfDoc.numPages);
@@ -424,11 +432,14 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     const step = isSpreadMode ? 2 : 1;
     if (pageNum > 1) goToPage(Math.max(1, pageNum - step)); 
   });
-  nextBtn.addEventListener('click', () => { 
-    if (pdfDoc) {
-      const step = isSpreadMode ? 2 : 1;
-      if (pageNum < pdfDoc.numPages) goToPage(Math.min(pdfDoc.numPages, pageNum + step)); 
+  nextBtn.addEventListener('click', () => {
+    if (!pdfDoc || pageRendering) return;
+    if (nextBtn.classList.contains('is-at-end') || pageNum >= pdfDoc.numPages) {
+      showToast('마지막 페이지입니다');
+      return;
     }
+    const step = isSpreadMode ? 2 : 1;
+    goToPage(Math.min(pdfDoc.numPages, pageNum + step));
   });
   firstBtn?.addEventListener('click', () => { if (pdfDoc && pageNum > 1) goToPage(1); });
   lastBtn?.addEventListener('click', () => { if (pdfDoc && pageNum < pdfDoc.numPages) goToPage(pdfDoc.numPages); });

@@ -13,6 +13,7 @@ import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderPdfViewer } from '../PdfModal/PdfModal.js';
 import { render as renderButton } from '../Button/Button.js';
+import { showToast } from '../Toast/Toast.js';
 import {
   computeNoteDisplayBoxes,
   isLandscapeSpread
@@ -316,7 +317,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const atLast = totalPages !== null && nextTarget === null && findVisiblePage(pageNum + 1, 1) === null;
 
     prevBtn.disabled = !ready || atFirst;
-    nextBtn.disabled = !ready || atLast;
+    /* 마지막 페이지: 시각적으로 disabled, 클릭 시 토스트를 위해 disabled 속성은 쓰지 않음 */
+    nextBtn.disabled = !ready;
+    nextBtn.classList.toggle('is-at-end', ready && atLast);
+    nextBtn.setAttribute('aria-disabled', ready && atLast ? 'true' : 'false');
     firstBtn.disabled = !ready || atFirst;
     lastBtn.disabled = !ready || totalPages === null || atLast;
 
@@ -531,7 +535,13 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   prevBtn.addEventListener('click', () => stepPages(-1));
-  nextBtn.addEventListener('click', () => stepPages(1));
+  nextBtn.addEventListener('click', () => {
+    if (nextBtn.classList.contains('is-at-end') || nextBtn.getAttribute('aria-disabled') === 'true') {
+      showToast('마지막 페이지입니다');
+      return;
+    }
+    stepPages(1);
+  });
   firstBtn.addEventListener('click', () => goToPage(findVisiblePage(1, 1)));
   lastBtn.addEventListener('click', () => {
     if (totalPages !== null) goToPage(findVisiblePage(totalPages, -1));
