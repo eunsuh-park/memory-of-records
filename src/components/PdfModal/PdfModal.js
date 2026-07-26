@@ -223,14 +223,14 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   /**
    * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
    * lockedBoxes로 페이지마다 동일한 가로·세로(px)를 적용한다.
+   * 가로형(2페이지 스캔)은 양면 모드에서도 spread 박스 한 장으로 표시.
    */
   function applyCanvasFrame(canvas, { halfOfPair = false } = {}) {
     if (!canvas || !canvas.width || !canvas.height) return;
 
     ensureFallbackFromDims(canvas.width, canvas.height);
 
-    const spreadAsset =
-      !isSpreadMode && !halfOfPair && isLandscapeSpread(canvas.width, canvas.height);
+    const spreadAsset = isLandscapeSpread(canvas.width, canvas.height);
     const boxes = getLockedBoxes();
     const box = spreadAsset
       ? boxes.spread
@@ -247,10 +247,19 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   }
 
   function refreshCanvasFrames() {
+    const leftIsSpread =
+      canvasLeft?.width > 0 && isLandscapeSpread(canvasLeft.width, canvasLeft.height);
     if (canvasLeft?.width) {
-      applyCanvasFrame(canvasLeft, { halfOfPair: isSpreadMode });
+      applyCanvasFrame(canvasLeft, {
+        halfOfPair: isSpreadMode && !leftIsSpread
+      });
     }
-    if (isSpreadMode && canvasRight?.width && canvasRight.style.display !== 'none') {
+    if (
+      isSpreadMode &&
+      !leftIsSpread &&
+      canvasRight?.width &&
+      canvasRight.style.display !== 'none'
+    ) {
       applyCanvasFrame(canvasRight, { halfOfPair: true });
     }
   }
@@ -262,6 +271,16 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   function hideOverlay() {
     overlay?.classList.remove('show');
+  }
+
+  function currentPdfPageIsSpreadAsset() {
+    return Boolean(
+      canvasLeft?.width && isLandscapeSpread(canvasLeft.width, canvasLeft.height)
+    );
+  }
+
+  function navigationStep() {
+    return isSpreadMode && !currentPdfPageIsSpreadAsset() ? 2 : 1;
   }
 
   function updateControls() {
@@ -278,7 +297,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     if (firstBtn) firstBtn.disabled = atFirst;
     if (lastBtn) lastBtn.disabled = atLast;
     
-    if (isSpreadMode && pdfDoc) {
+    if (isSpreadMode && pdfDoc && !currentPdfPageIsSpreadAsset()) {
       const endPage = Math.min(pageNum + 1, pdfDoc.numPages);
       currentPageEl.textContent = `${pageNum}-${endPage}`;
     } else {
@@ -298,21 +317,29 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     updateControls();
     canvasLeft.style.opacity = '0.3';
     canvasRight.style.opacity = '0.3';
+    canvasRight.style.display = 'none';
 
     try {
-      if (isSpreadMode) {
+      const pageLeft = await pdfDoc.getPage(num);
+      const viewportLeft = pageLeft.getViewport({ scale });
+      canvasLeft.width = viewportLeft.width;
+      canvasLeft.height = viewportLeft.height;
+      await pageLeft.render({ canvasContext: ctxLeft, viewport: viewportLeft }).promise;
+
+      const leftIsSpreadAsset = isLandscapeSpread(canvasLeft.width, canvasLeft.height);
+      /*
+       * 양면 모드라도 현재 페이지가 2페이지 스캔(가로형)이면
+       * 오른쪽 페이지를 붙이지 않고 그 한 장만 표시한다.
+       */
+      const showPair = isSpreadMode && !leftIsSpreadAsset;
+
+      applyCanvasFrame(canvasLeft, { halfOfPair: showPair });
+      canvasLeft.style.opacity = '1';
+
+      if (showPair) {
         canvasContainer.classList.add('spread-mode');
-        canvasRight.style.display = 'block';
-        
-        const pageLeft = await pdfDoc.getPage(num);
-        const viewportLeft = pageLeft.getViewport({ scale });
-        canvasLeft.width = viewportLeft.width;
-        canvasLeft.height = viewportLeft.height;
-        await pageLeft.render({ canvasContext: ctxLeft, viewport: viewportLeft }).promise;
-        applyCanvasFrame(canvasLeft, { halfOfPair: true });
-        canvasLeft.style.opacity = '1';
-        
         if (num + 1 <= pdfDoc.numPages) {
+          canvasRight.style.display = 'block';
           const pageRight = await pdfDoc.getPage(num + 1);
           const viewportRight = pageRight.getViewport({ scale });
           canvasRight.width = viewportRight.width;
@@ -327,14 +354,6 @@ export function renderPdfViewer(targetEl, id, options = {}) {
       } else {
         canvasContainer.classList.remove('spread-mode');
         canvasRight.style.display = 'none';
-        
-        const page = await pdfDoc.getPage(num);
-        const viewport = page.getViewport({ scale });
-        canvasLeft.width = viewport.width;
-        canvasLeft.height = viewport.height;
-        await page.render({ canvasContext: ctxLeft, viewport }).promise;
-        applyCanvasFrame(canvasLeft, { halfOfPair: false });
-        canvasLeft.style.opacity = '1';
       }
 
       pageRendering = false;
@@ -429,7 +448,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   }
 
   prevBtn.addEventListener('click', () => { 
-    const step = isSpreadMode ? 2 : 1;
+    const step = navigationStep();
     if (pageNum > 1) goToPage(Math.max(1, pageNum - step)); 
   });
   nextBtn.addEventListener('click', () => {
@@ -438,7 +457,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
       showToast('마지막 페이지입니다');
       return;
     }
-    const step = isSpreadMode ? 2 : 1;
+    const step = navigationStep();
     goToPage(Math.min(pdfDoc.numPages, pageNum + step));
   });
   firstBtn?.addEventListener('click', () => { if (pdfDoc && pageNum > 1) goToPage(1); });
