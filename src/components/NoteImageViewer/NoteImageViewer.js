@@ -191,16 +191,22 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   /** pageNum → HTMLImageElement (preload 캐시) */
   const preloadedImages = new Map();
 
+  function isSpreadAssetImage(sourceImg) {
+    const nw = sourceImg?.naturalWidth || 0;
+    const nh = sourceImg?.naturalHeight || 0;
+    return isLandscapeSpread(nw, nh);
+  }
+
   /**
    * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
    * 같은 노트의 1페이지 이미지는 항상 동일한 가로·세로(px)로 늘림.
+   * 가로형(2페이지 스캔)은 양면 모드에서도 spread 박스 한 장으로 표시.
    */
   function applyImageFrame(img, sourceImg) {
     if (!img) return;
     const nw = sourceImg?.naturalWidth || img.naturalWidth || 0;
     const nh = sourceImg?.naturalHeight || img.naturalHeight || 0;
-    /* 가로형 한 장 = 2페이지 스캔. 수동 양면 모드의 각 장은 1페이지 */
-    const spreadAsset = !isSpreadMode && isLandscapeSpread(nw, nh);
+    const spreadAsset = isLandscapeSpread(nw, nh);
 
     if (!noteSize && !spreadAsset && nw > 0 && nh > 0 && !fallbackSingleAspect) {
       fallbackSingleAspect = { width: nw, height: nh };
@@ -208,6 +214,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
     const bounds = canvasWrap?.getBoundingClientRect() || null;
     const boxes = computeNoteDisplayBoxes(noteSize, bounds, fallbackSingleAspect);
+    /* 2페이지 스캔은 항상 한 장(spread). 양면 모드+단페이지 두 장일 때만 half */
     const box = spreadAsset
       ? boxes.spread
       : isSpreadMode
@@ -303,8 +310,18 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     overlay?.classList.remove('show');
   }
 
+  function currentPageIsSpreadAsset() {
+    const img = preloadedImages.get(pageNum);
+    return Boolean(img && isLoaded(img) && isSpreadAssetImage(img));
+  }
+
+  /** 양면 모드라도 현재가 2페이지 스캔이면 파일 1장씩 이동 */
+  function navigationStep() {
+    return isSpreadMode && !currentPageIsSpreadAsset() ? 2 : 1;
+  }
+
   function updateControls() {
-    const step = isSpreadMode ? 2 : 1;
+    const step = navigationStep();
     const atFirst = findVisiblePage(pageNum - 1, -1) === null;
     const nextTarget = (() => {
       let n = pageNum;
@@ -325,16 +342,16 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     lastBtn.disabled = !ready || totalPages === null || atLast;
 
     const total = visibleTotal();
-    if (isSpreadMode) {
+    const leftOrd = visibleOrdinal(pageNum);
+    if (isSpreadMode && !currentPageIsSpreadAsset()) {
       const rightNum = findVisiblePage(pageNum + 1, 1);
-      const leftOrd = visibleOrdinal(pageNum);
       if (rightNum !== null) {
         currentPageEl.textContent = `${leftOrd}-${visibleOrdinal(rightNum)}`;
       } else {
         currentPageEl.textContent = String(leftOrd);
       }
     } else {
-      currentPageEl.textContent = String(visibleOrdinal(pageNum));
+      currentPageEl.textContent = String(leftOrd);
     }
     totalPagesEl.textContent = total !== null ? String(total) : '?';
 
@@ -342,7 +359,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       toggleSpreadBtn.style.opacity = isSpreadMode ? '1' : '0.6';
       toggleSpreadBtn.setAttribute('aria-pressed', isSpreadMode ? 'true' : 'false');
     }
-    viewerEl?.classList.toggle('spread-mode', isSpreadMode);
+    /* 2페이지 스캔 한 장만 보일 때는 양면 레이아웃(두 칸) 끄기 */
+    viewerEl?.classList.toggle('spread-mode', isSpreadMode && !currentPageIsSpreadAsset());
   }
 
   function preloadPage(num) {
@@ -405,27 +423,33 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const preLeft = preloadPage(num);
     if (!preLeft) return;
 
-    const rightNum = isSpreadMode ? findVisiblePage(num + 1, 1) : null;
-    const preRight = rightNum !== null ? preloadPage(rightNum) : null;
-
     imageLeft.style.opacity = '0.3';
-    if (isSpreadMode && preRight) imageRight.style.opacity = '0.3';
-    showOverlay(
-      isSpreadMode && rightNum
-        ? `${num}-${rightNum}페이지 불러오는 중...`
-        : `${num}페이지 불러오는 중...`
-    );
+    clearRightImage();
+    showOverlay(`${num}페이지 불러오는 중...`);
 
     try {
       await waitForImage(preLeft);
       if (token !== renderToken) return;
 
+      const leftIsSpreadAsset = isSpreadAssetImage(preLeft);
+      /*
+       * 양면 모드라도 현재 이미지가 2페이지 스캔(가로형)이면
+       * 오른쪽 장을 붙이지 않고 그 한 장만 표시한다.
+       */
+      const rightNum =
+        isSpreadMode && !leftIsSpreadAsset ? findVisiblePage(num + 1, 1) : null;
+      const preRight = rightNum !== null ? preloadPage(rightNum) : null;
+
+      if (rightNum !== null) {
+        showOverlay(`${num}-${rightNum}페이지 불러오는 중...`);
+      }
+
       imageLeft.src = preLeft.src;
-      imageLeft.alt = `노트 ${num}페이지`;
+      imageLeft.alt = leftIsSpreadAsset ? `노트 ${num}페이지 (양면)` : `노트 ${num}페이지`;
       imageLeft.style.opacity = '1';
       applyImageFrame(imageLeft, preLeft);
 
-      if (isSpreadMode && preRight && rightNum !== null) {
+      if (preRight && rightNum !== null) {
         try {
           await waitForImage(preRight);
           if (token !== renderToken) return;
@@ -472,7 +496,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function stepPages(direction) {
-    const step = isSpreadMode ? 2 : 1;
+    const step = navigationStep();
     let next = pageNum;
     for (let i = 0; i < step; i += 1) {
       const found = findVisiblePage(next + direction, direction);
