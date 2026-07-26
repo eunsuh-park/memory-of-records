@@ -6,10 +6,10 @@
  */
 
 import { getNotionNotebooks } from '../../services/notionNotebooks.js';
+import { getNotionTypeItems } from '../../services/notionByType.js';
 import {
-  fitAspectBox,
-  isLandscapeSpread,
-  resolveDisplayAspect
+  computeNoteDisplayBoxes,
+  isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { render as renderButton } from '../Button/Button.js';
 import '../Button/Button.css';
@@ -59,6 +59,20 @@ async function loadTimelineNotes() {
   return cachedTimelineNotesPromise;
 }
 
+async function findNoteMetaById(noteId) {
+  const [notebookResult, typeResult] = await Promise.allSettled([
+    getNotionNotebooks(),
+    getNotionTypeItems()
+  ]);
+  const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
+  const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
+  return (
+    (notebooks || []).find((note) => note.id === noteId) ||
+    (typeItems || []).find((note) => note.id === noteId) ||
+    null
+  );
+}
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
@@ -104,6 +118,10 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const isModal = options.mode === 'modal';
   const preferredPdfUrl = options.pdfUrl || null;
   let noteSize = options.size || null;
+  /** size 없을 때: 첫 1페이지 비율을 노트 전체에 고정 */
+  let fallbackSingleAspect = null;
+  /** 노트당 1페이지/2페이지 박스(px). resize 전까지 고정 → 페이지마다 동일 크기 */
+  let lockedBoxes = null;
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
@@ -179,32 +197,50 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   let scale = initialScale;
   let isSpreadMode = false;
 
+  function invalidateLockedBoxes() {
+    lockedBoxes = null;
+  }
+
+  /** size 없을 때 1페이지 비율 고정. 가로형이면 절반 폭을 1페이지로 간주 */
+  function ensureFallbackFromDims(width, height) {
+    if (noteSize || fallbackSingleAspect || !(width > 0 && height > 0)) return;
+    if (isLandscapeSpread(width, height)) {
+      fallbackSingleAspect = { width: width / 2, height };
+    } else {
+      fallbackSingleAspect = { width, height };
+    }
+    invalidateLockedBoxes();
+  }
+
+  function getLockedBoxes() {
+    if (lockedBoxes) return lockedBoxes;
+    const bounds = canvasWrap?.getBoundingClientRect() || null;
+    lockedBoxes = computeNoteDisplayBoxes(noteSize, bounds, fallbackSingleAspect);
+    return lockedBoxes;
+  }
+
   /**
-   * size 비율(또는 페이지 고유 비율) 박스에 맞게 CSS로 늘림 — 크롭 없음.
-   * 가로형 단일 페이지는 2페이지 스캔으로 판정.
+   * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
+   * lockedBoxes로 페이지마다 동일한 가로·세로(px)를 적용한다.
    */
   function applyCanvasFrame(canvas, { halfOfPair = false } = {}) {
     if (!canvas || !canvas.width || !canvas.height) return;
-    const bounds = canvasWrap?.getBoundingClientRect();
-    const maxW = Math.max(
-      80,
-      (halfOfPair
-        ? ((bounds?.width || window.innerWidth) - 24) / 2
-        : (bounds?.width || window.innerWidth) * 0.98) - 8
-    );
-    const maxH = Math.max(80, ((bounds?.height || window.innerHeight) * 0.92) - 8);
+
+    ensureFallbackFromDims(canvas.width, canvas.height);
 
     const spreadAsset =
       !isSpreadMode && !halfOfPair && isLandscapeSpread(canvas.width, canvas.height);
-    const aspect =
-      resolveDisplayAspect(noteSize, { spreadAsset }) || {
-        width: canvas.width,
-        height: canvas.height
-      };
+    const boxes = getLockedBoxes();
+    const box = spreadAsset
+      ? boxes.spread
+      : halfOfPair
+        ? boxes.singleHalf
+        : boxes.single;
 
-    const box = fitAspectBox(aspect.width, aspect.height, maxW, maxH);
-    canvas.style.width = `${box.width}px`;
-    canvas.style.height = `${box.height}px`;
+    if (!box) return;
+
+    canvas.style.width = `${Math.round(box.width)}px`;
+    canvas.style.height = `${Math.round(box.height)}px`;
     canvas.style.maxWidth = 'none';
     canvas.style.maxHeight = 'none';
   }
@@ -345,6 +381,17 @@ export function renderPdfViewer(targetEl, id, options = {}) {
       pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
       const loadingTask = pdfjsLib.getDocument({ url, withCredentials: false });
       pdfDoc = await loadingTask.promise;
+
+      /* 1페이지 비율을 먼저 잠가 이후 모든 페이지에 동일 박스 적용 */
+      try {
+        const firstPage = await pdfDoc.getPage(1);
+        const firstViewport = firstPage.getViewport({ scale: 1 });
+        ensureFallbackFromDims(firstViewport.width, firstViewport.height);
+      } catch {
+        /* ignore — render 시점에 다시 시도 */
+      }
+      invalidateLockedBoxes();
+
       pageNum = 1;
       updateControls();
       hideOverlay();
@@ -358,10 +405,12 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   async function initPdfViewer() {
     showOverlay('PDF 목록 불러오는 중...');
     await ensurePdfJs();
+    const noteMeta = (await findNoteMetaById(noteId)) || null;
     const timelineNotes = await loadTimelineNotes();
     const timelineNote = timelineNotes.find((note) => note.id === noteId) || null;
-    const notionPdfUrl = timelineNote?.pdfUrl || null;
-    if (!noteSize && timelineNote?.size) noteSize = timelineNote.size;
+    const notionPdfUrl = noteMeta?.pdfUrl || timelineNote?.pdfUrl || null;
+    if (!noteSize) noteSize = noteMeta?.size || timelineNote?.size || null;
+    invalidateLockedBoxes();
     const pdfUrl = preferredPdfUrl || notionPdfUrl;
 
     if (!pdfUrl) {
@@ -398,7 +447,10 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   let resizeTimer = null;
   const handleResize = () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => refreshCanvasFrames(), 80);
+    resizeTimer = setTimeout(() => {
+      invalidateLockedBoxes();
+      refreshCanvasFrames();
+    }, 80);
   };
   window.addEventListener('resize', handleResize);
 
