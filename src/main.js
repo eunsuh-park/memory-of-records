@@ -7,6 +7,7 @@ import { router } from './router.js';
 import { render as renderButton } from './components/Button/Button.js';
 import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
 import { renderFooter } from './components/Footer/Footer.js';
+import { mountAddNoteFab } from './components/AddNoteFab/AddNoteFab.js';
 import { requestPdfFolderSync } from './services/pdfFolderSync.js';
 import { initTheme } from './utils/theme.js';
 import './index.css';
@@ -60,6 +61,13 @@ async function initApp() {
     } catch (error) {
       console.error('❌ 라우트 렌더링 오류:', error);
     }
+
+    /* 우측 하단 + FAB: 새 노트 추가 */
+    mountAddNoteFab({
+      onCreated: () => {
+        router.handleRoute();
+      }
+    });
     
     console.log('✅ 앱 초기화 완료');
 

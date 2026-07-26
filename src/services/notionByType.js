@@ -243,3 +243,8 @@ export function getCachedNotionTypeItems(visibility = 'public') {
   return cachedNotionTypeItems.get(visibility)?.data || [];
 }
 
+/** 새 노트 추가 후 목록을 다시 불러오도록 캐시 비우기 */
+export function clearNotionTypeItemsCache() {
+  cachedNotionTypeItems.clear();
+}
+

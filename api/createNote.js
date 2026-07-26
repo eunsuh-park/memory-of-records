@@ -1,0 +1,202 @@
+/**
+ * POST /api/createNote
+ * Notion 노트북 DB에 새 페이지(row) 생성
+ *
+ * Body:
+ * {
+ *   name, coverFrontUrl, coverBackUrl, notebookType,  // required
+ *   color?, size?, periodStart?, periodEnd?, notes?, isKept?
+ * }
+ */
+import {
+  NOTEBOOK_DB_ID,
+  findSchemaProperty,
+  findTitleProperty,
+  notionFetch
+} from './_lib/notionDb.js';
+
+function trimOrEmpty(value) {
+  if (value == null) return '';
+  return String(value).trim();
+}
+
+function buildRichText(content) {
+  const text = String(content || '');
+  /* Notion rich_text 한 블록 2000자 제한 */
+  const sliced = text.slice(0, 2000);
+  return { rich_text: [{ type: 'text', text: { content: sliced } }] };
+}
+
+function assignIfPresent(properties, prop, payload) {
+  if (!prop || !payload) return;
+  properties[prop.key] = payload;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
+    const name = trimOrEmpty(body.name);
+    const coverFrontUrl = trimOrEmpty(body.coverFrontUrl);
+    const coverBackUrl = trimOrEmpty(body.coverBackUrl);
+    const notebookType = trimOrEmpty(body.notebookType);
+
+    if (!name || !coverFrontUrl || !coverBackUrl || !notebookType) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: '이름, 앞·뒤 표지 URL, notebook_type은 필수입니다'
+      });
+    }
+
+    const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
+    const schema = database?.properties || {};
+
+    const titleProp = findTitleProperty(schema);
+    if (!titleProp) {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'Notion DB에 title 속성이 없습니다'
+      });
+    }
+
+    const properties = {
+      [titleProp.key]: {
+        title: [{ type: 'text', text: { content: name.slice(0, 2000) } }]
+      }
+    };
+
+    const frontProp = findSchemaProperty(
+      schema,
+      'cover_front_url',
+      'cover front url',
+      'Cover Front URL',
+      'cover_front',
+      '앞표지'
+    );
+    const backProp = findSchemaProperty(
+      schema,
+      'cover_back_url',
+      'cover back url',
+      'Cover Back URL',
+      'cover_back',
+      '뒷표지'
+    );
+    const typeProp = findSchemaProperty(schema, 'notebook_type', 'Notebook Type', 'type', 'Type');
+    const colorProp = findSchemaProperty(schema, 'color', 'Color', '색', '색상');
+    const sizeProp = findSchemaProperty(schema, 'size', 'Size', '사이즈', '노트 사이즈');
+    const startProp = findSchemaProperty(schema, 'period_start', 'Period Start', 'period start');
+    const endProp = findSchemaProperty(schema, 'period_end', 'Period End', 'period end');
+    const notesProp = findSchemaProperty(
+      schema,
+      'notes',
+      'Notes',
+      '메모',
+      'description',
+      'Description',
+      'note',
+      'Note'
+    );
+    const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
+
+    if (frontProp?.type === 'url') {
+      properties[frontProp.key] = { url: coverFrontUrl };
+    } else if (frontProp?.type === 'rich_text') {
+      properties[frontProp.key] = buildRichText(coverFrontUrl);
+    } else {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'cover_front_url(URL) 속성이 Notion DB에 없습니다'
+      });
+    }
+
+    if (backProp?.type === 'url') {
+      properties[backProp.key] = { url: coverBackUrl };
+    } else if (backProp?.type === 'rich_text') {
+      properties[backProp.key] = buildRichText(coverBackUrl);
+    } else {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'cover_back_url(URL) 속성이 Notion DB에 없습니다'
+      });
+    }
+
+    if (typeProp?.type === 'select') {
+      properties[typeProp.key] = { select: { name: notebookType } };
+    } else if (typeProp?.type === 'rich_text') {
+      properties[typeProp.key] = buildRichText(notebookType);
+    } else {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'notebook_type 속성이 Notion DB에 없습니다'
+      });
+    }
+
+    const color = trimOrEmpty(body.color);
+    if (color && colorProp) {
+      if (colorProp.type === 'select') {
+        assignIfPresent(properties, colorProp, { select: { name: color } });
+      } else if (colorProp.type === 'rich_text') {
+        assignIfPresent(properties, colorProp, buildRichText(color));
+      }
+    }
+
+    const size = trimOrEmpty(body.size);
+    if (size && sizeProp) {
+      if (sizeProp.type === 'select') {
+        assignIfPresent(properties, sizeProp, { select: { name: size } });
+      } else if (sizeProp.type === 'rich_text') {
+        assignIfPresent(properties, sizeProp, buildRichText(size));
+      }
+    }
+
+    const periodStart = trimOrEmpty(body.periodStart);
+    const periodEnd = trimOrEmpty(body.periodEnd);
+    if (periodStart && startProp?.type === 'date') {
+      properties[startProp.key] = { date: { start: periodStart } };
+    }
+    if (periodEnd && endProp?.type === 'date') {
+      properties[endProp.key] = { date: { start: periodEnd } };
+    }
+
+    const notes = trimOrEmpty(body.notes);
+    if (notes && notesProp) {
+      if (notesProp.type === 'rich_text') {
+        assignIfPresent(properties, notesProp, buildRichText(notes));
+      } else if (notesProp.type === 'title') {
+        /* skip — title은 name에 사용 */
+      }
+    }
+
+    const isKept = body.isKept !== false && body.isKept !== 'false';
+    if (keptProp?.type === 'checkbox') {
+      properties[keptProp.key] = { checkbox: Boolean(isKept) };
+    }
+
+    const page = await notionFetch('/pages', {
+      method: 'POST',
+      body: {
+        parent: { database_id: NOTEBOOK_DB_ID },
+        properties,
+        cover: {
+          type: 'external',
+          external: { url: coverFrontUrl }
+        }
+      }
+    });
+
+    return res.status(200).json({
+      ok: true,
+      id: page.id,
+      url: page.url
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      error: 'Failed to create note',
+      message: error.message,
+      details: error.details
+    });
+  }
+}

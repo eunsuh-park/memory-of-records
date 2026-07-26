@@ -290,6 +290,11 @@ export function getCachedNotionNotebooks(visibility = 'public') {
   return cachedNotionNotebooks.get(visibility)?.data || [];
 }
 
+/** 새 노트 추가 후 목록을 다시 불러오도록 캐시 비우기 */
+export function clearNotionNotebooksCache() {
+  cachedNotionNotebooks.clear();
+}
+
 export function getNotebookDbId() {
   return NOTEBOOK_DB_ID;
 }
