@@ -190,7 +190,7 @@ export function convertNotionPageToTypeItem(page) {
  * @param {{ visibility?: 'public'|'private'|'all' }} [options]
  */
 export async function fetchNotionTypeItems(options = {}) {
-  const visibility = options.visibility || 'all';
+  const visibility = options.visibility || 'public';
   const qs = `?visibility=${encodeURIComponent(visibility)}`;
   const response = await fetch(`/api/notionByType${qs}`, {
     method: 'GET',
@@ -216,7 +216,7 @@ export async function fetchNotionTypeItems(options = {}) {
  * @param {{ visibility?: 'public'|'private'|'all' }} [options]
  */
 export async function getNotionTypeItems(options = {}) {
-  const visibility = options.visibility || 'all';
+  const visibility = options.visibility || 'public';
   const cached = cachedNotionTypeItems.get(visibility) || { data: null, promise: null };
 
   if (cached.data) return cached.data;
@@ -239,7 +239,7 @@ export async function getNotionTypeItems(options = {}) {
   return cached.promise;
 }
 
-export function getCachedNotionTypeItems(visibility = 'all') {
+export function getCachedNotionTypeItems(visibility = 'public') {
   return cachedNotionTypeItems.get(visibility)?.data || [];
 }
 

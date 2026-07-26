@@ -117,8 +117,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           ${renderButton({ variant: 'toolbar', ariaLabel: '양면 보기 전환', content: ICONS.bookOpen, className: 'niv-toggle-spread' })}
         </div>
         <div class="niv-image-container">
-          <img class="niv-page-image niv-page-image--left" alt="" draggable="false" referrerpolicy="no-referrer" />
-          <img class="niv-page-image niv-page-image--right" alt="" draggable="false" referrerpolicy="no-referrer" />
+          <div class="niv-zoom-stage">
+            <img class="niv-page-image niv-page-image--left" alt="" draggable="false" referrerpolicy="no-referrer" />
+            <img class="niv-page-image niv-page-image--right" alt="" draggable="false" referrerpolicy="no-referrer" />
+          </div>
         </div>
         <div class="pdf-overlay show niv-overlay">
           <dotlottie-wc class="pdf-overlay-lottie" src="${LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
@@ -148,6 +150,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   const viewerEl = targetEl.querySelector('.note-image-viewer');
+  const canvasWrap = targetEl.querySelector('.pdf-canvas-wrap');
+  const zoomStage = targetEl.querySelector('.niv-zoom-stage');
   const overlay = targetEl.querySelector('.niv-overlay');
   const overlayText = targetEl.querySelector('.niv-overlay-text');
   const imageLeft = targetEl.querySelector('.niv-page-image--left');
@@ -173,6 +177,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let ready = false;
   let isSpreadMode = false;
   let renderToken = 0;
+  let viewScale = 1;
+  const MIN_VIEW_SCALE = 0.5;
+  const MAX_VIEW_SCALE = 4;
   /** Cloudinary metadata visible=false 페이지 번호 (뷰어에서 건너뜀) */
   let hiddenPages = new Set();
   /** pageNum → HTMLImageElement (preload 캐시) */
@@ -190,6 +197,28 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         img.style.removeProperty('aspect-ratio');
       }
     });
+  }
+
+  function applyViewScale() {
+    if (!zoomStage) return;
+    zoomStage.style.transform = `scale(${viewScale})`;
+  }
+
+  function setViewScale(next) {
+    viewScale = Math.min(MAX_VIEW_SCALE, Math.max(MIN_VIEW_SCALE, next));
+    applyViewScale();
+  }
+
+  function resetViewScale() {
+    viewScale = 1;
+    applyViewScale();
+  }
+
+  function touchDistance(touches) {
+    const [a, b] = touches;
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return Math.hypot(dx, dy);
   }
 
   /**
@@ -394,6 +423,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (!ready || num === null || num < 1) return;
     if (totalPages !== null && num > totalPages) return;
     if (num === pageNum && !isSpreadMode) return;
+    resetViewScale();
     showPage(num);
   }
 
@@ -413,6 +443,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   function toggleSpreadMode() {
     isSpreadMode = !isSpreadMode;
+    resetViewScale();
     showPage(pageNum);
   }
 
@@ -472,11 +503,52 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (event.key === 'ArrowLeft') stepPages(-1);
     else if (event.key === 'ArrowRight') stepPages(1);
     else if (event.key === 's' || event.key === 'S') toggleSpreadMode();
+    else if (event.key === '+' || event.key === '=') setViewScale(viewScale + 0.15);
+    else if (event.key === '-') setViewScale(viewScale - 0.15);
+    else if (event.key === '0') resetViewScale();
   };
   document.addEventListener('keydown', handleKeydown);
 
+  /* PC: 마우스 휠 확대/축소 (비율 유지, 크롭 없음) */
+  const handleWheel = (event) => {
+    event.preventDefault();
+    const delta = event.deltaY > 0 ? -0.12 : 0.12;
+    setViewScale(viewScale + delta);
+  };
+  canvasWrap?.addEventListener('wheel', handleWheel, { passive: false });
+
+  /* 모바일/타블렛: 두 손가락 핀치 줌 */
+  let pinchStartDist = 0;
+  let pinchStartScale = 1;
+  const handleTouchStart = (event) => {
+    if (event.touches.length === 2) {
+      pinchStartDist = touchDistance(event.touches);
+      pinchStartScale = viewScale;
+    }
+  };
+  const handleTouchMove = (event) => {
+    if (event.touches.length !== 2 || !pinchStartDist) return;
+    event.preventDefault();
+    const dist = touchDistance(event.touches);
+    setViewScale(pinchStartScale * (dist / pinchStartDist));
+  };
+  const handleTouchEnd = (event) => {
+    if (event.touches.length < 2) {
+      pinchStartDist = 0;
+    }
+  };
+  canvasWrap?.addEventListener('touchstart', handleTouchStart, { passive: true });
+  canvasWrap?.addEventListener('touchmove', handleTouchMove, { passive: false });
+  canvasWrap?.addEventListener('touchend', handleTouchEnd, { passive: true });
+  canvasWrap?.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
   function cleanup() {
     document.removeEventListener('keydown', handleKeydown);
+    canvasWrap?.removeEventListener('wheel', handleWheel);
+    canvasWrap?.removeEventListener('touchstart', handleTouchStart);
+    canvasWrap?.removeEventListener('touchmove', handleTouchMove);
+    canvasWrap?.removeEventListener('touchend', handleTouchEnd);
+    canvasWrap?.removeEventListener('touchcancel', handleTouchEnd);
   }
 
   initViewer();

@@ -180,52 +180,12 @@
   color: var(--app-text-muted);
 }
 
-/* 공개/비공개 + 정렬 */
+/* 정렬 */
 .filter-controls {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem 0.75rem;
   margin-top: 0.65rem;
-}
-
-.filter-control {
-  display: inline-flex;
-  gap: 0.2rem;
-  padding: 0.15rem;
-  border-radius: 999px;
-  background: var(--color-surface-hover);
-}
-
-.filter-control__btn {
-  border: none;
-  background: transparent;
-  color: var(--app-text-dim);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 500;
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.2s, background-color 0.2s;
-}
-
-.filter-control__btn:hover {
-  color: var(--app-text);
-}
-
-.filter-control__btn.active {
-  color: var(--app-text);
-  background: var(--color-surface-selected);
-}
-
-.filter-sort {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  color: var(--app-text-dim);
 }
 
 .filter-sort__select {
@@ -235,7 +195,7 @@
   background: var(--color-surface-hover);
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  padding: 0.28rem 0.6rem;
+  padding: 0.28rem 0.75rem;
   cursor: pointer;
 }
 
