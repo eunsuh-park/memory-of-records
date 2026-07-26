@@ -57,16 +57,59 @@ export function parseNoteSize(raw) {
 }
 
 /**
+ * 가로가 더 긴 이미지/페이지 → 2페이지 스캔으로 판정
+ * @param {number} width
+ * @param {number} height
+ */
+export function isLandscapeSpread(width, height) {
+  return Number(width) > 0 && Number(height) > 0 && Number(width) > Number(height);
+}
+
+/**
+ * 표시용 종횡비 (단페이지 / 양면·2페이지 스캔)
+ * @param {string|number|null|undefined} rawSize
+ * @param {{ spreadAsset?: boolean }} [options]
+ * @returns {{ width: number, height: number } | null}
+ */
+export function resolveDisplayAspect(rawSize, options = {}) {
+  const parsed = parseNoteSize(rawSize);
+  if (!parsed?.width || !parsed?.height) return null;
+  return {
+    width: options.spreadAsset ? parsed.width * 2 : parsed.width,
+    height: parsed.height
+  };
+}
+
+/**
  * CSS aspect-ratio 값 (단페이지 / 양면)
  * @param {string|number|null|undefined} rawSize
  * @param {boolean} [spread=false]
- * @returns {string|null} 예: "148 / 210" 또는 "296 / 210"
+ * @returns {string|null}
  */
 export function aspectRatioCss(rawSize, spread = false) {
-  const parsed = parseNoteSize(rawSize);
-  if (!parsed?.aspectRatio || !parsed.width || !parsed.height) return null;
-  const w = spread ? parsed.width * 2 : parsed.width;
-  return `${w} / ${parsed.height}`;
+  const aspect = resolveDisplayAspect(rawSize, { spreadAsset: spread });
+  if (!aspect) return null;
+  return `${aspect.width} / ${aspect.height}`;
+}
+
+/**
+ * maxW×maxH 안에 들어가는 최대 박스 (비율 유지, 크롭 없음)
+ * @param {number} aspectW
+ * @param {number} aspectH
+ * @param {number} maxW
+ * @param {number} maxH
+ */
+export function fitAspectBox(aspectW, aspectH, maxW, maxH) {
+  if (!(aspectW > 0 && aspectH > 0 && maxW > 0 && maxH > 0)) {
+    return { width: Math.max(0, maxW), height: Math.max(0, maxH) };
+  }
+  let height = maxH;
+  let width = height * (aspectW / aspectH);
+  if (width > maxW) {
+    width = maxW;
+    height = width / (aspectW / aspectH);
+  }
+  return { width, height };
 }
 
 /**

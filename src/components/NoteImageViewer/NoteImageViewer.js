@@ -13,7 +13,11 @@ import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderPdfViewer } from '../PdfModal/PdfModal.js';
 import { render as renderButton } from '../Button/Button.js';
-import { aspectRatioCss } from '../../utils/noteSize.js';
+import {
+  fitAspectBox,
+  isLandscapeSpread,
+  resolveDisplayAspect
+} from '../../utils/noteSize.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
 import '../PdfModal/PdfModal.css';
@@ -185,18 +189,53 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   /** pageNum → HTMLImageElement (preload 캐시) */
   const preloadedImages = new Map();
 
-  function applyAspectRatio() {
-    const css = aspectRatioCss(noteSize, false);
-    [imageLeft, imageRight].forEach((img) => {
-      if (!img) return;
-      if (css) {
-        img.style.setProperty('--niv-aspect', css);
-        img.style.aspectRatio = css;
-      } else {
-        img.style.removeProperty('--niv-aspect');
-        img.style.removeProperty('aspect-ratio');
-      }
-    });
+  /**
+   * size 비율 박스를 만들고 object-fit:fill 로 늘림 (크롭 없음).
+   * 가로>세로 원본 → 2페이지 스캔으로 보고 size 가로×2 비율 사용.
+   */
+  function applyImageFrame(img, sourceImg) {
+    if (!img) return;
+    const nw = sourceImg?.naturalWidth || img.naturalWidth || 0;
+    const nh = sourceImg?.naturalHeight || img.naturalHeight || 0;
+    /* 수동 양면(두 장)일 때는 각 장을 1페이지 비율로. 한 장이 가로형이면 2페이지 스캔 */
+    const spreadAsset = !isSpreadMode && isLandscapeSpread(nw, nh);
+    const aspect =
+      resolveDisplayAspect(noteSize, { spreadAsset }) ||
+      (nw > 0 && nh > 0 ? { width: nw, height: nh } : null);
+
+    img.classList.toggle('niv-page-image--spread-asset', spreadAsset);
+
+    const bounds = canvasWrap?.getBoundingClientRect();
+    const maxW = Math.max(
+      80,
+      (isSpreadMode && !spreadAsset
+        ? ((bounds?.width || window.innerWidth) - 24) / 2
+        : (bounds?.width || window.innerWidth) * 0.98) - 8
+    );
+    const maxH = Math.max(80, ((bounds?.height || window.innerHeight) * 0.92) - 8);
+
+    if (!aspect) {
+      img.style.width = 'auto';
+      img.style.height = `${maxH}px`;
+      img.style.maxWidth = `${maxW}px`;
+      img.style.objectFit = 'fill';
+      return;
+    }
+
+    const box = fitAspectBox(aspect.width, aspect.height, maxW, maxH);
+    img.style.width = `${box.width}px`;
+    img.style.height = `${box.height}px`;
+    img.style.maxWidth = 'none';
+    img.style.maxHeight = 'none';
+    img.style.objectFit = 'fill';
+    img.style.aspectRatio = `${aspect.width} / ${aspect.height}`;
+  }
+
+  function refreshImageFrames() {
+    if (imageLeft?.getAttribute('src')) applyImageFrame(imageLeft, imageLeft);
+    if (imageRight?.getAttribute('src') && imageRight.style.display !== 'none') {
+      applyImageFrame(imageRight, imageRight);
+    }
   }
 
   function applyViewScale() {
@@ -380,7 +419,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       imageLeft.src = preLeft.src;
       imageLeft.alt = `노트 ${num}페이지`;
       imageLeft.style.opacity = '1';
-      applyAspectRatio();
+      applyImageFrame(imageLeft, preLeft);
 
       if (isSpreadMode && preRight && rightNum !== null) {
         try {
@@ -390,6 +429,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           imageRight.src = preRight.src;
           imageRight.alt = `노트 ${rightNum}페이지`;
           imageRight.style.opacity = '1';
+          applyImageFrame(imageRight, preRight);
         } catch {
           if (token !== renderToken) return;
           clearRightImage();
@@ -456,7 +496,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       return;
     }
     ready = true;
-    applyAspectRatio();
     updateControls();
     showPage(firstVisible);
   }
@@ -542,8 +581,17 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   canvasWrap?.addEventListener('touchend', handleTouchEnd, { passive: true });
   canvasWrap?.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
+  let resizeTimer = null;
+  const handleResize = () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => refreshImageFrames(), 80);
+  };
+  window.addEventListener('resize', handleResize);
+
   function cleanup() {
     document.removeEventListener('keydown', handleKeydown);
+    window.removeEventListener('resize', handleResize);
+    clearTimeout(resizeTimer);
     canvasWrap?.removeEventListener('wheel', handleWheel);
     canvasWrap?.removeEventListener('touchstart', handleTouchStart);
     canvasWrap?.removeEventListener('touchmove', handleTouchMove);

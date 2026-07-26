@@ -169,7 +169,7 @@ body.pdf-modal-open {
   background: transparent;
   border: none;
   border-radius: 18px;
-  padding: 0;
+  padding: 8px;
   margin: 0;
   min-height: 70vh;
   display: flex;
@@ -179,29 +179,28 @@ body.pdf-modal-open {
   height: 100%;
   width: 100%;
   flex: 1;
+  box-sizing: border-box;
 }
 
-/* 캔버스 컨테이너 */
+/* 캔버스 컨테이너 — width/height는 JS가 size 비율로 지정 후 스트레치 */
 .pdf-canvas-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   display: flex;
   gap: 12px;
   align-items: center;
   justify-content: center;
   transition: opacity 0.2s ease;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .pdf-canvas-container canvas {
-  max-width: none;
-  max-height: 85vh;
-  height: auto;
+  /* 비트맵은 그대로 두고 CSS 박스로 늘림 (크롭 없음) */
   transition: opacity 0.2s ease;
   border-radius: 6px;
   box-shadow: none;
   filter: var(--color-drop-shadow);
+  flex-shrink: 0;
 }
 
 .pdf-canvas-container #pdf-canvas-right {
@@ -210,10 +209,6 @@ body.pdf-modal-open {
 
 .pdf-canvas-container.spread-mode #pdf-canvas-right {
   display: block;
-}
-
-.pdf-canvas-container.spread-mode canvas {
-  max-height: 85vh;
 }
 
 /* 좌우 이동 버튼: z-index 최상위 (Button 컴포넌트 사용) */
@@ -299,9 +294,6 @@ body.pdf-modal-open {
     height: 14px;
   }
 
-  .pdf-canvas-container canvas {
-    max-height: 70vh;
-  }
 }
 
 /* PDF/이미지 로딩 오버레이 — 딤 위에서 애니메이션 (흰 배경 없음) */
