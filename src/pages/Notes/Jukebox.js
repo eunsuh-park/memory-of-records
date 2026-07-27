@@ -21,6 +21,7 @@ import { render as renderButton } from '../../components/Button/Button.js';
 import { formatNoteSizeLabel } from '../../utils/noteSize.js';
 import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
+import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import './Jukebox.css';
@@ -29,7 +30,9 @@ const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>",
   edit:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>",
+  plus:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>"
 };
 
 const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';
@@ -740,13 +743,22 @@ function renderFocusedNoteInfo(note, filterMode) {
     <div class="jukebox-focus-info" aria-live="polite">
       <div class="jukebox-focus-info__header">
         <h2 class="jukebox-focus-info__title">${title}</h2>
-        <button
-          type="button"
-          class="jukebox-focus-info__edit"
-          data-note-id="${noteId}"
-          aria-label="노트 정보 수정"
-          title="노트 정보 수정"
-        >${ICONS.edit}</button>
+        <div class="jukebox-focus-info__actions">
+          <button
+            type="button"
+            class="jukebox-focus-info__edit"
+            data-note-id="${noteId}"
+            aria-label="노트 정보 수정"
+            title="노트 정보 수정"
+          >${ICONS.edit}</button>
+          <button
+            type="button"
+            class="jukebox-focus-info__add"
+            data-note-id="${noteId}"
+            aria-label="페이지 추가"
+            title="페이지 추가"
+          >${ICONS.plus}</button>
+        </div>
       </div>
       ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
       ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
@@ -842,11 +854,12 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
-      const btn = e.target?.closest?.('.jukebox-focus-info__edit');
-      if (!btn) return;
+      const editBtn = e.target?.closest?.('.jukebox-focus-info__edit');
+      const addBtn = e.target?.closest?.('.jukebox-focus-info__add');
+      if (!editBtn && !addBtn) return;
       e.preventDefault();
       e.stopPropagation();
-      const noteId = btn.getAttribute('data-note-id');
+      const noteId = (editBtn || addBtn).getAttribute('data-note-id');
       const notes = (() => {
         if (!allNotesCache) return [];
         const byPeriodOrType = (allNotesCache || []).filter(
@@ -856,6 +869,13 @@ export function renderJukeboxWithFilter(options) {
       })();
       const note = notes.find((n) => n.id === noteId) || null;
       if (!note) return;
+      if (addBtn) {
+        openAddPageModal({
+          note,
+          onDone: refreshAfterNoteEdit
+        });
+        return;
+      }
       openAddNoteModal({
         mode: 'edit',
         note,

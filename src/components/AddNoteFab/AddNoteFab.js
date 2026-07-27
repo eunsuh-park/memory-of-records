@@ -23,6 +23,10 @@ import {
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
+import {
+  openAddPageModal,
+  openAddPagesConfirmDialog
+} from '../AddPageModal/AddPageModal.js';
 import uploadingLottieUrl from '../../uploading.json?url';
 import './AddNoteFab.css';
 
@@ -566,6 +570,25 @@ export function openAddNoteModal(options = {}) {
       hideUploadingOverlay();
       showToast('노트가 추가되었습니다');
       options.onCreated?.(created);
+
+      const createdNote = {
+        id: created?.id || '',
+        title: metaPayload.name,
+        name: metaPayload.name,
+        pdfFolderUrl: '',
+        pageCount: 0
+      };
+      if (createdNote.id) {
+        openAddPagesConfirmDialog({
+          note: createdNote,
+          onConfirm: () => {
+            openAddPageModal({
+              note: createdNote,
+              onDone: () => options.onCreated?.(created)
+            });
+          }
+        });
+      }
     } catch (err) {
       console.error('[AddNote]', err);
       hideUploadingOverlay();

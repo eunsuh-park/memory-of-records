@@ -706,9 +706,16 @@ body.jukebox-active.loading-active .notes-scrollbar {
   width: 100%;
 }
 
-.jukebox-focus-info__edit {
+.jukebox-focus-info__actions {
   pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   flex-shrink: 0;
+}
+
+.jukebox-focus-info__edit,
+.jukebox-focus-info__add {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -724,13 +731,15 @@ body.jukebox-active.loading-active .notes-scrollbar {
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.jukebox-focus-info__edit:hover {
+.jukebox-focus-info__edit:hover,
+.jukebox-focus-info__add:hover {
   color: var(--app-text);
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-.jukebox-focus-info__edit:focus-visible {
+.jukebox-focus-info__edit:focus-visible,
+.jukebox-focus-info__add:focus-visible {
   outline: 2px solid var(--color-primary, #ffd966);
   outline-offset: 2px;
 }
@@ -740,13 +749,15 @@ body.jukebox-active.loading-active .notes-scrollbar {
   border-color: rgba(28, 36, 44, 0.06);
 }
 
-[data-theme='light'] .jukebox-focus-info__edit {
+[data-theme='light'] .jukebox-focus-info__edit,
+[data-theme='light'] .jukebox-focus-info__add {
   background: rgba(28, 36, 44, 0.05);
   border-color: rgba(28, 36, 44, 0.1);
   color: var(--app-text-muted);
 }
 
-[data-theme='light'] .jukebox-focus-info__edit:hover {
+[data-theme='light'] .jukebox-focus-info__edit:hover,
+[data-theme='light'] .jukebox-focus-info__add:hover {
   background: rgba(28, 36, 44, 0.1);
   color: var(--app-text);
 }

@@ -1,0 +1,253 @@
+/**
+ * 페이지 추가·메타 편집 클라이언트 서비스
+ */
+
+const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER_CDN =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/gif'
+]);
+
+const MAX_IMAGE_COUNT = 10;
+
+/**
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
+export function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('파일을 읽지 못했습니다'));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * 임의 이미지 data URL → JPEG data URL (뷰어 page-*.jpg 규칙)
+ * @param {string} dataUrl
+ * @param {number} [quality=0.9]
+ * @returns {Promise<string>}
+ */
+export function convertImageDataUrlToJpeg(dataUrl, quality = 0.9) {
+  if (String(dataUrl || '').startsWith('data:image/jpeg')) return Promise.resolve(dataUrl);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, img.naturalWidth || img.width);
+        canvas.height = Math.max(1, img.naturalHeight || img.height);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('이미지 변환을 지원하지 않는 환경입니다'));
+          return;
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('JPEG 변환에 실패했습니다'));
+      }
+    };
+    img.onerror = () => reject(new Error('이미지를 불러오지 못했습니다'));
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * @param {File} file
+ * @returns {boolean}
+ */
+export function isAllowedImageFile(file) {
+  if (!file) return false;
+  const type = String(file.type || '').toLowerCase();
+  if (ALLOWED_IMAGE_TYPES.has(type)) return true;
+  const name = String(file.name || '').toLowerCase();
+  return /\.(png|jpe?g|gif)$/i.test(name);
+}
+
+/**
+ * @param {FileList|File[]} files
+ * @returns {{ ok: true, files: File[] } | { ok: false, message: string }}
+ */
+export function validateImageFiles(files) {
+  const list = [...(files || [])].filter(Boolean);
+  if (!list.length) {
+    return { ok: false, message: '이미지를 1장 이상 선택해주세요' };
+  }
+  if (list.length > MAX_IMAGE_COUNT) {
+    return { ok: false, message: `이미지는 최대 ${MAX_IMAGE_COUNT}장까지 가능합니다` };
+  }
+  for (const file of list) {
+    if (!isAllowedImageFile(file)) {
+      return { ok: false, message: 'PNG, JPEG, JPG, GIF만 업로드할 수 있습니다' };
+    }
+  }
+  return { ok: true, files: list };
+}
+
+export { MAX_IMAGE_COUNT };
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      if (existing.getAttribute('data-loaded') === 'true') {
+        resolve();
+        return;
+      }
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('스크립트 로드 실패')));
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.addEventListener('load', () => {
+      script.setAttribute('data-loaded', 'true');
+      resolve();
+    });
+    script.addEventListener('error', () => reject(new Error('스크립트 로드 실패')));
+    document.head.appendChild(script);
+  });
+}
+
+async function ensurePdfJs() {
+  await loadScript(PDFJS_CDN);
+  const pdfjsLib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
+  if (!pdfjsLib) throw new Error('PDF.js를 불러오지 못했습니다');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_CDN;
+  return pdfjsLib;
+}
+
+/**
+ * PDF 파일을 페이지별 JPEG data URL로 변환
+ * @param {File} file
+ * @param {{ onProgress?: (done: number, total: number) => void, scale?: number }} [options]
+ * @returns {Promise<string[]>}
+ */
+export async function convertPdfFileToJpegDataUrls(file, options = {}) {
+  if (!file) throw new Error('PDF 파일이 필요합니다');
+  const pdfjsLib = await ensurePdfJs();
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  const total = pdf.numPages || 0;
+  if (!total) throw new Error('PDF에 페이지가 없습니다');
+
+  const scale = Number(options.scale) > 0 ? Number(options.scale) : 1.5;
+  const results = [];
+
+  for (let i = 1; i <= total; i += 1) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.floor(viewport.width));
+    canvas.height = Math.max(1, Math.floor(viewport.height));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('캔버스를 사용할 수 없습니다');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    results.push(canvas.toDataURL('image/jpeg', 0.88));
+    options.onProgress?.(i, total);
+  }
+
+  return results;
+}
+
+/**
+ * @param {{
+ *   file: string,
+ *   noteName: string,
+ *   pageNumber: number,
+ *   folder?: string
+ * }} payload
+ */
+export async function uploadPageImage(payload) {
+  const response = await fetch('/api/uploadPage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.details?.error?.message ||
+        data?.error ||
+        '페이지 업로드에 실패했습니다'
+    );
+  }
+  if (!data?.url) throw new Error('업로드 응답에 URL이 없습니다');
+  return data;
+}
+
+/**
+ * @param {{ id: string, pdfFolderUrl: string, pageCount: number }} payload
+ */
+export async function updateNotionNotePages(payload) {
+  const response = await fetch('/api/updateNotePages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.details?.message || data?.error || '페이지 정보 갱신에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
+ * @param {{ folder: string, page: number }} params
+ */
+export async function fetchPageMeta({ folder, page }) {
+  const qs = new URLSearchParams({
+    folder: String(folder || ''),
+    page: String(page || 1)
+  });
+  const response = await fetch(`/api/pageMeta?${qs.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || '페이지 메타를 불러오지 못했습니다');
+  }
+  return data;
+}
+
+/**
+ * @param {{
+ *   publicId?: string,
+ *   folder?: string,
+ *   pageNumber?: number,
+ *   entry_date?: string,
+ *   ocr_text?: string,
+ *   visible?: boolean
+ * }} payload
+ */
+export async function updatePageMeta(payload) {
+  const response = await fetch('/api/updatePageMeta', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.details?.error?.message ||
+        data?.error ||
+        '페이지 메타 수정에 실패했습니다'
+    );
+  }
+  return data;
+}
