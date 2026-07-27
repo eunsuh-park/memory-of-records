@@ -1,11 +1,10 @@
 /**
- * 우측 하단 FAB(+) → 새 노트 추가 모달
+ * 우측 하단 FAB(+) → 새 노트 추가 / 노트 정보 수정 모달
  *
  * 흐름:
  * 1) 폼 작성 (이름·앞뒤표지·타입·사용 시작일 필수, is_kept/visible 기본 true)
  * 2) 뒷표지를 앞표지 크기에 맞춰 크롭 → Cloudinary 업로드 (Front/Back 폴더, 파일명=노트명)
- * 3) "페이지 추가할까요?" 확인
- * 4) Notion DB에 새 페이지 생성
+ * 3) Notion DB에 페이지 생성 또는 기존 페이지 PATCH
  */
 
 import { render as renderButton } from '../Button/Button.js';
@@ -18,6 +17,7 @@ import {
   fetchNoteFormMeta,
   getImageSizeFromDataUrl,
   readFileAsDataUrl,
+  updateNotionNote,
   uploadCoverImage
 } from '../../services/createNote.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
@@ -53,7 +53,7 @@ const COLOR_CHIP_HEX = {
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
 
-function showUploadingOverlay() {
+function showUploadingOverlay(message = '표지를 업로드하는 중…') {
   hideUploadingOverlay();
   const overlay = document.createElement('div');
   overlay.className = 'add-note-upload-overlay';
@@ -67,7 +67,7 @@ function showUploadingOverlay() {
       autoplay
       loop
     ></dotlottie-wc>
-    <p class="add-note-upload-text">표지를 업로드하는 중…</p>
+    <p class="add-note-upload-text">${escapeHtml(message)}</p>
   `;
   document.body.appendChild(overlay);
   document.body.classList.add('add-note-uploading');
@@ -87,10 +87,13 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
-function optionHtml(values, placeholder) {
+function optionHtml(values, placeholder, selected = '') {
+  const list = [...values];
+  if (selected && !list.includes(selected)) list.push(selected);
   const opts = [`<option value="">${escapeHtml(placeholder)}</option>`];
-  for (const v of values) {
-    opts.push(`<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`);
+  for (const v of list) {
+    const sel = v === selected ? ' selected' : '';
+    opts.push(`<option value="${escapeHtml(v)}"${sel}>${escapeHtml(v)}</option>`);
   }
   return opts.join('');
 }
@@ -103,7 +106,6 @@ function datalistHtml(id, values) {
 
 function colorHexFor(name) {
   if (COLOR_CHIP_HEX[name]) return COLOR_CHIP_HEX[name];
-  /* 알 수 없는 이름 → 안정적 해시 색 */
   let hash = 0;
   const s = String(name || '');
   for (let i = 0; i < s.length; i += 1) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
@@ -112,7 +114,9 @@ function colorHexFor(name) {
 }
 
 function colorChipsHtml(colors, selected = '') {
-  return colors
+  const list = [...colors];
+  if (selected && !list.includes(selected)) list.push(selected);
+  return list
     .map((name) => {
       const hex = colorHexFor(name);
       const checked = name === selected ? 'checked' : '';
@@ -125,6 +129,36 @@ function colorChipsHtml(colors, selected = '') {
         </label>`;
     })
     .join('');
+}
+
+function coverPreviewHtml(kind, existingUrl) {
+  if (existingUrl) {
+    return `<img src="${escapeHtml(existingUrl)}" alt="" />`;
+  }
+  const label = kind === 'back' ? '뒷면 미리보기' : '앞면 미리보기';
+  return `<span class="add-note-preview-placeholder">${label}</span>`;
+}
+
+/**
+ * @param {object} note
+ */
+function noteToFormSeed(note) {
+  const periodEnd = note?.periodEnd || '';
+  return {
+    id: note?.id || '',
+    name: note?.title || '',
+    notebookType: note?.type || '',
+    periodName: note?.periodName || '',
+    color: note?.color || '',
+    size: note?.size || '',
+    periodStart: note?.periodStart || '',
+    periodEnd,
+    stillInUse: !periodEnd,
+    notes: note?.description || '',
+    isKept: note?.isKept !== false,
+    coverFrontUrl: note?.coverFrontUrl || '',
+    coverBackUrl: note?.coverBackUrl || ''
+  };
 }
 
 /**
@@ -143,15 +177,30 @@ export function mountAddNoteFab(options = {}) {
 }
 
 /**
- * @param {{ onCreated?: (result?: { id?: string }) => void }} [options]
+ * @param {{
+ *   onCreated?: (result?: { id?: string }) => void,
+ *   onUpdated?: (result?: { id?: string }) => void,
+ *   mode?: 'create' | 'edit',
+ *   note?: object
+ * }} [options]
  */
 export function openAddNoteModal(options = {}) {
   if (document.querySelector('.add-note-overlay')) return;
+
+  const isEdit = options.mode === 'edit' && Boolean(options.note?.id);
+  const seed = isEdit ? noteToFormSeed(options.note) : null;
 
   const typeOptionsList = FALLBACK_TYPES;
   const periodOptionsList = FALLBACK_PERIODS;
   const colorOptions = FALLBACK_COLORS;
   const sizeOptions = FALLBACK_SIZES;
+
+  const initialType = seed?.notebookType || '';
+  const initialPeriod = seed?.periodName || '';
+  const initialColor = seed?.color || '';
+  const initialSize = seed?.size || '';
+  const initialFrontUrl = seed?.coverFrontUrl || '';
+  const initialBackUrl = seed?.coverBackUrl || '';
 
   const overlay = document.createElement('div');
   overlay.className = 'add-note-overlay';
@@ -168,35 +217,39 @@ export function openAddNoteModal(options = {}) {
     })}
     <div class="add-note-panel">
       <header class="add-note-header">
-        <h2 id="add-note-title" class="add-note-title">새 노트 추가</h2>
+        <h2 id="add-note-title" class="add-note-title">${isEdit ? '노트 정보 수정' : '새 노트 추가'}</h2>
       </header>
       <form class="add-note-form" novalidate>
         <label class="add-note-field">
           <span class="add-note-label">이름 <em class="add-note-req">*</em></span>
-          <input class="add-note-input" name="name" type="text" required placeholder="예: 2026_업무노트" autocomplete="off" />
+          <input class="add-note-input" name="name" type="text" required placeholder="예: 2026_업무노트" autocomplete="off" value="${escapeHtml(seed?.name || '')}" />
         </label>
 
         <div class="add-note-covers">
           <div class="add-note-cover-field" data-kind="front">
-            <span class="add-note-label">표지 앞면 <em class="add-note-req">*</em></span>
+            <span class="add-note-label">표지 앞면 ${isEdit ? '' : '<em class="add-note-req">*</em>'}</span>
             <label class="add-note-file-btn">
-              <span>파일 선택</span>
-              <input type="file" name="coverFront" accept="image/*" required hidden />
+              <span>${isEdit ? '파일 변경' : '파일 선택'}</span>
+              <input type="file" name="coverFront" accept="image/*" ${isEdit ? '' : 'required'} hidden />
             </label>
-            <span class="add-note-file-name">선택된 파일 없음</span>
+            <span class="add-note-file-name">${
+              isEdit && initialFrontUrl ? '기존 표지 유지' : '선택된 파일 없음'
+            }</span>
             <div class="add-note-preview" data-preview="front" aria-hidden="true">
-              <span class="add-note-preview-placeholder">앞면 미리보기</span>
+              ${coverPreviewHtml('front', initialFrontUrl)}
             </div>
           </div>
           <div class="add-note-cover-field" data-kind="back">
-            <span class="add-note-label">표지 뒷면 <em class="add-note-req">*</em></span>
+            <span class="add-note-label">표지 뒷면 ${isEdit ? '' : '<em class="add-note-req">*</em>'}</span>
             <label class="add-note-file-btn">
-              <span>파일 선택</span>
-              <input type="file" name="coverBack" accept="image/*" required hidden />
+              <span>${isEdit ? '파일 변경' : '파일 선택'}</span>
+              <input type="file" name="coverBack" accept="image/*" ${isEdit ? '' : 'required'} hidden />
             </label>
-            <span class="add-note-file-name">선택된 파일 없음</span>
+            <span class="add-note-file-name">${
+              isEdit && initialBackUrl ? '기존 표지 유지' : '선택된 파일 없음'
+            }</span>
             <div class="add-note-preview" data-preview="back" aria-hidden="true">
-              <span class="add-note-preview-placeholder">뒷면 미리보기</span>
+              ${coverPreviewHtml('back', initialBackUrl)}
             </div>
           </div>
         </div>
@@ -205,13 +258,13 @@ export function openAddNoteModal(options = {}) {
           <label class="add-note-field">
             <span class="add-note-label">노트 종류 <em class="add-note-req">*</em></span>
             <select class="add-note-select" name="notebookType" required>
-              ${optionHtml(typeOptionsList, '선택')}
+              ${optionHtml(typeOptionsList, '선택', initialType)}
             </select>
           </label>
           <label class="add-note-field">
             <span class="add-note-label">시기</span>
             <select class="add-note-select" name="periodName">
-              ${optionHtml(periodOptionsList, '선택 (선택사항)')}
+              ${optionHtml(periodOptionsList, '선택 (선택사항)', initialPeriod)}
             </select>
           </label>
         </div>
@@ -219,7 +272,7 @@ export function openAddNoteModal(options = {}) {
         <fieldset class="add-note-field add-note-color-field">
           <legend class="add-note-label">색상</legend>
           <div class="add-note-color-chips" role="radiogroup" aria-label="색상">
-            ${colorChipsHtml(colorOptions)}
+            ${colorChipsHtml(colorOptions, initialColor)}
           </div>
         </fieldset>
 
@@ -232,6 +285,7 @@ export function openAddNoteModal(options = {}) {
             list="add-note-size-list"
             placeholder="예: A5 또는 직접 입력"
             autocomplete="off"
+            value="${escapeHtml(initialSize)}"
           />
           ${datalistHtml('add-note-size-list', sizeOptions)}
         </label>
@@ -239,13 +293,13 @@ export function openAddNoteModal(options = {}) {
         <div class="add-note-row add-note-row--2">
           <label class="add-note-field">
             <span class="add-note-label">사용 시작일 <em class="add-note-req">*</em></span>
-            <input class="add-note-input" name="periodStart" type="date" required />
+            <input class="add-note-input" name="periodStart" type="date" required value="${escapeHtml(seed?.periodStart || '')}" />
           </label>
           <div class="add-note-field">
             <span class="add-note-label">사용 종료일</span>
-            <input class="add-note-input" name="periodEnd" type="date" />
+            <input class="add-note-input" name="periodEnd" type="date" value="${escapeHtml(seed?.periodEnd || '')}" />
             <label class="add-note-check add-note-check--inline">
-              <input type="checkbox" name="stillInUse" />
+              <input type="checkbox" name="stillInUse" ${seed?.stillInUse ? 'checked' : ''} />
               <span>아직 사용 중</span>
             </label>
           </div>
@@ -253,17 +307,17 @@ export function openAddNoteModal(options = {}) {
 
         <label class="add-note-field">
           <span class="add-note-label">메모</span>
-          <textarea class="add-note-textarea" name="notes" rows="4" placeholder="${escapeHtml(NOTES_PLACEHOLDER)}"></textarea>
+          <textarea class="add-note-textarea" name="notes" rows="4" placeholder="${escapeHtml(NOTES_PLACEHOLDER)}">${escapeHtml(seed?.notes || '')}</textarea>
         </label>
 
         <label class="add-note-check">
-          <input type="checkbox" name="isKept" checked />
+          <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
           <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
         </label>
 
         <p class="add-note-status" hidden></p>
 
-        <button type="submit" class="add-note-submit">+ 노트 만들기</button>
+        <button type="submit" class="add-note-submit">${isEdit ? '노트 수정하기' : '+ 노트 만들기'}</button>
       </form>
     </div>
   `;
@@ -298,17 +352,15 @@ export function openAddNoteModal(options = {}) {
   fetchNoteFormMeta()
     .then((meta) => {
       if (meta?.options?.notebook_type?.length && typeSelect) {
-        const prev = typeSelect.value;
-        typeSelect.innerHTML = optionHtml(meta.options.notebook_type, '선택');
-        if (prev) typeSelect.value = prev;
+        const prev = typeSelect.value || initialType;
+        typeSelect.innerHTML = optionHtml(meta.options.notebook_type, '선택', prev);
       }
       if (meta?.options?.period_name?.length && periodSelect) {
-        const prev = periodSelect.value;
-        periodSelect.innerHTML = optionHtml(meta.options.period_name, '선택 (선택사항)');
-        if (prev) periodSelect.value = prev;
+        const prev = periodSelect.value || initialPeriod;
+        periodSelect.innerHTML = optionHtml(meta.options.period_name, '선택 (선택사항)', prev);
       }
       if (meta?.options?.color?.length && colorChips) {
-        const prev = form.querySelector('input[name="color"]:checked')?.value || '';
+        const prev = form.querySelector('input[name="color"]:checked')?.value || initialColor;
         colorChips.innerHTML = colorChipsHtml(meta.options.color, prev);
       }
       if (meta?.options?.size?.length && sizeList) {
@@ -364,13 +416,13 @@ export function openAddNoteModal(options = {}) {
       const preview = field?.querySelector('.add-note-preview');
       const file = input.files?.[0];
       if (!file) {
-        if (nameEl) nameEl.textContent = '선택된 파일 없음';
-        if (preview) {
-          preview.innerHTML =
-            '<span class="add-note-preview-placeholder">' +
-            (field?.dataset.kind === 'back' ? '뒷면 미리보기' : '앞면 미리보기') +
-            '</span>';
+        const kind = field?.dataset.kind === 'back' ? 'back' : 'front';
+        const existing = kind === 'back' ? initialBackUrl : initialFrontUrl;
+        if (nameEl) {
+          nameEl.textContent =
+            isEdit && existing ? '기존 표지 유지' : '선택된 파일 없음';
         }
+        if (preview) preview.innerHTML = coverPreviewHtml(kind, existing);
         return;
       }
       if (nameEl) nameEl.textContent = file.name;
@@ -396,22 +448,34 @@ export function openAddNoteModal(options = {}) {
     const periodEnd = stillInUse ? '' : String(fd.get('periodEnd') || '').trim();
     const notes = String(fd.get('notes') || '').trim();
     const isKept = Boolean(fd.get('isKept'));
-    const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0];
-    const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0];
+    const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
+    const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
 
-    if (!name || !notebookType || !frontFile || !backFile) {
-      setStatus('이름, 앞·뒤 표지, 노트 종류는 필수입니다.', true);
+    if (!name || !notebookType) {
+      setStatus('이름과 노트 종류는 필수입니다.', true);
       return;
     }
     if (!periodStart) {
       setStatus('사용 시작일은 필수입니다.', true);
       return;
     }
+    if (!isEdit && (!frontFile || !backFile)) {
+      setStatus('이름, 앞·뒤 표지, 노트 종류는 필수입니다.', true);
+      return;
+    }
+    if (isEdit && !frontFile && !initialFrontUrl) {
+      setStatus('앞면 표지가 필요합니다.', true);
+      return;
+    }
+    if (isEdit && !backFile && !initialBackUrl) {
+      setStatus('뒷면 표지가 필요합니다.', true);
+      return;
+    }
 
     submitBtn.disabled = true;
 
-    /* 모달을 먼저 닫고, 딤 + 업로드 로티로 진행 표시 */
     const payload = {
+      id: seed?.id || '',
       name,
       notebookType,
       periodName: periodName || undefined,
@@ -423,43 +487,81 @@ export function openAddNoteModal(options = {}) {
       isKept,
       visible: true,
       frontFile,
-      backFile
+      backFile,
+      existingFrontUrl: initialFrontUrl,
+      existingBackUrl: initialBackUrl
     };
     closeModal();
-    showUploadingOverlay();
+
+    const needsUpload = Boolean(payload.frontFile || payload.backFile);
+    showUploadingOverlay(
+      isEdit
+        ? needsUpload
+          ? '표지를 업로드하는 중…'
+          : '노트를 수정하는 중…'
+        : '표지를 업로드하는 중…'
+    );
 
     try {
-      const [frontDataUrl, backDataUrlRaw] = await Promise.all([
-        readFileAsDataUrl(payload.frontFile),
-        readFileAsDataUrl(payload.backFile)
-      ]);
+      let coverFrontUrl = payload.existingFrontUrl;
+      let coverBackUrl = payload.existingBackUrl;
 
-      const frontSize = await getImageSizeFromDataUrl(frontDataUrl);
-      const backDataUrl = await cropImageDataUrlToSize(
-        backDataUrlRaw,
-        frontSize.width,
-        frontSize.height
-      );
+      if (payload.frontFile || payload.backFile) {
+        let frontDataUrl = null;
+        let frontSize = null;
 
-      const [frontUpload, backUpload] = await Promise.all([
-        uploadCoverImage({
-          file: frontDataUrl,
-          filename: payload.name,
-          kind: 'front',
-          noteName: payload.name
-        }),
-        uploadCoverImage({
-          file: backDataUrl,
-          filename: payload.name,
-          kind: 'back',
-          noteName: payload.name
-        })
-      ]);
+        if (payload.frontFile) {
+          frontDataUrl = await readFileAsDataUrl(payload.frontFile);
+          frontSize = await getImageSizeFromDataUrl(frontDataUrl);
+        } else if (payload.backFile && coverFrontUrl) {
+          /* 앞표지 유지 + 뒷표지만 교체 → 기존 앞표지 크기에 맞춰 크롭 */
+          frontSize = await getImageSizeFromDataUrl(coverFrontUrl).catch(() => null);
+        }
 
-      const created = await createNotionNote({
+        if (payload.frontFile && frontDataUrl) {
+          const frontUpload = await uploadCoverImage({
+            file: frontDataUrl,
+            filename: payload.name,
+            kind: 'front',
+            noteName: payload.name
+          });
+          coverFrontUrl = frontUpload.url;
+          if (!frontSize) {
+            frontSize = {
+              width: frontUpload.width,
+              height: frontUpload.height
+            };
+          }
+        }
+
+        if (payload.backFile) {
+          const backDataUrlRaw = await readFileAsDataUrl(payload.backFile);
+          let backDataUrl = backDataUrlRaw;
+          if (frontSize?.width && frontSize?.height) {
+            backDataUrl = await cropImageDataUrlToSize(
+              backDataUrlRaw,
+              frontSize.width,
+              frontSize.height
+            );
+          }
+          const backUpload = await uploadCoverImage({
+            file: backDataUrl,
+            filename: payload.name,
+            kind: 'back',
+            noteName: payload.name
+          });
+          coverBackUrl = backUpload.url;
+        }
+      }
+
+      if (!coverFrontUrl || !coverBackUrl) {
+        throw new Error('앞·뒤 표지 URL을 확인할 수 없습니다');
+      }
+
+      const notePayload = {
         name: payload.name,
-        coverFrontUrl: frontUpload.url,
-        coverBackUrl: backUpload.url,
+        coverFrontUrl,
+        coverBackUrl,
         notebookType: payload.notebookType,
         periodName: payload.periodName,
         color: payload.color,
@@ -469,19 +571,28 @@ export function openAddNoteModal(options = {}) {
         notes: payload.notes,
         isKept: payload.isKept,
         visible: true
-      });
+      };
 
-      if (created?.id) markNoteUnseen(created.id);
+      let result;
+      if (isEdit) {
+        result = await updateNotionNote({ id: payload.id, ...notePayload });
+        if (result?.id) markNoteUnseen(result.id);
+        else if (payload.id) markNoteUnseen(payload.id);
+      } else {
+        result = await createNotionNote(notePayload);
+        if (result?.id) markNoteUnseen(result.id);
+      }
 
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
       hideUploadingOverlay();
-      showToast('노트가 추가되었습니다');
-      options.onCreated?.(created);
+      showToast(isEdit ? '노트가 수정되었습니다' : '노트가 추가되었습니다');
+      if (isEdit) options.onUpdated?.(result);
+      else options.onCreated?.(result);
     } catch (err) {
-      console.error('[AddNote]', err);
+      console.error(isEdit ? '[EditNote]' : '[AddNote]', err);
       hideUploadingOverlay();
-      showToast(err?.message || '노트 추가에 실패했습니다.');
+      showToast(err?.message || (isEdit ? '노트 수정에 실패했습니다.' : '노트 추가에 실패했습니다.'));
     }
   });
 

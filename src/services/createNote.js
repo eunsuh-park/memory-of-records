@@ -83,6 +83,38 @@ export async function createNotionNote(payload) {
 }
 
 /**
+ * @param {{
+ *   id: string,
+ *   name: string,
+ *   coverFrontUrl: string,
+ *   coverBackUrl: string,
+ *   notebookType: string,
+ *   periodName?: string,
+ *   color?: string,
+ *   size?: string,
+ *   periodStart: string,
+ *   periodEnd?: string,
+ *   notes?: string,
+ *   isKept?: boolean,
+ *   visible?: boolean
+ * }} payload
+ */
+export async function updateNotionNote(payload) {
+  const response = await fetch('/api/updateNote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.details?.message || data?.error || '노트 수정에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
  * File → data URL (base64)
  * @param {File} file
  * @returns {Promise<string>}

@@ -84,19 +84,37 @@ export function convertNotionPageToNotebook(page) {
   const title =
     parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
     '제목 없음';
-  const notebookType =
+  const periodName =
     parseNotionProperty(
-      getProperty(properties, 'period_name', 'Period Name', 'period name', 'Period')
-    ) ||
+      getProperty(properties, 'period_name', 'Period Name', 'period name', 'Period', '시기')
+    ) || '';
+  const type =
     parseNotionProperty(
-      getProperty(properties, 'notebook_type', 'Notebook Type', 'Notebook type', 'Type')
-    );
+      getProperty(
+        properties,
+        'notebook_type',
+        'Notebook Type',
+        'Notebook type',
+        'Type',
+        'type',
+        '노트 타입',
+        '노트타입'
+      )
+    ) || '';
+  /* Timeline 필터는 period_name을 notebookType으로 사용 (하위 호환) */
+  const notebookType = periodName || type;
   const periodStart = formatDateString(
     parseNotionProperty(getProperty(properties, 'period_start', 'Period Start', 'period start'))
   );
   const periodEnd = formatDateString(
     parseNotionProperty(getProperty(properties, 'period_end', 'Period End', 'period end'))
   );
+  const color =
+    parseNotionProperty(getProperty(properties, 'color', 'Color', '색', '색상')) || '';
+  const isKeptRaw = parseNotionProperty(
+    getProperty(properties, 'is_kept', 'is kept', 'kept', '보관')
+  );
+  const isKept = isKeptRaw === null || isKeptRaw === undefined ? true : Boolean(isKeptRaw);
   const coverFrontProperty = getProperty(
     properties,
     'cover_front_url',
@@ -205,6 +223,8 @@ export function convertNotionPageToNotebook(page) {
     parseNotionProperty(
       getProperty(
         properties,
+        'notes',
+        'Notes',
         'description',
         'Description',
         'desc',
@@ -221,9 +241,13 @@ export function convertNotionPageToNotebook(page) {
   return {
     id: page?.id || '',
     title,
+    type,
     notebookType,
+    periodName: periodName ? String(periodName).trim() : '',
     periodStart,
     periodEnd,
+    color: color ? String(color).trim() : '',
+    isKept,
     coverFrontUrl,
     coverBackUrl,
     pdfUrl,

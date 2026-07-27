@@ -63,12 +63,17 @@ function extractPageCoverUrl(page) {
   return null;
 }
 
+function formatDateString(value) {
+  if (!value) return '';
+  const str = String(value);
+  return str.includes('T') ? str.split('T')[0] : str;
+}
+
 export function convertNotionPageToTypeItem(page) {
   const properties = page?.properties || {};
-  const rawTitle =
+  const title =
     parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
     '제목 없음';
-  const title = rawTitle.length > 7 ? rawTitle.slice(0, -7).trim() : rawTitle;
   /* notebook_type: typeOptions와 1:1 매칭 (다이어리(일기장), 스케줄러, 수첩/메모지, 스케치북, 줄공책) */
   const type =
     parseNotionProperty(
@@ -83,9 +88,27 @@ export function convertNotionPageToTypeItem(page) {
         '노트타입'
       )
     ) || title;
+  const periodName =
+    parseNotionProperty(
+      getProperty(properties, 'period_name', 'Period Name', 'period name', 'Period', '시기')
+    ) || '';
+  const periodStart = formatDateString(
+    parseNotionProperty(getProperty(properties, 'period_start', 'Period Start', 'period start'))
+  );
+  const periodEnd = formatDateString(
+    parseNotionProperty(getProperty(properties, 'period_end', 'Period End', 'period end'))
+  );
+  const color =
+    parseNotionProperty(getProperty(properties, 'color', 'Color', '색', '색상')) || '';
+  const isKeptRaw = parseNotionProperty(
+    getProperty(properties, 'is_kept', 'is kept', 'kept', '보관')
+  );
+  const isKept = isKeptRaw === null || isKeptRaw === undefined ? true : Boolean(isKeptRaw);
   const description = parseNotionProperty(
     getProperty(
       properties,
+      'notes',
+      'Notes',
       'description',
       'Description',
       'desc',
@@ -175,6 +198,12 @@ export function convertNotionPageToTypeItem(page) {
     id: page?.id || '',
     title,
     type,
+    notebookType: type,
+    periodName: periodName ? String(periodName).trim() : '',
+    periodStart,
+    periodEnd,
+    color: color ? String(color).trim() : '',
+    isKept,
     description: description != null && String(description).trim() ? String(description).trim() : null,
     coverFrontUrl,
     coverBackUrl,

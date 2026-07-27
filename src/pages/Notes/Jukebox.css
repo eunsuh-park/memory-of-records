@@ -679,7 +679,7 @@ body.jukebox-active.loading-active .notes-scrollbar {
   bottom: max(1.25rem, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 40;
-  width: min(420px, calc(100% - 2rem));
+  width: min(560px, calc(100% - 2rem));
   pointer-events: none;
   text-align: center;
 }
@@ -687,14 +687,52 @@ body.jukebox-active.loading-active .notes-scrollbar {
 .jukebox-focus-info {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 0.3rem;
-  padding: 0.65rem 1rem;
+  padding: 0.65rem 1rem 0.75rem;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(14px) saturate(1.15);
   -webkit-backdrop-filter: blur(14px) saturate(1.15);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: visible;
+}
+
+.jukebox-focus-info__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.jukebox-focus-info__edit {
+  pointer-events: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--app-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.jukebox-focus-info__edit:hover {
+  color: var(--app-text);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.jukebox-focus-info__edit:focus-visible {
+  outline: 2px solid var(--color-primary, #ffd966);
+  outline-offset: 2px;
 }
 
 [data-theme='light'] .jukebox-focus-info {
@@ -702,12 +740,28 @@ body.jukebox-active.loading-active .notes-scrollbar {
   border-color: rgba(28, 36, 44, 0.06);
 }
 
+[data-theme='light'] .jukebox-focus-info__edit {
+  background: rgba(28, 36, 44, 0.05);
+  border-color: rgba(28, 36, 44, 0.1);
+  color: var(--app-text-muted);
+}
+
+[data-theme='light'] .jukebox-focus-info__edit:hover {
+  background: rgba(28, 36, 44, 0.1);
+  color: var(--app-text);
+}
+
 .jukebox-focus-info__title {
   margin: 0;
+  min-width: 0;
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--app-text);
-  line-height: 1.3;
+  line-height: 1.35;
+  text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.28);
 }
 
@@ -716,6 +770,9 @@ body.jukebox-active.loading-active .notes-scrollbar {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--app-text-muted);
+  text-align: left;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.22);
 }
 
@@ -724,7 +781,9 @@ body.jukebox-active.loading-active .notes-scrollbar {
   font-size: 0.78rem;
   line-height: 1.45;
   color: var(--app-text-dim);
-  max-width: 36ch;
+  max-width: none;
+  width: 100%;
+  text-align: left;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -754,6 +813,7 @@ body.jukebox-active.loading-active .notes-scrollbar {
   margin: 0;
   font-size: 0.85rem;
   color: var(--app-text-dim);
+  text-align: center;
 }
 
 body.jukebox-active #sub-menu {
