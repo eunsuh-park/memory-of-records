@@ -225,34 +225,49 @@ export function openAddNoteModal(options = {}) {
           <input class="add-note-input" name="name" type="text" required placeholder="예: 2026_업무노트" autocomplete="off" value="${escapeHtml(seed?.name || '')}" />
         </label>
 
-        <div class="add-note-covers">
+        ${
+          isEdit
+            ? `<div class="add-note-covers add-note-covers--readonly" aria-label="표지 (수정 불가)">
           <div class="add-note-cover-field" data-kind="front">
-            <span class="add-note-label">표지 앞면 ${isEdit ? '' : '<em class="add-note-req">*</em>'}</span>
-            <label class="add-note-file-btn">
-              <span>${isEdit ? '파일 변경' : '파일 선택'}</span>
-              <input type="file" name="coverFront" accept="image/*" ${isEdit ? '' : 'required'} hidden />
-            </label>
-            <span class="add-note-file-name">${
-              isEdit && initialFrontUrl ? '기존 표지 유지' : '선택된 파일 없음'
-            }</span>
+            <span class="add-note-label">표지 앞면</span>
+            <span class="add-note-file-name">수정 시 표지는 변경되지 않습니다</span>
             <div class="add-note-preview" data-preview="front" aria-hidden="true">
               ${coverPreviewHtml('front', initialFrontUrl)}
             </div>
           </div>
           <div class="add-note-cover-field" data-kind="back">
-            <span class="add-note-label">표지 뒷면 ${isEdit ? '' : '<em class="add-note-req">*</em>'}</span>
-            <label class="add-note-file-btn">
-              <span>${isEdit ? '파일 변경' : '파일 선택'}</span>
-              <input type="file" name="coverBack" accept="image/*" ${isEdit ? '' : 'required'} hidden />
-            </label>
-            <span class="add-note-file-name">${
-              isEdit && initialBackUrl ? '기존 표지 유지' : '선택된 파일 없음'
-            }</span>
+            <span class="add-note-label">표지 뒷면</span>
+            <span class="add-note-file-name">수정 시 표지는 변경되지 않습니다</span>
             <div class="add-note-preview" data-preview="back" aria-hidden="true">
               ${coverPreviewHtml('back', initialBackUrl)}
             </div>
           </div>
-        </div>
+        </div>`
+            : `<div class="add-note-covers">
+          <div class="add-note-cover-field" data-kind="front">
+            <span class="add-note-label">표지 앞면 <em class="add-note-req">*</em></span>
+            <label class="add-note-file-btn">
+              <span>파일 선택</span>
+              <input type="file" name="coverFront" accept="image/*" required hidden />
+            </label>
+            <span class="add-note-file-name">선택된 파일 없음</span>
+            <div class="add-note-preview" data-preview="front" aria-hidden="true">
+              ${coverPreviewHtml('front', '')}
+            </div>
+          </div>
+          <div class="add-note-cover-field" data-kind="back">
+            <span class="add-note-label">표지 뒷면 <em class="add-note-req">*</em></span>
+            <label class="add-note-file-btn">
+              <span>파일 선택</span>
+              <input type="file" name="coverBack" accept="image/*" required hidden />
+            </label>
+            <span class="add-note-file-name">선택된 파일 없음</span>
+            <div class="add-note-preview" data-preview="back" aria-hidden="true">
+              ${coverPreviewHtml('back', '')}
+            </div>
+          </div>
+        </div>`
+        }
 
         <div class="add-note-row add-note-row--2">
           <label class="add-note-field">
@@ -408,30 +423,28 @@ export function openAddNoteModal(options = {}) {
     if (e.target === overlay) closeModal();
   });
 
-  /* 파일 선택 → 미리보기 */
-  overlay.querySelectorAll('input[type="file"]').forEach((input) => {
-    input.addEventListener('change', () => {
-      const field = input.closest('.add-note-cover-field');
-      const nameEl = field?.querySelector('.add-note-file-name');
-      const preview = field?.querySelector('.add-note-preview');
-      const file = input.files?.[0];
-      if (!file) {
-        const kind = field?.dataset.kind === 'back' ? 'back' : 'front';
-        const existing = kind === 'back' ? initialBackUrl : initialFrontUrl;
-        if (nameEl) {
-          nameEl.textContent =
-            isEdit && existing ? '기존 표지 유지' : '선택된 파일 없음';
+  /* 파일 선택 → 미리보기 (생성 모드만) */
+  if (!isEdit) {
+    overlay.querySelectorAll('input[type="file"]').forEach((input) => {
+      input.addEventListener('change', () => {
+        const field = input.closest('.add-note-cover-field');
+        const nameEl = field?.querySelector('.add-note-file-name');
+        const preview = field?.querySelector('.add-note-preview');
+        const file = input.files?.[0];
+        if (!file) {
+          const kind = field?.dataset.kind === 'back' ? 'back' : 'front';
+          if (nameEl) nameEl.textContent = '선택된 파일 없음';
+          if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
+          return;
         }
-        if (preview) preview.innerHTML = coverPreviewHtml(kind, existing);
-        return;
-      }
-      if (nameEl) nameEl.textContent = file.name;
-      const url = URL.createObjectURL(file);
-      if (preview) {
-        preview.innerHTML = `<img src="${url}" alt="" />`;
-      }
+        if (nameEl) nameEl.textContent = file.name;
+        const url = URL.createObjectURL(file);
+        if (preview) {
+          preview.innerHTML = `<img src="${url}" alt="" />`;
+        }
+      });
     });
-  });
+  }
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -463,18 +476,10 @@ export function openAddNoteModal(options = {}) {
       setStatus('이름, 앞·뒤 표지, 노트 종류는 필수입니다.', true);
       return;
     }
-    if (isEdit && !frontFile && !initialFrontUrl) {
-      setStatus('앞면 표지가 필요합니다.', true);
-      return;
-    }
-    if (isEdit && !backFile && !initialBackUrl) {
-      setStatus('뒷면 표지가 필요합니다.', true);
-      return;
-    }
 
     submitBtn.disabled = true;
 
-    const payload = {
+    const metaPayload = {
       id: seed?.id || '',
       name,
       notebookType,
@@ -485,114 +490,86 @@ export function openAddNoteModal(options = {}) {
       periodEnd: periodEnd || undefined,
       notes: notes || undefined,
       isKept,
-      visible: true,
-      frontFile,
-      backFile,
-      existingFrontUrl: initialFrontUrl,
-      existingBackUrl: initialBackUrl
+      visible: true
     };
     closeModal();
 
-    const needsUpload = Boolean(payload.frontFile || payload.backFile);
-    showUploadingOverlay(
-      isEdit
-        ? needsUpload
-          ? '표지를 업로드하는 중…'
-          : '노트를 수정하는 중…'
-        : '표지를 업로드하는 중…'
-    );
+    /* 수정: 표지/이미지는 건드리지 않고 메타데이터만 PATCH */
+    if (isEdit) {
+      showUploadingOverlay('노트를 수정하는 중…');
+      try {
+        const result = await updateNotionNote(metaPayload);
+        if (result?.id) markNoteUnseen(result.id);
+        else if (metaPayload.id) markNoteUnseen(metaPayload.id);
+        clearNotionNotebooksCache();
+        clearNotionTypeItemsCache();
+        hideUploadingOverlay();
+        showToast('노트가 수정되었습니다');
+        options.onUpdated?.(result);
+      } catch (err) {
+        console.error('[EditNote]', err);
+        hideUploadingOverlay();
+        showToast(err?.message || '노트 수정에 실패했습니다.');
+      }
+      return;
+    }
+
+    showUploadingOverlay('표지를 업로드하는 중…');
 
     try {
-      let coverFrontUrl = payload.existingFrontUrl;
-      let coverBackUrl = payload.existingBackUrl;
+      const [frontDataUrl, backDataUrlRaw] = await Promise.all([
+        readFileAsDataUrl(frontFile),
+        readFileAsDataUrl(backFile)
+      ]);
 
-      if (payload.frontFile || payload.backFile) {
-        let frontDataUrl = null;
-        let frontSize = null;
+      const frontSize = await getImageSizeFromDataUrl(frontDataUrl);
+      const backDataUrl = await cropImageDataUrlToSize(
+        backDataUrlRaw,
+        frontSize.width,
+        frontSize.height
+      );
 
-        if (payload.frontFile) {
-          frontDataUrl = await readFileAsDataUrl(payload.frontFile);
-          frontSize = await getImageSizeFromDataUrl(frontDataUrl);
-        } else if (payload.backFile && coverFrontUrl) {
-          /* 앞표지 유지 + 뒷표지만 교체 → 기존 앞표지 크기에 맞춰 크롭 */
-          frontSize = await getImageSizeFromDataUrl(coverFrontUrl).catch(() => null);
-        }
+      const [frontUpload, backUpload] = await Promise.all([
+        uploadCoverImage({
+          file: frontDataUrl,
+          filename: metaPayload.name,
+          kind: 'front',
+          noteName: metaPayload.name
+        }),
+        uploadCoverImage({
+          file: backDataUrl,
+          filename: metaPayload.name,
+          kind: 'back',
+          noteName: metaPayload.name
+        })
+      ]);
 
-        if (payload.frontFile && frontDataUrl) {
-          const frontUpload = await uploadCoverImage({
-            file: frontDataUrl,
-            filename: payload.name,
-            kind: 'front',
-            noteName: payload.name
-          });
-          coverFrontUrl = frontUpload.url;
-          if (!frontSize) {
-            frontSize = {
-              width: frontUpload.width,
-              height: frontUpload.height
-            };
-          }
-        }
-
-        if (payload.backFile) {
-          const backDataUrlRaw = await readFileAsDataUrl(payload.backFile);
-          let backDataUrl = backDataUrlRaw;
-          if (frontSize?.width && frontSize?.height) {
-            backDataUrl = await cropImageDataUrlToSize(
-              backDataUrlRaw,
-              frontSize.width,
-              frontSize.height
-            );
-          }
-          const backUpload = await uploadCoverImage({
-            file: backDataUrl,
-            filename: payload.name,
-            kind: 'back',
-            noteName: payload.name
-          });
-          coverBackUrl = backUpload.url;
-        }
-      }
-
-      if (!coverFrontUrl || !coverBackUrl) {
-        throw new Error('앞·뒤 표지 URL을 확인할 수 없습니다');
-      }
-
-      const notePayload = {
-        name: payload.name,
-        coverFrontUrl,
-        coverBackUrl,
-        notebookType: payload.notebookType,
-        periodName: payload.periodName,
-        color: payload.color,
-        size: payload.size,
-        periodStart: payload.periodStart,
-        periodEnd: payload.periodEnd,
-        notes: payload.notes,
-        isKept: payload.isKept,
+      const created = await createNotionNote({
+        name: metaPayload.name,
+        coverFrontUrl: frontUpload.url,
+        coverBackUrl: backUpload.url,
+        notebookType: metaPayload.notebookType,
+        periodName: metaPayload.periodName,
+        color: metaPayload.color,
+        size: metaPayload.size,
+        periodStart: metaPayload.periodStart,
+        periodEnd: metaPayload.periodEnd,
+        notes: metaPayload.notes,
+        isKept: metaPayload.isKept,
         visible: true
-      };
+      });
 
-      let result;
-      if (isEdit) {
-        result = await updateNotionNote({ id: payload.id, ...notePayload });
-        if (result?.id) markNoteUnseen(result.id);
-        else if (payload.id) markNoteUnseen(payload.id);
-      } else {
-        result = await createNotionNote(notePayload);
-        if (result?.id) markNoteUnseen(result.id);
-      }
+      if (created?.id) markNoteUnseen(created.id);
 
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
       hideUploadingOverlay();
-      showToast(isEdit ? '노트가 수정되었습니다' : '노트가 추가되었습니다');
-      if (isEdit) options.onUpdated?.(result);
-      else options.onCreated?.(result);
+      showToast('노트가 추가되었습니다');
+      options.onCreated?.(created);
     } catch (err) {
-      console.error(isEdit ? '[EditNote]' : '[AddNote]', err);
+      console.error('[AddNote]', err);
       hideUploadingOverlay();
-      showToast(err?.message || (isEdit ? '노트 수정에 실패했습니다.' : '노트 추가에 실패했습니다.'));
+      showToast(err?.message || '노트 추가에 실패했습니다.');
     }
   });
 

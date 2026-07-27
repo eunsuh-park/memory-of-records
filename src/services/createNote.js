@@ -86,8 +86,6 @@ export async function createNotionNote(payload) {
  * @param {{
  *   id: string,
  *   name: string,
- *   coverFrontUrl: string,
- *   coverBackUrl: string,
  *   notebookType: string,
  *   periodName?: string,
  *   color?: string,

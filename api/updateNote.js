@@ -1,10 +1,10 @@
 /**
  * POST /api/updateNote
- * Notion 노트북 페이지(row) 속성 수정
+ * Notion 노트북 페이지(row) 메타데이터만 수정 (표지/커버 이미지는 변경하지 않음)
  *
  * Body:
  * {
- *   id, name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
+ *   id, name, notebookType, periodStart,  // required
  *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?
  * }
  */
@@ -26,11 +26,6 @@ function buildRichText(content) {
   return { rich_text: [{ type: 'text', text: { content: sliced } }] };
 }
 
-function assignIfPresent(properties, prop, payload) {
-  if (!prop || !payload) return;
-  properties[prop.key] = payload;
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -40,15 +35,13 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
     const id = trimOrEmpty(body.id).replace(/-/g, '');
     const name = trimOrEmpty(body.name);
-    const coverFrontUrl = trimOrEmpty(body.coverFrontUrl);
-    const coverBackUrl = trimOrEmpty(body.coverBackUrl);
     const notebookType = trimOrEmpty(body.notebookType);
     const periodStart = trimOrEmpty(body.periodStart);
 
-    if (!id || !name || !coverFrontUrl || !coverBackUrl || !notebookType || !periodStart) {
+    if (!id || !name || !notebookType || !periodStart) {
       return res.status(400).json({
         error: 'Validation failed',
-        message: 'id, 이름, 앞·뒤 표지 URL, 노트 종류, 사용 시작일은 필수입니다'
+        message: 'id, 이름, 노트 종류, 사용 시작일은 필수입니다'
       });
     }
 
@@ -69,22 +62,6 @@ export default async function handler(req, res) {
       }
     };
 
-    const frontProp = findSchemaProperty(
-      schema,
-      'cover_front_url',
-      'cover front url',
-      'Cover Front URL',
-      'cover_front',
-      '앞표지'
-    );
-    const backProp = findSchemaProperty(
-      schema,
-      'cover_back_url',
-      'cover back url',
-      'Cover Back URL',
-      'cover_back',
-      '뒷표지'
-    );
     const typeProp = findSchemaProperty(schema, 'notebook_type', 'Notebook Type', 'type', 'Type');
     const periodNameProp = findSchemaProperty(
       schema,
@@ -110,28 +87,6 @@ export default async function handler(req, res) {
     );
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
     const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
-
-    if (frontProp?.type === 'url') {
-      properties[frontProp.key] = { url: coverFrontUrl };
-    } else if (frontProp?.type === 'rich_text') {
-      properties[frontProp.key] = buildRichText(coverFrontUrl);
-    } else {
-      return res.status(500).json({
-        error: 'Schema error',
-        message: 'cover_front_url(URL) 속성이 Notion DB에 없습니다'
-      });
-    }
-
-    if (backProp?.type === 'url') {
-      properties[backProp.key] = { url: coverBackUrl };
-    } else if (backProp?.type === 'rich_text') {
-      properties[backProp.key] = buildRichText(coverBackUrl);
-    } else {
-      return res.status(500).json({
-        error: 'Schema error',
-        message: 'cover_back_url(URL) 속성이 Notion DB에 없습니다'
-      });
-    }
 
     if (typeProp?.type === 'select') {
       properties[typeProp.key] = { select: { name: notebookType } };
@@ -212,15 +167,10 @@ export default async function handler(req, res) {
       }
     }
 
+    /* 표지 URL·페이지 cover는 절대 변경하지 않음 */
     const page = await notionFetch(`/pages/${id}`, {
       method: 'PATCH',
-      body: {
-        properties,
-        cover: {
-          type: 'external',
-          external: { url: coverFrontUrl }
-        }
-      }
+      body: { properties }
     });
 
     return res.status(200).json({
