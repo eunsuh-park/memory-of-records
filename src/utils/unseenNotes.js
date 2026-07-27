@@ -1,14 +1,25 @@
 /**
  * 새로 추가된 노트 우상단 빨간 점(badge)용 localStorage 유틸
+ *
+ * Notion page id는 하이픈 유무가 섞일 수 있어 비교 시 정규화합니다.
  */
 
 const STORAGE_KEY = 'mor:unseenNoteIds';
+
+/** @param {string} noteId */
+export function normalizeNoteId(noteId) {
+  return String(noteId || '')
+    .trim()
+    .replace(/-/g, '')
+    .toLowerCase();
+}
 
 function readIds() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string' && id) : [];
+    if (!Array.isArray(parsed)) return [];
+    return [...new Set(parsed.map(normalizeNoteId).filter(Boolean))];
   } catch {
     return [];
   }
@@ -16,7 +27,10 @@ function readIds() {
 
 function writeIds(ids) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...new Set(ids)]));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([...new Set(ids.map(normalizeNoteId).filter(Boolean))])
+    );
   } catch {
     /* ignore quota / private mode */
   }
@@ -24,7 +38,7 @@ function writeIds(ids) {
 
 /** @param {string} noteId */
 export function markNoteUnseen(noteId) {
-  const id = String(noteId || '').trim();
+  const id = normalizeNoteId(noteId);
   if (!id) return;
   const ids = readIds();
   if (!ids.includes(id)) {
@@ -35,14 +49,14 @@ export function markNoteUnseen(noteId) {
 
 /** @param {string} noteId */
 export function isNoteUnseen(noteId) {
-  const id = String(noteId || '').trim();
+  const id = normalizeNoteId(noteId);
   if (!id) return false;
   return readIds().includes(id);
 }
 
 /** @param {string} noteId */
 export function clearNoteUnseen(noteId) {
-  const id = String(noteId || '').trim();
+  const id = normalizeNoteId(noteId);
   if (!id) return;
   writeIds(readIds().filter((x) => x !== id));
 }

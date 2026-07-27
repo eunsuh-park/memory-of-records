@@ -488,16 +488,34 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
   });
 
-  gallery.querySelectorAll('.jukebox-new-badge').forEach((badge) => {
-    badge.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const card = badge.closest('.jukebox-card');
-      const id = card?.getAttribute('data-note-id');
-      if (id) clearNoteUnseen(id);
-      badge.remove();
-    });
-  });
+  /*
+   * 신규 배지 제거:
+   * Cover Flow 3D 때문에 배지 버튼이 클릭을 못 받는 경우가 있어,
+   * 카드(또는 배지) 클릭 시 캡처 단계에서 무조건 제거한다.
+   */
+  if (!gallery._jukeboxBadgeBound) {
+    gallery._jukeboxBadgeBound = true;
+    gallery.addEventListener(
+      'click',
+      (e) => {
+        const card = e.target?.closest?.('.jukebox-card');
+        if (!card || !gallery.contains(card)) return;
+        const id = card.getAttribute('data-note-id');
+        const badge = card.querySelector('.jukebox-new-badge');
+        const hitBadge = Boolean(e.target?.closest?.('.jukebox-new-badge'));
+        if (!id || (!badge && !isNoteUnseen(id))) return;
+
+        if (id && isNoteUnseen(id)) clearNoteUnseen(id);
+        badge?.remove();
+
+        if (hitBadge) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      true
+    );
+  }
 
   /* 사용자가 스크롤을 시작하기 전까지만 첫 카드 자동 재정렬을 허용하는 플래그 */
   const state = gallery._jukeboxScrollState || { userScrolled: false };
@@ -801,7 +819,16 @@ export function renderJukeboxWithFilter(options) {
       if (!note) return;
       card.setAttribute('data-note-id', note.id);
       card.setAttribute('data-pdf-url', note.pdfUrl || '');
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        /* 빨간 점 클릭은 캡처 핸들러가 처리 — 여기서는 카드 동작만 */
+        if (e.target?.closest?.('.jukebox-new-badge')) return;
+
+        /* 카드 클릭 시에도 신규 배지는 제거 */
+        if (note.id && isNoteUnseen(note.id)) {
+          clearNoteUnseen(note.id);
+          card.querySelector('.jukebox-new-badge')?.remove();
+        }
+
         if (card.classList.contains('jukebox-card--centered')) {
           openNoteModal(note);
         } else if (typeof gallery.jukeboxScrollCardToCenter === 'function') {

@@ -23,6 +23,7 @@ import {
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
+import uploadingLottieUrl from '../../uploading.json?url';
 import './AddNoteFab.css';
 
 const CLOSE_ICON =
@@ -51,6 +52,32 @@ const COLOR_CHIP_HEX = {
 
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
+
+function showUploadingOverlay() {
+  hideUploadingOverlay();
+  const overlay = document.createElement('div');
+  overlay.className = 'add-note-upload-overlay';
+  overlay.setAttribute('role', 'status');
+  overlay.setAttribute('aria-live', 'polite');
+  overlay.innerHTML = `
+    <dotlottie-wc
+      class="add-note-upload-lottie"
+      src="${uploadingLottieUrl}"
+      style="width: 300px; height: 300px"
+      autoplay
+      loop
+    ></dotlottie-wc>
+    <p class="add-note-upload-text">표지를 업로드하는 중…</p>
+  `;
+  document.body.appendChild(overlay);
+  document.body.classList.add('add-note-uploading');
+  return overlay;
+}
+
+function hideUploadingOverlay() {
+  document.querySelectorAll('.add-note-upload-overlay').forEach((el) => el.remove());
+  document.body.classList.remove('add-note-uploading');
+}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -382,12 +409,29 @@ export function openAddNoteModal(options = {}) {
     }
 
     submitBtn.disabled = true;
-    setStatus('표지 이미지를 준비하는 중…');
+
+    /* 모달을 먼저 닫고, 딤 + 업로드 로티로 진행 표시 */
+    const payload = {
+      name,
+      notebookType,
+      periodName: periodName || undefined,
+      color: color || undefined,
+      size: size || undefined,
+      periodStart,
+      periodEnd: periodEnd || undefined,
+      notes: notes || undefined,
+      isKept,
+      visible: true,
+      frontFile,
+      backFile
+    };
+    closeModal();
+    showUploadingOverlay();
 
     try {
       const [frontDataUrl, backDataUrlRaw] = await Promise.all([
-        readFileAsDataUrl(frontFile),
-        readFileAsDataUrl(backFile)
+        readFileAsDataUrl(payload.frontFile),
+        readFileAsDataUrl(payload.backFile)
       ]);
 
       const frontSize = await getImageSizeFromDataUrl(frontDataUrl);
@@ -397,45 +441,33 @@ export function openAddNoteModal(options = {}) {
         frontSize.height
       );
 
-      setStatus('표지 이미지를 업로드하는 중…');
-
       const [frontUpload, backUpload] = await Promise.all([
         uploadCoverImage({
           file: frontDataUrl,
-          filename: name,
+          filename: payload.name,
           kind: 'front',
-          noteName: name
+          noteName: payload.name
         }),
         uploadCoverImage({
           file: backDataUrl,
-          filename: name,
+          filename: payload.name,
           kind: 'back',
-          noteName: name
+          noteName: payload.name
         })
       ]);
 
-      setStatus('업로드 완료. 확인을 기다리는 중…');
-
-      const confirmed = window.confirm('페이지 추가할까요?');
-      if (!confirmed) {
-        setStatus('취소되었습니다. 표지 이미지는 업로드된 상태입니다.', true);
-        submitBtn.disabled = false;
-        return;
-      }
-
-      setStatus('Notion 페이지를 생성하는 중…');
       const created = await createNotionNote({
-        name,
+        name: payload.name,
         coverFrontUrl: frontUpload.url,
         coverBackUrl: backUpload.url,
-        notebookType,
-        periodName: periodName || undefined,
-        color: color || undefined,
-        size: size || undefined,
-        periodStart,
-        periodEnd: periodEnd || undefined,
-        notes: notes || undefined,
-        isKept,
+        notebookType: payload.notebookType,
+        periodName: payload.periodName,
+        color: payload.color,
+        size: payload.size,
+        periodStart: payload.periodStart,
+        periodEnd: payload.periodEnd,
+        notes: payload.notes,
+        isKept: payload.isKept,
         visible: true
       });
 
@@ -443,13 +475,13 @@ export function openAddNoteModal(options = {}) {
 
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
+      hideUploadingOverlay();
       showToast('노트가 추가되었습니다');
-      closeModal();
       options.onCreated?.(created);
     } catch (err) {
       console.error('[AddNote]', err);
-      setStatus(err?.message || '노트 추가에 실패했습니다.', true);
-      submitBtn.disabled = false;
+      hideUploadingOverlay();
+      showToast(err?.message || '노트 추가에 실패했습니다.');
     }
   });
 
