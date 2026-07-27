@@ -4,8 +4,8 @@
  *
  * Body:
  * {
- *   name, coverFrontUrl, coverBackUrl, notebookType,  // required
- *   color?, size?, periodStart?, periodEnd?, notes?, isKept?
+ *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
+ *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?
  * }
  */
 import {
@@ -43,11 +43,12 @@ export default async function handler(req, res) {
     const coverFrontUrl = trimOrEmpty(body.coverFrontUrl);
     const coverBackUrl = trimOrEmpty(body.coverBackUrl);
     const notebookType = trimOrEmpty(body.notebookType);
+    const periodStart = trimOrEmpty(body.periodStart);
 
-    if (!name || !coverFrontUrl || !coverBackUrl || !notebookType) {
+    if (!name || !coverFrontUrl || !coverBackUrl || !notebookType || !periodStart) {
       return res.status(400).json({
         error: 'Validation failed',
-        message: '이름, 앞·뒤 표지 URL, notebook_type은 필수입니다'
+        message: '이름, 앞·뒤 표지 URL, 노트 종류, 사용 시작일은 필수입니다'
       });
     }
 
@@ -85,6 +86,14 @@ export default async function handler(req, res) {
       '뒷표지'
     );
     const typeProp = findSchemaProperty(schema, 'notebook_type', 'Notebook Type', 'type', 'Type');
+    const periodNameProp = findSchemaProperty(
+      schema,
+      'period_name',
+      'Period Name',
+      'period name',
+      'Period',
+      '시기'
+    );
     const colorProp = findSchemaProperty(schema, 'color', 'Color', '색', '색상');
     const sizeProp = findSchemaProperty(schema, 'size', 'Size', '사이즈', '노트 사이즈');
     const startProp = findSchemaProperty(schema, 'period_start', 'Period Start', 'period start');
@@ -100,6 +109,7 @@ export default async function handler(req, res) {
       'Note'
     );
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
+    const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
 
     if (frontProp?.type === 'url') {
       properties[frontProp.key] = { url: coverFrontUrl };
@@ -134,6 +144,15 @@ export default async function handler(req, res) {
       });
     }
 
+    const periodName = trimOrEmpty(body.periodName);
+    if (periodName && periodNameProp) {
+      if (periodNameProp.type === 'select') {
+        assignIfPresent(properties, periodNameProp, { select: { name: periodName } });
+      } else if (periodNameProp.type === 'rich_text') {
+        assignIfPresent(properties, periodNameProp, buildRichText(periodName));
+      }
+    }
+
     const color = trimOrEmpty(body.color);
     if (color && colorProp) {
       if (colorProp.type === 'select') {
@@ -152,11 +171,16 @@ export default async function handler(req, res) {
       }
     }
 
-    const periodStart = trimOrEmpty(body.periodStart);
-    const periodEnd = trimOrEmpty(body.periodEnd);
-    if (periodStart && startProp?.type === 'date') {
+    if (startProp?.type === 'date') {
       properties[startProp.key] = { date: { start: periodStart } };
+    } else {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'period_start(date) 속성이 Notion DB에 없습니다'
+      });
     }
+
+    const periodEnd = trimOrEmpty(body.periodEnd);
     if (periodEnd && endProp?.type === 'date') {
       properties[endProp.key] = { date: { start: periodEnd } };
     }
@@ -173,6 +197,14 @@ export default async function handler(req, res) {
     const isKept = body.isKept !== false && body.isKept !== 'false';
     if (keptProp?.type === 'checkbox') {
       properties[keptProp.key] = { checkbox: Boolean(isKept) };
+    }
+
+    /* visible 기본값 true */
+    const visible = body.visible !== false && body.visible !== 'false';
+    if (visibleProp?.type === 'checkbox') {
+      properties[visibleProp.key] = { checkbox: Boolean(visible) };
+    } else if (visibleProp?.type === 'select' && visible) {
+      properties[visibleProp.key] = { select: { name: 'true' } };
     }
 
     const page = await notionFetch('/pages', {

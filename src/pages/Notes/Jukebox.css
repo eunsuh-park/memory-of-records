@@ -457,6 +457,31 @@ body.jukebox-active.loading-active .notes-scrollbar {
   transform-style: preserve-3d;
 }
 
+/* 새로 추가된 노트 우상단 빨간 점 — 클릭하면 사라짐 */
+.jukebox-gallery > div.jukebox-card .jukebox-new-badge {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 5;
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  background: #e23b3b;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-new-badge:hover {
+  transform: scale(1.15);
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-new-badge:focus-visible {
+  outline: 2px solid var(--color-primary, #ffd966);
+  outline-offset: 2px;
+}
+
 .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
   display: inline-block;
   transform-origin: center center;

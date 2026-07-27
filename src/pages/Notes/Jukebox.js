@@ -19,6 +19,7 @@ import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImag
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
 import { formatNoteSizeLabel } from '../../utils/noteSize.js';
+import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import './Jukebox.css';
 
 const ICONS = {
@@ -449,13 +450,20 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
       const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
+      const noteId = escapeHtml(note.id || '');
+      const showBadge = Boolean(note.id && isNoteUnseen(note.id));
       /*
        * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
        * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
        * .jukebox-card-inner: 호버 플립 + 그림자
        */
       return `
-        <div class="jukebox-card">
+        <div class="jukebox-card" data-note-id="${noteId}">
+          ${
+            showBadge
+              ? `<button type="button" class="jukebox-new-badge" aria-label="새 노트 표시 지우기" title="새 노트"></button>`
+              : ''
+          }
           <div class="jukebox-card-3d">
             <div class="jukebox-card-inner">
               <div class="jukebox-card-face jukebox-card-face--front">
@@ -478,6 +486,17 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
 
   gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
     img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
+  });
+
+  gallery.querySelectorAll('.jukebox-new-badge').forEach((badge) => {
+    badge.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const card = badge.closest('.jukebox-card');
+      const id = card?.getAttribute('data-note-id');
+      if (id) clearNoteUnseen(id);
+      badge.remove();
+    });
   });
 
   /* 사용자가 스크롤을 시작하기 전까지만 첫 카드 자동 재정렬을 허용하는 플래그 */

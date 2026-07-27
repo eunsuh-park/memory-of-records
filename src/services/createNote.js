@@ -5,7 +5,12 @@
 /**
  * @returns {Promise<{
  *   ok: boolean,
- *   options: { notebook_type: string[], color: string[], size: string[] },
+ *   options: {
+ *     notebook_type: string[],
+ *     period_name: string[],
+ *     color: string[],
+ *     size: string[]
+ *   },
  *   fields?: Record<string, unknown>
  * }>}
  */
@@ -22,8 +27,13 @@ export async function fetchNoteFormMeta() {
 }
 
 /**
- * @param {{ file: string, filename?: string, kind: 'front'|'back' }} payload
- * @returns {Promise<{ url: string }>}
+ * @param {{
+ *   file: string,
+ *   filename?: string,
+ *   kind: 'front'|'back',
+ *   noteName?: string
+ * }} payload
+ * @returns {Promise<{ url: string, width?: number, height?: number }>}
  */
 export async function uploadCoverImage(payload) {
   const response = await fetch('/api/uploadCover', {
@@ -47,12 +57,14 @@ export async function uploadCoverImage(payload) {
  *   coverFrontUrl: string,
  *   coverBackUrl: string,
  *   notebookType: string,
+ *   periodName?: string,
  *   color?: string,
  *   size?: string,
- *   periodStart?: string,
+ *   periodStart: string,
  *   periodEnd?: string,
  *   notes?: string,
- *   isKept?: boolean
+ *   isKept?: boolean,
+ *   visible?: boolean
  * }} payload
  */
 export async function createNotionNote(payload) {
@@ -81,5 +93,84 @@ export function readFileAsDataUrl(file) {
     reader.onload = () => resolve(String(reader.result || ''));
     reader.onerror = () => reject(new Error('파일을 읽지 못했습니다'));
     reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * @param {string} dataUrl
+ * @returns {Promise<{ width: number, height: number }>}
+ */
+export function getImageSizeFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const width = img.naturalWidth || img.width;
+      const height = img.naturalHeight || img.height;
+      if (!width || !height) {
+        reject(new Error('이미지 크기를 확인할 수 없습니다'));
+        return;
+      }
+      resolve({ width, height });
+    };
+    img.onerror = () => reject(new Error('이미지를 불러오지 못했습니다'));
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * 이미지를 목표 크기에 맞춰 중앙 크롭 후 리사이즈 (앞표지와 동일 픽셀 크기)
+ * @param {string} dataUrl
+ * @param {number} targetWidth
+ * @param {number} targetHeight
+ * @returns {Promise<string>} data URL (image/jpeg)
+ */
+export function cropImageDataUrlToSize(dataUrl, targetWidth, targetHeight) {
+  const tw = Math.max(1, Math.round(Number(targetWidth) || 0));
+  const th = Math.max(1, Math.round(Number(targetHeight) || 0));
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const sw = img.naturalWidth || img.width;
+        const sh = img.naturalHeight || img.height;
+        if (!sw || !sh) {
+          reject(new Error('뒷표지 이미지 크기를 확인할 수 없습니다'));
+          return;
+        }
+
+        const targetRatio = tw / th;
+        const srcRatio = sw / sh;
+        let sx = 0;
+        let sy = 0;
+        let sWidth = sw;
+        let sHeight = sh;
+
+        if (srcRatio > targetRatio) {
+          /* 더 넓음 → 좌우 크롭 */
+          sWidth = Math.round(sh * targetRatio);
+          sx = Math.round((sw - sWidth) / 2);
+        } else if (srcRatio < targetRatio) {
+          /* 더 높음 → 상하 크롭 */
+          sHeight = Math.round(sw / targetRatio);
+          sy = Math.round((sh - sHeight) / 2);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = tw;
+        canvas.height = th;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('이미지 크롭을 지원하지 않는 환경입니다'));
+          return;
+        }
+        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, tw, th);
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('이미지 크롭에 실패했습니다'));
+      }
+    };
+    img.onerror = () => reject(new Error('뒷표지 이미지를 불러오지 못했습니다'));
+    img.src = dataUrl;
   });
 }
