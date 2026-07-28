@@ -169,10 +169,10 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
  * }} payload
  */
 export async function uploadPageImage(payload) {
-  const response = await fetch('/api/uploadPage', {
+  const response = await fetch('/api/pages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'upload', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -191,10 +191,10 @@ export async function uploadPageImage(payload) {
  * @param {{ id: string, pdfFolderUrl: string, pageCount: number }} payload
  */
 export async function updateNotionNotePages(payload) {
-  const response = await fetch('/api/updateNotePages', {
+  const response = await fetch('/api/pages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'updateNote', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -210,10 +210,11 @@ export async function updateNotionNotePages(payload) {
  */
 export async function fetchPageMeta({ folder, page }) {
   const qs = new URLSearchParams({
+    op: 'meta',
     folder: String(folder || ''),
     page: String(page || 1)
   });
-  const response = await fetch(`/api/pageMeta?${qs.toString()}`, {
+  const response = await fetch(`/api/pages?${qs.toString()}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -235,10 +236,10 @@ export async function fetchPageMeta({ folder, page }) {
  * }} payload
  */
 export async function updatePageMeta(payload) {
-  const response = await fetch('/api/updatePageMeta', {
+  const response = await fetch('/api/pages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'updateMeta', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
