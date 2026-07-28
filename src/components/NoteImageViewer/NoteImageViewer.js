@@ -69,7 +69,11 @@ function fetchHiddenPages(folderUrl, { force = false } = {}) {
   if (!key) return Promise.resolve(new Set());
   if (!force && hiddenPagesCache.has(key)) return hiddenPagesCache.get(key);
 
-  const promise = fetch(`/api/cloudinaryHiddenPages?folder=${encodeURIComponent(key)}`)
+  const qs = new URLSearchParams({ folder: key });
+  if (force) qs.set('_', String(Date.now()));
+  const promise = fetch(`/api/cloudinaryHiddenPages?${qs.toString()}`, {
+    cache: force ? 'no-store' : 'default'
+  })
     .then((response) => (response.ok ? response.json() : null))
     .then((data) => {
       const list = Array.isArray(data?.hiddenPages) ? data.hiddenPages : [];

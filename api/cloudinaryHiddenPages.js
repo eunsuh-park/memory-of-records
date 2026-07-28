@@ -214,8 +214,8 @@ export default async function handler(req, res) {
       if (pageNum) hiddenPages.push(pageNum);
     }
 
-    /* Admin API 호출량 절약: CDN에서 5분 캐시 */
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    /* 페이지 visible 편집 직후 반영을 위해 CDN 장기 캐시 금지 */
+    res.setHeader('Cache-Control', 'private, no-store');
     return res.status(200).json({
       hiddenPages: [...new Set(hiddenPages)].sort((a, b) => a - b)
     });

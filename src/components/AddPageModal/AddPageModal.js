@@ -112,13 +112,15 @@ export function openAddPageModal(options = {}) {
     const list = overlay.querySelector('.add-page-preview-list');
     if (!list) return;
     if (!pages.length) {
-      list.innerHTML = `<p class="add-page-empty">선택된 페이지가 없습니다</p>`;
+      list.innerHTML = `<p class="add-page-empty">선택된 페이지가 없습니다. 이미지를 선택하면 미리보기가 표시됩니다.</p>`;
       return;
     }
+    const startPage = existingCount + 1;
     list.innerHTML = pages
       .map(
         (p, index) => `
       <li class="add-page-preview-item" data-id="${escapeHtml(p.id)}">
+        <div class="add-page-preview-num">page-${String(startPage + index).padStart(6, '0')}</div>
         <img src="${escapeHtml(p.dataUrl)}" alt="" />
         <div class="add-page-preview-meta">
           <span class="add-page-preview-label">${escapeHtml(p.label || `${index + 1}`)}</span>
@@ -171,8 +173,8 @@ export function openAddPageModal(options = {}) {
         <p class="add-note-status add-page-status" role="status"></p>
         <div class="add-page-footer">
           <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
-          <button type="button" class="add-note-submit add-page-submit" data-action="upload" disabled>업로드</button>
-        </div>
+        <button type="button" class="add-note-submit add-page-submit" data-action="upload" disabled>이 순서로 업로드</button>
+      </div>
       `;
       renderPreviewList();
       return;
@@ -180,19 +182,24 @@ export function openAddPageModal(options = {}) {
 
     body.innerHTML = `
       <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
+      <p class="add-page-hint">이미지를 고른 뒤 미리보기에서 순서·삭제를 조정하고, 필요할 때 더 추가한 다음 업로드하세요.${
+        existingCount
+          ? ` (현재 ${existingCount}장 · ${existingCount + 1}번부터 이어붙임)`
+          : ' (1번부터 순서대로 업로드)'
+      }</p>
       <label class="add-note-field">
         <span class="add-note-label">이미지 파일 <em class="add-note-req">*</em> (최대 ${MAX_IMAGE_COUNT}장)</span>
         <label class="add-note-file-btn">
-          <span>이미지 선택</span>
+          <span data-image-pick-label>이미지 선택</span>
           <input type="file" name="imageFiles" accept="image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif" multiple hidden />
         </label>
-        <span class="add-note-file-name" data-image-name>선택된 파일 없음</span>
+        <span class="add-note-file-name" data-image-name>아직 선택된 이미지 없음</span>
       </label>
       <ul class="add-page-preview-list"></ul>
       <p class="add-note-status add-page-status" role="status"></p>
       <div class="add-page-footer">
         <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
-        <button type="button" class="add-note-submit add-page-submit" data-action="upload" disabled>업로드</button>
+        <button type="button" class="add-note-submit add-page-submit" data-action="upload" disabled>이 순서로 업로드</button>
       </div>
     `;
     renderPreviewList();
@@ -214,9 +221,21 @@ export function openAddPageModal(options = {}) {
     renderPreviewList();
   }
 
+  function syncImagePickerLabel() {
+    const label = overlay.querySelector('[data-image-pick-label]');
+    const nameEl = overlay.querySelector('[data-image-name]');
+    if (label) label.textContent = pages.length ? '이미지 더 추가' : '이미지 선택';
+    if (nameEl) {
+      nameEl.textContent = pages.length
+        ? `${pages.length}장 선택됨 (최대 ${MAX_IMAGE_COUNT})`
+        : '아직 선택된 이미지 없음';
+    }
+  }
+
   function removePage(id) {
     pages = pages.filter((p) => p.id !== id);
     renderPreviewList();
+    syncImagePickerLabel();
     updateUploadEnabled();
     setStatus(pages.length ? `${pages.length}장 선택됨` : '');
   }
@@ -238,7 +257,7 @@ export function openAddPageModal(options = {}) {
         label: `p.${i + 1}`
       }));
       renderPreviewList();
-      setStatus(`${pages.length}페이지 변환 완료`);
+      setStatus(`${pages.length}페이지 변환 완료 · 순서 조정 후 업로드하세요`);
     } catch (err) {
       console.error('[AddPage] PDF convert', err);
       pages = [];
@@ -251,17 +270,11 @@ export function openAddPageModal(options = {}) {
   }
 
   async function handleImagesSelected(fileList) {
-    const validated = validateImageFiles(fileList);
+    const remaining = MAX_IMAGE_COUNT - pages.length;
+    const validated = validateImageFiles(fileList, { maxAdditional: remaining });
     if (!validated.ok) {
       setStatus(validated.message, true);
       return;
-    }
-    const nameEl = overlay.querySelector('[data-image-name]');
-    if (nameEl) {
-      nameEl.textContent =
-        validated.files.length === 1
-          ? validated.files[0].name
-          : `${validated.files.length}개 파일`;
     }
     setStatus('이미지를 읽는 중…');
     busy = true;
@@ -269,21 +282,24 @@ export function openAddPageModal(options = {}) {
     try {
       const dataUrls = await Promise.all(validated.files.map((f) => readFileAsDataUrl(f)));
       const jpegUrls = await Promise.all(dataUrls.map((url) => convertImageDataUrlToJpeg(url)));
-      pages = jpegUrls.map((dataUrl, i) => ({
-        id: `img-${Date.now()}-${i}`,
+      const stamp = Date.now();
+      const added = jpegUrls.map((dataUrl, i) => ({
+        id: `img-${stamp}-${pages.length + i}`,
         dataUrl,
-        label: validated.files[i]?.name || `${i + 1}`
+        label: validated.files[i]?.name || `${pages.length + i + 1}`
       }));
+      pages = [...pages, ...added];
       renderPreviewList();
-      setStatus(`${pages.length}장 선택됨 · 순서를 조정할 수 있습니다`);
+      syncImagePickerLabel();
+      setStatus(`${pages.length}장 선택됨 · 순서 조정 후 「이 순서로 업로드」를 누르세요`);
     } catch (err) {
       console.error('[AddPage] image read', err);
-      pages = [];
-      renderPreviewList();
       setStatus(err?.message || '이미지를 읽지 못했습니다', true);
     } finally {
       busy = false;
       updateUploadEnabled();
+      const input = overlay.querySelector('input[name="imageFiles"]');
+      if (input) input.value = '';
     }
   }
 

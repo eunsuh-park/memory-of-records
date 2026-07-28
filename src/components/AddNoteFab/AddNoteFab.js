@@ -20,6 +20,7 @@ import {
   updateNotionNote,
   uploadCoverImage
 } from '../../services/createNote.js';
+import { renameNoteContentFolder } from '../../services/pages.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
@@ -498,18 +499,41 @@ export function openAddNoteModal(options = {}) {
     };
     closeModal();
 
-    /* 수정: 표지/이미지는 건드리지 않고 메타데이터만 PATCH */
+    /* 수정: 표지/이미지는 건드리지 않고 메타데이터만 PATCH (+ 이름 변경 시 Content 폴더 동기화) */
     if (isEdit) {
       showUploadingOverlay('노트를 수정하는 중…');
       try {
+        const oldName = String(seed?.name || '').trim();
+        const nameChanged = Boolean(oldName) && oldName !== name;
+        let renamedFolderUrl = '';
+
+        if (nameChanged) {
+          showUploadingOverlay('노트명·페이지 폴더를 동기화하는 중…');
+          const renamed = await renameNoteContentFolder({
+            noteId: metaPayload.id,
+            oldNoteName: oldName,
+            newNoteName: name,
+            pdfFolderUrl: options.note?.pdfFolderUrl || '',
+            pageCount: options.note?.pageCount
+          });
+          renamedFolderUrl = renamed?.pdfFolderUrl || '';
+        }
+
         const result = await updateNotionNote(metaPayload);
         if (result?.id) markNoteUnseen(result.id);
         else if (metaPayload.id) markNoteUnseen(metaPayload.id);
         clearNotionNotebooksCache();
         clearNotionTypeItemsCache();
         hideUploadingOverlay();
-        showToast('노트가 수정되었습니다');
-        options.onUpdated?.(result);
+        showToast(
+          nameChanged && renamedFolderUrl
+            ? '노트와 페이지 폴더명이 수정되었습니다'
+            : '노트가 수정되었습니다'
+        );
+        options.onUpdated?.({
+          ...result,
+          pdfFolderUrl: renamedFolderUrl || options.note?.pdfFolderUrl
+        });
       } catch (err) {
         console.error('[EditNote]', err);
         hideUploadingOverlay();

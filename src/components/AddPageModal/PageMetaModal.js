@@ -11,14 +11,6 @@ import './AddPageModal.css';
 const CLOSE_ICON =
   "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>";
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 /**
  * @param {{
  *   folder: string,
@@ -62,6 +54,13 @@ export function openPageMetaModal(options = {}) {
     el.classList.toggle('add-note-status--error', Boolean(isError));
   }
 
+  function setFieldsEnabled(enabled) {
+    if (dateInput) dateInput.disabled = !enabled;
+    if (ocrInput) ocrInput.disabled = !enabled;
+    if (visibleInput) visibleInput.disabled = !enabled;
+    if (submitBtn) submitBtn.disabled = !enabled;
+  }
+
   overlay.innerHTML = `
     ${renderButton({
       variant: 'icon',
@@ -76,11 +75,12 @@ export function openPageMetaModal(options = {}) {
       <form class="add-note-form page-meta-form" novalidate>
         <p class="add-note-status page-meta-status" role="status">불러오는 중…</p>
         <label class="add-note-field">
-          <span class="add-note-label">날짜 (entry_date)</span>
+          <span class="add-note-label">날짜</span>
           <input class="add-note-input" name="entry_date" type="date" disabled />
+          <span class="page-meta-date-hint">비워 두면 날짜 없음</span>
         </label>
         <label class="add-note-field">
-          <span class="add-note-label">OCR (ocr_text)</span>
+          <span class="add-note-label">OCR</span>
           <textarea class="add-note-textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
         </label>
         <label class="add-note-check">
@@ -112,24 +112,19 @@ export function openPageMetaModal(options = {}) {
   fetchPageMeta({ folder, page: pageNumber })
     .then((meta) => {
       publicId = meta.publicId || '';
+      const dateValue = String(meta.entry_date || '').trim();
       if (dateInput) {
-        dateInput.value = meta.entry_date || '';
-        dateInput.disabled = false;
+        dateInput.value = /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : '';
       }
-      if (ocrInput) {
-        ocrInput.value = meta.ocr_text || '';
-        ocrInput.disabled = false;
-      }
-      if (visibleInput) {
-        visibleInput.checked = meta.visible !== false;
-        visibleInput.disabled = false;
-      }
-      if (submitBtn) submitBtn.disabled = false;
-      setStatus('');
+      if (ocrInput) ocrInput.value = meta.ocr_text || '';
+      if (visibleInput) visibleInput.checked = meta.visible !== false;
+      setFieldsEnabled(true);
+      setStatus(dateValue ? `저장된 날짜: ${dateValue}` : '');
     })
     .catch((err) => {
       console.error('[PageMeta] load', err);
-      setStatus(err?.message || '메타를 불러오지 못했습니다', true);
+      setFieldsEnabled(true);
+      setStatus(err?.message || '메타를 불러오지 못했습니다 (새 값으로 저장 가능)', true);
     });
 
   form?.addEventListener('submit', async (e) => {
@@ -151,7 +146,11 @@ export function openPageMetaModal(options = {}) {
     try {
       await updatePageMeta(payload);
       closeModal();
-      showToast('페이지 정보가 저장되었습니다');
+      showToast(
+        payload.visible
+          ? '페이지 정보가 저장되었습니다'
+          : '페이지를 숨김 처리했습니다'
+      );
       options.onSaved?.({
         entry_date: payload.entry_date,
         ocr_text: payload.ocr_text,

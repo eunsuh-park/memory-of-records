@@ -75,15 +75,24 @@ export function isAllowedImageFile(file) {
 
 /**
  * @param {FileList|File[]} files
+ * @param {{ maxAdditional?: number }} [options]
  * @returns {{ ok: true, files: File[] } | { ok: false, message: string }}
  */
-export function validateImageFiles(files) {
+export function validateImageFiles(files, options = {}) {
   const list = [...(files || [])].filter(Boolean);
+  const maxAdditional =
+    options.maxAdditional == null ? MAX_IMAGE_COUNT : Math.max(0, Number(options.maxAdditional));
   if (!list.length) {
     return { ok: false, message: '이미지를 1장 이상 선택해주세요' };
   }
-  if (list.length > MAX_IMAGE_COUNT) {
-    return { ok: false, message: `이미지는 최대 ${MAX_IMAGE_COUNT}장까지 가능합니다` };
+  if (list.length > maxAdditional) {
+    return {
+      ok: false,
+      message:
+        maxAdditional <= 0
+          ? `이미지는 최대 ${MAX_IMAGE_COUNT}장까지 가능합니다`
+          : `더 추가할 수 있는 이미지는 ${maxAdditional}장입니다 (최대 ${MAX_IMAGE_COUNT}장)`
+    };
   }
   for (const file of list) {
     if (!isAllowedImageFile(file)) {
@@ -248,6 +257,34 @@ export async function updatePageMeta(payload) {
         data?.details?.error?.message ||
         data?.error ||
         '페이지 메타 수정에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
+ * 노트명 변경 시 Content 폴더도 함께 이동
+ * @param {{
+ *   noteId: string,
+ *   oldNoteName: string,
+ *   newNoteName: string,
+ *   pdfFolderUrl?: string,
+ *   pageCount?: number
+ * }} payload
+ */
+export async function renameNoteContentFolder(payload) {
+  const response = await fetch('/api/pages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'renameFolder', ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.details?.error?.message ||
+        data?.error ||
+        'Content 폴더 이름 변경에 실패했습니다'
     );
   }
   return data;
