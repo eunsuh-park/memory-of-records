@@ -66,6 +66,7 @@
   }
 
   .niv-image-container {
-    padding: 4px;
+    /* 좌우 네비 버튼이 페이지 이미지를 가리지 않도록 */
+    padding: 4px 52px;
   }
 }

@@ -303,10 +303,9 @@ body.jukebox-active.loading-active .notes-scrollbar {
   padding: 0;
   margin: 0;
   box-shadow: none;
-  filter: none;
 }
 
-/* 그림자는 플립되는 .jukebox-card-inner에 있으므로 호버(뒷표지) 시 여기서 제거 */
+/* 그림자는 img drop-shadow이므로 호버 시 별도 제거 불필요 */
 .by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
   box-shadow: none;
 }
@@ -515,6 +514,13 @@ body.jukebox-active.loading-active .notes-scrollbar {
     linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.06));
 }
 
+/* 라이트 모드: 바닥 반사 제거 */
+[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
+[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
+[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+  -webkit-box-reflect: none;
+}
+
 /* 첫 카드가 왼쪽으로 밀려 2번째 카드가 먼저 중앙 포커스되는 현상 방지 */
 .jukebox-gallery > div.jukebox-spacer + div.jukebox-card {
   margin-left: 0;
@@ -539,8 +545,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
   display: inline-block;
   transform-style: preserve-3d;
   transition: transform 0.55s ease;
-  /* 그림자는 회전(플립)하는 요소에 부여해 노트를 따라 자연스럽게 회전 */
-  box-shadow: var(--jukebox-shadow, none);
+  /* 그림자는 img의 drop-shadow로 실루엣을 따름 (직사각형 box-shadow 제거) */
+  box-shadow: none;
 }
 
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
@@ -576,6 +582,11 @@ body.jukebox-active.loading-active .notes-scrollbar {
   max-height: none;
   object-fit: contain;
   object-position: center;
+  filter:
+    drop-shadow(
+      0 6px var(--jukebox-shadow-blur, 16px)
+      rgba(0, 0, 0, var(--jukebox-shadow-opacity, 0.16))
+    );
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
@@ -587,9 +598,26 @@ body.jukebox-active.loading-active .notes-scrollbar {
   max-height: 38vh;
   max-width: 28vw;
   object-fit: contain;
-  filter: brightness(var(--jukebox-brightness, 1));
+  /* brightness(다크 디밍) + drop-shadow(이미지 알파 실루엣 그림자) */
+  filter:
+    brightness(var(--jukebox-brightness, 1))
+    drop-shadow(
+      0 6px var(--jukebox-shadow-blur, 16px)
+      rgba(0, 0, 0, var(--jukebox-shadow-opacity, 0.16))
+    );
   transition: filter 0.2s ease-out;
   will-change: filter;
+}
+
+/* 라이트 모드: 비포커스 노트를 어둡게 하지 않고 배경색으로 허옇게 페이드 */
+[data-theme='light'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+  filter:
+    opacity(var(--jukebox-opacity, 1))
+    drop-shadow(0 3px 8px rgba(20, 28, 36, 0.1));
+}
+
+[data-theme='light'] .jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
+  filter: drop-shadow(0 3px 8px rgba(20, 28, 36, 0.1));
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-cover-image--error {
@@ -641,30 +669,39 @@ body.jukebox-active.loading-active .notes-scrollbar {
 /* 반응형 */
 @media (max-width: 768px) {
   .jukebox-gallery {
-    padding: 30vh 0;
+    /* 헤더·포커스 정보 영역을 피하도록 패딩 축소 + 카드가 잘리지 않게 */
+    padding: 16vh 0 20vh;
     -webkit-overflow-scrolling: touch;
   }
 
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
-    max-height: 26vh;
-    max-width: 32vw;
+    max-height: min(42vh, 320px);
+    max-width: min(56vw, 220px);
   }
 
   .jukebox-gallery > div.jukebox-card {
     margin-left: -2.5vw;
   }
+
+  /* 모바일에서 중앙 확대 스케일을 살짝 낮춰 잘림 완화 */
+  .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+    transform:
+      translate3d(0, 0, var(--jukebox-translate-z, 0))
+      rotateY(var(--jukebox-rotate-y, 0deg))
+      scale(calc(var(--jukebox-scale, 1) * 0.88));
+  }
 }
 
 @media (max-width: 480px) {
   .jukebox-gallery {
-    padding: 28vh 0;
+    padding: 14vh 0 22vh;
   }
 
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
-    max-height: 38vh;
-    max-width: 42vw;
+    max-height: min(46vh, 340px);
+    max-width: min(62vw, 240px);
   }
 
   .jukebox-gallery > div.jukebox-card {
@@ -706,6 +743,10 @@ body.jukebox-active.loading-active .notes-scrollbar {
   width: 100%;
 }
 
+.jukebox-focus-info__header--empty {
+  align-items: center;
+}
+
 .jukebox-focus-info__actions {
   pointer-events: auto;
   display: inline-flex;
@@ -715,7 +756,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
 }
 
 .jukebox-focus-info__edit,
-.jukebox-focus-info__add {
+.jukebox-focus-info__add,
+.jukebox-focus-info__create {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -731,15 +773,22 @@ body.jukebox-active.loading-active .notes-scrollbar {
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
+/* 데스크톱: 노트 추가는 FAB 사용, 포커스 정보 안 버튼은 숨김 */
+.jukebox-focus-info__create {
+  display: none;
+}
+
 .jukebox-focus-info__edit:hover,
-.jukebox-focus-info__add:hover {
+.jukebox-focus-info__add:hover,
+.jukebox-focus-info__create:hover {
   color: var(--app-text);
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.22);
 }
 
 .jukebox-focus-info__edit:focus-visible,
-.jukebox-focus-info__add:focus-visible {
+.jukebox-focus-info__add:focus-visible,
+.jukebox-focus-info__create:focus-visible {
   outline: 2px solid var(--color-primary, #ffd966);
   outline-offset: 2px;
 }
@@ -750,14 +799,16 @@ body.jukebox-active.loading-active .notes-scrollbar {
 }
 
 [data-theme='light'] .jukebox-focus-info__edit,
-[data-theme='light'] .jukebox-focus-info__add {
+[data-theme='light'] .jukebox-focus-info__add,
+[data-theme='light'] .jukebox-focus-info__create {
   background: rgba(28, 36, 44, 0.05);
   border-color: rgba(28, 36, 44, 0.1);
   color: var(--app-text-muted);
 }
 
 [data-theme='light'] .jukebox-focus-info__edit:hover,
-[data-theme='light'] .jukebox-focus-info__add:hover {
+[data-theme='light'] .jukebox-focus-info__add:hover,
+[data-theme='light'] .jukebox-focus-info__create:hover {
   background: rgba(28, 36, 44, 0.1);
   color: var(--app-text);
 }
@@ -816,10 +867,6 @@ body.jukebox-active.loading-active .notes-scrollbar {
   box-shadow: none;
 }
 
-[data-theme='light'] .jukebox-card-inner {
-  box-shadow: 0 2px 8px rgba(20, 28, 36, 0.08) !important;
-}
-
 .jukebox-focus-info__empty {
   margin: 0;
   font-size: 0.85rem;
@@ -851,10 +898,37 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
 
 @media (max-width: 768px) {
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev {
-    left: max(0.75rem, env(safe-area-inset-left));
+    left: max(0.5rem, env(safe-area-inset-left));
+    padding: 8px;
+    opacity: 0.7;
   }
 
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
-    right: max(0.75rem, env(safe-area-inset-right));
+    right: max(0.5rem, env(safe-area-inset-right));
+    padding: 8px;
+    opacity: 0.7;
+  }
+
+  /* 모바일: 편집/페이지추가/노트추가를 포커스 정보 액션에 동위 배치 */
+  .jukebox-focus-info__create {
+    display: inline-flex;
+    color: var(--color-primary-on, #1c242c);
+    background: var(--color-primary, #ffd966);
+    border-color: transparent;
+  }
+
+  .jukebox-focus-info__create:hover {
+    color: var(--color-primary-on, #1c242c);
+    background: var(--color-primary, #ffd966);
+    filter: brightness(1.05);
+  }
+
+  .jukebox-focus-slot {
+    width: min(560px, calc(100% - 1.5rem));
+    bottom: max(0.85rem, env(safe-area-inset-bottom));
+  }
+
+  body.jukebox-active .add-note-fab {
+    display: none;
   }
 }

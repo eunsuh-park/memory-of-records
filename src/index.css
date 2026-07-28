@@ -63,7 +63,7 @@ button:not(.btn) {
   font-weight: 500;
   font-family: inherit;
   background-color: var(--primary-color);
-  color: #fff;
+  color: var(--color-primary-on, #1c242c);
   cursor: pointer;
   transition: all 0.25s;
 }

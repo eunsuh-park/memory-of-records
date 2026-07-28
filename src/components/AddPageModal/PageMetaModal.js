@@ -1,10 +1,12 @@
 /**
  * 특정 페이지 메타(entry_date, ocr_text, visible) 편집 모달
+ * OCR: Tesseract.js로 페이지 이미지에서 텍스트·날짜 후보 채움 (저장은 별도)
  */
 
 import { render as renderButton } from '../Button/Button.js';
 import { showToast } from '../Toast/Toast.js';
-import { fetchPageMeta, updatePageMeta } from '../../services/pages.js';
+import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
+import { recognizePageImage } from '../../services/ocr.js';
 import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
 
@@ -15,6 +17,7 @@ const CLOSE_ICON =
  * @param {{
  *   folder: string,
  *   pageNumber: number,
+ *   imageUrl?: string,
  *   onSaved?: (meta: { entry_date: string, ocr_text: string, visible: boolean, pageNumber: number }) => void
  * }} options
  */
@@ -28,6 +31,9 @@ export function openPageMetaModal(options = {}) {
     return;
   }
 
+  const imageUrl =
+    String(options.imageUrl || '').trim() || buildPageImageUrl(folder, pageNumber);
+
   const overlay = document.createElement('div');
   overlay.className = 'add-note-overlay page-meta-overlay';
   overlay.setAttribute('role', 'dialog');
@@ -35,16 +41,18 @@ export function openPageMetaModal(options = {}) {
   overlay.setAttribute('aria-labelledby', 'page-meta-title');
 
   let saving = false;
+  let ocrRunning = false;
   let publicId = '';
 
   function closeModal() {
+    if (saving || ocrRunning) return;
     document.removeEventListener('keydown', onKeydown);
     overlay.remove();
     document.body.classList.remove('add-note-open');
   }
 
   function onKeydown(e) {
-    if (e.key === 'Escape' && !saving) closeModal();
+    if (e.key === 'Escape' && !saving && !ocrRunning) closeModal();
   }
 
   function setStatus(message, isError = false) {
@@ -59,6 +67,17 @@ export function openPageMetaModal(options = {}) {
     if (ocrInput) ocrInput.disabled = !enabled;
     if (visibleInput) visibleInput.disabled = !enabled;
     if (submitBtn) submitBtn.disabled = !enabled;
+    if (ocrBtn) ocrBtn.disabled = !enabled;
+  }
+
+  function ocrProgressLabel(status, progress) {
+    const pct = Math.round(Math.max(0, Math.min(1, progress)) * 100);
+    if (status === 'loading tesseract core') return `OCR 엔진 로드 중… ${pct}%`;
+    if (status === 'initializing tesseract') return `OCR 초기화 중… ${pct}%`;
+    if (status === 'loading language traineddata') return `언어 데이터 로드 중… ${pct}%`;
+    if (status === 'initializing api') return `OCR 준비 중… ${pct}%`;
+    if (status === 'recognizing text') return `텍스트 인식 중… ${pct}%`;
+    return `OCR 실행 중… ${pct}%`;
   }
 
   overlay.innerHTML = `
@@ -77,12 +96,16 @@ export function openPageMetaModal(options = {}) {
         <label class="add-note-field">
           <span class="add-note-label">날짜</span>
           <input class="add-note-input" name="entry_date" type="date" disabled />
-          <span class="page-meta-date-hint">비워 두면 날짜 없음</span>
+          <span class="page-meta-date-hint">OCR로 채우거나 직접 입력 · 비우면 날짜 없음</span>
         </label>
-        <label class="add-note-field">
-          <span class="add-note-label">OCR</span>
+        <div class="add-note-field">
+          <div class="page-meta-ocr-label-row">
+            <span class="add-note-label">OCR</span>
+            <button type="button" class="page-meta-ocr-btn" disabled>이미지에서 인식</button>
+          </div>
           <textarea class="add-note-textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
-        </label>
+          <span class="page-meta-date-hint">손글씨는 정확도가 낮을 수 있습니다. 인식 후 수정·저장하세요.</span>
+        </div>
         <label class="add-note-check">
           <input type="checkbox" name="visible" checked disabled />
           <span>사이트에 표시 (visible)</span>
@@ -101,12 +124,13 @@ export function openPageMetaModal(options = {}) {
   const ocrInput = form?.querySelector('textarea[name="ocr_text"]');
   const visibleInput = form?.querySelector('input[name="visible"]');
   const submitBtn = form?.querySelector('button[type="submit"]');
+  const ocrBtn = form?.querySelector('.page-meta-ocr-btn');
 
   overlay.querySelector('.add-note-close')?.addEventListener('click', () => {
-    if (!saving) closeModal();
+    closeModal();
   });
   overlay.addEventListener('click', (e) => {
-    if (e.target === overlay && !saving) closeModal();
+    if (e.target === overlay) closeModal();
   });
 
   fetchPageMeta({ folder, page: pageNumber })
@@ -127,11 +151,55 @@ export function openPageMetaModal(options = {}) {
       setStatus(err?.message || '메타를 불러오지 못했습니다 (새 값으로 저장 가능)', true);
     });
 
+  ocrBtn?.addEventListener('click', async () => {
+    if (ocrRunning || saving || !imageUrl) return;
+    ocrRunning = true;
+    setFieldsEnabled(false);
+    if (ocrBtn) {
+      ocrBtn.disabled = true;
+      ocrBtn.textContent = '인식 중…';
+    }
+    setStatus('OCR 준비 중…');
+
+    try {
+      const result = await recognizePageImage(imageUrl, {
+        onProgress: ({ status, progress }) => {
+          setStatus(ocrProgressLabel(status, progress));
+        }
+      });
+
+      if (ocrInput) ocrInput.value = result.text || '';
+      if (result.entry_date && dateInput) {
+        dateInput.value = result.entry_date;
+      }
+
+      if (result.text && result.entry_date) {
+        setStatus(`인식 완료 · 날짜 ${result.entry_date} (저장을 눌러 반영)`);
+        showToast('텍스트와 날짜를 채웠습니다');
+      } else if (result.text) {
+        setStatus('인식 완료 · 날짜는 찾지 못했습니다 (저장을 눌러 반영)');
+        showToast('텍스트를 채웠습니다');
+      } else {
+        setStatus('인식된 텍스트가 없습니다', true);
+        showToast('인식된 텍스트가 없습니다');
+      }
+    } catch (err) {
+      console.error('[PageMeta] OCR', err);
+      setStatus(err?.message || 'OCR에 실패했습니다', true);
+      showToast(err?.message || 'OCR에 실패했습니다');
+    } finally {
+      ocrRunning = false;
+      setFieldsEnabled(true);
+      if (ocrBtn) ocrBtn.textContent = '이미지에서 인식';
+    }
+  });
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (saving) return;
+    if (saving || ocrRunning) return;
     saving = true;
     if (submitBtn) submitBtn.disabled = true;
+    if (ocrBtn) ocrBtn.disabled = true;
     setStatus('저장 중…');
 
     const payload = {
@@ -145,7 +213,10 @@ export function openPageMetaModal(options = {}) {
 
     try {
       await updatePageMeta(payload);
-      closeModal();
+      saving = false;
+      document.removeEventListener('keydown', onKeydown);
+      overlay.remove();
+      document.body.classList.remove('add-note-open');
       showToast(
         payload.visible
           ? '페이지 정보가 저장되었습니다'
@@ -162,6 +233,7 @@ export function openPageMetaModal(options = {}) {
       setStatus(err?.message || '저장에 실패했습니다', true);
       saving = false;
       if (submitBtn) submitBtn.disabled = false;
+      if (ocrBtn) ocrBtn.disabled = false;
     }
   });
 }

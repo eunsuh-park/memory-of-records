@@ -104,6 +104,18 @@ export function validateImageFiles(files, options = {}) {
 
 export { MAX_IMAGE_COUNT };
 
+/**
+ * 페이지 이미지 URL 조립
+ * `{pdf_folder_url}/page-{6자리 zero-padded 페이지 번호}.jpg`
+ * @param {string} folderUrl - Cloudinary 폴더 base URL
+ * @param {number} pageNumber - 1부터 시작하는 페이지 번호
+ * @returns {string}
+ */
+export function buildPageImageUrl(folderUrl, pageNumber) {
+  const base = String(folderUrl || '').trim().replace(/\/+$/, '');
+  return `${base}/page-${String(pageNumber).padStart(6, '0')}.jpg`;
+}
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);

@@ -53,7 +53,7 @@ function updateCardAngles(timelinePage) {
     );
 
     const hoverX = ratio < -0.05 ? '3vw' : ratio > 0.05 ? '-3vw' : '0';
-    const brightness = 1 - (1 - 0.48) * absRatio;
+    const dim = 1 - (1 - 0.48) * absRatio;
 
     const gradientSlope = 0.42;
     const minShadowOpacity = 0.03;
@@ -62,15 +62,17 @@ function updateCardAngles(timelinePage) {
       (baseShadowOpacity - absRatio * gradientSlope) * 0.5;
     const shadowBlur = 22 - Math.round(absRatio * 10);
 
+    card.style.setProperty('--jukebox-shadow-blur', `${shadowBlur}px`);
     card.style.setProperty(
-      '--jukebox-shadow',
-      `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(minShadowOpacity, shadowOpacity).toFixed(2)})`
+      '--jukebox-shadow-opacity',
+      Math.max(minShadowOpacity, shadowOpacity).toFixed(2)
     );
     card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
     card.style.setProperty('--jukebox-scale', String(scale));
     card.style.setProperty('--jukebox-translate-z', translateZ);
     card.style.setProperty('--jukebox-hover-x', hoverX);
-    card.style.setProperty('--jukebox-brightness', String(brightness));
+    card.style.setProperty('--jukebox-brightness', String(dim));
+    card.style.setProperty('--jukebox-opacity', String(dim));
     card.style.zIndex = String(zIndex);
   });
 

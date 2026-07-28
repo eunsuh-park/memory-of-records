@@ -40,13 +40,9 @@
 }
 
 .view-mode-link.active {
-  color: #29323f;
+  color: var(--color-primary-on, #1c242c);
   background-color: var(--color-primary);
   font-weight: 700;
-}
-
-[data-theme='light'] .view-mode-link.active {
-  color: #1c242c;
 }
 
 /* 서브 메뉴 컨테이너: TopNavigation 하단에 고정, 가로 중앙 정렬 */

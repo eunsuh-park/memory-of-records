@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #1c242c;
+  color: var(--color-primary-on, #1c242c);
   background: var(--color-primary, #ffd966);
   box-shadow: 0 6px 20px var(--color-shadow-lg, rgba(0, 0, 0, 0.28));
   transition: transform 0.15s ease, filter 0.15s ease;
@@ -316,7 +316,7 @@ body.add-note-open {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  color: #000;
+  color: var(--color-primary-on, #1c242c);
   background: var(--color-primary, #ffd966);
 }
 

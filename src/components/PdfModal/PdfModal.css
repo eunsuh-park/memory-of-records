@@ -239,6 +239,13 @@ body.pdf-modal-open {
     padding: 10px 12px;
     font-size: 14px;
   }
+
+  /* 네비 버튼이 이미지를 가리지 않도록 좌우 여백 확보 */
+  .pdf-canvas-wrap {
+    padding-left: 52px;
+    padding-right: 52px;
+    min-height: 50vh;
+  }
 }
 
 /* PDF 모달 닫기 버튼 — 딤 위 고정, 항상 보이도록 */
@@ -390,12 +397,6 @@ body.pdf-modal-open {
   background: rgba(17, 24, 39, 0.4);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-}
-
-@media (max-width: 640px) {
-  .pdf-canvas-wrap {
-    min-height: 50vh;
-  }
 }
 
 /* /note/:id 전체 페이지 + 등장 애니메이션 */

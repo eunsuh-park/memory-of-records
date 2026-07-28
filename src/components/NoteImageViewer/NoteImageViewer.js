@@ -18,11 +18,14 @@ import {
   computeNoteDisplayBoxes,
   isLandscapeSpread
 } from '../../utils/noteSize.js';
+import { buildPageImageUrl } from '../../services/pages.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
 import '../PdfModal/PdfModal.css';
 import './NoteImageViewer.css';
+
+export { buildPageImageUrl };
 
 const LOADING_LOTTIE =
   'https://lottie.host/ac9f0d95-b144-482c-a2d4-fb707e069f94/lHcmDqwHwt.lottie';
@@ -42,18 +45,6 @@ const ICONS = {
   edit:
     "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>"
 };
-
-/**
- * 페이지 이미지 URL 조립
- * `{pdf_folder_url}/page-{6자리 zero-padded 페이지 번호}.jpg`
- * @param {string} folderUrl - Cloudinary 폴더 base URL
- * @param {number} pageNumber - 1부터 시작하는 페이지 번호
- * @returns {string}
- */
-export function buildPageImageUrl(folderUrl, pageNumber) {
-  const base = String(folderUrl || '').trim().replace(/\/+$/, '');
-  return `${base}/page-${String(pageNumber).padStart(6, '0')}.jpg`;
-}
 
 /** folderUrl → Promise<Set<number>> (숨김 페이지 조회 캐시) */
 const hiddenPagesCache = new Map();
@@ -550,6 +541,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     openPageMetaModal({
       folder: folderUrl,
       pageNumber: pageNum,
+      imageUrl: buildPageImageUrl(folderUrl, pageNum),
       onSaved: async (meta) => {
         hiddenPagesCache.delete(String(folderUrl || '').trim());
         hiddenPages = await fetchHiddenPages(folderUrl, { force: true });

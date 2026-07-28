@@ -32,6 +32,8 @@ const ICONS = {
   edit:
     "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>",
   plus:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>",
+  noteAdd:
     "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>"
 };
 
@@ -143,21 +145,26 @@ function updateCardAngles(gallery) {
       const translateZ = (1 - absRatio) * COVER_FLOW_Z_CENTER_EM;
       const zIndex = Math.round(COVER_FLOW_Z_INDEX_SIDE + (1 - absRatio) * (COVER_FLOW_Z_INDEX_CENTER - COVER_FLOW_Z_INDEX_SIDE));
 
-      /* 양옆 카드는 이미지 더 어둡게. 중앙 1 → 양끝 COVER_FLOW_BRIGHTNESS_SIDE */
-      const brightness = 1 - (1 - COVER_FLOW_BRIGHTNESS_SIDE) * absRatio;
+      /* 양옆 카드 디밍. 다크=brightness, 라이트=opacity(배경으로 허옇게 페이드) */
+      const dim = 1 - (1 - COVER_FLOW_BRIGHTNESS_SIDE) * absRatio;
 
-      /* 바닥 그림자: 중앙에서 진하고 양옆으로 갈수록 옅게 (플립되는 요소에 적용됨) */
+      /* 이미지 실루엣 그림자(drop-shadow): 중앙에서 진하고 양옆으로 갈수록 옅게 */
       const gradientSlope = 0.42;
       const minShadowOpacity = 0.03;
       const baseShadowOpacity = 0.32;
       const shadowOpacity = (baseShadowOpacity - absRatio * gradientSlope) * 0.5;
       const shadowBlur = 22 - Math.round(absRatio * 10);
 
-      card.style.setProperty('--jukebox-shadow', `0 6px ${shadowBlur}px rgba(0,0,0,${Math.max(minShadowOpacity, shadowOpacity).toFixed(2)})`);
+      card.style.setProperty('--jukebox-shadow-blur', `${shadowBlur}px`);
+      card.style.setProperty(
+        '--jukebox-shadow-opacity',
+        Math.max(minShadowOpacity, shadowOpacity).toFixed(2)
+      );
       card.style.setProperty('--jukebox-rotate-y', `${angle}deg`);
       card.style.setProperty('--jukebox-scale', String(scale));
       card.style.setProperty('--jukebox-translate-z', `${translateZ.toFixed(3)}em`);
-      card.style.setProperty('--jukebox-brightness', String(brightness));
+      card.style.setProperty('--jukebox-brightness', String(dim));
+      card.style.setProperty('--jukebox-opacity', String(dim));
       card.style.zIndex = String(zIndex);
     }
 
@@ -727,7 +734,19 @@ function categoryLabel(note, filterMode) {
 
 function renderFocusedNoteInfo(note, filterMode) {
   if (!note) {
-    return `<div class="jukebox-focus-info" aria-live="polite"><p class="jukebox-focus-info__empty">노트를 선택하세요</p></div>`;
+    return `<div class="jukebox-focus-info" aria-live="polite">
+      <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
+        <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
+        <div class="jukebox-focus-info__actions">
+          <button
+            type="button"
+            class="jukebox-focus-info__create"
+            aria-label="노트 추가"
+            title="노트 추가"
+          >${ICONS.noteAdd}</button>
+        </div>
+      </div>
+    </div>`;
   }
   const title = escapeHtml(note.title || '제목 없음');
   const category = escapeHtml(categoryLabel(note, filterMode));
@@ -758,6 +777,12 @@ function renderFocusedNoteInfo(note, filterMode) {
             aria-label="페이지 추가"
             title="페이지 추가"
           >${ICONS.plus}</button>
+          <button
+            type="button"
+            class="jukebox-focus-info__create"
+            aria-label="노트 추가"
+            title="노트 추가"
+          >${ICONS.noteAdd}</button>
         </div>
       </div>
       ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
@@ -854,6 +879,14 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
+      const createBtn = e.target?.closest?.('.jukebox-focus-info__create');
+      if (createBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openAddNoteModal({ onCreated: refreshAfterNoteEdit });
+        return;
+      }
+
       const editBtn = e.target?.closest?.('.jukebox-focus-info__edit');
       const addBtn = e.target?.closest?.('.jukebox-focus-info__add');
       if (!editBtn && !addBtn) return;
