@@ -14,6 +14,7 @@ import {
 } from './_lib/notionDb.js';
 
 const CONTENT_ROOT = process.env.CLOUDINARY_CONTENT_FOLDER || 'Notebooks_v3/Content';
+const COVER_ROOT = process.env.CLOUDINARY_COVER_FOLDER || 'Notebooks_v3/Cover';
 const MAX_BYTES = 10 * 1024 * 1024;
 
 function trimOrEmpty(value) {
@@ -212,6 +213,12 @@ function contentFolderForNoteName(noteName) {
   return `${root}/${sanitizePublicIdStem(noteName)}`;
 }
 
+function coverPublicId(kind, noteName) {
+  const root = String(COVER_ROOT || 'Notebooks_v3/Cover').replace(/\/+$/, '');
+  const folder = kind === 'back' ? `${root}/Back` : `${root}/Front`;
+  return `${folder}/${sanitizePublicIdStem(noteName)}`;
+}
+
 function rewriteFolderBaseUrl(folderUrl, fromPath, toPath) {
   const url = String(folderUrl || '').trim().replace(/\/+$/, '');
   if (!url) return '';
@@ -230,7 +237,6 @@ function rewriteFolderBaseUrl(folderUrl, fromPath, toPath) {
   } catch {
     /* fall through */
   }
-  /* delivery URL 파싱 실패 시 cloudinary 기본 형태로 재조립 */
   const cloudMatch = url.match(/^https?:\/\/res\.cloudinary\.com\/([^/]+)/i);
   if (cloudMatch) {
     const encodedTo = toPath
@@ -240,6 +246,61 @@ function rewriteFolderBaseUrl(folderUrl, fromPath, toPath) {
     return `https://res.cloudinary.com/${cloudMatch[1]}/image/upload/${encodedTo}`;
   }
   return url;
+}
+
+/** 표지 delivery URL의 파일명(노트명) 구간을 새 이름으로 교체 */
+function rewriteCoverUrl(url, oldStem, newStem) {
+  const raw = String(url || '').trim();
+  if (!raw || !oldStem || !newStem || oldStem === newStem) return raw;
+  const variants = [oldStem, encodeURIComponent(oldStem)];
+  let next = raw;
+  for (const from of variants) {
+    if (!from) continue;
+    if (next.includes(`/${from}.`)) {
+      next = next.replace(`/${from}.`, `/${encodeURIComponent(newStem)}.`);
+      break;
+    }
+    if (next.includes(`/${from}`)) {
+      next = next.replace(`/${from}`, `/${encodeURIComponent(newStem)}`);
+      break;
+    }
+  }
+  return next;
+}
+
+async function renameCloudinaryAsset(credentials, fromPublicId, toPublicId) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const paramsToSign = {
+    from_public_id: fromPublicId,
+    invalidate: 'true',
+    overwrite: 'true',
+    timestamp: String(timestamp),
+    to_public_id: toPublicId
+  };
+  const signatureBase = Object.keys(paramsToSign)
+    .sort()
+    .map((k) => `${k}=${paramsToSign[k]}`)
+    .join('&');
+  const signature = crypto
+    .createHash('sha1')
+    .update(signatureBase + credentials.apiSecret)
+    .digest('hex');
+
+  const form = new FormData();
+  form.append('from_public_id', fromPublicId);
+  form.append('to_public_id', toPublicId);
+  form.append('timestamp', String(timestamp));
+  form.append('api_key', credentials.apiKey);
+  form.append('signature', signature);
+  form.append('overwrite', 'true');
+  form.append('invalidate', 'true');
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${credentials.cloudName}/image/rename`,
+    { method: 'POST', body: form }
+  );
+  const data = await response.json().catch(() => ({}));
+  return { ok: response.ok, status: response.status, data };
 }
 
 async function handleUpload(req, res, body) {
@@ -537,8 +598,11 @@ async function handleUpdateMeta(req, res, body) {
 }
 
 /**
- * Content 폴더명을 노트명에 맞게 이동/개명하고 Notion pdf_folder_url 갱신
- * Body: { oldNoteName?, newNoteName, pdfFolderUrl?, noteId?, pageCount? }
+ * 노트명 변경 시 Content 폴더 + 앞/뒤 표지 public_id를 함께 바꾸고 Notion URL 갱신
+ * Body: {
+ *   oldNoteName?, newNoteName, pdfFolderUrl?, noteId?, pageCount?,
+ *   coverFrontUrl?, coverBackUrl?
+ * }
  */
 async function handleRenameFolder(req, res, body) {
   const credentials = getCloudinaryCredentials();
@@ -549,6 +613,7 @@ async function handleRenameFolder(req, res, body) {
     });
   }
 
+  const oldNoteName = trimOrEmpty(body.oldNoteName);
   const newNoteName = trimOrEmpty(body.newNoteName);
   if (!newNoteName) {
     return res.status(400).json({
@@ -557,109 +622,176 @@ async function handleRenameFolder(req, res, body) {
     });
   }
 
+  const oldStem = sanitizePublicIdStem(oldNoteName || 'page');
+  const newStem = sanitizePublicIdStem(newNoteName);
   const pdfFolderUrl = trimOrEmpty(body.pdfFolderUrl);
   const fromParsed = parseFolderParam(pdfFolderUrl);
   const fromPath =
-    fromParsed.folderPath ||
-    (trimOrEmpty(body.oldNoteName) ? contentFolderForNoteName(body.oldNoteName) : null);
+    fromParsed.folderPath || (oldNoteName ? contentFolderForNoteName(oldNoteName) : null);
   const toPath = contentFolderForNoteName(newNoteName);
 
-  if (!fromPath) {
-    return res.status(200).json({
-      ok: true,
-      skipped: true,
-      reason: '이동할 Content 폴더가 없습니다',
-      folderPath: toPath,
-      pdfFolderUrl: ''
-    });
-  }
+  let newFolderUrl = pdfFolderUrl;
+  let contentRenamed = false;
+  let contentSkippedReason = '';
 
-  if (fromPath === toPath) {
-    return res.status(200).json({
-      ok: true,
-      skipped: true,
-      reason: '폴더명이 동일합니다',
-      folderPath: toPath,
-      pdfFolderUrl
-    });
-  }
-
-  const authHeader = `Basic ${Buffer.from(
-    `${credentials.apiKey}:${credentials.apiSecret}`
-  ).toString('base64')}`;
-
-  const moveRes = await fetch(
-    `https://api.cloudinary.com/v1_1/${credentials.cloudName}/folders/${fromPath
-      .split('/')
-      .map((s) => encodeURIComponent(s))
-      .join('/')}`,
-    {
-      method: 'PUT',
-      headers: {
-        Authorization: authHeader,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ to_folder: toPath })
-    }
-  );
-  const moveData = await moveRes.json().catch(() => ({}));
-  if (!moveRes.ok) {
-    /* 폴더가 아직 없으면(본문 없음) 스킵 */
-    const msg = moveData?.error?.message || '';
-    if (/not found|does not exist/i.test(msg) || moveRes.status === 404) {
-      return res.status(200).json({
-        ok: true,
-        skipped: true,
-        reason: 'Content 폴더가 아직 없어 이름 변경을 건너뜁니다',
-        folderPath: toPath,
-        pdfFolderUrl: ''
-      });
-    }
-    return res.status(moveRes.status).json({
-      error: 'Cloudinary folder rename failed',
-      details: moveData,
-      message: msg || 'Content 폴더 이름 변경에 실패했습니다'
-    });
-  }
-
-  const newFolderUrl = rewriteFolderBaseUrl(pdfFolderUrl, fromPath, toPath);
-  const noteId = trimOrEmpty(body.noteId).replace(/-/g, '');
-  const pageCount = Number(body.pageCount);
-
-  if (noteId && newFolderUrl) {
-    if (Number.isFinite(pageCount) && pageCount >= 1) {
-      return await handleUpdateNote(req, res, {
-        id: noteId,
-        pdfFolderUrl: newFolderUrl,
-        pageCount
-      });
-    }
-
-    /* pageCount 미지정이면 pdf_folder_url만 PATCH */
-    const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
-    const schema = database?.properties || {};
-    const folderUrlProp = findSchemaProperty(
-      schema,
-      'pdf_folder_url',
-      'PDF Folder URL',
-      'pdf folder url'
+  /* 1) Content 폴더 이동 (있을 때만) */
+  if (fromPath && fromPath !== toPath) {
+    const moveRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${credentials.cloudName}/folders/${fromPath
+        .split('/')
+        .map((s) => encodeURIComponent(s))
+        .join('/')}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Basic ${Buffer.from(
+            `${credentials.apiKey}:${credentials.apiSecret}`
+          ).toString('base64')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ to_folder: toPath })
+      }
     );
-    if (folderUrlProp && ['url', 'rich_text'].includes(folderUrlProp.type)) {
-      const folderPayload = buildNotionPropertyPayload(folderUrlProp, newFolderUrl);
-      if (folderPayload) {
-        await notionFetch(`/pages/${noteId}`, {
-          method: 'PATCH',
-          body: { properties: { [folderUrlProp.key]: folderPayload } }
+    const moveData = await moveRes.json().catch(() => ({}));
+    if (moveRes.ok) {
+      contentRenamed = true;
+      newFolderUrl = rewriteFolderBaseUrl(pdfFolderUrl, fromPath, toPath);
+    } else {
+      const msg = moveData?.error?.message || '';
+      if (/not found|does not exist/i.test(msg) || moveRes.status === 404) {
+        contentSkippedReason = 'Content 폴더가 아직 없어 이름 변경을 건너뜁니다';
+        newFolderUrl = '';
+      } else {
+        return res.status(moveRes.status).json({
+          error: 'Cloudinary folder rename failed',
+          details: moveData,
+          message: msg || 'Content 폴더 이름 변경에 실패했습니다'
         });
       }
+    }
+  } else if (fromPath === toPath) {
+    contentSkippedReason = 'Content 폴더명이 동일합니다';
+  } else {
+    contentSkippedReason = '이동할 Content 폴더가 없습니다';
+  }
+
+  /* 2) 앞/뒤 표지 public_id 변경 */
+  let coverFrontUrl = trimOrEmpty(body.coverFrontUrl);
+  let coverBackUrl = trimOrEmpty(body.coverBackUrl);
+  const coverResults = { front: null, back: null };
+
+  if (oldStem && newStem && oldStem !== newStem) {
+    for (const kind of ['front', 'back']) {
+      const fromId = coverPublicId(kind, oldNoteName || oldStem);
+      const toId = coverPublicId(kind, newNoteName);
+      const renamed = await renameCloudinaryAsset(credentials, fromId, toId);
+      coverResults[kind] = {
+        ok: renamed.ok,
+        status: renamed.status,
+        from: fromId,
+        to: toId,
+        message: renamed.data?.error?.message || null,
+        url: renamed.data?.secure_url || renamed.data?.url || null
+      };
+
+      if (renamed.ok) {
+        const nextUrl =
+          coverResults[kind].url ||
+          rewriteCoverUrl(kind === 'back' ? coverBackUrl : coverFrontUrl, oldStem, newStem);
+        if (kind === 'front') coverFrontUrl = nextUrl;
+        else coverBackUrl = nextUrl;
+      } else {
+        const msg = renamed.data?.error?.message || '';
+        /* 표지가 없으면 스킵, 그 외는 실패로 중단 */
+        if (!/not found|does not exist|resource not found/i.test(msg) && renamed.status !== 404) {
+          return res.status(renamed.status || 500).json({
+            error: 'Cloudinary cover rename failed',
+            details: renamed.data,
+            message: msg || `${kind === 'front' ? '앞' : '뒤'}표지 파일명 변경에 실패했습니다`,
+            coverResults
+          });
+        }
+      }
+    }
+  }
+
+  /* 3) Notion URL 필드 갱신 */
+  const noteId = trimOrEmpty(body.noteId).replace(/-/g, '');
+  const pageCount = Number(body.pageCount);
+  const notionPatch = {};
+
+  if (noteId) {
+    const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
+    const schema = database?.properties || {};
+
+    if (newFolderUrl) {
+      const folderUrlProp = findSchemaProperty(
+        schema,
+        'pdf_folder_url',
+        'PDF Folder URL',
+        'pdf folder url'
+      );
+      if (folderUrlProp && ['url', 'rich_text'].includes(folderUrlProp.type)) {
+        const folderPayload = buildNotionPropertyPayload(folderUrlProp, newFolderUrl);
+        if (folderPayload) notionPatch[folderUrlProp.key] = folderPayload;
+      }
+      if (Number.isFinite(pageCount) && pageCount >= 1) {
+        const pageCountProp = findSchemaProperty(
+          schema,
+          'page_count',
+          'Page Count',
+          'page count'
+        );
+        if (pageCountProp && ['number', 'rich_text'].includes(pageCountProp.type)) {
+          const countPayload = buildNotionPropertyPayload(pageCountProp, pageCount);
+          if (countPayload) notionPatch[pageCountProp.key] = countPayload;
+        }
+      }
+    }
+
+    if (coverFrontUrl) {
+      const frontProp = findSchemaProperty(
+        schema,
+        'cover_front_url',
+        'cover front url',
+        'Cover Front URL',
+        'cover_front',
+        '앞표지'
+      );
+      const frontPayload = buildNotionPropertyPayload(frontProp, coverFrontUrl);
+      if (frontPayload) notionPatch[frontProp.key] = frontPayload;
+    }
+    if (coverBackUrl) {
+      const backProp = findSchemaProperty(
+        schema,
+        'cover_back_url',
+        'cover back url',
+        'Cover Back URL',
+        'cover_back',
+        '뒷표지'
+      );
+      const backPayload = buildNotionPropertyPayload(backProp, coverBackUrl);
+      if (backPayload) notionPatch[backProp.key] = backPayload;
+    }
+
+    if (Object.keys(notionPatch).length) {
+      await notionFetch(`/pages/${noteId}`, {
+        method: 'PATCH',
+        body: { properties: notionPatch }
+      });
     }
   }
 
   return res.status(200).json({
     ok: true,
+    contentRenamed,
+    contentSkippedReason: contentSkippedReason || undefined,
     folderPath: toPath,
-    fromPath,
-    pdfFolderUrl: newFolderUrl
+    fromPath: fromPath || null,
+    pdfFolderUrl: newFolderUrl || '',
+    coverFrontUrl: coverFrontUrl || '',
+    coverBackUrl: coverBackUrl || '',
+    coverResults
   });
 }
 

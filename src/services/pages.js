@@ -263,13 +263,15 @@ export async function updatePageMeta(payload) {
 }
 
 /**
- * 노트명 변경 시 Content 폴더도 함께 이동
+ * 노트명 변경 시 Content 폴더·앞/뒤 표지 파일명 동기화
  * @param {{
  *   noteId: string,
  *   oldNoteName: string,
  *   newNoteName: string,
  *   pdfFolderUrl?: string,
- *   pageCount?: number
+ *   pageCount?: number,
+ *   coverFrontUrl?: string,
+ *   coverBackUrl?: string
  * }} payload
  */
 export async function renameNoteContentFolder(payload) {
@@ -284,7 +286,7 @@ export async function renameNoteContentFolder(payload) {
       data?.message ||
         data?.details?.error?.message ||
         data?.error ||
-        'Content 폴더 이름 변경에 실패했습니다'
+        '노트 관련 Cloudinary 이름 변경에 실패했습니다'
     );
   }
   return data;

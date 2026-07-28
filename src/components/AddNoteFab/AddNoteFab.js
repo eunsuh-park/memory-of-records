@@ -508,13 +508,15 @@ export function openAddNoteModal(options = {}) {
         let renamedFolderUrl = '';
 
         if (nameChanged) {
-          showUploadingOverlay('노트명·페이지 폴더를 동기화하는 중…');
+          showUploadingOverlay('노트명·표지·페이지 폴더를 동기화하는 중…');
           const renamed = await renameNoteContentFolder({
             noteId: metaPayload.id,
             oldNoteName: oldName,
             newNoteName: name,
             pdfFolderUrl: options.note?.pdfFolderUrl || '',
-            pageCount: options.note?.pageCount
+            pageCount: options.note?.pageCount,
+            coverFrontUrl: options.note?.coverFrontUrl || seed?.coverFrontUrl || '',
+            coverBackUrl: options.note?.coverBackUrl || seed?.coverBackUrl || ''
           });
           renamedFolderUrl = renamed?.pdfFolderUrl || '';
         }
@@ -526,8 +528,8 @@ export function openAddNoteModal(options = {}) {
         clearNotionTypeItemsCache();
         hideUploadingOverlay();
         showToast(
-          nameChanged && renamedFolderUrl
-            ? '노트와 페이지 폴더명이 수정되었습니다'
+          nameChanged
+            ? '노트명과 표지·페이지 파일명이 함께 수정되었습니다'
             : '노트가 수정되었습니다'
         );
         options.onUpdated?.({
