@@ -24,17 +24,15 @@ import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
 const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>",
-  edit:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>",
-  plus:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>",
-  noteAdd:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>"
+  edit: MINGCUTE.edit2Line,
+  plus: MINGCUTE.fileNewLine,
+  noteAdd: MINGCUTE.addFill
 };
 
 const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';

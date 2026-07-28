@@ -5,18 +5,28 @@
   right: 1.25rem;
   bottom: 1.25rem;
   z-index: 2500;
+  box-sizing: border-box;
   width: 3.25rem;
   height: 3.25rem;
+  aspect-ratio: 1 / 1;
   border: none;
-  border-radius: 999px;
+  border-radius: 99px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-primary-on, #1c242c);
+  color: #000;
   background: var(--color-primary, #ffd966);
   box-shadow: 0 6px 20px var(--color-shadow-lg, rgba(0, 0, 0, 0.28));
   transition: transform 0.15s ease, filter 0.15s ease;
+  padding: 0;
+}
+
+.add-note-fab svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  display: block;
+  flex-shrink: 0;
 }
 
 .add-note-fab:hover {

@@ -28,14 +28,14 @@ import {
   openAddPageModal,
   openAddPagesConfirmDialog
 } from '../AddPageModal/AddPageModal.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import uploadingLottieUrl from '../../uploading.json?url';
 import './AddNoteFab.css';
 
 const CLOSE_ICON =
   "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>";
 
-const PLUS_ICON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2.2' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>";
+const PLUS_ICON = MINGCUTE.addFill;
 
 const FALLBACK_TYPES = typeOptions.map((t) => t.labelKr);
 const FALLBACK_PERIODS = periodOptions.map((p) => p.label);

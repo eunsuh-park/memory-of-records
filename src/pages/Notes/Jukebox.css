@@ -761,16 +761,27 @@ body.jukebox-active.loading-active .notes-scrollbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.85rem;
-  height: 1.85rem;
+  box-sizing: border-box;
+  width: 2rem;
+  height: 2rem;
+  aspect-ratio: 1 / 1;
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--app-text-muted);
+  border: none;
+  border-radius: 99px;
+  background: var(--color-primary, #ffd966);
+  color: #000;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.jukebox-focus-info__edit svg,
+.jukebox-focus-info__add svg,
+.jukebox-focus-info__create svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+  flex-shrink: 0;
 }
 
 /* 데스크톱: 노트 추가는 FAB 사용, 포커스 정보 안 버튼은 숨김 */
@@ -781,9 +792,9 @@ body.jukebox-active.loading-active .notes-scrollbar {
 .jukebox-focus-info__edit:hover,
 .jukebox-focus-info__add:hover,
 .jukebox-focus-info__create:hover {
-  color: var(--app-text);
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.22);
+  color: #000;
+  background: var(--color-primary, #ffd966);
+  filter: brightness(1.05);
 }
 
 .jukebox-focus-info__edit:focus-visible,
@@ -801,16 +812,17 @@ body.jukebox-active.loading-active .notes-scrollbar {
 [data-theme='light'] .jukebox-focus-info__edit,
 [data-theme='light'] .jukebox-focus-info__add,
 [data-theme='light'] .jukebox-focus-info__create {
-  background: rgba(28, 36, 44, 0.05);
-  border-color: rgba(28, 36, 44, 0.1);
-  color: var(--app-text-muted);
+  background: var(--color-primary, #c4a035);
+  border: none;
+  color: #000;
 }
 
 [data-theme='light'] .jukebox-focus-info__edit:hover,
 [data-theme='light'] .jukebox-focus-info__add:hover,
 [data-theme='light'] .jukebox-focus-info__create:hover {
-  background: rgba(28, 36, 44, 0.1);
-  color: var(--app-text);
+  background: var(--color-primary, #c4a035);
+  color: #000;
+  filter: brightness(1.05);
 }
 
 .jukebox-focus-info__title {
@@ -912,15 +924,6 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
   /* 모바일: 편집/페이지추가/노트추가를 포커스 정보 액션에 동위 배치 */
   .jukebox-focus-info__create {
     display: inline-flex;
-    color: var(--color-primary-on, #1c242c);
-    background: var(--color-primary, #ffd966);
-    border-color: transparent;
-  }
-
-  .jukebox-focus-info__create:hover {
-    color: var(--color-primary-on, #1c242c);
-    background: var(--color-primary, #ffd966);
-    filter: brightness(1.05);
   }
 
   .jukebox-focus-slot {
