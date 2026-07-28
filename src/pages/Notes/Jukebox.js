@@ -30,8 +30,8 @@ import './Jukebox.css';
 const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>",
-  edit: MINGCUTE.edit2Line,
-  plus: MINGCUTE.fileNewLine,
+  edit: MINGCUTE.edit2Fill,
+  plus: MINGCUTE.fileNewFill,
   noteAdd: MINGCUTE.addFill
 };
 
