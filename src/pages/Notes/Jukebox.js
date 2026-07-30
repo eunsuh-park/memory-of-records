@@ -34,9 +34,10 @@ const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>",
   edit: MINGCUTE.edit2Fill,
-  plus: MINGCUTE.fileNewFill,
+  plus: MINGCUTE.addFill,
   noteAdd: MINGCUTE.addFill,
-  eye: MINGCUTE.eye2Line
+  pageAdd: MINGCUTE.fileNewFill,
+  eye: MINGCUTE.eye2Fill
 };
 
 const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';
@@ -739,29 +740,6 @@ function categoryLabel(note, filterMode) {
   return note.notebookType || note.type || '';
 }
 
-/** periodStart(YYYY-MM-DD) → "26, November 2016" */
-function formatFocusDate(isoDate) {
-  if (!isoDate) return '';
-  const raw = String(isoDate).trim();
-  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
-  if (Number.isNaN(d.getTime())) return raw;
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
-  return `${d.getDate()}, ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
 function isMobileJukebox() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
 }
@@ -804,7 +782,6 @@ function renderFocusedNoteInfo(note, filterMode, opts = {}) {
   const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
   const memo = escapeHtml(note.description || '');
   const noteId = escapeHtml(note.id || '');
-  const dateLabel = escapeHtml(formatFocusDate(note.periodStart) || note.title || '');
   const metaParts = [category, pages, size].filter(Boolean);
 
   return `
@@ -826,7 +803,7 @@ function renderFocusedNoteInfo(note, filterMode, opts = {}) {
               data-note-id="${noteId}"
               aria-label="페이지 추가"
               title="페이지 추가"
-            >${ICONS.plus}</button>
+            >${ICONS.pageAdd}</button>
             <button
               type="button"
               class="jukebox-focus-info__create"
@@ -839,13 +816,13 @@ function renderFocusedNoteInfo(note, filterMode, opts = {}) {
         ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
       </div>
       <div class="jukebox-focus-info__mobile">
+        <p class="jukebox-focus-info__note-title">${title}</p>
         <button
           type="button"
           class="jukebox-focus-info__edit-pill"
           data-note-id="${noteId}"
           aria-label="수정"
         >${ICONS.edit}<span>수정</span></button>
-        ${dateLabel ? `<p class="jukebox-focus-info__date">${dateLabel}</p>` : ''}
         ${pager ? `<span class="jukebox-focus-info__pager">${pager}</span>` : ''}
       </div>
     </div>

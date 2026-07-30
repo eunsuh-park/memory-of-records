@@ -299,13 +299,17 @@ body.story-page-active .nav-drawer-backdrop {
     background: transparent !important;
     background-color: transparent !important;
     color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
     cursor: pointer;
     box-shadow: none !important;
     outline: none;
+    filter: none !important;
+    opacity: 1 !important;
   }
 
   [data-theme='light'] .page-header__menu-btn {
     color: #1c242c !important;
+    -webkit-text-fill-color: #1c242c !important;
   }
 
   .page-header__menu-btn:hover,
@@ -313,20 +317,22 @@ body.story-page-active .nav-drawer-backdrop {
     background: transparent !important;
     background-color: transparent !important;
     outline: none;
-    opacity: 0.85;
+    opacity: 1 !important;
+    filter: brightness(0.9);
   }
 
-  .page-header__menu-btn svg,
-  .page-header__menu-btn svg path {
+  .page-header__menu-btn svg {
     display: block;
-    color: #ffffff !important;
-    stroke: #ffffff !important;
-    fill: none !important;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
   }
 
-  [data-theme='light'] .page-header__menu-btn svg,
+  .page-header__menu-btn svg path {
+    stroke: #ffffff !important;
+  }
+
   [data-theme='light'] .page-header__menu-btn svg path {
-    color: #1c242c !important;
     stroke: #1c242c !important;
   }
 
@@ -478,13 +484,13 @@ body.story-page-active .nav-drawer-backdrop {
     height: 2.4rem;
     margin: 0;
     padding: 0;
-    border: none;
-    border-radius: 50%;
+    border: none !important;
+    border-radius: 0;
     background: transparent !important;
     background-color: transparent !important;
-    color: #fff !important;
+    color: #ffffff !important;
     cursor: pointer;
-    box-shadow: none;
+    box-shadow: none !important;
   }
 
   [data-theme='light'] .nav-drawer__close {
@@ -493,6 +499,14 @@ body.story-page-active .nav-drawer-backdrop {
 
   .nav-drawer__close svg {
     display: block;
+  }
+
+  .nav-drawer__close svg path {
+    stroke: #ffffff !important;
+  }
+
+  [data-theme='light'] .nav-drawer__close svg path {
+    stroke: #1c242c !important;
   }
 
   .nav-drawer__nav {

@@ -20,11 +20,23 @@ const THEME_ICON_SUN =
 const THEME_ICON_MOON =
   "<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path fill='currentColor' d='M20.2 14.6A7.6 7.6 0 0 1 9.4 3.8 8.4 8.4 0 1 0 20.2 14.6Z'/></svg>";
 
-const ICON_MENU =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
+const ICON_MENU_DARK =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#ffffff' stroke-width='2' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
+const ICON_MENU_LIGHT =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#1c242c' stroke-width='2' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
 
-const ICON_DRAWER_CLOSE =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
+function menuIconSvg(theme) {
+  return theme === 'light' ? ICON_MENU_LIGHT : ICON_MENU_DARK;
+}
+
+const ICON_DRAWER_CLOSE_DARK =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
+const ICON_DRAWER_CLOSE_LIGHT =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#1c242c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
+
+function drawerCloseIconSvg(theme) {
+  return theme === 'light' ? ICON_DRAWER_CLOSE_LIGHT : ICON_DRAWER_CLOSE_DARK;
+}
 
 function getActualPath(pathname) {
   if (BASE_URL === '/') return pathname;
@@ -106,6 +118,10 @@ function bindThemeToggles(root) {
         btn.setAttribute('aria-label', themeToggleLabel(next));
         btn.setAttribute('title', themeToggleLabel(next));
       });
+      const menuBtn = root.querySelector('[data-drawer-open]');
+      if (menuBtn) menuBtn.innerHTML = menuIconSvg(next);
+      const closeBtn = root.querySelector('.nav-drawer__close');
+      if (closeBtn) closeBtn.innerHTML = drawerCloseIconSvg(next);
     });
   });
 }
@@ -138,7 +154,7 @@ export function renderPageHeader() {
             aria-expanded="false"
             aria-controls="page-nav-drawer"
             data-drawer-open
-          >${ICON_MENU}</button>
+          >${menuIconSvg(theme)}</button>
         </div>
         <div class="page-header__right page-header__right--desktop">
           ${renderThemeSwitch(theme)}
@@ -178,7 +194,7 @@ export function renderPageHeader() {
           class="nav-drawer__close"
           aria-label="메뉴 닫기"
           data-drawer-close
-        >${ICON_DRAWER_CLOSE}</button>
+        >${drawerCloseIconSvg(theme)}</button>
         ${renderThemeSwitch(theme, 'theme-switch nav-drawer__theme')}
       </div>
       <nav class="nav-drawer__nav">
