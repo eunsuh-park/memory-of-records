@@ -80,12 +80,13 @@
   width: min(420px, calc(100% - 1.5rem));
   padding: 0.35rem 0.45rem;
   border-radius: 999px;
-  background: rgba(40, 46, 56, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  background: rgba(0, 0, 0, 0.15);
+  border: none;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
   box-sizing: border-box;
   pointer-events: auto;
+  color: #ffffff;
 }
 
 .niv-sheet-btn,
@@ -100,7 +101,7 @@
   border-radius: 50%;
   background: transparent;
   background-color: transparent;
-  color: rgba(255, 255, 255, 0.92);
+  color: #ffffff;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -140,7 +141,7 @@
   justify-content: center;
   gap: 0.2rem;
   min-width: 0;
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
   font-size: 0.82rem;
   font-variant-numeric: tabular-nums;
 }
@@ -206,18 +207,27 @@
   background-color: rgba(60, 68, 80, 0.7);
 }
 
-@media (max-width: 640px) {
-  .niv-zoom-stage {
-    gap: 8px;
-  }
-
+@media (max-width: 768px) {
+  /* 노트 기본 맞춤 시 하단 시트와 안 겹치게 여백 확보 */
   .niv-image-container {
-    padding: 4px 52px 76px;
+    padding: 4px 52px calc(4.75rem + env(safe-area-inset-bottom));
   }
 
   .niv-bottom-sheet {
+    bottom: max(6px, env(safe-area-inset-bottom));
     width: min(380px, calc(100% - 1.25rem));
     padding: 0.3rem 0.4rem;
+    background: rgba(0, 0, 0, 0.15);
+    border: none;
+    backdrop-filter: blur(16px) saturate(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    color: #ffffff;
+  }
+
+  .niv-sheet-btn,
+  .niv-sheet-nav,
+  .niv-sheet-progress {
+    color: #ffffff;
   }
 
   .niv-sheet-btn {
@@ -229,5 +239,15 @@
 
   .niv-sheet-progress {
     font-size: 0.78rem;
+  }
+
+  .niv-spread-fab {
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .niv-zoom-stage {
+    gap: 8px;
   }
 }

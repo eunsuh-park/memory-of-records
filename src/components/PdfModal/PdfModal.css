@@ -316,6 +316,13 @@ body.pdf-modal-open {
 
 }
 
+/* 모바일: 우측 하단 확대/축소 컨트롤 숨김 (핀치 줌 사용) */
+@media (max-width: 768px) {
+  .pdf-zoom-controls {
+    display: none !important;
+  }
+}
+
 /* PDF/이미지 로딩 오버레이 — 딤 위에서 애니메이션 (흰 배경 없음) */
 .pdf-overlay {
   position: absolute;
