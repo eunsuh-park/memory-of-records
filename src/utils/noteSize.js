@@ -131,6 +131,7 @@ export function fitAspectBox(aspectW, aspectH, maxW, maxH) {
 
 /**
  * 뷰포트 안에서의 최대 표시 영역
+ * bounds가 이미지 컨테이너(패딩 제외) 크기일 때 거의 그대로 사용합니다.
  * @param {DOMRect|{width:number,height:number}|null} bounds
  * @param {{ half?: boolean }} [options]
  */
@@ -139,9 +140,9 @@ export function getViewportMax(bounds, options = {}) {
   const viewH = bounds?.height || window.innerHeight;
   const maxW = Math.max(
     80,
-    (options.half ? (viewW - 24) / 2 : viewW * 0.98) - 8
+    options.half ? Math.max(40, (viewW - 12) / 2) : viewW
   );
-  const maxH = Math.max(80, viewH * 0.92 - 8);
+  const maxH = Math.max(80, viewH);
   return { maxW, maxH };
 }
 

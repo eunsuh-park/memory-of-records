@@ -16,6 +16,7 @@ import { render as renderButton } from '../Button/Button.js';
 import { showToast } from '../Toast/Toast.js';
 import {
   computeNoteDisplayBoxes,
+  fitAspectBox,
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { buildPageImageUrl } from '../../services/pages.js';
@@ -43,7 +44,11 @@ const ICONS = {
   bookOpen:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>book_open</title><g fill='none'><path d='M24 0v24H0V0zM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M12 2c.912 0 1.758.482 2.214 1.192C15.548 3.622 17.081 4 18.5 4c1.168 0 2.302-.258 3.295-.728.45-.212.705-.279.876-.287A1 1 0 0 1 24 4v13a1 1 0 0 1-.553.894c-.123.061-.27.106-.54.207-1.134.427-2.536.899-4.407.899-1.92 0-3.452-.378-4.714-1.192A3.022 3.022 0 0 1 12 18a3.022 3.022 0 0 1-1.786-.192C8.952 18.622 7.42 19 5.5 19c-1.871 0-3.273-.472-4.407-.9-.27-.1-.417-.145-.54-.206A1 1 0 0 1 0 17V4a1 1 0 0 1 1.33-.986c.17.008.425.075.875.287C3.198 3.742 4.332 4 5.5 4c1.419 0 2.952-.378 3.786-.808C9.742 2.482 10.588 2 11.5 2Zm0 2c-.088 0-.42.141-.886.442C10.298 5.122 8.581 6 5.5 6c-.832 0-1.61-.158-2.5-.442V16.5c1.121.358 2.29.5 3 .5 1.581 0 2.952-.378 3.786-.808.456-.3.788-.442.714-.442V4Zm2 0v11.75c-.074 0 .258.141.714.442C15.548 16.622 17.081 17 18.5 17c.71 0 1.879-.142 3-.5V5.558c-.89.284-1.668.442-2.5.442-3.081 0-4.798-.878-5.614-1.558C13.42 4.141 13.088 4 13 4Z'/></g></svg>",
   edit:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>",
+  info:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><circle cx='12' cy='12' r='9' stroke='currentColor' stroke-width='1.8'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 11v6'/><circle cx='12' cy='7.5' r='1.1' fill='currentColor'/></svg>",
+  resetView:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M8 20H5a1 1 0 0 1-1-1v-3M16 20h3a1 1 0 0 0 1-1v-3'/><circle cx='12' cy='12' r='2.2' stroke='currentColor' stroke-width='1.8'/></svg>"
 };
 
 /** folderUrl → Promise<Set<number>> (숨김 페이지 조회 캐시) */
@@ -110,15 +115,26 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       <div class="pdf-canvas-wrap">
         ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'niv-nav-prev' })}
         ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'niv-nav-next' })}
-        <div class="pdf-page-indicator">
-          ${renderButton({ variant: 'toolbar', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine, className: 'niv-nav-first' })}
-          <span class="niv-current-page">1</span>/<span class="niv-total-pages">-</span>
-          ${renderButton({ variant: 'toolbar', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine, className: 'niv-nav-last' })}
+        <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
+          <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 정보(메타데이터) 보기" title="페이지 정보">
+            ${ICONS.info}
+          </button>
+          <div class="niv-sheet-progress">
+            <button type="button" class="niv-sheet-nav niv-nav-first" aria-label="처음 페이지">${ICONS.arrowsLeftLine}</button>
+            <span class="niv-sheet-progress__label">
+              <span class="niv-current-page">1</span>
+              <span class="niv-sheet-progress__sep">/</span>
+              <span class="niv-total-pages">-</span>
+            </span>
+            <button type="button" class="niv-sheet-nav niv-nav-last" aria-label="마지막 페이지">${ICONS.arrowsRightLine}</button>
+          </div>
+          <button type="button" class="niv-sheet-btn niv-reset-view" aria-label="뷰 원상복구" title="처음 크기와 위치로">
+            ${ICONS.resetView}
+          </button>
         </div>
-        <div class="pdf-zoom-controls">
-          ${renderButton({ variant: 'toolbar', ariaLabel: '페이지 정보 편집', content: ICONS.edit, className: 'niv-edit-page' })}
-          ${renderButton({ variant: 'toolbar', ariaLabel: '양면 보기 전환', content: ICONS.bookOpen, className: 'niv-toggle-spread' })}
-        </div>
+        <button type="button" class="niv-toggle-spread niv-spread-fab" aria-label="양면 보기 전환" title="양면 보기" aria-pressed="false">
+          ${ICONS.bookOpen}
+        </button>
         <div class="niv-image-container">
           <div class="niv-zoom-stage">
             <img class="niv-page-image niv-page-image--left" alt="" draggable="false" referrerpolicy="no-referrer" />
@@ -164,7 +180,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const firstBtn = targetEl.querySelector('.niv-nav-first');
   const lastBtn = targetEl.querySelector('.niv-nav-last');
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
-  const editPageBtn = targetEl.querySelector('.niv-edit-page');
+  const pageInfoBtn = targetEl.querySelector('.niv-page-info');
+  const resetViewBtn = targetEl.querySelector('.niv-reset-view');
   const currentPageEl = targetEl.querySelector('.niv-current-page');
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
@@ -184,6 +201,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let isSpreadMode = false;
   let renderToken = 0;
   let viewScale = 1;
+  let viewTx = 0;
+  let viewTy = 0;
   const MIN_VIEW_SCALE = 0.5;
   const MAX_VIEW_SCALE = 4;
   /** Cloudinary metadata visible=false 페이지 번호 (뷰어에서 건너뜀) */
@@ -200,8 +219,30 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   /**
+   * 이미지가 실제로 놓이는 컨테이너의 콘텐츠 영역(패딩 제외).
+   * canvas-wrap 기준으로 잡으면 좌우 네비 패딩을 무시해 양면이 확대·잘린 것처럼 보인다.
+   */
+  function getContentBounds() {
+    const el = targetEl.querySelector('.niv-image-container');
+    if (!el) {
+      const wrap = canvasWrap?.getBoundingClientRect();
+      return wrap ? { width: wrap.width, height: wrap.height } : null;
+    }
+    const cs = getComputedStyle(el);
+    const padX =
+      (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const padY =
+      (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    return {
+      width: Math.max(0, el.clientWidth - padX),
+      height: Math.max(0, el.clientHeight - padY)
+    };
+  }
+
+  /**
    * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
-   * 2페이지 스캔은 항상 spread 박스 한 장. half는 실제로 짝을 이룰 때만.
+   * 2페이지 스캔은 항상 자연 비율로 컨테이너에 contain (처음엔 전체 노출).
+   * half는 실제로 짝을 이룰 때만.
    */
   function applyImageFrame(img, sourceImg) {
     if (!img) return;
@@ -215,30 +256,50 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         : { width: nw, height: nh };
     }
 
-    const bounds = canvasWrap?.getBoundingClientRect() || null;
-    const boxes = computeNoteDisplayBoxes(noteSize, bounds, fallbackSingleAspect);
-    const box = spreadAsset
-      ? boxes.spread
-      : isPairing
-        ? boxes.singleHalf
-        : boxes.single;
+    const bounds = getContentBounds();
+    const maxW = Math.max(80, bounds?.width || window.innerWidth);
+    const maxH = Math.max(80, bounds?.height || window.innerHeight);
 
-    img.classList.toggle('niv-page-image--spread-asset', spreadAsset);
+    /*
+     * 2페이지 스캔: 노트 size 박스가 아니라 이미지 자체 비율로 맞춤.
+     * 처음 진입 시 확대 없이 가로·세로 전체가 보이게 contain.
+     */
+    if (spreadAsset && nw > 0 && nh > 0) {
+      const box = fitAspectBox(nw, nh, maxW, maxH);
+      img.classList.add('niv-page-image--spread-asset');
+      img.style.width = `${box.width}px`;
+      img.style.height = `${box.height}px`;
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '100%';
+      img.style.objectFit = 'contain';
+      return;
+    }
+
+    img.classList.remove('niv-page-image--spread-asset');
+
+    const boxes = computeNoteDisplayBoxes(noteSize, bounds, fallbackSingleAspect);
+    const box = isPairing ? boxes.singleHalf : boxes.single;
 
     if (!box) {
-      const maxH = Math.max(80, (bounds?.height || window.innerHeight) * 0.92);
-      img.style.width = 'auto';
-      img.style.height = `${maxH}px`;
-      img.style.maxWidth = '98%';
-      img.style.objectFit = 'fill';
+      const fitted = nw > 0 && nh > 0 ? fitAspectBox(nw, nh, maxW, maxH) : null;
+      if (fitted) {
+        img.style.width = `${fitted.width}px`;
+        img.style.height = `${fitted.height}px`;
+      } else {
+        img.style.width = 'auto';
+        img.style.height = `${Math.min(maxH, maxW)}px`;
+      }
+      img.style.maxWidth = '100%';
+      img.style.maxHeight = '100%';
+      img.style.objectFit = 'contain';
       return;
     }
 
     img.style.width = `${box.width}px`;
     img.style.height = `${box.height}px`;
-    img.style.maxWidth = 'none';
-    img.style.maxHeight = 'none';
-    img.style.objectFit = 'fill';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '100%';
+    img.style.objectFit = 'contain';
   }
 
   function refreshImageFrames() {
@@ -252,19 +313,30 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
   }
 
-  function applyViewScale() {
+  function applyViewTransform() {
     if (!zoomStage) return;
-    zoomStage.style.transform = `scale(${viewScale})`;
+    zoomStage.style.transform = `translate3d(${viewTx}px, ${viewTy}px, 0) scale(${viewScale})`;
   }
 
   function setViewScale(next) {
     viewScale = Math.min(MAX_VIEW_SCALE, Math.max(MIN_VIEW_SCALE, next));
-    applyViewScale();
+    if (viewScale <= 1.01) {
+      viewTx = 0;
+      viewTy = 0;
+    }
+    applyViewTransform();
+  }
+
+  /** 처음 크기·위치로 복구 */
+  function resetViewTransform() {
+    viewScale = 1;
+    viewTx = 0;
+    viewTy = 0;
+    applyViewTransform();
   }
 
   function resetViewScale() {
-    viewScale = 1;
-    applyViewScale();
+    resetViewTransform();
   }
 
   function touchDistance(touches) {
@@ -272,6 +344,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const dx = a.clientX - b.clientX;
     const dy = a.clientY - b.clientY;
     return Math.hypot(dx, dy);
+  }
+
+  function touchMidpoint(touches) {
+    const [a, b] = touches;
+    return {
+      x: (a.clientX + b.clientX) / 2,
+      y: (a.clientY + b.clientY) / 2
+    };
   }
 
   /**
@@ -485,6 +565,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
       hideOverlay();
       updateControls();
+      /* 레이아웃·패딩 반영 후 한 번 더 맞춤 — 초기 확대/잘림 방지 */
+      requestAnimationFrame(() => {
+        resetViewScale();
+        refreshImageFrames();
+      });
       preloadAround(num);
       if (isPairing && rightNum !== null) preloadAround(rightNum);
     } catch {
@@ -617,7 +702,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (totalPages !== null) goToPage(findVisiblePage(totalPages, -1));
   });
   toggleSpreadBtn?.addEventListener('click', toggleSpreadMode);
-  editPageBtn?.addEventListener('click', openCurrentPageMeta);
+  pageInfoBtn?.addEventListener('click', openCurrentPageMeta);
+  resetViewBtn?.addEventListener('click', () => {
+    resetViewTransform();
+    refreshImageFrames();
+  });
 
   const handleKeydown = (event) => {
     if (event.key === 'ArrowLeft') stepPages(-1);
@@ -625,11 +714,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     else if (event.key === 's' || event.key === 'S') toggleSpreadMode();
     else if (event.key === '+' || event.key === '=') setViewScale(viewScale + 0.15);
     else if (event.key === '-') setViewScale(viewScale - 0.15);
-    else if (event.key === '0') resetViewScale();
+    else if (event.key === '0') resetViewTransform();
   };
   document.addEventListener('keydown', handleKeydown);
 
-  /* PC: 마우스 휠 확대/축소 (비율 유지, 크롭 없음) */
+  /* PC: 마우스 휠 확대/축소 */
   const handleWheel = (event) => {
     event.preventDefault();
     const delta = event.deltaY > 0 ? -0.12 : 0.12;
@@ -637,24 +726,73 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   };
   canvasWrap?.addEventListener('wheel', handleWheel, { passive: false });
 
-  /* 모바일/타블렛: 두 손가락 핀치 줌 */
+  /* 모바일: 핀치 줌 + 한 손가락 패닝(확대 시) */
   let pinchStartDist = 0;
   let pinchStartScale = 1;
+  let pinchStartTx = 0;
+  let pinchStartTy = 0;
+  let pinchStartMid = null;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panOriginTx = 0;
+  let panOriginTy = 0;
+  let isPanning = false;
+
   const handleTouchStart = (event) => {
     if (event.touches.length === 2) {
+      isPanning = false;
       pinchStartDist = touchDistance(event.touches);
       pinchStartScale = viewScale;
+      pinchStartTx = viewTx;
+      pinchStartTy = viewTy;
+      pinchStartMid = touchMidpoint(event.touches);
+    } else if (event.touches.length === 1 && viewScale > 1.02) {
+      isPanning = true;
+      panStartX = event.touches[0].clientX;
+      panStartY = event.touches[0].clientY;
+      panOriginTx = viewTx;
+      panOriginTy = viewTy;
+    } else {
+      isPanning = false;
     }
   };
   const handleTouchMove = (event) => {
-    if (event.touches.length !== 2 || !pinchStartDist) return;
-    event.preventDefault();
-    const dist = touchDistance(event.touches);
-    setViewScale(pinchStartScale * (dist / pinchStartDist));
+    if (event.touches.length === 2 && pinchStartDist) {
+      event.preventDefault();
+      const dist = touchDistance(event.touches);
+      const mid = touchMidpoint(event.touches);
+      const nextScale = Math.min(
+        MAX_VIEW_SCALE,
+        Math.max(MIN_VIEW_SCALE, pinchStartScale * (dist / pinchStartDist))
+      );
+      viewScale = nextScale;
+      if (nextScale <= 1.01) {
+        viewTx = 0;
+        viewTy = 0;
+      } else if (pinchStartMid) {
+        /* 핀치 중심을 기준으로 약간 이동 */
+        viewTx = pinchStartTx + (mid.x - pinchStartMid.x);
+        viewTy = pinchStartTy + (mid.y - pinchStartMid.y);
+      }
+      applyViewTransform();
+      return;
+    }
+    if (isPanning && event.touches.length === 1 && viewScale > 1.02) {
+      event.preventDefault();
+      const dx = event.touches[0].clientX - panStartX;
+      const dy = event.touches[0].clientY - panStartY;
+      viewTx = panOriginTx + dx;
+      viewTy = panOriginTy + dy;
+      applyViewTransform();
+    }
   };
   const handleTouchEnd = (event) => {
     if (event.touches.length < 2) {
       pinchStartDist = 0;
+      pinchStartMid = null;
+    }
+    if (event.touches.length === 0) {
+      isPanning = false;
     }
   };
   canvasWrap?.addEventListener('touchstart', handleTouchStart, { passive: true });

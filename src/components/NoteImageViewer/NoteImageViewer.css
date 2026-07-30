@@ -1,9 +1,10 @@
 /**
  * NoteImageViewer 스타일
  *
- * size 컬럼: 목표 비율 박스를 만들고 object-fit: fill 로 늘림 (크롭 금지)
- * 가로 > 세로 이미지: 2페이지 스캔 → size 비율의 가로×2
- * 확대/축소: .niv-zoom-stage transform scale
+ * 초기 표시: 컨테이너에 이미지 전체가 들어가도록 contain
+ * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
+ * 확대/축소·패닝: .niv-zoom-stage transform
+ * 하단 시트: 정보 | 프로그레스 | 원상복구
  */
 
 .niv-image-container {
@@ -14,7 +15,7 @@
   justify-content: center;
   overflow: hidden;
   touch-action: none;
-  padding: 8px;
+  padding: 8px 8px 72px;
   box-sizing: border-box;
 }
 
@@ -26,12 +27,13 @@
   transform-origin: center center;
   will-change: transform;
   transition: transform 0.05s linear;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .niv-page-image {
   display: block;
-  /* width/height는 JS가 size 비율 박스로 지정 → fill로 늘림 */
-  object-fit: fill;
+  object-fit: contain;
   object-position: center;
   border-radius: 6px;
   box-shadow: none;
@@ -42,6 +44,11 @@
   flex-shrink: 0;
 }
 
+.niv-page-image--spread-asset {
+  max-width: 100%;
+  max-height: 100%;
+}
+
 .note-image-viewer.spread-mode .niv-page-image--right {
   display: block;
 }
@@ -50,7 +57,6 @@
   display: none;
 }
 
-/* src가 비어 있는 초기 상태에서는 빈 이미지 테두리가 보이지 않도록 숨김 */
 .niv-page-image:not([src]),
 .niv-page-image[src=''] {
   display: none !important;
@@ -60,13 +66,168 @@
   font-weight: 700;
 }
 
+/* ========== 하단 시트 ========== */
+.niv-bottom-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.35rem;
+  width: min(420px, calc(100% - 1.5rem));
+  padding: 0.35rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(40, 46, 56, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.niv-sheet-btn,
+.niv-sheet-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.niv-sheet-btn {
+  width: 2.35rem;
+  height: 2.35rem;
+  min-width: 2.35rem;
+  min-height: 2.35rem;
+}
+
+.niv-sheet-btn:hover,
+.niv-sheet-btn:focus-visible,
+.niv-sheet-nav:hover,
+.niv-sheet-nav:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.niv-sheet-btn:disabled,
+.niv-sheet-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.niv-sheet-btn svg,
+.niv-sheet-nav svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+}
+
+.niv-sheet-progress {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.niv-sheet-progress__label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  padding: 0 0.15rem;
+  white-space: nowrap;
+}
+
+.niv-sheet-progress__sep {
+  opacity: 0.55;
+  font-weight: 400;
+}
+
+.niv-sheet-nav {
+  width: 1.85rem;
+  height: 1.85rem;
+  min-width: 1.85rem;
+  min-height: 1.85rem;
+}
+
+.niv-sheet-nav svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/* 양면 토글: 하단 시트 위 작은 FAB (시안에 없는 보조 컨트롤) */
+.niv-spread-fab {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(40, 46, 56, 0.5);
+  background-color: rgba(40, 46, 56, 0.5);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.niv-spread-fab svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
+
+.niv-spread-fab[aria-pressed='true'] {
+  color: #fff;
+  opacity: 1;
+  background: rgba(60, 68, 80, 0.7);
+  background-color: rgba(60, 68, 80, 0.7);
+}
+
 @media (max-width: 640px) {
   .niv-zoom-stage {
     gap: 8px;
   }
 
   .niv-image-container {
-    /* 좌우 네비 버튼이 페이지 이미지를 가리지 않도록 */
-    padding: 4px 52px;
+    padding: 4px 52px 76px;
+  }
+
+  .niv-bottom-sheet {
+    width: min(380px, calc(100% - 1.25rem));
+    padding: 0.3rem 0.4rem;
+  }
+
+  .niv-sheet-btn {
+    width: 2.15rem;
+    height: 2.15rem;
+    min-width: 2.15rem;
+    min-height: 2.15rem;
+  }
+
+  .niv-sheet-progress {
+    font-size: 0.78rem;
   }
 }

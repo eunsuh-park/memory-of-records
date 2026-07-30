@@ -9,6 +9,7 @@ import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import {
   computeNoteDisplayBoxes,
+  fitAspectBox,
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { render as renderButton } from '../Button/Button.js';
@@ -200,6 +201,25 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   /** 실제로 단페이지 두 장을 나란히 보여주는 중일 때만 true */
   let isPairing = false;
 
+  function getContentBounds() {
+    const el = canvasContainer;
+    if (!el) {
+      const wrap = canvasWrap?.getBoundingClientRect();
+      return wrap ? { width: wrap.width, height: wrap.height } : null;
+    }
+    const parent = el.parentElement; /* .pdf-canvas-wrap */
+    const boxEl = parent || el;
+    const cs = getComputedStyle(boxEl);
+    const padX =
+      (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const padY =
+      (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    return {
+      width: Math.max(0, boxEl.clientWidth - padX),
+      height: Math.max(0, boxEl.clientHeight - padY)
+    };
+  }
+
   function invalidateLockedBoxes() {
     lockedBoxes = null;
   }
@@ -221,34 +241,42 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   function getLockedBoxes() {
     if (lockedBoxes) return lockedBoxes;
-    const bounds = canvasWrap?.getBoundingClientRect() || null;
+    const bounds = getContentBounds();
     lockedBoxes = computeNoteDisplayBoxes(noteSize, bounds, fallbackSingleAspect);
     return lockedBoxes;
   }
 
   /**
    * 노트당 박스는 2종뿐: 1페이지 / 2페이지.
-   * 2페이지 스캔은 항상 spread 박스. half는 실제로 짝을 이룰 때만.
+   * 2페이지 스캔은 자연 비율로 컨테이너에 전체 노출.
    */
   function applyCanvasFrame(canvas, { halfOfPair = false } = {}) {
     if (!canvas || !canvas.width || !canvas.height) return;
 
     ensureFallbackFromDims(canvas.width, canvas.height);
 
+    const bounds = getContentBounds();
+    const maxW = Math.max(80, bounds?.width || window.innerWidth);
+    const maxH = Math.max(80, bounds?.height || window.innerHeight);
     const spreadAsset = isSpreadAssetPage(canvas.width, canvas.height);
-    const boxes = getLockedBoxes();
-    const box = spreadAsset
-      ? boxes.spread
-      : halfOfPair
-        ? boxes.singleHalf
-        : boxes.single;
 
+    if (spreadAsset) {
+      const box = fitAspectBox(canvas.width, canvas.height, maxW, maxH);
+      canvas.style.width = `${Math.round(box.width)}px`;
+      canvas.style.height = `${Math.round(box.height)}px`;
+      canvas.style.maxWidth = '100%';
+      canvas.style.maxHeight = '100%';
+      return;
+    }
+
+    const boxes = getLockedBoxes();
+    const box = halfOfPair ? boxes.singleHalf : boxes.single;
     if (!box) return;
 
     canvas.style.width = `${Math.round(box.width)}px`;
     canvas.style.height = `${Math.round(box.height)}px`;
-    canvas.style.maxWidth = 'none';
-    canvas.style.maxHeight = 'none';
+    canvas.style.maxWidth = '100%';
+    canvas.style.maxHeight = '100%';
   }
 
   function refreshCanvasFrames() {

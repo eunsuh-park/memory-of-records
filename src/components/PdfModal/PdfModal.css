@@ -195,12 +195,15 @@ body.pdf-modal-open {
 }
 
 .pdf-canvas-container canvas {
-  /* 비트맵은 그대로 두고 CSS 박스로 늘림 (크롭 없음) */
+  /* 비트맵은 그대로 두고 CSS 박스로 맞춤 (전체 노출) */
+  object-fit: contain;
   transition: opacity 0.2s ease;
   border-radius: 6px;
   box-shadow: none;
   filter: var(--color-drop-shadow);
   flex-shrink: 0;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .pdf-canvas-container #pdf-canvas-right {
