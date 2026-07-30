@@ -13,7 +13,10 @@
 
 import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
-import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
+import {
+  collapseFilterSubMenu,
+  renderFilterSubMenu
+} from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
@@ -32,7 +35,8 @@ const ICONS = {
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>",
   edit: MINGCUTE.edit2Fill,
   plus: MINGCUTE.fileNewFill,
-  noteAdd: MINGCUTE.addFill
+  noteAdd: MINGCUTE.addFill,
+  eye: MINGCUTE.eye2Line
 };
 
 const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5d9b52d17/qbzEiamboY.lottie';
@@ -213,6 +217,10 @@ function enableCenterPerspective(gallery) {
         return;
       }
       updateCardAngles(gallery);
+      /* 모바일: 사용자가 캐러셀을 좌우로 스크롤하면 필터 네비 자동 접기 */
+      if (gallery._jukeboxScrollState?.userScrolled) {
+        collapseFilterSubMenu();
+      }
     });
   };
 
@@ -486,6 +494,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
                 <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
               </div>
             </div>
+            ${renderCardActionOverlay(noteId)}
           </div>
         </div>
       `;
@@ -730,22 +739,64 @@ function categoryLabel(note, filterMode) {
   return note.notebookType || note.type || '';
 }
 
-function renderFocusedNoteInfo(note, filterMode) {
+/** periodStart(YYYY-MM-DD) → "26, November 2016" */
+function formatFocusDate(isoDate) {
+  if (!isoDate) return '';
+  const raw = String(isoDate).trim();
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
+  if (Number.isNaN(d.getTime())) return raw;
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+  return `${d.getDate()}, ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function isMobileJukebox() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+}
+
+/**
+ * @param {Object|null} note
+ * @param {'period'|'type'} filterMode
+ * @param {{ index?: number, total?: number, actionsOpen?: boolean }} [opts]
+ */
+function renderFocusedNoteInfo(note, filterMode, opts = {}) {
+  const { index = 0, total = 0, actionsOpen = false } = opts;
+  const pager =
+    total > 0 ? `${escapeHtml(String(index + 1))} / ${escapeHtml(String(total))}` : '';
+
   if (!note) {
-    return `<div class="jukebox-focus-info" aria-live="polite">
-      <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
-        <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-        <div class="jukebox-focus-info__actions">
-          <button
-            type="button"
-            class="jukebox-focus-info__create"
-            aria-label="노트 추가"
-            title="노트 추가"
-          >${ICONS.noteAdd}</button>
+    return `<div class="jukebox-focus-info" aria-live="polite" data-actions-open="false">
+      <div class="jukebox-focus-info__desktop">
+        <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
+          <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
+          <div class="jukebox-focus-info__actions">
+            <button
+              type="button"
+              class="jukebox-focus-info__create"
+              aria-label="노트 추가"
+              title="노트 추가"
+            >${ICONS.noteAdd}</button>
+          </div>
         </div>
+      </div>
+      <div class="jukebox-focus-info__mobile">
+        <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
       </div>
     </div>`;
   }
+
   const title = escapeHtml(note.title || '제목 없음');
   const category = escapeHtml(categoryLabel(note, filterMode));
   const pages =
@@ -753,38 +804,67 @@ function renderFocusedNoteInfo(note, filterMode) {
   const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
   const memo = escapeHtml(note.description || '');
   const noteId = escapeHtml(note.id || '');
-
+  const dateLabel = escapeHtml(formatFocusDate(note.periodStart) || note.title || '');
   const metaParts = [category, pages, size].filter(Boolean);
 
   return `
-    <div class="jukebox-focus-info" aria-live="polite">
-      <div class="jukebox-focus-info__header">
-        <h2 class="jukebox-focus-info__title">${title}</h2>
-        <div class="jukebox-focus-info__actions">
-          <button
-            type="button"
-            class="jukebox-focus-info__edit"
-            data-note-id="${noteId}"
-            aria-label="노트 정보 수정"
-            title="노트 정보 수정"
-          >${ICONS.edit}</button>
-          <button
-            type="button"
-            class="jukebox-focus-info__add"
-            data-note-id="${noteId}"
-            aria-label="페이지 추가"
-            title="페이지 추가"
-          >${ICONS.plus}</button>
-          <button
-            type="button"
-            class="jukebox-focus-info__create"
-            aria-label="노트 추가"
-            title="노트 추가"
-          >${ICONS.noteAdd}</button>
+    <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
+      <div class="jukebox-focus-info__desktop">
+        <div class="jukebox-focus-info__header">
+          <h2 class="jukebox-focus-info__title">${title}</h2>
+          <div class="jukebox-focus-info__actions">
+            <button
+              type="button"
+              class="jukebox-focus-info__edit"
+              data-note-id="${noteId}"
+              aria-label="노트 정보 수정"
+              title="노트 정보 수정"
+            >${ICONS.edit}</button>
+            <button
+              type="button"
+              class="jukebox-focus-info__add"
+              data-note-id="${noteId}"
+              aria-label="페이지 추가"
+              title="페이지 추가"
+            >${ICONS.plus}</button>
+            <button
+              type="button"
+              class="jukebox-focus-info__create"
+              aria-label="노트 추가"
+              title="노트 추가"
+            >${ICONS.noteAdd}</button>
+          </div>
         </div>
+        ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
+        ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
       </div>
-      ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
-      ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
+      <div class="jukebox-focus-info__mobile">
+        <button
+          type="button"
+          class="jukebox-focus-info__edit-pill"
+          data-note-id="${noteId}"
+          aria-label="수정"
+        >${ICONS.edit}<span>수정</span></button>
+        ${dateLabel ? `<p class="jukebox-focus-info__date">${dateLabel}</p>` : ''}
+        ${pager ? `<span class="jukebox-focus-info__pager">${pager}</span>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/** 카드 위 보기/채우기 오버레이 HTML */
+function renderCardActionOverlay(noteId) {
+  const id = escapeHtml(noteId || '');
+  return `
+    <div class="jukebox-card-actions" data-note-id="${id}" hidden>
+      <button type="button" class="jukebox-card-action jukebox-card-action--view" data-note-id="${id}" aria-label="보기">
+        <span class="jukebox-card-action__icon">${ICONS.eye}</span>
+        <span class="jukebox-card-action__label">보기</span>
+      </button>
+      <button type="button" class="jukebox-card-action jukebox-card-action--fill" data-note-id="${id}" aria-label="채우기">
+        <span class="jukebox-card-action__icon">${ICONS.plus}</span>
+        <span class="jukebox-card-action__label">채우기</span>
+      </button>
     </div>
   `;
 }
@@ -853,11 +933,57 @@ export function renderJukeboxWithFilter(options) {
   const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
   const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
 
+  /** 모바일: 중앙 카드 탭 시 보기/채우기·수정 노출 */
+  let cardActionsOpen = false;
+  /** @type {Array} */
+  let boundNotes = [];
+
+  function getFilteredSortedNotes() {
+    if (!allNotesCache) return [];
+    const byPeriodOrType = (allNotesCache || []).filter(
+      (note) => resolveFilterKey(note) === selectedValue
+    );
+    return sortNotes(byPeriodOrType, sortKey);
+  }
+
+  function findNoteById(noteId) {
+    return (boundNotes.length ? boundNotes : getFilteredSortedNotes()).find(
+      (n) => n.id === noteId
+    ) || null;
+  }
+
+  function setCardActionsOpen(open) {
+    cardActionsOpen = !!open;
+    document.body.classList.toggle('jukebox-card-actions-open', cardActionsOpen);
+    gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
+      const card = el.closest('.jukebox-card');
+      const show = cardActionsOpen && card?.classList.contains('jukebox-card--centered');
+      if (show) el.removeAttribute('hidden');
+      else el.setAttribute('hidden', '');
+    });
+    updateFocusInfo(boundNotes);
+  }
+
   function updateFocusInfo(notes) {
+    const list = notes || boundNotes || [];
     const centered = gallery.querySelector('.jukebox-card--centered');
     const noteId = centered?.getAttribute('data-note-id');
-    const note = (notes || []).find((n) => n.id === noteId) || notes?.[0] || null;
-    if (focusSlot) focusSlot.innerHTML = renderFocusedNoteInfo(note, filterMode);
+    let index = list.findIndex((n) => n.id === noteId);
+    if (index < 0) index = 0;
+    const note = list[index] || list[0] || null;
+    if (focusSlot) {
+      focusSlot.innerHTML = renderFocusedNoteInfo(note, filterMode, {
+        index,
+        total: list.length,
+        actionsOpen: cardActionsOpen
+      });
+    }
+    gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
+      const card = el.closest('.jukebox-card');
+      const show = cardActionsOpen && card?.classList.contains('jukebox-card--centered');
+      if (show) el.removeAttribute('hidden');
+      else el.setAttribute('hidden', '');
+    });
   }
 
   function refreshAfterNoteEdit() {
@@ -885,20 +1011,14 @@ export function renderJukeboxWithFilter(options) {
         return;
       }
 
+      const editPill = e.target?.closest?.('.jukebox-focus-info__edit-pill');
       const editBtn = e.target?.closest?.('.jukebox-focus-info__edit');
       const addBtn = e.target?.closest?.('.jukebox-focus-info__add');
-      if (!editBtn && !addBtn) return;
+      if (!editPill && !editBtn && !addBtn) return;
       e.preventDefault();
       e.stopPropagation();
-      const noteId = (editBtn || addBtn).getAttribute('data-note-id');
-      const notes = (() => {
-        if (!allNotesCache) return [];
-        const byPeriodOrType = (allNotesCache || []).filter(
-          (note) => resolveFilterKey(note) === selectedValue
-        );
-        return sortNotes(byPeriodOrType, sortKey);
-      })();
-      const note = notes.find((n) => n.id === noteId) || null;
+      const noteId = (editPill || editBtn || addBtn).getAttribute('data-note-id');
+      const note = findNoteById(noteId);
       if (!note) return;
       if (addBtn) {
         openAddPageModal({
@@ -916,6 +1036,9 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function bindGallery(notes) {
+    boundNotes = notes || [];
+    cardActionsOpen = false;
+    document.body.classList.remove('jukebox-card-actions-open');
     fillJukeboxGallery(gallery, prevBtn, nextBtn, notes);
 
     const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
@@ -934,11 +1057,32 @@ export function renderJukeboxWithFilter(options) {
           card.querySelector('.jukebox-new-badge')?.remove();
         }
 
+        const viewBtn = e.target?.closest?.('.jukebox-card-action--view');
+        const fillBtn = e.target?.closest?.('.jukebox-card-action--fill');
+        if (viewBtn || fillBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (viewBtn) openNoteModal(note);
+          else {
+            openAddPageModal({
+              note,
+              onDone: refreshAfterNoteEdit
+            });
+          }
+          return;
+        }
+
         if (card.classList.contains('jukebox-card--centered')) {
-          openNoteModal(note);
+          if (isMobileJukebox()) {
+            setCardActionsOpen(!cardActionsOpen);
+          } else {
+            openNoteModal(note);
+          }
         } else if (typeof gallery.jukeboxScrollCardToCenter === 'function') {
+          setCardActionsOpen(false);
           gallery.jukeboxScrollCardToCenter(card);
         } else {
+          setCardActionsOpen(false);
           const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
           gallery.scrollTo({
             left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
@@ -951,7 +1095,12 @@ export function renderJukeboxWithFilter(options) {
     if (gallery._jukeboxFocusHandler) {
       gallery.removeEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
     }
-    gallery._jukeboxFocusHandler = () => updateFocusInfo(notes);
+    gallery._jukeboxFocusHandler = () => {
+      if (gallery._jukeboxScrollState?.userScrolled) {
+        setCardActionsOpen(false);
+      }
+      updateFocusInfo(notes);
+    };
     gallery.addEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
     updateFocusInfo(notes);
   }

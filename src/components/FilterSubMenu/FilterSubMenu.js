@@ -8,9 +8,11 @@
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
  * - viewModeToggle: Timeline|By Type 뷰 모드 토글
  * - controls: 정렬
+ * - 모바일: 상단 접이식 네비 (캐러셀 스크롤 시 자동 접힘)
  */
 
 import './FilterSubMenu.css';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 
 const SORT_OPTIONS = [
   { value: 'default', label: '기본순' },
@@ -18,6 +20,44 @@ const SORT_OPTIONS = [
   { value: 'pages', label: '장수순' },
   { value: 'size', label: '사이즈순' }
 ];
+
+/** 모바일 접이식 네비 상태 (리렌더 시 유지) */
+let filterSubMenuCollapsed = false;
+
+function isMobileFilterNav() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+}
+
+function applyCollapsedState(menu) {
+  if (!menu) return;
+  const collapsed = filterSubMenuCollapsed;
+  menu.classList.toggle('is-collapsed', collapsed);
+  document.body.classList.toggle('filter-nav-collapsed', collapsed);
+  document.body.classList.toggle('filter-nav-open', !collapsed);
+  const btn = menu.querySelector('.sub-menu__toggle');
+  if (btn) {
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    btn.setAttribute('aria-label', collapsed ? '필터 메뉴 열기' : '필터 메뉴 닫기');
+    btn.setAttribute('title', collapsed ? '필터 메뉴 열기' : '필터 메뉴 닫기');
+  }
+}
+
+/**
+ * 모바일 필터 네비를 접거나 펼칩니다.
+ * @param {boolean} collapsed
+ */
+export function setFilterSubMenuCollapsed(collapsed) {
+  filterSubMenuCollapsed = !!collapsed;
+  const menu = document.querySelector('#sub-menu .sub-menu');
+  applyCollapsedState(menu);
+}
+
+/** 모바일 필터 네비를 접습니다 (캐러셀 스크롤 시). */
+export function collapseFilterSubMenu() {
+  if (!isMobileFilterNav()) return;
+  if (filterSubMenuCollapsed) return;
+  setFilterSubMenuCollapsed(true);
+}
 
 /**
  * #sub-menu 컨테이너에 필터 링크 목록을 그립니다.
@@ -74,7 +114,15 @@ export function renderFilterSubMenu(
 
   container.innerHTML = `
     <aside class="sub-menu">
-      <nav class="sub-nav">
+      <button
+        type="button"
+        class="sub-menu__toggle"
+        aria-expanded="true"
+        aria-controls="sub-menu-panel"
+        aria-label="필터 메뉴 열기"
+        title="필터 메뉴 열기"
+      >${MINGCUTE.downLine}</button>
+      <nav class="sub-nav" id="sub-menu-panel">
         ${viewToggleHtml}
         <ul class="filter-list">
           ${filterOptions
@@ -104,6 +152,16 @@ export function renderFilterSubMenu(
       </nav>
     </aside>
   `;
+
+  const menu = container.querySelector('.sub-menu');
+  applyCollapsedState(menu);
+
+  const toggleBtn = container.querySelector('.sub-menu__toggle');
+  toggleBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFilterSubMenuCollapsed(!filterSubMenuCollapsed);
+  });
 
   if (!controls) return;
 

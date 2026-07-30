@@ -94,7 +94,7 @@ class Router {
     // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type 통합 페이지에서 사용)
     const isNotesPage = path === '/' || path.startsWith('/timeline') || path.startsWith('/by-type');
     if (!isNotesPage) {
-      document.body.classList.remove('jukebox-active');
+      document.body.classList.remove('jukebox-active', 'filter-nav-collapsed', 'filter-nav-open');
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }

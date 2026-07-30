@@ -240,7 +240,12 @@
   }
 }
 
-/* ========== 모바일 (768px 이하): 스케일 추가 축소, 가로 스크롤 허용 ========== */
+/* 접이식 토글: 데스크톱에서는 숨김 */
+.sub-menu__toggle {
+  display: none;
+}
+
+/* ========== 모바일 (768px 이하) ========== */
 @media (max-width: 768px) {
   .view-mode-toggle {
     gap: 0.15rem;
@@ -286,6 +291,208 @@
   .filter-count {
     font-size: 0.6rem;
   }
+
+  /*
+   * 주크박스 모바일 시안:
+   * [Timeline]  [Elementary] [Univ] [Mid & High] [After]
+   * [By type ]   19            19     19           19
+   * 배경 30% + blur, 접이식
+   */
+  body.jukebox-active .sub-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: calc(100% - 1rem);
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: 0;
+  }
+
+  body.jukebox-active .sub-menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    order: 2;
+    width: 1.6rem;
+    height: 1.6rem;
+    min-width: 1.6rem;
+    min-height: 1.6rem;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.12);
+    color: var(--app-text);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 2;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+  }
+
+  body.jukebox-active .sub-menu__toggle svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  body.jukebox-active .sub-menu:not(.is-collapsed) .sub-menu__toggle {
+    display: none; /* 열린 동안은 토글 숨김 — 스크롤하면 자동 접힘 */
+  }
+
+  body.jukebox-active .sub-menu__toggle:hover,
+  body.jukebox-active .sub-menu__toggle:focus-visible {
+    background: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.2);
+    outline: none;
+  }
+
+  body.jukebox-active .sub-nav {
+    order: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    max-height: 5.5rem;
+    opacity: 1;
+    padding: 0.45rem 0.5rem;
+    margin: 0;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px) saturate(1.1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.1);
+    box-sizing: border-box;
+    transition:
+      max-height 0.28s ease,
+      opacity 0.2s ease,
+      padding 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  [data-theme='light'] body.jukebox-active .sub-nav {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(28, 36, 44, 0.08);
+  }
+
+  body.jukebox-active .view-mode-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.15rem;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  body.jukebox-active .view-mode-link {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: 999px;
+  }
+
+  body.jukebox-active .view-mode-link:not(.active) {
+    background: transparent;
+    color: var(--app-text-dim);
+  }
+
+  body.jukebox-active .filter-list {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: stretch;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  body.jukebox-active .filter-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  body.jukebox-active .filter-item {
+    flex-shrink: 0;
+  }
+
+  body.jukebox-active .filter-link {
+    min-width: 4.2rem;
+    padding: 0.4rem 0.55rem;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    gap: 0.2rem;
+    white-space: normal;
+  }
+
+  body.jukebox-active .filter-link:not(.active) {
+    color: rgba(255, 255, 255, 0.55);
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  body.jukebox-active .filter-link.active {
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.45);
+    font-weight: 600;
+  }
+
+  [data-theme='light'] body.jukebox-active .filter-link {
+    background-color: rgba(28, 36, 44, 0.08);
+  }
+
+  [data-theme='light'] body.jukebox-active .filter-link:not(.active) {
+    color: var(--app-text-dim);
+    background-color: rgba(28, 36, 44, 0.06);
+  }
+
+  [data-theme='light'] body.jukebox-active .filter-link.active {
+    color: var(--app-text);
+    background-color: rgba(28, 36, 44, 0.18);
+  }
+
+  body.jukebox-active .filter-label {
+    font-size: 0.62rem;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  body.jukebox-active .filter-count {
+    font-size: 0.58rem;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  body.jukebox-active .filter-link.active .filter-count {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* 시안: 모바일 필터바에 정렬 미표시 */
+  body.jukebox-active .filter-controls {
+    display: none;
+  }
+
+  body.jukebox-active .sub-menu.is-collapsed .sub-nav {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    pointer-events: none;
+  }
 }
 
 /* ========== 초소형 모바일 (480px 이하): 최소 스케일 ========== */
@@ -312,5 +519,19 @@
 
   .filter-count {
     font-size: 0.55rem;
+  }
+
+  body.jukebox-active .view-mode-link {
+    padding: 0.26rem 0.55rem;
+    font-size: 0.66rem;
+  }
+
+  body.jukebox-active .filter-link {
+    min-width: 3.8rem;
+    padding: 0.35rem 0.45rem;
+  }
+
+  body.jukebox-active .filter-label {
+    font-size: 0.58rem;
   }
 }

@@ -224,4 +224,69 @@ body.story-page-active .page-header {
     flex: 1 1 100%;
     justify-content: center;
   }
+
+  /* 주크박스 모바일 시안: 로고 중앙, 테마/Story는 우측 소형 */
+  body.jukebox-active .page-header {
+    position: fixed;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0.55rem 0.75rem;
+    padding-top: max(0.55rem, env(safe-area-inset-top));
+    background-color: transparent;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    pointer-events: none;
+  }
+
+  body.jukebox-active .page-header__left {
+    order: initial;
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
+    margin: 0 auto;
+  }
+
+  body.jukebox-active .page-header__logo-image {
+    max-height: 36px;
+  }
+
+  body.jukebox-active .page-header__right {
+    order: initial;
+    position: absolute;
+    right: 0.5rem;
+    top: max(0.45rem, env(safe-area-inset-top));
+    transform: none;
+    margin: 0;
+    z-index: 3;
+    pointer-events: auto;
+    gap: 0.15rem;
+  }
+
+  /* 시안: 로고만 상단 중앙 — Story 숨김, 테마만 우측 소형 유지 */
+  body.jukebox-active .page-header__story-link {
+    display: none;
+  }
+
+  body.jukebox-active .theme-switch {
+    transform: scale(0.78);
+    transform-origin: top right;
+  }
+
+  body.jukebox-active .page-header__center {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    order: initial;
+    flex: none;
+    width: 100%;
+    justify-content: center;
+    padding: 0.35rem 0.5rem 0;
+    pointer-events: auto;
+    z-index: 1;
+  }
 }
