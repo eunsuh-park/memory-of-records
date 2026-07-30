@@ -171,14 +171,23 @@ function updateCardAngles(gallery) {
       card.style.zIndex = String(zIndex);
     }
 
-    /* 바닥 반사: 중앙(0)·양옆 1~2장만 반사, 멀수록 옅게. 그 외에는 반사 없음 */
-    const distFromCenter = Math.abs(i - closestIdx);
-    const reflectLevel = distFromCenter <= REFLECTION_MAX_DISTANCE ? distFromCenter : -1;
-    if (reflectLevel !== m.lastReflectLevel) {
-      m.lastReflectLevel = reflectLevel;
-      card.classList.toggle('jukebox-card--reflect-0', reflectLevel === 0);
-      card.classList.toggle('jukebox-card--reflect-1', reflectLevel === 1);
-      card.classList.toggle('jukebox-card--reflect-2', reflectLevel === 2);
+    /* 바닥 반사: 데스크톱만. 모바일에서는 클래스/반사 미적용 */
+    if (!isMobileJukebox()) {
+      const distFromCenter = Math.abs(i - closestIdx);
+      const reflectLevel = distFromCenter <= REFLECTION_MAX_DISTANCE ? distFromCenter : -1;
+      if (reflectLevel !== m.lastReflectLevel) {
+        m.lastReflectLevel = reflectLevel;
+        card.classList.toggle('jukebox-card--reflect-0', reflectLevel === 0);
+        card.classList.toggle('jukebox-card--reflect-1', reflectLevel === 1);
+        card.classList.toggle('jukebox-card--reflect-2', reflectLevel === 2);
+      }
+    } else if (m.lastReflectLevel !== -1) {
+      m.lastReflectLevel = -1;
+      card.classList.remove(
+        'jukebox-card--reflect-0',
+        'jukebox-card--reflect-1',
+        'jukebox-card--reflect-2'
+      );
     }
 
     /* 중앙에 가장 가까운 카드에만 포커스 클래스 (호버 플립은 이 카드에만 적용) */
@@ -817,13 +826,18 @@ function renderFocusedNoteInfo(note, filterMode, opts = {}) {
       </div>
       <div class="jukebox-focus-info__mobile">
         <p class="jukebox-focus-info__note-title">${title}</p>
-        <button
+        ${
+          actionsOpen
+            ? `<button
           type="button"
-          class="jukebox-focus-info__edit-pill"
+          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"
           data-note-id="${noteId}"
           aria-label="수정"
-        >${ICONS.edit}<span>수정</span></button>
-        ${pager ? `<span class="jukebox-focus-info__pager">${pager}</span>` : ''}
+        >${ICONS.edit}<span>수정</span></button>`
+            : pager
+              ? `<span class="jukebox-focus-info__pager">${pager}</span>`
+              : ''
+        }
       </div>
     </div>
   `;
@@ -988,7 +1002,9 @@ export function renderJukeboxWithFilter(options) {
         return;
       }
 
-      const editPill = e.target?.closest?.('.jukebox-focus-info__edit-pill');
+      const editPill = e.target?.closest?.(
+        '.jukebox-focus-info__edit-pill, .jukebox-focus-info__pager--edit'
+      );
       const editBtn = e.target?.closest?.('.jukebox-focus-info__edit');
       const addBtn = e.target?.closest?.('.jukebox-focus-info__add');
       if (!editPill && !editBtn && !addBtn) return;

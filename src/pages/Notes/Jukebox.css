@@ -522,15 +522,6 @@ body.jukebox-active.loading-active .notes-scrollbar {
   -webkit-box-reflect: none;
 }
 
-/* 모바일: 바닥 반사 제거 */
-@media (max-width: 768px) {
-  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
-  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
-  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
-    -webkit-box-reflect: none;
-  }
-}
-
 /* 첫 카드가 왼쪽으로 밀려 2번째 카드가 먼저 중앙 포커스되는 현상 방지 */
 .jukebox-gallery > div.jukebox-spacer + div.jukebox-card {
   margin-left: 0;
@@ -682,6 +673,16 @@ body.jukebox-active.loading-active .notes-scrollbar {
     /* 헤더·포커스 정보 영역을 피하도록 패딩 축소 + 카드가 잘리지 않게 */
     padding: 16vh 0 20vh;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* 모바일: 바닥 반사 완전 제거 */
+  .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
+  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
+  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
+  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+    -webkit-box-reflect: none !important;
+    box-reflect: none !important;
   }
 
   /* 현재 표시 사이즈의 80% */
@@ -1024,65 +1025,54 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.35rem;
+    box-sizing: border-box;
     min-width: 3.5rem;
+    min-height: 1.85rem;
+    margin: 0;
     padding: 0.28rem 0.85rem;
+    border: none;
     border-radius: 999px;
+    font: inherit;
     font-size: 0.72rem;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.85);
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    text-align: center;
+    cursor: default;
   }
 
-  button.jukebox-focus-info__edit-pill {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    box-sizing: border-box;
-    width: auto !important;
-    height: auto !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    aspect-ratio: auto;
-    margin: 0;
-    padding: 0.45rem 1.15rem !important;
-    border: none !important;
-    border-radius: 999px !important;
+  /* 1/N 페이저가 노트 탭 시 "수정" 버튼으로 변형 */
+  button.jukebox-focus-info__pager--edit {
+    color: #fff !important;
     background: rgba(90, 98, 110, 0.9) !important;
     background-color: rgba(90, 98, 110, 0.9) !important;
-    color: #fff !important;
-    font: inherit;
     font-size: 0.82rem;
     font-weight: 600;
+    padding: 0.45rem 1.15rem;
     cursor: pointer;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     box-shadow: none !important;
     filter: none !important;
   }
 
-  button.jukebox-focus-info__edit-pill:hover,
-  button.jukebox-focus-info__edit-pill:focus-visible {
+  button.jukebox-focus-info__pager--edit:hover,
+  button.jukebox-focus-info__pager--edit:focus-visible {
     background: rgba(110, 118, 130, 0.95) !important;
     background-color: rgba(110, 118, 130, 0.95) !important;
     color: #fff !important;
-    filter: none !important;
     outline: none;
+    filter: none !important;
   }
 
-  button.jukebox-focus-info__edit-pill svg {
+  button.jukebox-focus-info__pager--edit svg {
     width: 0.95rem;
     height: 0.95rem;
     display: block;
   }
 
-  .jukebox-focus-info[data-actions-open='true'] button.jukebox-focus-info__edit-pill {
-    display: inline-flex;
-  }
-
-  /* 카드 위 보기 / 채우기 */
+  /* 카드 위 보기 / 채우기 — frame59 시안 */
   .jukebox-card-actions {
     position: absolute;
     inset: 0;
@@ -1107,36 +1097,63 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
-    width: 4.4rem;
-    height: 4.4rem;
+    gap: 2px;
+    box-sizing: border-box;
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    min-height: 72px;
     margin: 0;
-    padding: 0.35rem;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.42);
-    background-color: rgba(255, 255, 255, 0.42);
-    color: #1c242c;
+    padding: 0;
+    border: none !important;
+    border-radius: 48px;
+    background: rgba(255, 255, 255, 0.25) !important;
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
     cursor: pointer;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  .jukebox-card-action:hover,
+  .jukebox-card-action:focus-visible {
+    background: rgba(255, 255, 255, 0.32) !important;
+    background-color: rgba(255, 255, 255, 0.32) !important;
+    color: #ffffff !important;
+    outline: none;
+    filter: none !important;
   }
 
   .jukebox-card-action__icon {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
     line-height: 0;
+    color: #ffffff;
   }
 
   .jukebox-card-action__icon svg {
-    width: 1.35rem;
-    height: 1.35rem;
+    width: 28px;
+    height: 28px;
     display: block;
+    color: #ffffff;
+  }
+
+  .jukebox-card-action__icon svg path {
+    fill: #ffffff !important;
   }
 
   .jukebox-card-action__label {
-    font-size: 0.68rem;
-    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: -0.5px;
     line-height: 1;
   }
 
