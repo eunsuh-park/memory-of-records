@@ -12,7 +12,6 @@
  */
 
 import './FilterSubMenu.css';
-import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 
 const SORT_OPTIONS = [
   { value: 'default', label: '기본순' },
@@ -40,6 +39,13 @@ function applyCollapsedState(menu) {
     btn.setAttribute('aria-label', collapsed ? '필터 메뉴 열기' : '필터 메뉴 닫기');
     btn.setAttribute('title', collapsed ? '필터 메뉴 열기' : '필터 메뉴 닫기');
   }
+  if (typeof window.__syncPageHeaderNavToggle === 'function') {
+    window.__syncPageHeaderNavToggle();
+  }
+}
+
+export function isFilterSubMenuCollapsed() {
+  return filterSubMenuCollapsed;
 }
 
 /**
@@ -114,14 +120,6 @@ export function renderFilterSubMenu(
 
   container.innerHTML = `
     <aside class="sub-menu">
-      <button
-        type="button"
-        class="sub-menu__toggle"
-        aria-expanded="true"
-        aria-controls="sub-menu-panel"
-        aria-label="필터 메뉴 열기"
-        title="필터 메뉴 열기"
-      >${MINGCUTE.downLine}</button>
       <nav class="sub-nav" id="sub-menu-panel">
         ${viewToggleHtml}
         <ul class="filter-list">
@@ -155,13 +153,6 @@ export function renderFilterSubMenu(
 
   const menu = container.querySelector('.sub-menu');
   applyCollapsedState(menu);
-
-  const toggleBtn = container.querySelector('.sub-menu__toggle');
-  toggleBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFilterSubMenuCollapsed(!filterSubMenuCollapsed);
-  });
 
   if (!controls) return;
 

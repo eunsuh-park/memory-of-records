@@ -10,38 +10,38 @@
  *
  * - value: URL 경로용 슬러그 (/by-type/:value)
  * - labelKr: 사이드 메뉴 표시 텍스트 한글 (Notion 태그명과 동일)
- * - labelMobile: 모바일 해상도(768px 이하)에서 표시할 짧은 라벨 (HTML 허용)
+ * - labelMobile: 모바일 짧은 라벨 (영문, label과 동일)
  */
 export const typeOptions = [
   {
     value: 'diary',
     label: 'Diary & Journal',
     labelKr: '다이어리(일기장)',
-    labelMobile: '다이어리<br>일기장'
+    labelMobile: 'Diary & Journal'
   },
   {
     value: 'scheduler',
     label: 'Scheduler',
     labelKr: '스케줄러',
-    labelMobile: '스케줄러'
+    labelMobile: 'Scheduler'
   },
   {
     value: 'notebook-memo',
     label: 'Handy Notebook',
     labelKr: '수첩/메모지',
-    labelMobile: '수첩<br>메모'
+    labelMobile: 'Handy Notebook'
   },
   {
     value: 'sketchbook',
     label: 'Sketchbook',
     labelKr: '스케치북',
-    labelMobile: '스케치'
+    labelMobile: 'Sketchbook'
   },
   {
     value: 'lined-notebook',
     label: 'Lined-notebook',
     labelKr: '줄공책',
-    labelMobile: '줄공책'
+    labelMobile: 'Lined-notebook'
   }
 ];
 
