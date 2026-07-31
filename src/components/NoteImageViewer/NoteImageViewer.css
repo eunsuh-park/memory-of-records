@@ -149,9 +149,36 @@
 .niv-sheet-progress__label {
   display: inline-flex;
   align-items: baseline;
+  justify-content: center;
   gap: 0.2rem;
-  padding: 0 0.15rem;
+  margin: 0;
+  padding: 0.2rem 0.45rem;
+  border: none !important;
+  border-radius: 999px;
+  background: transparent !important;
+  background-color: transparent !important;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
   white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  box-shadow: none !important;
+}
+
+.niv-sheet-progress__label:hover,
+.niv-sheet-progress__label:focus-visible {
+  background: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  outline: none;
+}
+
+.note-image-viewer.niv-fan-open .niv-sheet-progress__label {
+  background: rgba(255, 255, 255, 0.16) !important;
+  background-color: rgba(255, 255, 255, 0.16) !important;
 }
 
 .niv-sheet-progress__sep {
@@ -171,7 +198,7 @@
   height: 0.95rem;
 }
 
-/* ========== 부채꼴 메뉴 (UI 인터랙션) ========== */
+/* ========== 부채꼴 메뉴 (페이지 번호 롱프레스) ========== */
 .niv-fan {
   position: absolute;
   inset: 0;
@@ -187,7 +214,7 @@
   pointer-events: auto;
 }
 
-/* 메뉴 열린 동안 하단 시트(특히 i 버튼)는 딤 위에 유지 */
+/* 메뉴 열린 동안 하단 시트(페이지 번호)는 딤 위에 유지 */
 .note-image-viewer.niv-fan-open .niv-bottom-sheet {
   z-index: 7;
 }
@@ -198,9 +225,9 @@
   margin: 0;
   padding: 0;
   border: none;
-  background: rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   opacity: 0;
   transition: opacity 0.22s ease;
   cursor: pointer;
@@ -210,13 +237,35 @@
   opacity: 1;
 }
 
+/* 앵커: 화면 중앙 하단 페이지 번호 위치 */
 .niv-fan__panel {
   position: absolute;
-  left: max(1.35rem, env(safe-area-inset-left));
-  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.55rem);
+  left: 50%;
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 1.55rem);
   width: 0;
   height: 0;
   z-index: 1;
+}
+
+.niv-fan__origin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translate(-50%, -50%) scale(0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+}
+
+.niv-fan.is-open .niv-fan__origin {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
 }
 
 .niv-fan__item {
@@ -224,35 +273,34 @@
   left: 0;
   top: 0;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   box-sizing: border-box;
-  width: 3.4rem;
-  height: 3.4rem;
+  width: 5.4rem;
+  height: 5.4rem;
   margin: 0;
-  padding: 0;
+  padding: 0.35rem;
   border: none !important;
-  border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.22) !important;
-  background-color: rgba(255, 255, 255, 0.22) !important;
-  color: #ffffff !important;
+  border-radius: 1.15rem !important;
+  background: rgba(245, 245, 247, 0.72) !important;
+  background-color: rgba(245, 245, 247, 0.72) !important;
+  color: #1c242c !important;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   transform-origin: center center;
   transform:
     translate(-50%, -50%)
     rotate(calc(var(--angle, 0) * 1deg))
     translateY(0)
     rotate(calc(var(--angle, 0) * -1deg))
-    scale(0.35);
+    rotate(45deg)
+    scale(0.25);
   opacity: 0;
   pointer-events: none;
   transition:
-    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.2s ease;
   transition-delay: 0ms;
 }
@@ -261,57 +309,55 @@
   transform:
     translate(-50%, -50%)
     rotate(calc(var(--angle, 0) * 1deg))
-    translateY(-6.75rem)
+    translateY(-7.1rem)
     rotate(calc(var(--angle, 0) * -1deg))
+    rotate(45deg)
     scale(1);
   opacity: 1;
   pointer-events: auto;
-  transition-delay: calc(var(--i, 0) * 45ms);
+  transition-delay: calc(var(--i, 0) * 40ms);
 }
 
 .niv-fan__item:hover,
 .niv-fan__item:focus-visible {
-  background: rgba(255, 255, 255, 0.34) !important;
-  background-color: rgba(255, 255, 255, 0.34) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  background-color: rgba(255, 255, 255, 0.88) !important;
   outline: none !important;
 }
 
-.niv-fan__icon {
-  display: flex;
-  line-height: 0;
-}
-
-.niv-fan__icon svg {
-  width: 1.15rem;
-  height: 1.15rem;
-  display: block;
-  color: #ffffff;
-}
-
-.niv-fan__icon svg path {
-  stroke: #ffffff;
-}
-
 .niv-fan__label {
-  font-size: 0.58rem;
-  font-weight: 600;
-  line-height: 1;
-  color: #ffffff;
-  letter-spacing: -0.02em;
+  display: block;
+  transform: rotate(-45deg);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #1c242c;
+  text-align: center;
+  letter-spacing: -0.03em;
 }
 
 @media (max-width: 768px) {
   .niv-fan__panel {
-    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.45rem);
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 1.35rem);
   }
 
   .niv-fan.is-open .niv-fan__item {
     transform:
       translate(-50%, -50%)
       rotate(calc(var(--angle, 0) * 1deg))
-      translateY(-6.25rem)
+      translateY(-6.6rem)
       rotate(calc(var(--angle, 0) * -1deg))
+      rotate(45deg)
       scale(1);
+  }
+
+  .niv-fan__item {
+    width: 5rem;
+    height: 5rem;
+  }
+
+  .niv-fan__label {
+    font-size: 0.62rem;
   }
 }
 

@@ -122,16 +122,24 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'niv-nav-prev' })}
         ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'niv-nav-next' })}
         <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
-          <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 메뉴 열기" title="페이지 메뉴" aria-expanded="false" aria-controls="niv-fan-menu">
+          <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 정보(메타데이터) 보기" title="페이지 정보">
             ${ICONS.info}
           </button>
           <div class="niv-sheet-progress">
             <button type="button" class="niv-sheet-nav niv-nav-first" aria-label="처음 페이지">${ICONS.arrowsLeftLine}</button>
-            <span class="niv-sheet-progress__label">
+            <button
+              type="button"
+              class="niv-sheet-progress__label"
+              aria-label="페이지 메뉴 (길게 누르기)"
+              aria-expanded="false"
+              aria-controls="niv-fan-menu"
+              title="길게 눌러 페이지 메뉴"
+              data-fan-trigger
+            >
               <span class="niv-current-page">1</span>
               <span class="niv-sheet-progress__sep">/</span>
               <span class="niv-total-pages">-</span>
-            </span>
+            </button>
             <button type="button" class="niv-sheet-nav niv-nav-last" aria-label="마지막 페이지">${ICONS.arrowsRightLine}</button>
           </div>
           <button type="button" class="niv-sheet-btn niv-reset-view" aria-label="뷰 원상복구" title="처음 크기와 위치로">
@@ -141,21 +149,18 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         <div class="niv-fan" id="niv-fan-menu" hidden aria-hidden="true">
           <button type="button" class="niv-fan__backdrop" data-fan-close aria-label="메뉴 닫기"></button>
           <div class="niv-fan__panel" role="menu" aria-label="페이지 액션">
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="delete" style="--i:0;--angle:-48" aria-label="삭제">
-              <span class="niv-fan__icon">${ICONS.trash}</span>
-              <span class="niv-fan__label">삭제</span>
+            <span class="niv-fan__origin" aria-hidden="true"></span>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="delete" style="--i:0;--angle:-54" aria-label="페이지 삭제">
+              <span class="niv-fan__label">페이지<br />삭제</span>
             </button>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="hide" style="--i:1;--angle:-16" aria-label="숨기기">
-              <span class="niv-fan__icon">${ICONS.eyeOff}</span>
-              <span class="niv-fan__label">숨기기</span>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="hide" style="--i:1;--angle:-18" aria-label="페이지 숨기기">
+              <span class="niv-fan__label">페이지<br />숨기기</span>
             </button>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="add" style="--i:2;--angle:16" aria-label="추가">
-              <span class="niv-fan__icon">${ICONS.plus}</span>
-              <span class="niv-fan__label">추가</span>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="add" style="--i:2;--angle:18" aria-label="페이지 추가">
+              <span class="niv-fan__label">페이지<br />추가</span>
             </button>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="meta" style="--i:3;--angle:48" aria-label="메타 수정">
-              <span class="niv-fan__icon">${ICONS.edit}</span>
-              <span class="niv-fan__label">메타</span>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="meta" style="--i:3;--angle:54" aria-label="메타데이터 수정">
+              <span class="niv-fan__label">메타데이터<br />수정</span>
             </button>
           </div>
         </div>
@@ -209,10 +214,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
+  const fanTrigger = targetEl.querySelector('[data-fan-trigger]');
   const fanMenu = targetEl.querySelector('.niv-fan');
   const fanBackdrop = targetEl.querySelector('.niv-fan__backdrop');
   const fanItems = targetEl.querySelectorAll('.niv-fan__item');
   let fanOpen = false;
+  const FAN_LONG_PRESS_MS = 420;
+  let fanPressTimer = null;
+  let fanPressStart = null;
   const currentPageEl = targetEl.querySelector('.niv-current-page');
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
@@ -677,9 +686,17 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     });
   }
 
+  function clearFanPress() {
+    if (fanPressTimer) {
+      window.clearTimeout(fanPressTimer);
+      fanPressTimer = null;
+    }
+    fanPressStart = null;
+  }
+
   function setFanOpen(open) {
     fanOpen = !!open;
-    if (!fanMenu || !pageInfoBtn) return;
+    if (!fanMenu) return;
     viewerEl?.classList.toggle('niv-fan-open', fanOpen);
     if (fanOpen) {
       fanMenu.hidden = false;
@@ -696,13 +713,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         }
       }, 280);
     }
-    pageInfoBtn.setAttribute('aria-expanded', String(fanOpen));
-    pageInfoBtn.setAttribute('aria-label', fanOpen ? '페이지 메뉴 닫기' : '페이지 메뉴 열기');
-    pageInfoBtn.setAttribute('title', fanOpen ? '메뉴 닫기' : '페이지 메뉴');
-  }
-
-  function toggleFanMenu() {
-    setFanOpen(!fanOpen);
+    fanTrigger?.setAttribute('aria-expanded', String(fanOpen));
   }
 
   function handleFanAction(action) {
@@ -712,11 +723,41 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       return;
     }
     const labels = {
-      delete: '삭제',
-      hide: '숨기기',
+      delete: '페이지 삭제',
+      hide: '페이지 숨기기',
       add: '페이지 추가'
     };
     showToast(`${labels[action] || '해당'} 기능은 준비 중이에요`);
+  }
+
+  function bindFanLongPress(el) {
+    if (!el) return;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      clearFanPress();
+      fanPressStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      fanPressTimer = window.setTimeout(() => {
+        fanPressTimer = null;
+        fanPressStart = null;
+        setFanOpen(true);
+      }, FAN_LONG_PRESS_MS);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!fanPressStart || e.pointerId !== fanPressStart.id) return;
+      const dx = e.clientX - fanPressStart.x;
+      const dy = e.clientY - fanPressStart.y;
+      if (Math.hypot(dx, dy) > 12) clearFanPress();
+    });
+    el.addEventListener('pointerup', clearFanPress);
+    el.addEventListener('pointercancel', clearFanPress);
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
   }
 
   function startViewer() {
@@ -775,10 +816,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (totalPages !== null) goToPage(findVisiblePage(totalPages, -1));
   });
   toggleSpreadBtn?.addEventListener('click', toggleSpreadMode);
-  pageInfoBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toggleFanMenu();
-  });
+  pageInfoBtn?.addEventListener('click', () => openCurrentPageMeta());
+  bindFanLongPress(fanTrigger);
   fanBackdrop?.addEventListener('click', () => setFanOpen(false));
   fanItems.forEach((item) => {
     item.addEventListener('click', (e) => {
