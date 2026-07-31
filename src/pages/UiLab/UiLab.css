@@ -1,0 +1,220 @@
+/* UI Component Lab — 네비에 노출하지 않는 내부 리뷰용 페이지 */
+
+.ui-lab {
+  height: 100%;
+  overflow: auto;
+  padding: 1.5rem 1.25rem 5rem;
+  box-sizing: border-box;
+}
+
+.ui-lab__inner {
+  max-width: 920px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ui-lab__hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ui-lab__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+
+.ui-lab__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.ui-lab__lede {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.ui-lab__meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+}
+
+.ui-lab__meta code {
+  font-size: 0.78rem;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--color-surface-hover);
+}
+
+.ui-lab__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.ui-lab__section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--color-text);
+}
+
+.ui-lab__section-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.ui-lab__files {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  line-height: 1.45;
+}
+
+.ui-lab__files code {
+  font-size: 0.72rem;
+  word-break: break-all;
+}
+
+.ui-lab__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ui-lab__demo-stage {
+  position: relative;
+  min-height: 5.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px dashed var(--color-border);
+  background: var(--color-bg-alt);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ui-lab__demo-stage--nav {
+  justify-content: space-between;
+  min-height: 4.5rem;
+}
+
+.ui-lab__demo-stage--icons .btn--icon,
+.ui-lab__demo-stage--icons .btn--toolbar {
+  position: relative;
+  top: auto;
+  right: auto;
+}
+
+.ui-lab__swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.65rem;
+}
+
+.ui-lab__swatch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+}
+
+.ui-lab__swatch-chip {
+  height: 2.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.ui-lab__swatch-name {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.ui-lab__swatch-value {
+  margin: 0;
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+}
+
+.ui-lab__list {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.ui-lab__list a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ui-lab__ghost-btn {
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ui-lab__ghost-btn:hover {
+  background: var(--color-surface-hover);
+}
+
+.ui-lab__primary-btn {
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--color-primary);
+  color: var(--color-primary-on);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ui-lab__primary-btn:hover {
+  filter: brightness(1.05);
+}
+
+.ui-lab__filter-demo {
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .ui-lab__filter-demo {
+  background: rgba(255, 255, 255, 0.45);
+}

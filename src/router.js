@@ -6,6 +6,7 @@ import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
 import { renderStory } from './pages/Story/Story.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
+import { renderUiLab } from './pages/UiLab/UiLab.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -20,6 +21,8 @@ class Router {
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
       { path: '/story', handler: renderStory },
       { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
+      /* 내부 리뷰용 — 메인 네비에 노출하지 않음 */
+      { path: '/ui-lab', handler: renderUiLab },
     ];
   }
 
