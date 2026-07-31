@@ -171,6 +171,150 @@
   height: 0.95rem;
 }
 
+/* ========== 부채꼴 메뉴 (UI 인터랙션) ========== */
+.niv-fan {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.niv-fan[hidden] {
+  display: none !important;
+}
+
+.niv-fan.is-open {
+  pointer-events: auto;
+}
+
+/* 메뉴 열린 동안 하단 시트(특히 i 버튼)는 딤 위에 유지 */
+.note-image-viewer.niv-fan-open .niv-bottom-sheet {
+  z-index: 7;
+}
+
+.niv-fan__backdrop {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  cursor: pointer;
+}
+
+.niv-fan.is-open .niv-fan__backdrop {
+  opacity: 1;
+}
+
+.niv-fan__panel {
+  position: absolute;
+  left: max(1.35rem, env(safe-area-inset-left));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.55rem);
+  width: 0;
+  height: 0;
+  z-index: 1;
+}
+
+.niv-fan__item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  background-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform-origin: center center;
+  transform:
+    translate(-50%, -50%)
+    rotate(calc(var(--angle, 0) * 1deg))
+    translateY(0)
+    rotate(calc(var(--angle, 0) * -1deg))
+    scale(0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease;
+  transition-delay: 0ms;
+}
+
+.niv-fan.is-open .niv-fan__item {
+  transform:
+    translate(-50%, -50%)
+    rotate(calc(var(--angle, 0) * 1deg))
+    translateY(-6.75rem)
+    rotate(calc(var(--angle, 0) * -1deg))
+    scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: calc(var(--i, 0) * 45ms);
+}
+
+.niv-fan__item:hover,
+.niv-fan__item:focus-visible {
+  background: rgba(255, 255, 255, 0.34) !important;
+  background-color: rgba(255, 255, 255, 0.34) !important;
+  outline: none !important;
+}
+
+.niv-fan__icon {
+  display: flex;
+  line-height: 0;
+}
+
+.niv-fan__icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+  color: #ffffff;
+}
+
+.niv-fan__icon svg path {
+  stroke: #ffffff;
+}
+
+.niv-fan__label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 768px) {
+  .niv-fan__panel {
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.45rem);
+  }
+
+  .niv-fan.is-open .niv-fan__item {
+    transform:
+      translate(-50%, -50%)
+      rotate(calc(var(--angle, 0) * 1deg))
+      translateY(-6.25rem)
+      rotate(calc(var(--angle, 0) * -1deg))
+      scale(1);
+  }
+}
+
 /* 양면 토글: 하단 시트 위 작은 FAB (시안에 없는 보조 컨트롤) */
 .niv-spread-fab {
   position: absolute;

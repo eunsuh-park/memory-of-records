@@ -48,7 +48,13 @@ const ICONS = {
   info:
     "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><circle cx='12' cy='12' r='9' stroke='currentColor' stroke-width='1.8'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 11v6'/><circle cx='12' cy='7.5' r='1.1' fill='currentColor'/></svg>",
   resetView:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M8 20H5a1 1 0 0 1-1-1v-3M16 20h3a1 1 0 0 0 1-1v-3'/><circle cx='12' cy='12' r='2.2' stroke='currentColor' stroke-width='1.8'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M8 20H5a1 1 0 0 1-1-1v-3M16 20h3a1 1 0 0 0 1-1v-3'/><circle cx='12' cy='12' r='2.2' stroke='currentColor' stroke-width='1.8'/></svg>",
+  trash:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'/></svg>",
+  eyeOff:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M3 3l18 18'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M10.6 10.6a2 2 0 0 0 2.8 2.8M9.5 5.5C10.3 5.2 11.1 5 12 5c4.5 0 8.3 2.9 10 7-.5 1.2-1.2 2.3-2.1 3.2M6.1 6.1C4.5 7.2 3.2 8.7 2 12c1.7 4.1 5.5 7 10 7 1.2 0 2.3-.2 3.4-.6'/></svg>",
+  plus:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>"
 };
 
 /** folderUrl → Promise<Set<number>> (숨김 페이지 조회 캐시) */
@@ -116,7 +122,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'niv-nav-prev' })}
         ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'niv-nav-next' })}
         <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
-          <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 정보(메타데이터) 보기" title="페이지 정보">
+          <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 메뉴 열기" title="페이지 메뉴" aria-expanded="false" aria-controls="niv-fan-menu">
             ${ICONS.info}
           </button>
           <div class="niv-sheet-progress">
@@ -131,6 +137,27 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           <button type="button" class="niv-sheet-btn niv-reset-view" aria-label="뷰 원상복구" title="처음 크기와 위치로">
             ${ICONS.resetView}
           </button>
+        </div>
+        <div class="niv-fan" id="niv-fan-menu" hidden aria-hidden="true">
+          <button type="button" class="niv-fan__backdrop" data-fan-close aria-label="메뉴 닫기"></button>
+          <div class="niv-fan__panel" role="menu" aria-label="페이지 액션">
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="delete" style="--i:0;--angle:-48" aria-label="삭제">
+              <span class="niv-fan__icon">${ICONS.trash}</span>
+              <span class="niv-fan__label">삭제</span>
+            </button>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="hide" style="--i:1;--angle:-16" aria-label="숨기기">
+              <span class="niv-fan__icon">${ICONS.eyeOff}</span>
+              <span class="niv-fan__label">숨기기</span>
+            </button>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="add" style="--i:2;--angle:16" aria-label="추가">
+              <span class="niv-fan__icon">${ICONS.plus}</span>
+              <span class="niv-fan__label">추가</span>
+            </button>
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="meta" style="--i:3;--angle:48" aria-label="메타 수정">
+              <span class="niv-fan__icon">${ICONS.edit}</span>
+              <span class="niv-fan__label">메타</span>
+            </button>
+          </div>
         </div>
         <button type="button" class="niv-toggle-spread niv-spread-fab" aria-label="양면 보기 전환" title="양면 보기" aria-pressed="false">
           ${ICONS.bookOpen}
@@ -182,6 +209,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
+  const fanMenu = targetEl.querySelector('.niv-fan');
+  const fanBackdrop = targetEl.querySelector('.niv-fan__backdrop');
+  const fanItems = targetEl.querySelectorAll('.niv-fan__item');
+  let fanOpen = false;
   const currentPageEl = targetEl.querySelector('.niv-current-page');
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
@@ -646,6 +677,48 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     });
   }
 
+  function setFanOpen(open) {
+    fanOpen = !!open;
+    if (!fanMenu || !pageInfoBtn) return;
+    viewerEl?.classList.toggle('niv-fan-open', fanOpen);
+    if (fanOpen) {
+      fanMenu.hidden = false;
+      fanMenu.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => fanMenu.classList.add('is-open'));
+      });
+    } else {
+      fanMenu.classList.remove('is-open');
+      window.setTimeout(() => {
+        if (!fanOpen) {
+          fanMenu.hidden = true;
+          fanMenu.setAttribute('aria-hidden', 'true');
+        }
+      }, 280);
+    }
+    pageInfoBtn.setAttribute('aria-expanded', String(fanOpen));
+    pageInfoBtn.setAttribute('aria-label', fanOpen ? '페이지 메뉴 닫기' : '페이지 메뉴 열기');
+    pageInfoBtn.setAttribute('title', fanOpen ? '메뉴 닫기' : '페이지 메뉴');
+  }
+
+  function toggleFanMenu() {
+    setFanOpen(!fanOpen);
+  }
+
+  function handleFanAction(action) {
+    setFanOpen(false);
+    if (action === 'meta') {
+      openCurrentPageMeta();
+      return;
+    }
+    const labels = {
+      delete: '삭제',
+      hide: '숨기기',
+      add: '페이지 추가'
+    };
+    showToast(`${labels[action] || '해당'} 기능은 준비 중이에요`);
+  }
+
   function startViewer() {
     const firstVisible = findVisiblePage(1, 1);
     if (firstVisible === null) {
@@ -702,13 +775,27 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (totalPages !== null) goToPage(findVisiblePage(totalPages, -1));
   });
   toggleSpreadBtn?.addEventListener('click', toggleSpreadMode);
-  pageInfoBtn?.addEventListener('click', openCurrentPageMeta);
+  pageInfoBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFanMenu();
+  });
+  fanBackdrop?.addEventListener('click', () => setFanOpen(false));
+  fanItems.forEach((item) => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleFanAction(item.getAttribute('data-fan-action'));
+    });
+  });
   resetViewBtn?.addEventListener('click', () => {
     resetViewTransform();
     refreshImageFrames();
   });
 
   const handleKeydown = (event) => {
+    if (event.key === 'Escape' && fanOpen) {
+      setFanOpen(false);
+      return;
+    }
     if (event.key === 'ArrowLeft') stepPages(-1);
     else if (event.key === 'ArrowRight') stepPages(1);
     else if (event.key === 's' || event.key === 'S') toggleSpreadMode();

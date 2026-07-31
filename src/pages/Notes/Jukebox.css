@@ -1072,7 +1072,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     display: block;
   }
 
-  /* 카드 위 보기 / 채우기 — frame59 시안 */
+  /* 카드 위 보기 / 채우기 — frame59 시안 (button:not(.btn)보다 특이도 높게) */
   .jukebox-card-actions {
     position: absolute;
     inset: 0;
@@ -1104,71 +1104,77 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     pointer-events: none;
   }
 
-  .jukebox-card-action {
+  button.jukebox-card-action {
     position: relative;
     z-index: 1;
-    display: inline-flex;
+    display: inline-flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 2px;
     box-sizing: border-box;
-    width: 72px;
-    height: 72px;
-    min-width: 72px;
-    min-height: 72px;
-    margin: 0;
-    padding: 0;
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+    max-width: 72px !important;
+    max-height: 72px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border: none !important;
-    border-radius: 999px;
+    border-radius: 999px !important;
     background: rgba(255, 255, 255, 0.25) !important;
     background-color: rgba(255, 255, 255, 0.25) !important;
     color: #ffffff !important;
+    font-size: 16px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
     cursor: pointer;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     box-shadow: none !important;
     filter: none !important;
+    transition: background-color 0.2s ease;
   }
 
-  .jukebox-card-action:hover,
-  .jukebox-card-action:focus-visible {
+  button.jukebox-card-action:hover,
+  button.jukebox-card-action:focus-visible {
     background: rgba(255, 255, 255, 0.32) !important;
     background-color: rgba(255, 255, 255, 0.32) !important;
     color: #ffffff !important;
-    outline: none;
+    outline: none !important;
     filter: none !important;
   }
 
-  .jukebox-card-action__icon {
+  button.jukebox-card-action .jukebox-card-action__icon {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 28px;
     height: 28px;
     line-height: 0;
-    color: #ffffff;
+    color: #ffffff !important;
   }
 
-  .jukebox-card-action__icon svg {
-    width: 28px;
-    height: 28px;
+  button.jukebox-card-action .jukebox-card-action__icon svg {
+    width: 28px !important;
+    height: 28px !important;
     display: block;
-    color: #ffffff;
+    color: #ffffff !important;
   }
 
-  .jukebox-card-action__icon svg path {
+  button.jukebox-card-action .jukebox-card-action__icon svg path {
     fill: #ffffff !important;
   }
 
-  .jukebox-card-action__label {
-    color: #ffffff;
+  button.jukebox-card-action .jukebox-card-action__label {
+    color: #ffffff !important;
     text-align: center;
-    font-size: 16px;
+    font-size: 16px !important;
     font-family: inherit;
-    font-weight: 500;
+    font-weight: 500 !important;
     letter-spacing: -0.5px;
-    line-height: 1;
+    line-height: 1 !important;
   }
 
   /* FAB: 필터 네비 열린 때만 표시 (시안 좌측 화면) */
