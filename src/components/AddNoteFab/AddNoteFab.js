@@ -28,6 +28,7 @@ import {
   openAddPageModal,
   openAddPagesConfirmDialog
 } from '../AddPageModal/AddPageModal.js';
+import { requireAuth } from '../../services/auth.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import uploadingLottieUrl from '../../uploading.json?url';
 import './AddNoteFab.css';
@@ -177,7 +178,9 @@ export function mountAddNoteFab(options = {}) {
   fab.className = 'add-note-fab';
   fab.setAttribute('aria-label', '새 노트 추가');
   fab.innerHTML = PLUS_ICON;
-  fab.addEventListener('click', () => openAddNoteModal({ onCreated: options.onCreated }));
+  fab.addEventListener('click', () => {
+    void openAddNoteModal({ onCreated: options.onCreated });
+  });
   document.body.appendChild(fab);
 }
 
@@ -189,8 +192,9 @@ export function mountAddNoteFab(options = {}) {
  *   note?: object
  * }} [options]
  */
-export function openAddNoteModal(options = {}) {
+export async function openAddNoteModal(options = {}) {
   if (document.querySelector('.add-note-overlay')) return;
+  if (!(await requireAuth())) return;
 
   const isEdit = options.mode === 'edit' && Boolean(options.note?.id);
   const seed = isEdit ? noteToFormSeed(options.note) : null;

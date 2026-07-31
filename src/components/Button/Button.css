@@ -25,17 +25,17 @@
   width: 48px;
   height: 48px;
   padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--color-on-light-border, var(--color-border-light));
+  background-color: var(--color-on-light-bg);
   border-radius: 50%;
-  color: #333;
+  color: var(--color-on-light);
   transition: all 0.3s ease;
 }
 
 .btn--back:hover {
-  background-color: #333;
-  color: white;
-  border-color: #333;
+  background-color: var(--color-on-light);
+  color: var(--grey-0, #fff);
+  border-color: var(--color-on-light);
   transform: scale(1.05);
 }
 
@@ -68,10 +68,10 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border: 1px solid #e0e0e0;
-  background-color: white;
+  border: 1px solid var(--color-on-light-border, var(--grey-200));
+  background-color: var(--color-on-light-bg, var(--grey-0));
   border-radius: 50%;
-  color: #333;
+  color: var(--color-on-light);
   transition: all 0.3s ease;
   flex-shrink: 0;
   padding: 0;
@@ -79,9 +79,9 @@
 }
 
 .btn--back-inline:hover {
-  background-color: #333;
-  color: white;
-  border-color: #333;
+  background-color: var(--color-on-light);
+  color: var(--grey-0, #fff);
+  border-color: var(--color-on-light);
   transform: scale(1.1);
 }
 
@@ -99,8 +99,8 @@
   padding: 12px;
   border: none;
   border-radius: 999px;
-  background: rgba(17, 24, 39, 0.75);
-  color: #fff;
+  background: var(--color-chrome);
+  color: var(--color-chrome-on);
   font-size: 16px;
   transition: background 0.2s ease, transform 0.2s ease;
   display: flex;
@@ -109,12 +109,12 @@
 }
 
 .btn--nav:hover {
-  background: #fff;
-  color: rgba(17, 24, 39, 0.9);
+  background: var(--grey-0, #fff);
+  color: var(--color-chrome-strong);
 }
 
 .btn--nav:active {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-on-light-bg);
 }
 
 .btn--nav:disabled,
@@ -130,8 +130,8 @@
 .btn--nav.is-at-end:active,
 .btn--nav[aria-disabled='true']:hover,
 .btn--nav[aria-disabled='true']:active {
-  background: rgba(17, 24, 39, 0.75);
-  color: #fff;
+  background: var(--color-chrome);
+  color: var(--color-chrome-on);
 }
 
 .btn--nav-prev {
@@ -174,8 +174,8 @@
 /* ========== 툴바 버튼 (PDF 페이지/줌 등) ========== */
 .btn--toolbar {
   border: none;
-  background: rgba(17, 24, 39, 0.7);
-  color: #fff;
+  background: var(--color-chrome);
+  color: var(--color-chrome-on);
   cursor: pointer;
   border-radius: 999px;
   font-size: 12px;
@@ -189,8 +189,8 @@
 }
 
 .btn--toolbar:hover {
-  background: rgba(17, 24, 39, 0.9);
-  color: #fff;
+  background: var(--color-chrome-strong);
+  color: var(--color-chrome-on);
 }
 
 .btn--toolbar:disabled {
@@ -200,8 +200,8 @@
 
 .btn--toolbar:disabled:hover,
 .btn--toolbar:disabled:active {
-  background: rgba(17, 24, 39, 0.7);
-  color: #fff;
+  background: var(--color-chrome);
+  color: var(--color-chrome-on);
 }
 
 .btn--toolbar svg {

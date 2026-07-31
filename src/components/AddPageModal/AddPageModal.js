@@ -19,6 +19,7 @@ import {
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
+import { requireAuth } from '../../services/auth.js';
 import uploadingLottieUrl from '../../uploading.json?url';
 import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
@@ -67,8 +68,9 @@ function hideUploadingOverlay() {
  *   onDone?: (result?: object) => void
  * }} [options]
  */
-export function openAddPageModal(options = {}) {
+export async function openAddPageModal(options = {}) {
   if (document.querySelector('.add-page-overlay')) return;
+  if (!(await requireAuth())) return;
 
   const note = options.note || {};
   const noteId = String(note.id || '').trim();

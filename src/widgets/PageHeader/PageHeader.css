@@ -200,7 +200,9 @@ body.story-page-active .nav-drawer-backdrop {
   display: block;
 }
 
-.page-header__story-link {
+.page-header__story-link,
+.page-header__auth-link,
+.page-header__auth-btn {
   text-decoration: none;
   color: var(--app-text-muted);
   font-weight: 500;
@@ -210,18 +212,47 @@ body.story-page-active .nav-drawer-backdrop {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
+  font: inherit;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.page-header__auth {
+  display: inline-flex;
+  align-items: center;
 }
 
 .page-header__story-link:hover,
-.page-header__story-link:focus {
+.page-header__story-link:focus,
+.page-header__auth-link:hover,
+.page-header__auth-link:focus,
+.page-header__auth-btn:hover,
+.page-header__auth-btn:focus {
   color: var(--app-text);
   background-color: var(--color-surface-active);
   outline: none;
 }
 
-.page-header__story-link.active {
+.page-header__story-link.active,
+.page-header__auth-link.active {
   color: var(--app-text);
   background-color: var(--color-surface-selected);
+}
+
+.nav-drawer__link--btn {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font: inherit;
+}
+
+.nav-drawer__auth {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--color-border);
 }
 
 /* 드로어: 데스크톱 숨김 */

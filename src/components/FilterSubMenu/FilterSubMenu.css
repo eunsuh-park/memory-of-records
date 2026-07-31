@@ -45,10 +45,10 @@
   font-weight: 700;
 }
 
-/* 서브 메뉴 컨테이너: TopNavigation 하단에 고정, 가로 중앙 정렬 */
+/* 서브 메뉴 컨테이너: PageHeader 하단에 고정, 가로 중앙 정렬 */
 .sub-menu {
   position: fixed;
-  top: 80px; /* TopNavigation 하단 */
+  top: 80px; /* PageHeader 하단 */
   left: 50%;
   transform: translateX(-50%);
   background: unset;

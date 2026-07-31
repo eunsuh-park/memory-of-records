@@ -1,57 +1,90 @@
 /**
- * 색상 팔레트
- * 기본: 다크 모드 (`data-theme="dark"` 또는 미지정)
- * 라이트: `html[data-theme="light"]`
+ * 색상 토큰
+ * 1) atomic — 테마와 무관한 원시 스케일 (:root)
+ * 2) semantic — dark/light가 atomic을 가리킴 ([data-theme])
  *
- * 사용: var(--color-*) 또는 var(--app-*)
+ * 사용: var(--color-*) 또는 별칭 var(--app-*)
  */
 
+/* ========== Atomic ========== */
+:root {
+  /* Grey scale (밝음 → 어두움) */
+  --grey-0: #ffffff;
+  --grey-50: #f5f5f5;
+  --grey-100: #e8ebe9;
+  --grey-150: #dfe3e0;
+  --grey-200: #e0e0e0;
+  --grey-300: #cccccc;
+  --grey-400: #999999;
+  --grey-500: #666666;
+  --grey-600: #555555;
+  --grey-700: #333333;
+  --grey-750: #2f3847;
+  --grey-800: #29323f;
+  --grey-850: #1c242c;
+  --grey-900: #111827;
+  --grey-950: #0f1216;
+  --grey-1000: #000000;
+
+  /* Brand */
+  --yellow-400: #ffd966;
+  --yellow-600: #c4a035;
+
+  /* Status (atomic) */
+  --red-300: #e8a0a0;
+  --red-400: #e08080;
+  --red-500: #c80000;
+  --red-600: #b42828;
+}
+
+/* ========== Semantic: Dark (기본) ========== */
 :root,
 [data-theme='dark'] {
-  /* === 배경 === */
-  --color-bg: #29323f;
-  --color-bg-alt: #2f3847;
+  --color-bg: var(--grey-800);
+  --color-bg-alt: var(--grey-750);
 
-  /* === 텍스트 === */
   --color-text: rgba(255, 255, 255, 0.92);
   --color-text-muted: rgba(255, 255, 255, 0.7);
   --color-text-dim: rgba(255, 255, 255, 0.5);
 
-  /* === 서피스 (호버·액티브·선택) === */
   --color-surface-hover: rgba(255, 255, 255, 0.08);
   --color-surface-active: rgba(255, 255, 255, 0.15);
   --color-surface-selected: rgba(255, 255, 255, 0.2);
 
-  /* === 버튼·액센트 === */
-  --color-primary: #ffd966;
-  --color-primary-hover: #555;
-  /* 노란 primary 위 텍스트·아이콘 (흰색은 대비 부족) */
-  --color-primary-on: #1c242c;
+  --color-primary: var(--yellow-400);
+  --color-primary-hover: var(--grey-600);
+  --color-primary-on: var(--grey-850);
 
-  /* === 경계·구분선 === */
   --color-border: rgba(255, 255, 255, 0.15);
   --color-border-light: rgba(0, 0, 0, 0.12);
 
-  /* === 오버레이·모달 === */
   --color-overlay: rgba(0, 0, 0, 0.75);
   --color-overlay-dark: rgba(17, 24, 39, 0.9);
   --color-overlay-medium: rgba(17, 24, 39, 0.75);
   --color-overlay-light: rgba(17, 24, 39, 0.5);
   --color-viewer-loading: rgba(0, 0, 0, 0.35);
 
-  /* === 에러 === */
+  /* 토스트·뷰어 화살표 등 — 테마와 무관하게 어두운 크롬 */
+  --color-chrome: rgba(17, 24, 39, 0.75);
+  --color-chrome-strong: rgba(17, 24, 39, 0.9);
+  --color-chrome-on: var(--grey-0);
+
   --color-error: rgba(200, 0, 0, 0.5);
   --color-error-bg: rgba(200, 0, 0, 0.08);
+  --color-error-text: var(--red-400);
 
-  /* === 그림자 === */
   --color-shadow-sm: rgba(0, 0, 0, 0.12);
   --color-shadow: rgba(0, 0, 0, 0.2);
   --color-shadow-lg: rgba(0, 0, 0, 0.28);
   --color-drop-shadow: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
 
-  /* === 반사·그라데이션 (주크박스 등) === */
   --color-reflect: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
-  --color-fade-edge: linear-gradient(90deg, #000, transparent);
+  --color-fade-edge: linear-gradient(90deg, var(--grey-1000), transparent);
+
+  /* 밝은 서피스 위 컨트롤(뒤로가기 버튼 등) */
+  --color-on-light: var(--grey-700);
+  --color-on-light-bg: rgba(255, 255, 255, 0.95);
+  --color-on-light-border: var(--color-border-light);
 
   /* === 기존 호환용 별칭 (--app-*) === */
   --app-bg: var(--color-bg);
@@ -60,17 +93,17 @@
   --app-text-muted: var(--color-text-muted);
   --app-text-dim: var(--color-text-dim);
 
-  /* === 전역 스타일·레거시 호환 === */
   --primary-color: var(--color-primary);
-  --secondary-color: #666;
+  --secondary-color: var(--grey-500);
   --background-color: var(--color-bg);
   --border-color: var(--color-border);
   --hover-color: var(--color-primary-hover);
 }
 
+/* ========== Semantic: Light ========== */
 [data-theme='light'] {
-  --color-bg: #e8ebe9;
-  --color-bg-alt: #dfe3e0;
+  --color-bg: var(--grey-100);
+  --color-bg-alt: var(--grey-150);
 
   --color-text: rgba(28, 36, 44, 0.92);
   --color-text-muted: rgba(28, 36, 44, 0.68);
@@ -80,9 +113,9 @@
   --color-surface-active: rgba(28, 36, 44, 0.1);
   --color-surface-selected: rgba(28, 36, 44, 0.14);
 
-  --color-primary: #c4a035;
-  --color-primary-hover: #333;
-  --color-primary-on: #1c242c;
+  --color-primary: var(--yellow-600);
+  --color-primary-hover: var(--grey-700);
+  --color-primary-on: var(--grey-850);
 
   --color-border: rgba(28, 36, 44, 0.14);
   --color-border-light: rgba(0, 0, 0, 0.08);
@@ -93,19 +126,27 @@
   --color-overlay-light: rgba(255, 255, 255, 0.65);
   --color-viewer-loading: rgba(20, 28, 36, 0.28);
 
+  --color-chrome: rgba(17, 24, 39, 0.75);
+  --color-chrome-strong: rgba(17, 24, 39, 0.9);
+  --color-chrome-on: var(--grey-0);
+
   --color-error: rgba(180, 40, 40, 0.55);
   --color-error-bg: rgba(180, 40, 40, 0.08);
+  --color-error-text: var(--red-600);
 
   --color-shadow-sm: rgba(20, 28, 36, 0.04);
   --color-shadow: rgba(20, 28, 36, 0.08);
   --color-shadow-lg: rgba(20, 28, 36, 0.12);
   --color-drop-shadow: drop-shadow(0 3px 8px rgba(20, 28, 36, 0.12));
 
-  /* 라이트: 바닥 반사 없음 */
   --color-reflect: none;
-  --color-fade-edge: linear-gradient(90deg, #e8ebe9, transparent);
+  --color-fade-edge: linear-gradient(90deg, var(--grey-100), transparent);
 
-  --secondary-color: #666;
+  --color-on-light: var(--grey-700);
+  --color-on-light-bg: var(--grey-0);
+  --color-on-light-border: var(--grey-200);
+
+  --secondary-color: var(--grey-500);
   --hover-color: var(--color-primary-hover);
 }
 

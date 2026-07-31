@@ -12,6 +12,9 @@ import {
   setFilterSubMenuCollapsed,
   isFilterSubMenuCollapsed
 } from '../../components/FilterSubMenu/FilterSubMenu.js';
+import { getSession, logout, clearSessionCache } from '../../services/auth.js';
+import { showToast } from '../../components/Toast/Toast.js';
+import { router } from '../../router.js';
 
 const BASE_URL = import.meta.env.BASE_URL || '/';
 
@@ -134,6 +137,7 @@ export function renderPageHeader() {
   const theme = getStoredTheme();
   const notesActive = isNotesPath(currentPath);
   const storyActive = currentPath.startsWith('/story');
+  const loginActive = currentPath.startsWith('/login');
 
   closeDrawer();
 
@@ -158,6 +162,7 @@ export function renderPageHeader() {
         </div>
         <div class="page-header__right page-header__right--desktop">
           ${renderThemeSwitch(theme)}
+          <span class="page-header__auth" data-auth-slot></span>
           <a
             href="/story"
             class="page-header__story-link ${storyActive ? 'active' : ''}"
@@ -210,11 +215,71 @@ export function renderPageHeader() {
           data-link
           data-drawer-close
         >Story</a>
+        <div class="nav-drawer__auth" data-auth-slot-drawer></div>
       </nav>
     </aside>
   `;
 
   bindThemeToggles(container);
+
+  async function fillAuthSlots() {
+    const session = await getSession();
+    const desktop = container.querySelector('[data-auth-slot]');
+    const drawer = container.querySelector('[data-auth-slot-drawer]');
+    if (session.authenticated) {
+      if (desktop) {
+        desktop.innerHTML = `
+          <button type="button" class="page-header__auth-btn" data-auth-logout>
+            Logout
+          </button>`;
+      }
+      if (drawer) {
+        drawer.innerHTML = `
+          <button type="button" class="nav-drawer__link nav-drawer__link--btn" data-auth-logout data-drawer-close>
+            Logout
+          </button>`;
+      }
+    } else {
+      if (desktop) {
+        desktop.innerHTML = `
+          <a
+            href="/login"
+            class="page-header__auth-link ${loginActive ? 'active' : ''}"
+            data-link
+          >Login</a>`;
+      }
+      if (drawer) {
+        drawer.innerHTML = `
+          <a
+            href="/login"
+            class="nav-drawer__link ${loginActive ? 'active' : ''}"
+            data-link
+            data-drawer-close
+          >Login</a>`;
+      }
+    }
+
+    container.querySelectorAll('[data-auth-logout]').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          await logout();
+          clearSessionCache();
+          showToast('로그아웃되었습니다');
+          closeDrawer();
+          if (getActualPath(window.location.pathname).startsWith('/login')) {
+            router.navigate('/');
+          } else {
+            fillAuthSlots();
+          }
+        } catch (err) {
+          showToast(err?.message || '로그아웃에 실패했습니다');
+        }
+      });
+    });
+  }
+
+  void fillAuthSlots();
 
   const header = container.querySelector('.page-header');
   const navToggle = container.querySelector('[data-nav-toggle]');

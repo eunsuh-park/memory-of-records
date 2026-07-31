@@ -20,9 +20,9 @@ button.add-note-fab {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #000;
-  background: var(--color-primary, #ffd966);
-  background-color: var(--color-primary, #ffd966);
+  color: var(--color-primary-on);
+  background: var(--color-primary);
+  background-color: var(--color-primary);
   box-shadow: 0 6px 20px var(--color-shadow-lg, rgba(0, 0, 0, 0.28));
   transition: transform 0.15s ease, filter 0.15s ease;
   line-height: 0;
@@ -116,7 +116,7 @@ body.add-note-open {
 }
 
 .add-note-req {
-  color: #e08080;
+  color: var(--color-error-text, var(--red-400));
   font-style: normal;
 }
 
@@ -324,7 +324,7 @@ body.add-note-open {
 }
 
 .add-note-status--error {
-  color: #e8a0a0;
+  color: var(--color-error-text, var(--red-300));
 }
 
 .add-note-submit {

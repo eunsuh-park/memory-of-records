@@ -13,19 +13,34 @@ const ICON_CHEVRON =
 const ICON_CLOSE =
   "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M6 6l12 12M18 6 6 18'/></svg>";
 
-const TOKEN_SWATCHES = [
-  { name: '--color-bg', varName: '--color-bg' },
-  { name: '--color-bg-alt', varName: '--color-bg-alt' },
-  { name: '--color-text', varName: '--color-text' },
-  { name: '--color-text-muted', varName: '--color-text-muted' },
-  { name: '--color-text-dim', varName: '--color-text-dim' },
-  { name: '--color-primary', varName: '--color-primary' },
-  { name: '--color-primary-on', varName: '--color-primary-on' },
-  { name: '--color-border', varName: '--color-border' },
-  { name: '--color-surface-hover', varName: '--color-surface-hover' },
-  { name: '--color-surface-active', varName: '--color-surface-active' },
-  { name: '--color-overlay', varName: '--color-overlay' },
-  { name: '--color-error', varName: '--color-error' }
+const ATOMIC_SWATCHES = [
+  '--grey-0',
+  '--grey-100',
+  '--grey-150',
+  '--grey-500',
+  '--grey-700',
+  '--grey-750',
+  '--grey-800',
+  '--grey-850',
+  '--grey-900',
+  '--yellow-400',
+  '--yellow-600',
+  '--red-400'
+];
+
+const SEMANTIC_SWATCHES = [
+  '--color-bg',
+  '--color-bg-alt',
+  '--color-text',
+  '--color-text-muted',
+  '--color-text-dim',
+  '--color-primary',
+  '--color-primary-on',
+  '--color-border',
+  '--color-surface-hover',
+  '--color-surface-active',
+  '--color-overlay',
+  '--color-error'
 ];
 
 function readCssVar(name) {
@@ -36,15 +51,17 @@ function readCssVar(name) {
   }
 }
 
-function renderSwatches() {
-  return TOKEN_SWATCHES.map(
-    ({ name, varName }) => `
+function renderSwatches(names) {
+  return names
+    .map(
+      (varName) => `
     <div class="ui-lab__swatch">
       <div class="ui-lab__swatch-chip" style="background: var(${varName})"></div>
-      <p class="ui-lab__swatch-name">${name}</p>
+      <p class="ui-lab__swatch-name">${varName}</p>
       <p class="ui-lab__swatch-value" data-token="${varName}">…</p>
     </div>`
-  ).join('');
+    )
+    .join('');
 }
 
 /**
@@ -68,13 +85,22 @@ export function renderUiLab() {
           <p class="ui-lab__meta">경로: <code>/ui-lab</code> · 문서: <code>Design.md</code></p>
         </header>
 
-        <section class="ui-lab__section" id="tokens">
-          <h2 class="ui-lab__section-title">Design tokens</h2>
+        <section class="ui-lab__section" id="tokens-atomic">
+          <h2 class="ui-lab__section-title">Atomic tokens</h2>
           <p class="ui-lab__section-desc">
-            색상 토큰은 <code>src/styles/colors.css</code>에 정의되며, 테마 토글에 따라 dark/light 값이 바뀝니다.
+            테마와 무관한 원시 스케일입니다. grey / yellow / red 값을 먼저 두고, semantic이 이를 가리킵니다.
           </p>
-          <p class="ui-lab__files">참조: <code>src/styles/colors.css</code>, <code>src/utils/theme.js</code>, <code>src/index.css</code></p>
-          <div class="ui-lab__swatches">${renderSwatches()}</div>
+          <p class="ui-lab__files">참조: <code>src/styles/colors.css</code> (Atomic 섹션)</p>
+          <div class="ui-lab__swatches">${renderSwatches(ATOMIC_SWATCHES)}</div>
+        </section>
+
+        <section class="ui-lab__section" id="tokens-semantic">
+          <h2 class="ui-lab__section-title">Semantic tokens</h2>
+          <p class="ui-lab__section-desc">
+            역할 이름(<code>--color-*</code>)입니다. 테마 토글 시 가리키는 atomic·rgba만 바뀌므로 컴포넌트는 이 층을 쓰면 됩니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/styles/colors.css</code>, <code>src/utils/theme.js</code></p>
+          <div class="ui-lab__swatches">${renderSwatches(SEMANTIC_SWATCHES)}</div>
         </section>
 
         <section class="ui-lab__section" id="button">
@@ -113,10 +139,10 @@ export function renderUiLab() {
         </section>
 
         <section class="ui-lab__section" id="shell">
-          <h2 class="ui-lab__section-title">Shell · PageHeader · Footer · TopNavigation</h2>
+          <h2 class="ui-lab__section-title">Shell · PageHeader · Footer · Login</h2>
           <p class="ui-lab__section-desc">
-            앱 셸은 상단 PageHeader와 하단 Footer로 감싸며, TopNavigation은 레거시/보조 네비 흔적이 남아 있습니다.
-            이 페이지에서도 헤더·푸터는 그대로 보이므로, 테마 토글·모바일 드로어·카피라이트 링크를 함께 확인할 수 있습니다.
+            앱 셸은 상단 PageHeader와 하단 Footer로 감쌉니다. 헤더의 Login/Logout과
+            <a href="/login" data-link>/login</a> 페이지로 편집 권한 세션을 다룹니다.
           </p>
           <p class="ui-lab__files">
             참조:
@@ -124,8 +150,9 @@ export function renderUiLab() {
             <code>src/widgets/PageHeader/PageHeader.css</code>,
             <code>src/components/Footer/Footer.js</code>,
             <code>src/components/Footer/Footer.css</code>,
-            <code>src/components/TopNavigation/TopNavigation.js</code>,
-            <code>src/components/TopNavigation/TopNavigation.css</code>
+            <code>src/pages/Login/Login.js</code>,
+            <code>src/services/auth.js</code>,
+            <code>api/auth.js</code>
           </p>
         </section>
 

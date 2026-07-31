@@ -8,6 +8,7 @@ import { render as renderButton } from '../Button/Button.js';
 import { showToast } from '../Toast/Toast.js';
 import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
 import { recognizePageImage } from '../../services/ocr.js';
+import { requireAuth } from '../../services/auth.js';
 import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
 
@@ -236,8 +237,9 @@ export function openPageMetaModal(options = {}) {
       setStatus(err?.message || '메타를 불러오지 못했습니다', true);
     });
 
-  editBtn?.addEventListener('click', () => {
+  editBtn?.addEventListener('click', async () => {
     if (!loaded || saving) return;
+    if (!(await requireAuth())) return;
     enterEditMode();
   });
 

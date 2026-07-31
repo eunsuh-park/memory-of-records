@@ -1,0 +1,114 @@
+/* 로그인 페이지 — AddNote 모달 톤과 맞춤 */
+
+.login-page {
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem 5rem;
+  box-sizing: border-box;
+}
+
+.login-panel {
+  width: min(400px, 100%);
+  padding: 1.5rem 1.25rem 1.35rem;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  box-shadow: 0 16px 48px var(--color-shadow-lg);
+}
+
+.login-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.login-lede {
+  margin: 0 0 1.15rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.login-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.login-input {
+  min-height: 2.6rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.login-input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.login-status {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+}
+
+.login-status--error {
+  color: var(--color-error-text, var(--color-error));
+}
+
+.login-submit {
+  margin-top: 0.25rem;
+  min-height: 2.7rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: var(--color-primary-on);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-submit:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.login-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.login-back {
+  display: inline-block;
+  margin-top: 0.85rem;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-back:hover {
+  color: var(--color-primary);
+}
