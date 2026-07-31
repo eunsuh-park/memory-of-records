@@ -242,27 +242,106 @@
   gap: 0.75rem;
 }
 
-.page-meta-ocr-btn {
+.page-meta-ocr-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.page-meta-ocr-btn,
+.page-meta-ocr-reset-btn {
   flex-shrink: 0;
   margin: 0;
   padding: 0.28rem 0.65rem;
   border-radius: 6px;
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.15));
-  background: var(--color-primary, #ffd966);
-  color: var(--color-primary-on, #1c242c);
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-.page-meta-ocr-btn:hover:not(:disabled) {
+.page-meta-ocr-btn {
+  background: var(--color-primary, #ffd966);
+  color: var(--color-primary-on, #1c242c);
+}
+
+.page-meta-ocr-reset-btn {
+  background: transparent;
+  color: var(--color-text-muted, rgba(255, 255, 255, 0.78));
+}
+
+.page-meta-ocr-btn:hover:not(:disabled),
+.page-meta-ocr-reset-btn:hover:not(:disabled) {
   filter: brightness(1.05);
 }
 
-.page-meta-ocr-btn:disabled {
+.page-meta-ocr-reset-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.page-meta-ocr-btn:disabled,
+.page-meta-ocr-reset-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.page-meta-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 0.35rem;
+}
+
+.page-meta-actions .add-note-submit,
+.page-meta-actions .add-page-secondary {
+  margin-top: 0;
+  width: 100%;
+}
+
+.page-meta-edit-btn,
+.page-meta-delete-btn {
+  margin: 0;
+  min-height: 2.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.15));
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-meta-edit-btn {
+  background: var(--color-primary, #ffd966);
+  color: var(--color-primary-on, #1c242c);
+}
+
+.page-meta-edit-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.page-meta-delete-btn {
+  background: transparent;
+  color: #f0a0a0;
+  border-color: rgba(240, 160, 160, 0.35);
+}
+
+.page-meta-delete-btn:hover:not(:disabled) {
+  background: rgba(240, 120, 120, 0.12);
+}
+
+.page-meta-edit-btn:disabled,
+.page-meta-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 보기 모드: 필드 클릭 불가 느낌 */
+.page-meta-overlay:not(.page-meta-overlay--edit) .add-note-input:disabled,
+.page-meta-overlay:not(.page-meta-overlay--edit) .add-note-textarea:disabled {
+  opacity: 0.95;
+  cursor: default;
 }
 
 @media (max-width: 640px) {
@@ -271,7 +350,8 @@
   }
 
   .add-page-footer,
-  .add-page-confirm-actions {
+  .add-page-confirm-actions,
+  .page-meta-actions {
     grid-template-columns: 1fr;
   }
 }

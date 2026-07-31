@@ -11,6 +11,7 @@ import {
   convertPdfFileToJpegDataUrls,
   MAX_IMAGE_COUNT,
   readFileAsDataUrl,
+  shiftPagesAfter,
   updateNotionNotePages,
   uploadPageImage,
   validateImageFiles
@@ -62,6 +63,7 @@ function hideUploadingOverlay() {
 /**
  * @param {{
  *   note: { id?: string, title?: string, name?: string, pdfFolderUrl?: string, pageCount?: number },
+ *   insertAfterPage?: number,
  *   onDone?: (result?: object) => void
  * }} [options]
  */
@@ -73,6 +75,14 @@ export function openAddPageModal(options = {}) {
   const noteName = String(note.title || note.name || '').trim();
   const existingFolder = String(note.pdfFolderUrl || '').trim();
   const existingCount = Math.max(0, Math.floor(Number(note.pageCount) || 0));
+  /* null이면 맨 뒤에 추가. 값이 있으면 해당 페이지 다음에 삽입 */
+  const insertAfterRaw = options.insertAfterPage;
+  const insertAfterPage =
+    insertAfterRaw == null || insertAfterRaw === ''
+      ? null
+      : Math.max(0, Math.min(existingCount, Math.floor(Number(insertAfterRaw) || 0)));
+  const startPage = insertAfterPage != null ? insertAfterPage + 1 : existingCount + 1;
+  const needsShift = insertAfterPage != null && insertAfterPage < existingCount;
 
   if (!noteId || !noteName) {
     showToast('노트 정보가 없어 페이지를 추가할 수 없습니다.');
@@ -115,7 +125,6 @@ export function openAddPageModal(options = {}) {
       list.innerHTML = `<p class="add-page-empty">선택된 페이지가 없습니다. 이미지를 선택하면 미리보기가 표시됩니다.</p>`;
       return;
     }
-    const startPage = existingCount + 1;
     list.innerHTML = pages
       .map(
         (p, index) => `
@@ -142,7 +151,13 @@ export function openAddPageModal(options = {}) {
     if (step === 'pick') {
       body.innerHTML = `
         <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
-        <p class="add-page-hint">PDF 또는 이미지를 선택하세요.${existingCount ? ` (현재 ${existingCount}장 · 이어서 추가)` : ''}</p>
+        <p class="add-page-hint">PDF 또는 이미지를 선택하세요.${
+          insertAfterPage != null && needsShift
+            ? ` (현재 ${existingCount}장 · ${insertAfterPage}페이지 다음에 삽입)`
+            : existingCount
+              ? ` (현재 ${existingCount}장 · 이어서 추가)`
+              : ''
+        }</p>
         <div class="add-page-source-grid">
           <button type="button" class="add-page-source-btn" data-source="pdf">
             <span class="add-page-source-title">PDF</span>
@@ -309,15 +324,27 @@ export function openAddPageModal(options = {}) {
     updateUploadEnabled();
     closeModal();
 
-    const startPage = existingCount + 1;
     const total = pages.length;
     let folderUrl = existingFolder;
     let folderPath = existingFolder;
-    let lastPage = existingCount;
+    const newPageCount = existingCount + total;
 
     showUploadingOverlay(`페이지 업로드 중… 0/${total}`);
 
     try {
+      if (needsShift) {
+        if (!existingFolder) {
+          throw new Error('기존 페이지 폴더를 확인할 수 없어 중간에 삽입할 수 없습니다');
+        }
+        showUploadingOverlay('뒤 페이지 번호를 갱신하는 중…');
+        await shiftPagesAfter({
+          folder: existingFolder,
+          afterPage: insertAfterPage,
+          shiftBy: total,
+          pageCount: existingCount
+        });
+      }
+
       for (let i = 0; i < pages.length; i += 1) {
         const pageNumber = startPage + i;
         showUploadingOverlay(`페이지 업로드 중… ${i + 1}/${total}`);
@@ -329,7 +356,6 @@ export function openAddPageModal(options = {}) {
         });
         if (!folderUrl && result.folderUrl) folderUrl = result.folderUrl;
         if (result.folder) folderPath = result.folder;
-        lastPage = pageNumber;
       }
 
       if (!folderUrl) {
@@ -340,19 +366,25 @@ export function openAddPageModal(options = {}) {
       const updated = await updateNotionNotePages({
         id: noteId,
         pdfFolderUrl: folderUrl,
-        pageCount: lastPage
+        pageCount: newPageCount
       });
 
       if (noteId) markNoteUnseen(noteId);
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
       hideUploadingOverlay();
-      showToast(`${total}페이지가 추가되었습니다`);
+      showToast(
+        needsShift
+          ? `${total}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다`
+          : `${total}페이지가 추가되었습니다`
+      );
       options.onDone?.({
         ...updated,
         id: noteId,
         pdfFolderUrl: folderUrl,
-        pageCount: lastPage
+        pageCount: newPageCount,
+        insertAfterPage,
+        insertedCount: total
       });
     } catch (err) {
       console.error('[AddPage] upload', err);

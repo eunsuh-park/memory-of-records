@@ -20,6 +20,7 @@ import {
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { buildPageImageUrl } from '../../services/pages.js';
+import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -150,17 +151,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           <button type="button" class="niv-fan__backdrop" data-fan-close aria-label="메뉴 닫기"></button>
           <div class="niv-fan__panel" role="menu" aria-label="페이지 액션">
             <span class="niv-fan__origin" aria-hidden="true"></span>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="delete" style="--i:0;--angle:-54" aria-label="페이지 삭제">
-              <span class="niv-fan__label">페이지<br />삭제</span>
-            </button>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="hide" style="--i:1;--angle:-18" aria-label="페이지 숨기기">
-              <span class="niv-fan__label">페이지<br />숨기기</span>
-            </button>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="add" style="--i:2;--angle:18" aria-label="페이지 추가">
+            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="add" style="--i:0;--angle:0" aria-label="페이지 추가">
               <span class="niv-fan__label">페이지<br />추가</span>
-            </button>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="meta" style="--i:3;--angle:54" aria-label="메타데이터 수정">
-              <span class="niv-fan__label">메타데이터<br />수정</span>
             </button>
           </div>
         </div>
@@ -233,8 +225,16 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       : null;
   const hasKnownPageCount = totalPages !== null;
   let noteSize = options.size || null;
+  let noteTitle = String(options.title || options.noteTitle || '').trim();
+  /** 중간 삽입 후 Cloudinary/브라우저 캐시 무효화용 */
+  let mediaVersion = 0;
   /** size 없을 때: 첫 1페이지 이미지 비율을 노트 전체에 고정 */
   let fallbackSingleAspect = null;
+
+  function pageImageSrc(num) {
+    const base = buildPageImageUrl(folderUrl, num);
+    return mediaVersion ? `${base}?v=${mediaVersion}` : base;
+  }
 
   let pageNum = 1;
   let ready = false;
@@ -489,7 +489,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (preloadedImages.has(num)) return preloadedImages.get(num);
     const img = new Image();
     img.decoding = 'async';
-    img.src = buildPageImageUrl(folderUrl, num);
+    img.src = pageImageSrc(num);
     preloadedImages.set(num, img);
     return img;
   }
@@ -626,7 +626,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         }
       }
       showOverlay('페이지 이미지를 불러올 수 없습니다. pdf_folder_url을 확인해주세요.');
-      console.error('Note page image load error:', buildPageImageUrl(folderUrl, num));
+      console.error('Note page image load error:', pageImageSrc(num));
     }
   }
 
@@ -660,13 +660,13 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   async function openCurrentPageMeta() {
     if (!folderUrl || !ready) {
-      showToast('페이지를 불러온 뒤 편집할 수 있습니다');
+      showToast('페이지를 불러온 뒤 확인할 수 있습니다');
       return;
     }
     openPageMetaModal({
       folder: folderUrl,
       pageNumber: pageNum,
-      imageUrl: buildPageImageUrl(folderUrl, pageNum),
+      imageUrl: pageImageSrc(pageNum),
       onSaved: async (meta) => {
         hiddenPagesCache.delete(String(folderUrl || '').trim());
         hiddenPages = await fetchHiddenPages(folderUrl, { force: true });
@@ -716,18 +716,57 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     fanTrigger?.setAttribute('aria-expanded', String(fanOpen));
   }
 
-  function handleFanAction(action) {
-    setFanOpen(false);
-    if (action === 'meta') {
-      openCurrentPageMeta();
+  async function refreshAfterPageInsert(result) {
+    const nextFolder = String(result?.pdfFolderUrl || folderUrl || '').trim();
+    const nextCount = Math.max(0, Math.floor(Number(result?.pageCount) || 0));
+    if (nextFolder) folderUrl = nextFolder;
+    if (nextCount > 0) totalPages = nextCount;
+    mediaVersion = Date.now();
+    preloadedImages.clear();
+    if (folderUrl) {
+      hiddenPagesCache.delete(folderUrl);
+      hiddenPages = await fetchHiddenPages(folderUrl, { force: true });
+    }
+    updateControls();
+    const stayOn = findVisiblePage(pageNum, 1) ?? findVisiblePage(pageNum, -1);
+    if (stayOn != null) showPage(stayOn);
+    else startViewer();
+  }
+
+  async function openInsertPageModal() {
+    let title = noteTitle;
+    if (!title || !folderUrl || totalPages == null) {
+      const note = await findNoteById(noteId);
+      if (note) {
+        title = String(note.title || note.name || title || '').trim();
+        noteTitle = title;
+        if (!folderUrl && note.pdfFolderUrl) folderUrl = String(note.pdfFolderUrl).trim();
+        if (totalPages == null && note.pageCount) totalPages = Math.floor(Number(note.pageCount));
+      }
+    }
+    if (!title) {
+      showToast('노트 정보가 없어 페이지를 추가할 수 없습니다.');
       return;
     }
-    const labels = {
-      delete: '페이지 삭제',
-      hide: '페이지 숨기기',
-      add: '페이지 추가'
-    };
-    showToast(`${labels[action] || '해당'} 기능은 준비 중이에요`);
+    openAddPageModal({
+      note: {
+        id: noteId,
+        title,
+        pdfFolderUrl: folderUrl,
+        pageCount: totalPages ?? 0
+      },
+      insertAfterPage: pageNum,
+      onDone: (result) => {
+        void refreshAfterPageInsert(result);
+      }
+    });
+  }
+
+  function handleFanAction(action) {
+    setFanOpen(false);
+    if (action === 'add') {
+      void openInsertPageModal();
+    }
   }
 
   function bindFanLongPress(el) {
@@ -784,6 +823,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           totalPages = note.pageCount;
         }
         if (!noteSize && note.size) noteSize = note.size;
+        if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
       } else if (note?.pdfUrl || !isModal) {
         /* 아직 마이그레이션 전(pdf_folder_url 없음): 기존 PDF 뷰어로 폴백 */
         cleanup();

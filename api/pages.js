@@ -3,7 +3,7 @@
  * (Hobby 플랜 함수 수 제한으로 통합)
  *
  * GET  ?op=meta&folder=...&page=n
- * POST { op: 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder', ... }
+ * POST { op: 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage', ... }
  */
 import crypto from 'crypto';
 import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
@@ -297,6 +297,37 @@ async function renameCloudinaryAsset(credentials, fromPublicId, toPublicId) {
 
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${credentials.cloudName}/image/rename`,
+    { method: 'POST', body: form }
+  );
+  const data = await response.json().catch(() => ({}));
+  return { ok: response.ok, status: response.status, data };
+}
+
+async function destroyCloudinaryAsset(credentials, publicId) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const paramsToSign = {
+    invalidate: 'true',
+    public_id: publicId,
+    timestamp: String(timestamp)
+  };
+  const signatureBase = Object.keys(paramsToSign)
+    .sort()
+    .map((k) => `${k}=${paramsToSign[k]}`)
+    .join('&');
+  const signature = crypto
+    .createHash('sha1')
+    .update(signatureBase + credentials.apiSecret)
+    .digest('hex');
+
+  const form = new FormData();
+  form.append('public_id', publicId);
+  form.append('timestamp', String(timestamp));
+  form.append('api_key', credentials.apiKey);
+  form.append('signature', signature);
+  form.append('invalidate', 'true');
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${credentials.cloudName}/image/destroy`,
     { method: 'POST', body: form }
   );
   const data = await response.json().catch(() => ({}));
@@ -795,6 +826,187 @@ async function handleRenameFolder(req, res, body) {
   });
 }
 
+async function handleDeletePage(req, res, body) {
+  const credentials = getCloudinaryCredentials();
+  if (!credentials) {
+    return res.status(500).json({
+      error: 'Cloudinary configuration missing',
+      message: 'CLOUDINARY_URL 또는 CLOUDINARY_* 환경 변수가 필요합니다'
+    });
+  }
+
+  const pageNumber = Math.max(1, Math.floor(Number(body.pageNumber) || 0));
+  const pageCount = Math.max(0, Math.floor(Number(body.pageCount) || 0));
+  const noteId = trimOrEmpty(body.noteId || body.id).replace(/-/g, '');
+  const pdfFolderUrl = trimOrEmpty(body.pdfFolderUrl || body.folder);
+  const folder =
+    folderPathFromDeliveryUrl(body.folder || pdfFolderUrl) ||
+    parseFolderParam(body.folder || pdfFolderUrl).folderPath ||
+    trimOrEmpty(body.folder).replace(/\/+$/, '');
+
+  if (!folder) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      message: 'folder는 필수입니다'
+    });
+  }
+  if (!pageNumber || !pageCount || pageNumber > pageCount) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      message: '유효한 pageNumber와 pageCount가 필요합니다'
+    });
+  }
+
+  const targetId = `${folder}/${pageStem(pageNumber)}`;
+  const destroyed = await destroyCloudinaryAsset(credentials, targetId);
+  if (!destroyed.ok) {
+    const msg = destroyed.data?.error?.message || destroyed.data?.result || '';
+    if (!/not found|does not exist|resource not found|not found/i.test(String(msg)) && destroyed.data?.result !== 'not found') {
+      return res.status(destroyed.status || 500).json({
+        error: 'Cloudinary page delete failed',
+        message: msg || '페이지 삭제에 실패했습니다',
+        details: destroyed.data
+      });
+    }
+  }
+
+  /* 뒤 페이지를 한 칸씩 앞으로: page-(N+1) → page-N … (앞에서부터) */
+  const shiftResults = [];
+  for (let i = pageNumber + 1; i <= pageCount; i += 1) {
+    const fromId = `${folder}/${pageStem(i)}`;
+    const toId = `${folder}/${pageStem(i - 1)}`;
+    const renamed = await renameCloudinaryAsset(credentials, fromId, toId);
+    shiftResults.push({
+      from: fromId,
+      to: toId,
+      ok: renamed.ok,
+      status: renamed.status,
+      message: renamed.data?.error?.message || null
+    });
+    if (!renamed.ok) {
+      const msg = renamed.data?.error?.message || '';
+      if (!/not found|does not exist|resource not found/i.test(msg) && renamed.status !== 404) {
+        return res.status(renamed.status || 500).json({
+          error: 'Cloudinary page compact failed',
+          message: msg || '뒤 페이지 번호 갱신에 실패했습니다',
+          details: renamed.data,
+          shiftResults
+        });
+      }
+    }
+  }
+
+  const nextCount = pageCount - 1;
+  let notion = null;
+  if (noteId && pdfFolderUrl) {
+    const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
+    const schema = database?.properties || {};
+    const folderUrlProp = findSchemaProperty(
+      schema,
+      'pdf_folder_url',
+      'PDF Folder URL',
+      'pdf folder url'
+    );
+    const pageCountProp = findSchemaProperty(schema, 'page_count', 'Page Count', 'page count');
+    const properties = {};
+    if (folderUrlProp && ['url', 'rich_text'].includes(folderUrlProp.type)) {
+      const folderPayload = buildNotionPropertyPayload(folderUrlProp, pdfFolderUrl);
+      if (folderPayload) properties[folderUrlProp.key] = folderPayload;
+    }
+    if (pageCountProp && ['number', 'rich_text'].includes(pageCountProp.type)) {
+      const countPayload = buildNotionPropertyPayload(pageCountProp, nextCount);
+      if (countPayload) properties[pageCountProp.key] = countPayload;
+    }
+    if (Object.keys(properties).length) {
+      const page = await notionFetch(`/pages/${noteId}`, {
+        method: 'PATCH',
+        body: { properties }
+      });
+      notion = { ok: true, id: page.id, pageCount: nextCount };
+    }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    folder,
+    deletedPage: pageNumber,
+    pageCount: nextCount,
+    pdfFolderUrl: pdfFolderUrl || '',
+    shiftResults,
+    notion
+  });
+}
+
+async function handleShiftPages(req, res, body) {
+  const credentials = getCloudinaryCredentials();
+  if (!credentials) {
+    return res.status(500).json({
+      error: 'Cloudinary configuration missing',
+      message: 'CLOUDINARY_URL 또는 CLOUDINARY_* 환경 변수가 필요합니다'
+    });
+  }
+
+  const afterPage = Math.max(0, Math.floor(Number(body.afterPage) || 0));
+  const shiftBy = Math.max(1, Math.floor(Number(body.shiftBy) || 1));
+  const pageCount = Math.max(0, Math.floor(Number(body.pageCount) || 0));
+  const folder =
+    folderPathFromDeliveryUrl(body.folder) ||
+    parseFolderParam(body.folder).folderPath ||
+    trimOrEmpty(body.folder).replace(/\/+$/, '');
+
+  if (!folder) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      message: 'folder는 필수입니다'
+    });
+  }
+  if (pageCount < 1) {
+    return res.status(200).json({ ok: true, shifted: 0, folder });
+  }
+  if (afterPage > pageCount) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      message: 'afterPage가 pageCount보다 클 수 없습니다'
+    });
+  }
+
+  /* 끝 페이지부터 올려 번호 충돌을 피함: page-N → page-(N+shiftBy) */
+  const results = [];
+  for (let i = pageCount; i >= afterPage + 1; i -= 1) {
+    const fromId = `${folder}/${pageStem(i)}`;
+    const toId = `${folder}/${pageStem(i + shiftBy)}`;
+    const renamed = await renameCloudinaryAsset(credentials, fromId, toId);
+    results.push({
+      from: fromId,
+      to: toId,
+      ok: renamed.ok,
+      status: renamed.status,
+      message: renamed.data?.error?.message || null
+    });
+    if (!renamed.ok) {
+      const msg = renamed.data?.error?.message || '';
+      if (!/not found|does not exist|resource not found/i.test(msg) && renamed.status !== 404) {
+        return res.status(renamed.status || 500).json({
+          error: 'Cloudinary page shift failed',
+          message: msg || '페이지 번호 갱신에 실패했습니다',
+          details: renamed.data,
+          results
+        });
+      }
+    }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    folder,
+    afterPage,
+    shiftBy,
+    pageCount,
+    shifted: Math.max(0, pageCount - afterPage),
+    results
+  });
+}
+
 export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
@@ -816,10 +1028,13 @@ export default async function handler(req, res) {
     if (op === 'updateNote') return await handleUpdateNote(req, res, body);
     if (op === 'updateMeta') return await handleUpdateMeta(req, res, body);
     if (op === 'renameFolder') return await handleRenameFolder(req, res, body);
+    if (op === 'shiftPages') return await handleShiftPages(req, res, body);
+    if (op === 'deletePage') return await handleDeletePage(req, res, body);
 
     return res.status(400).json({
       error: 'Validation failed',
-      message: "op은 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder' 중 하나여야 합니다"
+      message:
+        "op은 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' 중 하나여야 합니다"
     });
   } catch (error) {
     return res.status(error.status || 500).json({

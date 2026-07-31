@@ -1,6 +1,7 @@
 /**
- * 특정 페이지 메타(entry_date, ocr_text, visible) 편집 모달
- * OCR: Tesseract.js로 페이지 이미지에서 텍스트·날짜 후보 채움 (저장은 별도)
+ * 페이지 정보 모달
+ * - 기본: 읽기 전용 + 수정/삭제
+ * - 수정: entry_date / ocr_text / visible 편집 (OCR 인식·리셋)
  */
 
 import { render as renderButton } from '../Button/Button.js';
@@ -26,6 +27,7 @@ export function openPageMetaModal(options = {}) {
 
   const folder = String(options.folder || '').trim();
   const pageNumber = Math.max(1, Math.floor(Number(options.pageNumber) || 1));
+
   if (!folder) {
     showToast('페이지 폴더 정보가 없습니다');
     return;
@@ -43,6 +45,11 @@ export function openPageMetaModal(options = {}) {
   let saving = false;
   let ocrRunning = false;
   let publicId = '';
+  /** @type {'view' | 'edit'} */
+  let mode = 'view';
+  /** @type {{ entry_date: string, ocr_text: string, visible: boolean }} */
+  let snapshot = { entry_date: '', ocr_text: '', visible: true };
+  let loaded = false;
 
   function closeModal() {
     if (saving || ocrRunning) return;
@@ -52,7 +59,13 @@ export function openPageMetaModal(options = {}) {
   }
 
   function onKeydown(e) {
-    if (e.key === 'Escape' && !saving && !ocrRunning) closeModal();
+    if (e.key === 'Escape' && !saving && !ocrRunning) {
+      if (mode === 'edit') {
+        enterViewMode({ restore: true });
+        return;
+      }
+      closeModal();
+    }
   }
 
   function setStatus(message, isError = false) {
@@ -62,12 +75,65 @@ export function openPageMetaModal(options = {}) {
     el.classList.toggle('add-note-status--error', Boolean(isError));
   }
 
-  function setFieldsEnabled(enabled) {
+  function readFields() {
+    return {
+      entry_date: String(dateInput?.value || '').trim(),
+      ocr_text: String(ocrInput?.value || ''),
+      visible: Boolean(visibleInput?.checked)
+    };
+  }
+
+  function applyFields(meta) {
+    const dateValue = String(meta.entry_date || '').trim();
+    if (dateInput) {
+      dateInput.value = /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : '';
+    }
+    if (ocrInput) ocrInput.value = meta.ocr_text || '';
+    if (visibleInput) visibleInput.checked = meta.visible !== false;
+  }
+
+  function setEditEnabled(enabled) {
     if (dateInput) dateInput.disabled = !enabled;
     if (ocrInput) ocrInput.disabled = !enabled;
     if (visibleInput) visibleInput.disabled = !enabled;
-    if (submitBtn) submitBtn.disabled = !enabled;
     if (ocrBtn) ocrBtn.disabled = !enabled;
+    if (ocrResetBtn) ocrResetBtn.disabled = !enabled;
+    if (submitBtn) submitBtn.disabled = !enabled;
+  }
+
+  function syncModeUi() {
+    overlay.classList.toggle('page-meta-overlay--edit', mode === 'edit');
+    const title = overlay.querySelector('#page-meta-title');
+    if (title) {
+      title.textContent =
+        mode === 'edit' ? `페이지 수정 · ${pageNumber}` : `페이지 정보 · ${pageNumber}`;
+    }
+    const viewActions = overlay.querySelector('.page-meta-actions--view');
+    const editActions = overlay.querySelector('.page-meta-actions--edit');
+    const ocrActions = overlay.querySelector('.page-meta-ocr-actions');
+    const hints = overlay.querySelectorAll('.page-meta-edit-hint');
+    if (viewActions) viewActions.hidden = mode !== 'view';
+    if (editActions) editActions.hidden = mode !== 'edit';
+    if (ocrActions) ocrActions.hidden = mode !== 'edit';
+    hints.forEach((el) => {
+      el.hidden = mode !== 'edit';
+    });
+    setEditEnabled(mode === 'edit' && loaded && !saving && !ocrRunning);
+  }
+
+  function enterViewMode({ restore = false } = {}) {
+    mode = 'view';
+    if (restore) applyFields(snapshot);
+    syncModeUi();
+    const dateValue = snapshot.entry_date;
+    setStatus(dateValue ? `저장된 날짜: ${dateValue}` : '');
+  }
+
+  function enterEditMode() {
+    mode = 'edit';
+    applyFields(snapshot);
+    syncModeUi();
+    setStatus('수정 후 저장을 눌러 반영하세요');
   }
 
   function ocrProgressLabel(status, progress) {
@@ -96,21 +162,31 @@ export function openPageMetaModal(options = {}) {
         <label class="add-note-field">
           <span class="add-note-label">날짜</span>
           <input class="add-note-input" name="entry_date" type="date" disabled />
-          <span class="page-meta-date-hint">OCR로 채우거나 직접 입력 · 비우면 날짜 없음</span>
+          <span class="page-meta-date-hint page-meta-edit-hint" hidden>OCR로 채우거나 직접 입력 · 비우면 날짜 없음</span>
         </label>
         <div class="add-note-field">
           <div class="page-meta-ocr-label-row">
             <span class="add-note-label">OCR</span>
-            <button type="button" class="page-meta-ocr-btn" disabled>이미지에서 인식</button>
+            <div class="page-meta-ocr-actions" hidden>
+              <button type="button" class="page-meta-ocr-reset-btn" disabled>리셋</button>
+              <button type="button" class="page-meta-ocr-btn" disabled>이미지에서 인식</button>
+            </div>
           </div>
           <textarea class="add-note-textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
-          <span class="page-meta-date-hint">손글씨는 정확도가 낮을 수 있습니다. 인식 후 수정·저장하세요.</span>
+          <span class="page-meta-date-hint page-meta-edit-hint" hidden>손글씨는 정확도가 낮을 수 있습니다. 인식 후 수정·저장하세요.</span>
         </div>
         <label class="add-note-check">
           <input type="checkbox" name="visible" checked disabled />
           <span>사이트에 표시 (visible)</span>
         </label>
-        <button type="submit" class="add-note-submit" disabled>저장</button>
+        <div class="page-meta-actions page-meta-actions--view">
+          <button type="button" class="page-meta-edit-btn" data-action="edit" disabled>수정</button>
+          <button type="button" class="page-meta-delete-btn" data-action="delete" disabled>삭제</button>
+        </div>
+        <div class="page-meta-actions page-meta-actions--edit" hidden>
+          <button type="button" class="add-page-secondary" data-action="cancel-edit">취소</button>
+          <button type="submit" class="add-note-submit page-meta-save-btn" disabled>저장</button>
+        </div>
       </form>
     </div>
   `;
@@ -123,8 +199,11 @@ export function openPageMetaModal(options = {}) {
   const dateInput = form?.querySelector('input[name="entry_date"]');
   const ocrInput = form?.querySelector('textarea[name="ocr_text"]');
   const visibleInput = form?.querySelector('input[name="visible"]');
-  const submitBtn = form?.querySelector('button[type="submit"]');
+  const submitBtn = form?.querySelector('.page-meta-save-btn');
   const ocrBtn = form?.querySelector('.page-meta-ocr-btn');
+  const ocrResetBtn = form?.querySelector('.page-meta-ocr-reset-btn');
+  const editBtn = form?.querySelector('[data-action="edit"]');
+  const deleteBtn = form?.querySelector('[data-action="delete"]');
 
   overlay.querySelector('.add-note-close')?.addEventListener('click', () => {
     closeModal();
@@ -137,24 +216,46 @@ export function openPageMetaModal(options = {}) {
     .then((meta) => {
       publicId = meta.publicId || '';
       const dateValue = String(meta.entry_date || '').trim();
-      if (dateInput) {
-        dateInput.value = /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : '';
-      }
-      if (ocrInput) ocrInput.value = meta.ocr_text || '';
-      if (visibleInput) visibleInput.checked = meta.visible !== false;
-      setFieldsEnabled(true);
-      setStatus(dateValue ? `저장된 날짜: ${dateValue}` : '');
+      snapshot = {
+        entry_date: /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : '',
+        ocr_text: meta.ocr_text || '',
+        visible: meta.visible !== false
+      };
+      applyFields(snapshot);
+      loaded = true;
+      if (editBtn) editBtn.disabled = false;
+      if (deleteBtn) deleteBtn.disabled = false;
+      enterViewMode();
     })
     .catch((err) => {
       console.error('[PageMeta] load', err);
-      setFieldsEnabled(true);
-      setStatus(err?.message || '메타를 불러오지 못했습니다 (새 값으로 저장 가능)', true);
+      loaded = true;
+      if (editBtn) editBtn.disabled = false;
+      if (deleteBtn) deleteBtn.disabled = false;
+      enterViewMode();
+      setStatus(err?.message || '메타를 불러오지 못했습니다', true);
     });
 
+  editBtn?.addEventListener('click', () => {
+    if (!loaded || saving) return;
+    enterEditMode();
+  });
+
+  form?.querySelector('[data-action="cancel-edit"]')?.addEventListener('click', () => {
+    if (saving || ocrRunning) return;
+    enterViewMode({ restore: true });
+  });
+
+  ocrResetBtn?.addEventListener('click', () => {
+    if (mode !== 'edit' || ocrRunning || saving) return;
+    applyFields(snapshot);
+    setStatus('저장된 값으로 되돌렸습니다');
+  });
+
   ocrBtn?.addEventListener('click', async () => {
-    if (ocrRunning || saving || !imageUrl) return;
+    if (mode !== 'edit' || ocrRunning || saving || !imageUrl) return;
     ocrRunning = true;
-    setFieldsEnabled(false);
+    setEditEnabled(false);
     if (ocrBtn) {
       ocrBtn.disabled = true;
       ocrBtn.textContent = '인식 중…';
@@ -189,34 +290,37 @@ export function openPageMetaModal(options = {}) {
       showToast(err?.message || 'OCR에 실패했습니다');
     } finally {
       ocrRunning = false;
-      setFieldsEnabled(true);
+      setEditEnabled(true);
       if (ocrBtn) ocrBtn.textContent = '이미지에서 인식';
     }
   });
 
+  deleteBtn?.addEventListener('click', () => {
+    if (!loaded || saving || ocrRunning) return;
+    showToast('기능 준비중입니다');
+  });
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (saving || ocrRunning) return;
+    if (mode !== 'edit' || saving || ocrRunning) return;
     saving = true;
-    if (submitBtn) submitBtn.disabled = true;
-    if (ocrBtn) ocrBtn.disabled = true;
+    setEditEnabled(false);
     setStatus('저장 중…');
 
+    const fields = readFields();
     const payload = {
       publicId: publicId || undefined,
       folder: publicId ? undefined : folder,
       pageNumber: publicId ? undefined : pageNumber,
-      entry_date: String(dateInput?.value || '').trim(),
-      ocr_text: String(ocrInput?.value || ''),
-      visible: Boolean(visibleInput?.checked)
+      entry_date: fields.entry_date,
+      ocr_text: fields.ocr_text,
+      visible: fields.visible
     };
 
     try {
       await updatePageMeta(payload);
+      snapshot = { ...fields };
       saving = false;
-      document.removeEventListener('keydown', onKeydown);
-      overlay.remove();
-      document.body.classList.remove('add-note-open');
       showToast(
         payload.visible
           ? '페이지 정보가 저장되었습니다'
@@ -228,12 +332,14 @@ export function openPageMetaModal(options = {}) {
         visible: payload.visible,
         pageNumber
       });
+      enterViewMode();
     } catch (err) {
       console.error('[PageMeta] save', err);
       setStatus(err?.message || '저장에 실패했습니다', true);
       saving = false;
-      if (submitBtn) submitBtn.disabled = false;
-      if (ocrBtn) ocrBtn.disabled = false;
+      setEditEnabled(true);
     }
   });
+
+  syncModeUi();
 }

@@ -688,7 +688,8 @@ function openNoteModal(note) {
         mode: 'modal',
         pdfFolderUrl,
         pageCount: note?.pageCount,
-        size: note?.size
+        size: note?.size,
+        title: note?.title || note?.name || ''
       })
     : renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl, size: note?.size });
 

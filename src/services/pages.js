@@ -227,6 +227,61 @@ export async function updateNotionNotePages(payload) {
 }
 
 /**
+ * afterPage 이후 페이지들의 Cloudinary public_id를 shiftBy만큼 뒤로 밀어 번호 충돌을 피함
+ * @param {{
+ *   folder: string,
+ *   afterPage: number,
+ *   shiftBy: number,
+ *   pageCount: number
+ * }} payload
+ */
+export async function shiftPagesAfter(payload) {
+  const response = await fetch('/api/pages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'shiftPages', ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.details?.error?.message ||
+        data?.error ||
+        '페이지 번호 갱신에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
+ * 특정 페이지 삭제 후 뒤 페이지 번호를 앞으로 당기고 Notion page_count 갱신
+ * @param {{
+ *   noteId: string,
+ *   folder: string,
+ *   pdfFolderUrl?: string,
+ *   pageNumber: number,
+ *   pageCount: number
+ * }} payload
+ */
+export async function deletePage(payload) {
+  const response = await fetch('/api/pages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'deletePage', ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.details?.error?.message ||
+        data?.error ||
+        '페이지 삭제에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
  * @param {{ folder: string, page: number }} params
  */
 export async function fetchPageMeta({ folder, page }) {
