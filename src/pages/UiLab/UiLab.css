@@ -124,6 +124,57 @@
   right: auto;
 }
 
+/* ===== 토큰 스케일 ===== */
+
+.ui-lab__ramp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ui-lab__ramp-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--color-text);
+}
+
+.ui-lab__ramp {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(62px, 1fr);
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.ui-lab__ramp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ui-lab__ramp-chip {
+  height: 3rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.ui-lab__ramp-step {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ui-lab__ramp-value {
+  margin: 0;
+  font-size: 0.62rem;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
 .ui-lab__swatches {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -206,6 +257,97 @@
 
 .ui-lab__primary-btn:hover {
   filter: brightness(1.05);
+}
+
+/* ===== 해상도별 표시 형식 매트릭스 ===== */
+
+.ui-lab__bp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ui-lab__bp {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+}
+
+.ui-lab__bp-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ui-lab__bp-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--color-text);
+}
+
+.ui-lab__bp-points {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--color-primary);
+}
+
+.ui-lab__bp-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.ui-lab__bp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+}
+
+.ui-lab__bp-col-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--color-text);
+}
+
+.ui-lab__bp-col-title span {
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: var(--color-text-dim);
+}
+
+.ui-lab__bp-items {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* 현재 창 폭에 해당하는 열 강조 */
+.ui-lab[data-active-band='mobile'] .ui-lab__bp-col[data-band='mobile'],
+.ui-lab[data-active-band='tablet'] .ui-lab__bp-col[data-band='tablet'],
+.ui-lab[data-active-band='desktop'] .ui-lab__bp-col[data-band='desktop'] {
+  border-color: var(--color-primary);
+  background: var(--color-surface-active);
+}
+
+@media (max-width: 768px) {
+  .ui-lab__bp-cols {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ui-lab__filter-demo {
