@@ -10,6 +10,7 @@ import { renderFooter } from './components/Footer/Footer.js';
 import { mountAddNoteFab } from './components/AddNoteFab/AddNoteFab.js';
 import { requestPdfFolderSync } from './services/pdfFolderSync.js';
 import { initTheme } from './utils/theme.js';
+import 'pretendard/dist/web/variable/pretendardvariable.css';
 import './index.css';
 import './App.css';
 
@@ -83,7 +84,7 @@ async function initApp() {
           <p>애플리케이션을 초기화하는 중 오류가 발생했습니다.</p>
           <p style="color: #999; font-size: 12px;">${error.message}</p>
           <div style="margin-top: 20px;">
-            ${renderButton({ variant: 'toolbar', ariaLabel: '페이지 새로고침', content: '페이지 새로고침', className: 'app-error-reload-btn' })}
+            ${renderButton({ shape: 'solid', ariaLabel: '페이지 새로고침', content: '페이지 새로고침', className: 'app-error-reload-btn' })}
           </div>
         </div>
       `;

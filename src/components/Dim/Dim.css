@@ -1,0 +1,36 @@
+/**
+ * Dim 스타일
+ * .dim + .dim--solid | .dim--blur, 표시 상태는 .is-visible
+ * z-index는 --dim-z로 받고(기본 1), 컨텍스트에서 주입한다.
+ */
+
+.dim {
+  position: absolute;
+  inset: 0;
+  z-index: var(--dim-z, 1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.dim.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 모달 딤 */
+.dim--solid {
+  background: var(--color-overlay);
+}
+
+/* 드로어 백드롭 */
+.dim--blur {
+  background: var(--color-overlay-soft);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* 화면 전체를 덮는 용도로 단독 사용할 때 */
+.dim--fixed {
+  position: fixed;
+}

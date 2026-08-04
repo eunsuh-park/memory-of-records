@@ -14,7 +14,7 @@ footer {
 .footer-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 var(--space-8);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -23,18 +23,18 @@ footer {
 }
 
 footer p {
-  color: var(--app-text-muted);
-  font-size: 0.6rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-2xs);
 }
 
 .footer-lab-link {
-  margin-left: 0.55rem;
-  color: var(--app-text-dim);
+  margin-left: var(--space-2);
+  color: var(--color-text-dim);
   text-decoration: none;
   opacity: 0.7;
 }
 
 .footer-lab-link:hover {
-  color: var(--color-primary, var(--app-text-muted));
+  color: var(--color-primary);
   opacity: 1;
 }

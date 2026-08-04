@@ -3,10 +3,10 @@
  *
  * Notion DB notebook_type 태그와 1:1 매칭:
  *   다이어리(일기장), 스케줄러, 수첩/메모지, 스케치북, 줄공책
- * @see typeOptions (src/services/typeOptions.js)
+ * @see typeOptions (src/data/typeOptions.js)
  */
 
-import { typeOptions } from '../../services/typeOptions.js';
+import { typeOptions } from '../../data/typeOptions.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderJukeboxWithFilter } from './Jukebox.js';
 import './Jukebox.css';

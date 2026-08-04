@@ -1,0 +1,55 @@
+/**
+ * NoteDetailPage 스타일
+ * /note/:id 전체 페이지 껍데기 + 등장 애니메이션.
+ * (모달 모드에서는 쓰이지 않는다)
+ */
+
+.note-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-8);
+}
+
+.note-detail-page {
+  height: 100vh;
+  overflow: hidden;
+  padding: 0;
+  background: var(--color-overlay-scrim);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  transform: scale(0.98);
+  transition: none;
+}
+
+.note-detail-page.note-detail-page--mounted {
+  animation: note-detail-page-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes note-detail-page-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.note-detail-page .note-detail {
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-none);
+  box-shadow: var(--shadow-md);
+}
+
+.note-detail-page .pdf-viewer {
+  margin-top: 0;
+  flex: 1;
+}

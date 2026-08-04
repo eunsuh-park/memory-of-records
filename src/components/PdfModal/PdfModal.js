@@ -13,6 +13,10 @@ import {
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { render as renderButton } from '../Button/Button.js';
+import {
+  render as wrapInNoteDetailPage,
+  mount as mountNoteDetailPage
+} from '../NoteDetailPage/NoteDetailPage.js';
 import { showToast } from '../Toast/Toast.js';
 import '../Button/Button.css';
 import './PdfModal.css';
@@ -128,18 +132,18 @@ export function renderPdfViewer(targetEl, id, options = {}) {
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''}">
       <div class="pdf-canvas-wrap">
-        ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'pdf-nav-prev' })}
-        ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'pdf-nav-next' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'pdf-nav-prev' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'pdf-nav-next' })}
         <div class="pdf-page-indicator">
-          ${renderButton({ variant: 'toolbar', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine, className: 'pdf-nav-first' })}
+          ${renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: '처음 페이지', content: ICONS.arrowsLeftLine, className: 'pdf-nav-first' })}
           <span id="pdf-current-page">1</span>/<span id="pdf-total-pages">-</span>
-          ${renderButton({ variant: 'toolbar', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine, className: 'pdf-nav-last' })}
+          ${renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: '마지막 페이지', content: ICONS.arrowsRightLine, className: 'pdf-nav-last' })}
         </div>
         <div class="pdf-zoom-controls">
-          ${renderButton({ variant: 'toolbar', ariaLabel: '양면 보기 전환', content: ICONS.bookOpen, className: 'pdf-toggle-spread' })}
-          ${renderButton({ variant: 'toolbar', ariaLabel: '100% 비율로 초기화', content: ICONS.refreshLine, className: 'pdf-zoom-reset' })}
-          ${renderButton({ variant: 'toolbar', ariaLabel: '확대', content: '+', className: 'pdf-zoom-in' })}
-          ${renderButton({ variant: 'toolbar', ariaLabel: '축소', content: '-', className: 'pdf-zoom-out' })}
+          ${renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: '양면 보기 전환', content: ICONS.bookOpen, className: 'pdf-toggle-spread' })}
+          ${renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: '100% 비율로 초기화', content: ICONS.refreshLine, className: 'pdf-zoom-reset' })}
+          ${renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: '확대', content: '+', className: 'pdf-zoom-in' })}
+          ${renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: '축소', content: '-', className: 'pdf-zoom-out' })}
         </div>
         <div class="pdf-canvas-container">
           <canvas id="pdf-canvas-left"></canvas>
@@ -153,24 +157,9 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     </section>
   `;
 
-  targetEl.innerHTML = isModal
-    ? viewerMarkup
-    : `
-      <div class="note-detail-page">
-        <article class="note-detail">
-          ${viewerMarkup}
-        </article>
-      </div>
-    `;
+  targetEl.innerHTML = isModal ? viewerMarkup : wrapInNoteDetailPage(viewerMarkup);
 
-  if (!isModal) {
-    const pageEl = targetEl.querySelector('.note-detail-page');
-    if (pageEl) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => pageEl.classList.add('note-detail-page--mounted'));
-      });
-    }
-  }
+  if (!isModal) mountNoteDetailPage(targetEl);
 
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');

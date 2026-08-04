@@ -13,6 +13,10 @@ import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderPdfViewer } from '../PdfModal/PdfModal.js';
 import { render as renderButton } from '../Button/Button.js';
+import {
+  render as wrapInNoteDetailPage,
+  mount as mountNoteDetailPage
+} from '../NoteDetailPage/NoteDetailPage.js';
 import { showToast } from '../Toast/Toast.js';
 import {
   computeNoteDisplayBoxes,
@@ -120,8 +124,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''} note-image-viewer">
       <div class="pdf-canvas-wrap">
-        ${renderButton({ variant: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'niv-nav-prev' })}
-        ${renderButton({ variant: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'niv-nav-next' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'niv-nav-prev' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'niv-nav-next' })}
         <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
           <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 정보(메타데이터) 보기" title="페이지 정보">
             ${ICONS.info}
@@ -173,24 +177,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     </section>
   `;
 
-  targetEl.innerHTML = isModal
-    ? viewerMarkup
-    : `
-      <div class="note-detail-page">
-        <article class="note-detail">
-          ${viewerMarkup}
-        </article>
-      </div>
-    `;
+  targetEl.innerHTML = isModal ? viewerMarkup : wrapInNoteDetailPage(viewerMarkup);
 
-  if (!isModal) {
-    const pageEl = targetEl.querySelector('.note-detail-page');
-    if (pageEl) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => pageEl.classList.add('note-detail-page--mounted'));
-      });
-    }
-  }
+  if (!isModal) mountNoteDetailPage(targetEl);
 
   const viewerEl = targetEl.querySelector('.note-image-viewer');
   const canvasWrap = targetEl.querySelector('.pdf-canvas-wrap');

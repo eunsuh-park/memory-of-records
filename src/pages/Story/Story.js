@@ -31,7 +31,7 @@ export async function renderStory() {
   const { imageSrc, title, subtitle, caption, content, footer } = storyContent;
 
   mainContent.innerHTML = `
-    ${renderButton({ variant: 'back', ariaLabel: '이전 페이지로 돌아가기' })}
+    ${renderButton({ shape: 'circle', size: 'm', role: 'back', ariaLabel: '이전 페이지로 돌아가기' })}
     <main class="story-main">
       <div class="story-book">
         <div class="story-book-side-L"></div>

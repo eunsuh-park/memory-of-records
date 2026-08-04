@@ -1,0 +1,80 @@
+/**
+ * Dialog 스타일
+ * .dialog(오버레이) > .dialog__dim + .dialog__close + .dialog__panel(header/body)
+ * 기존 add-note-overlay / add-note-panel 값을 그대로 옮겼다.
+ */
+
+body.dialog-open {
+  overflow: hidden;
+}
+
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 3100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+}
+
+.dialog__dim {
+  /* 패널보다 아래 */
+  --dim-z: 0;
+}
+
+/*
+ * 닫기 버튼은 패널이 아니라 딤 위에 얹힌다(기존 add-note-close와 같은 위치).
+ * 딤은 라이트 모드에서도 어두우므로 색은 테마를 따르지 않고 크롬 토큰을 쓴다.
+ */
+.dialog__close {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  color: var(--color-chrome-on);
+}
+
+.dialog__close:hover,
+.dialog__close:focus-visible {
+  background: var(--color-chrome-on-hover);
+}
+
+.dialog__panel {
+  position: relative;
+  z-index: 1;
+  width: min(600px, 100%);
+  max-height: min(92vh, 920px);
+  overflow: auto;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+}
+
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.dialog__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.01em;
+}
+
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .dialog__panel {
+    padding: var(--space-4);
+  }
+}

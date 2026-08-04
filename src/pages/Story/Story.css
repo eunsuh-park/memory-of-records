@@ -3,6 +3,10 @@
  * - body.story-page-active: 전체 화면, Top Nav 숨김
  * - .story-main: 좌우 분할 메인 영역
  * - .story-book: 책 형태 + 슬라이드 인/아웃
+ *
+ * 색: 데스크톱의 책 지면은 테마와 무관하게 "종이"(밝은 면)다.
+ * 그래서 semantic(--color-text 등) 대신 light grey 스케일을 직접 참조한다.
+ * 타블렛 이하에서는 책형 장식을 버리고 앱 테마 토큰으로 전환한다.
  */
 
 /* Story 페이지 활성 시: 전체 화면 고정 */
@@ -29,19 +33,19 @@ body.story-page-active #main-content {
 
 .story-main > * {
   cursor: default;
-  background-color: var(--app-bg);
+  background-color: var(--color-bg);
 }
 
 /* 책 구조 */
 .story-book {
   display: flex;
-  margin: 24px 64px 240px 64px;
-  width: calc(100vw - 128px);
+  margin: var(--space-6) var(--space-16) 15rem;
+  width: calc(100vw - var(--space-16) * 2);
   height: 80%;
   overflow: hidden;
   position: relative;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(167, 121, 71, 0.3);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 16px var(--color-book-shadow);
   z-index: 999;
   border-right: 8px solid;
   border-left: 8px solid;
@@ -67,9 +71,9 @@ body.story-page-active #main-content {
   height: 100%;
   background: repeating-linear-gradient(
     to right,
-    rgba(0, 0, 0, 0.75) 5px,
-    rgba(0, 0, 0, 0.1) 5px,
-    rgba(0, 0, 0, 0.75) 10px
+    var(--color-book-spine) 5px,
+    var(--color-book-spine-light) 5px,
+    var(--color-book-spine) 10px
   );
   z-index: 0;
   pointer-events: none;
@@ -80,9 +84,9 @@ body.story-page-active #main-content {
   height: 100%;
   background: repeating-linear-gradient(
     to left,
-    rgba(0, 0, 0, 0.75) 5px,
-    rgba(0, 0, 0, 0.1) 5px,
-    rgba(0, 0, 0, 0.75) 10px
+    var(--color-book-spine) 5px,
+    var(--color-book-spine-light) 5px,
+    var(--color-book-spine) 10px
   );
   z-index: 0;
   pointer-events: none;
@@ -105,6 +109,7 @@ body.story-page-active #main-content {
   cursor: pointer;
 }
 
+/* 가운데 접힘부 그늘 */
 .story-book-content-L::after {
   content: '';
   position: absolute;
@@ -112,7 +117,13 @@ body.story-page-active #main-content {
   right: 0;
   width: 40px;
   height: 100%;
-  background: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.25) 30%, rgba(0, 0, 0, 0.75) 90%, rgba(0, 0, 0, 0.55) 100%);
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--color-overlay-scrim) 30%,
+    var(--color-book-spine) 90%,
+    var(--color-overlay) 100%
+  );
   pointer-events: none;
   z-index: 1;
 }
@@ -138,7 +149,7 @@ body.story-page-active #main-content {
 .story-placeholder-image {
   width: 100%;
   height: 100%;
-  background-color: #f5f5f5;
+  background-color: var(--grey-light-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,16 +175,16 @@ body.story-page-active #main-content {
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.5rem 4rem 1.5rem 3rem;
+  padding: var(--space-6) var(--space-16) var(--space-6) var(--space-12);
   margin-right: 2px;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
   box-sizing: border-box;
-  background-color: #fff;
+  background-color: var(--white);
   cursor: pointer;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+  scrollbar-color: var(--grey-light-9) transparent;
 }
 
 .story-book-content-R::-webkit-scrollbar {
@@ -188,12 +199,12 @@ body.story-page-active #main-content {
 }
 
 .story-book-content-R::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 3px;
+  background-color: var(--grey-light-9);
+  border-radius: var(--radius-sm);
 }
 
 .story-book-content-R::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--grey-light-10);
 }
 
 .story-book-content-R::-webkit-scrollbar-button {
@@ -205,33 +216,33 @@ body.story-page-active #main-content {
 .story-header {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .story-title {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #333;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--grey-light-12);
   line-height: 1.2;
   margin: 0;
 }
 
 .story-subtitle {
-  font-size: 1.1rem;
-  color: #666;
-  font-weight: 400;
+  font-size: var(--text-md);
+  color: var(--grey-light-11);
+  font-weight: var(--font-regular);
 }
 
 .story-date {
-  font-size: 0.95rem;
-  color: #999;
-  font-weight: 400;
+  font-size: var(--text-base);
+  color: var(--grey-light-10);
+  font-weight: var(--font-regular);
 }
 
 .story-content {
-  font-size: 1.1rem;
+  font-size: var(--text-md);
   line-height: 1.8;
-  color: #444;
+  color: var(--grey-light-12);
   height: fit-content;
   display: flex;
   flex-direction: column;
@@ -253,8 +264,8 @@ body.story-page-active #main-content {
 }
 
 .story-caption {
-  font-size: 0.9rem;
-  color: #888;
+  font-size: var(--text-sm);
+  color: var(--grey-light-10);
   line-height: 1.6;
 }
 
@@ -267,19 +278,19 @@ body.story-page-active #main-content {
 }
 
 .story-main .story-footer .footer-container {
-  padding: 1rem 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-4) var(--space-8);
+  border-top: 1px solid var(--color-glass-border);
 }
 
 .story-main .story-footer p {
-  color: var(--app-text-muted);
+  color: var(--color-text-muted);
 }
 
 .story-caption p {
-  font-size: 0.8rem;
-  color: #888;
+  font-size: var(--text-sm);
+  color: var(--grey-light-10);
   line-height: 1.6;
-  border-left: 2px solid white;
+  border-left: 2px solid var(--white);
   padding-left: 1em;
 }
 
@@ -328,11 +339,11 @@ body.story-page-active #main-content {
     min-height: 100vh;
     overflow: visible;
     cursor: default;
-    background-color: var(--app-bg);
+    background-color: var(--color-bg);
   }
 
   .story-main > * {
-    background-color: var(--app-bg);
+    background-color: var(--color-bg);
   }
 
   /* 책형 장식·애니메이션 제거 */
@@ -342,7 +353,7 @@ body.story-page-active #main-content {
     height: auto;
     min-height: 100vh;
     overflow: visible;
-    border-radius: 0;
+    border-radius: var(--radius-none);
     box-shadow: none;
     border: none;
     transform: none;
@@ -397,19 +408,19 @@ body.story-page-active #main-content {
     width: 30%;
   }
 
-  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩, 사이트 다크 배경 + 흰색 글자 */
+  /* 텍스트: 하단 전체 너비, 읽기 편한 패딩, 앱 테마 색으로 전환 */
   .story-book-content-R {
     width: 100%;
     height: auto;
     flex: 1;
-    padding: 2rem 1.5rem 3rem;
+    padding: var(--space-8) var(--space-6) var(--space-12);
     margin-right: 0;
     overflow: visible;
-    background-color: var(--app-bg);
+    background-color: var(--color-bg);
   }
 
   .story-book-content-R:hover {
-    background-color: var(--app-bg);
+    background-color: var(--color-bg);
   }
 
   .story-header {
@@ -417,23 +428,23 @@ body.story-page-active #main-content {
   }
 
   .story-title {
-    font-size: 2rem;
-    color: var(--app-text);
+    font-size: var(--text-2xl);
+    color: var(--color-text);
   }
 
   .story-subtitle {
-    color: var(--app-text);
-    font-weight: 600;
-    font-size: 1.25rem;
+    color: var(--color-text);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-lg);
   }
 
   .story-date {
-    color: var(--app-text-dim);
+    color: var(--color-text-dim);
   }
 
   .story-content {
     padding-top: 0;
-    color: var(--app-text);
+    color: var(--color-text);
   }
 
   .story-content p,
@@ -443,33 +454,35 @@ body.story-page-active #main-content {
   }
 
   .story-content small {
-    color: var(--app-text-muted);
+    color: var(--color-text-muted);
   }
 
-  .story-caption {
-    color: var(--app-text-dim);
+  .story-caption,
+  .story-caption p {
+    color: var(--color-text-dim);
+    border-left-color: var(--color-border);
   }
 
   .story-caption small {
-    color: var(--app-text-dim);
+    color: var(--color-text-dim);
   }
 }
 
 /* 모바일 (768px 이하) */
 @media (max-width: 768px) {
   .story-book-content-R {
-    padding: 1.5rem 1rem 2.5rem;
+    padding: var(--space-6) var(--space-4) var(--space-10);
   }
 
   .story-title {
-    font-size: 1.6rem;
+    font-size: var(--text-xl);
   }
 
   .story-subtitle {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .story-content {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 }

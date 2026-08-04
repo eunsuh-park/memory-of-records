@@ -5,6 +5,9 @@
  * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
  * 확대/축소·패닝: .niv-zoom-stage transform
  * 하단 시트: 정보 | 프로그레스 | 원상복구
+ *
+ * 색: 이 화면은 항상 어두운 배경 위에 스캔 이미지를 올리므로
+ * 테마 무관 크롬 토큰(--color-chrome*)을 쓴다 (라이트 모드에서도 동일).
  */
 
 .niv-image-container {
@@ -15,7 +18,7 @@
   justify-content: center;
   overflow: hidden;
   touch-action: none;
-  padding: 8px 8px 72px;
+  padding: var(--space-2) var(--space-2) 72px;
   box-sizing: border-box;
 }
 
@@ -23,7 +26,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: var(--space-3);
   transform-origin: center center;
   will-change: transform;
   transition: transform 0.05s linear;
@@ -35,7 +38,7 @@
   display: block;
   object-fit: contain;
   object-position: center;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: none;
   filter: var(--color-drop-shadow);
   transition: opacity 0.2s ease;
@@ -63,7 +66,7 @@
 }
 
 .niv-current-page {
-  font-weight: 700;
+  font-weight: var(--font-bold);
 }
 
 /* ========== 하단 시트 ========== */
@@ -76,17 +79,17 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.35rem;
-  width: min(420px, calc(100% - 1.5rem));
-  padding: 0.35rem 0.45rem;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.15);
+  gap: var(--space-1);
+  width: min(420px, calc(100% - var(--space-6)));
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-chrome-glass);
   border: none;
   backdrop-filter: blur(14px) saturate(1.1);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
   box-sizing: border-box;
   pointer-events: auto;
-  color: #ffffff;
+  color: var(--color-chrome-on);
 }
 
 .niv-sheet-btn,
@@ -98,10 +101,10 @@
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   background: transparent;
   background-color: transparent;
-  color: #ffffff;
+  color: var(--color-chrome-on);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -117,8 +120,8 @@
 .niv-sheet-btn:focus-visible,
 .niv-sheet-nav:hover,
 .niv-sheet-nav:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-  background-color: rgba(255, 255, 255, 0.12);
+  background: var(--color-chrome-on-hover);
+  background-color: var(--color-chrome-on-hover);
   outline: none;
 }
 
@@ -139,10 +142,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
+  gap: var(--space-1);
   min-width: 0;
-  color: #ffffff;
-  font-size: 0.82rem;
+  color: var(--color-chrome-on);
+  font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -150,11 +153,11 @@
   display: inline-flex;
   align-items: baseline;
   justify-content: center;
-  gap: 0.2rem;
+  gap: var(--space-1);
   margin: 0;
-  padding: 0.2rem 0.45rem;
+  padding: var(--space-1) var(--space-2);
   border: none !important;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent !important;
   background-color: transparent !important;
   color: inherit;
@@ -171,19 +174,19 @@
 
 .niv-sheet-progress__label:hover,
 .niv-sheet-progress__label:focus-visible {
-  background: rgba(255, 255, 255, 0.1) !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background: var(--color-chrome-on-hover) !important;
+  background-color: var(--color-chrome-on-hover) !important;
   outline: none;
 }
 
 .note-image-viewer.niv-fan-open .niv-sheet-progress__label {
-  background: rgba(255, 255, 255, 0.16) !important;
-  background-color: rgba(255, 255, 255, 0.16) !important;
+  background: var(--color-chrome-on-active) !important;
+  background-color: var(--color-chrome-on-active) !important;
 }
 
 .niv-sheet-progress__sep {
   opacity: 0.55;
-  font-weight: 400;
+  font-weight: var(--font-regular);
 }
 
 .niv-sheet-nav {
@@ -225,7 +228,7 @@
   margin: 0;
   padding: 0;
   border: none;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--color-chrome-glass);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   opacity: 0;
@@ -253,8 +256,8 @@
   top: 0;
   width: 4.5rem;
   height: 4.5rem;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-circle);
+  background: var(--color-chrome-on-hover);
   transform: translate(-50%, -50%) scale(0.4);
   opacity: 0;
   pointer-events: none;
@@ -268,7 +271,8 @@
   opacity: 1;
 }
 
-.niv-fan__item {
+/* 45도 기울인 사각 타일이라 원형이 아닌 큰 라운드를 쓴다 */
+.niv-fan .niv-fan__item {
   position: absolute;
   left: 0;
   top: 0;
@@ -279,14 +283,14 @@
   width: 5.4rem;
   height: 5.4rem;
   margin: 0;
-  padding: 0.35rem;
-  border: none !important;
-  border-radius: 1.15rem !important;
-  background: rgba(245, 245, 247, 0.72) !important;
-  background-color: rgba(245, 245, 247, 0.72) !important;
-  color: #1c242c !important;
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-xl);
+  background: var(--color-chrome-panel);
+  background-color: var(--color-chrome-panel);
+  color: var(--color-on-light);
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-md);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transform-origin: center center;
@@ -318,20 +322,20 @@
   transition-delay: calc(var(--i, 0) * 40ms);
 }
 
-.niv-fan__item:hover,
-.niv-fan__item:focus-visible {
-  background: rgba(255, 255, 255, 0.88) !important;
-  background-color: rgba(255, 255, 255, 0.88) !important;
-  outline: none !important;
+.niv-fan .niv-fan__item:hover,
+.niv-fan .niv-fan__item:focus-visible {
+  background: var(--color-chrome-panel-hover);
+  background-color: var(--color-chrome-panel-hover);
+  outline: none;
 }
 
 .niv-fan__label {
   display: block;
   transform: rotate(-45deg);
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
   line-height: 1.15;
-  color: #1c242c;
+  color: var(--color-on-light);
   text-align: center;
   letter-spacing: -0.03em;
 }
@@ -351,13 +355,13 @@
       scale(1);
   }
 
-  .niv-fan__item {
+  .niv-fan .niv-fan__item {
     width: 5rem;
     height: 5rem;
   }
 
   .niv-fan__label {
-    font-size: 0.62rem;
+    font-size: var(--text-xs);
   }
 }
 
@@ -375,10 +379,10 @@
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: 50%;
-  background: rgba(40, 46, 56, 0.5);
-  background-color: rgba(40, 46, 56, 0.5);
-  color: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-circle);
+  background: var(--color-chrome);
+  background-color: var(--color-chrome);
+  color: var(--color-chrome-on);
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -391,33 +395,33 @@
 }
 
 .niv-spread-fab[aria-pressed='true'] {
-  color: #fff;
+  color: var(--color-chrome-on);
   opacity: 1;
-  background: rgba(60, 68, 80, 0.7);
-  background-color: rgba(60, 68, 80, 0.7);
+  background: var(--color-chrome-strong);
+  background-color: var(--color-chrome-strong);
 }
 
 @media (max-width: 768px) {
   /* 노트 기본 맞춤 시 하단 시트와 안 겹치게 여백 확보 */
   .niv-image-container {
-    padding: 4px 52px calc(4.75rem + env(safe-area-inset-bottom));
+    padding: var(--space-1) 52px calc(4.75rem + env(safe-area-inset-bottom));
   }
 
   .niv-bottom-sheet {
     bottom: max(6px, env(safe-area-inset-bottom));
-    width: min(380px, calc(100% - 1.25rem));
-    padding: 0.3rem 0.4rem;
-    background: rgba(0, 0, 0, 0.15);
+    width: min(380px, calc(100% - var(--space-5)));
+    padding: var(--space-1);
+    background: var(--color-chrome-glass);
     border: none;
     backdrop-filter: blur(16px) saturate(1.1);
     -webkit-backdrop-filter: blur(16px) saturate(1.1);
-    color: #ffffff;
+    color: var(--color-chrome-on);
   }
 
   .niv-sheet-btn,
   .niv-sheet-nav,
   .niv-sheet-progress {
-    color: #ffffff;
+    color: var(--color-chrome-on);
   }
 
   .niv-sheet-btn {
@@ -428,7 +432,7 @@
   }
 
   .niv-sheet-progress {
-    font-size: 0.78rem;
+    font-size: var(--text-sm);
   }
 
   .niv-spread-fab {
@@ -438,6 +442,6 @@
 
 @media (max-width: 640px) {
   .niv-zoom-stage {
-    gap: 8px;
+    gap: var(--space-2);
   }
 }

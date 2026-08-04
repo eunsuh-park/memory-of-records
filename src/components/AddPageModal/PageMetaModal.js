@@ -5,15 +5,13 @@
  */
 
 import { render as renderButton } from '../Button/Button.js';
+import { open as openDialog } from '../Dialog/Dialog.js';
+import { render as renderField } from '../FormField/FormField.js';
 import { showToast } from '../Toast/Toast.js';
 import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
 import { recognizePageImage } from '../../services/ocr.js';
 import { requireAuth } from '../../services/auth.js';
-import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
-
-const CLOSE_ICON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>";
 
 /**
  * @param {{
@@ -24,7 +22,7 @@ const CLOSE_ICON =
  * }} options
  */
 export function openPageMetaModal(options = {}) {
-  if (document.querySelector('.page-meta-overlay')) return;
+  if (document.querySelector('.page-meta-dialog')) return;
 
   const folder = String(options.folder || '').trim();
   const pageNumber = Math.max(1, Math.floor(Number(options.pageNumber) || 1));
@@ -37,12 +35,6 @@ export function openPageMetaModal(options = {}) {
   const imageUrl =
     String(options.imageUrl || '').trim() || buildPageImageUrl(folder, pageNumber);
 
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-overlay page-meta-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-labelledby', 'page-meta-title');
-
   let saving = false;
   let ocrRunning = false;
   let publicId = '';
@@ -52,28 +44,11 @@ export function openPageMetaModal(options = {}) {
   let snapshot = { entry_date: '', ocr_text: '', visible: true };
   let loaded = false;
 
-  function closeModal() {
-    if (saving || ocrRunning) return;
-    document.removeEventListener('keydown', onKeydown);
-    overlay.remove();
-    document.body.classList.remove('add-note-open');
-  }
-
-  function onKeydown(e) {
-    if (e.key === 'Escape' && !saving && !ocrRunning) {
-      if (mode === 'edit') {
-        enterViewMode({ restore: true });
-        return;
-      }
-      closeModal();
-    }
-  }
-
   function setStatus(message, isError = false) {
     const el = overlay.querySelector('.page-meta-status');
     if (!el) return;
     el.textContent = message || '';
-    el.classList.toggle('add-note-status--error', Boolean(isError));
+    el.classList.toggle('form-status--error', Boolean(isError));
   }
 
   function readFields() {
@@ -103,7 +78,7 @@ export function openPageMetaModal(options = {}) {
   }
 
   function syncModeUi() {
-    overlay.classList.toggle('page-meta-overlay--edit', mode === 'edit');
+    overlay.classList.toggle('page-meta-dialog--edit', mode === 'edit');
     const title = overlay.querySelector('#page-meta-title');
     if (title) {
       title.textContent =
@@ -147,36 +122,41 @@ export function openPageMetaModal(options = {}) {
     return `OCR 실행 중… ${pct}%`;
   }
 
-  overlay.innerHTML = `
-    ${renderButton({
-      variant: 'icon',
-      ariaLabel: '닫기',
-      content: CLOSE_ICON,
-      className: 'add-note-close'
-    })}
-    <div class="add-note-panel page-meta-panel">
-      <header class="add-note-header">
-        <h2 id="page-meta-title" class="add-note-title">페이지 정보 · ${pageNumber}</h2>
-      </header>
-      <form class="add-note-form page-meta-form" novalidate>
-        <p class="add-note-status page-meta-status" role="status">불러오는 중…</p>
-        <label class="add-note-field">
-          <span class="add-note-label">날짜</span>
-          <input class="add-note-input" name="entry_date" type="date" disabled />
-          <span class="page-meta-date-hint page-meta-edit-hint" hidden>OCR로 채우거나 직접 입력 · 비우면 날짜 없음</span>
-        </label>
-        <div class="add-note-field">
+  const dialog = openDialog({
+    title: `페이지 정보 · ${pageNumber}`,
+    titleId: 'page-meta-title',
+    className: 'page-meta-dialog',
+    panelClassName: 'page-meta-panel',
+    canClose: () => !saving && !ocrRunning,
+    /* 수정 모드에서 ESC는 닫기 대신 보기 모드로 되돌린다 */
+    onEscape: () => {
+      if (saving || ocrRunning) return true;
+      if (mode !== 'edit') return false;
+      enterViewMode({ restore: true });
+      return true;
+    },
+    bodyHtml: `
+      <form class="form page-meta-form" novalidate>
+        <p class="form-status page-meta-status" role="status">불러오는 중…</p>
+        ${renderField({
+          type: 'custom',
+          label: '날짜',
+          children: `
+            <input class="field__input" name="entry_date" type="date" disabled />
+            <span class="page-meta-date-hint page-meta-edit-hint" hidden>OCR로 채우거나 직접 입력 · 비우면 날짜 없음</span>`
+        })}
+        <div class="field">
           <div class="page-meta-ocr-label-row">
-            <span class="add-note-label">OCR</span>
+            <span class="field__label">OCR</span>
             <div class="page-meta-ocr-actions" hidden>
               <button type="button" class="page-meta-ocr-reset-btn" disabled>리셋</button>
               <button type="button" class="page-meta-ocr-btn" disabled>이미지에서 인식</button>
             </div>
           </div>
-          <textarea class="add-note-textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
+          <textarea class="field__textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
           <span class="page-meta-date-hint page-meta-edit-hint" hidden>손글씨는 정확도가 낮을 수 있습니다. 인식 후 수정·저장하세요.</span>
         </div>
-        <label class="add-note-check">
+        <label class="form-check">
           <input type="checkbox" name="visible" checked disabled />
           <span>사이트에 표시 (visible)</span>
         </label>
@@ -186,15 +166,17 @@ export function openPageMetaModal(options = {}) {
         </div>
         <div class="page-meta-actions page-meta-actions--edit" hidden>
           <button type="button" class="add-page-secondary" data-action="cancel-edit">취소</button>
-          <button type="submit" class="add-note-submit page-meta-save-btn" disabled>저장</button>
+          ${renderButton({
+            shape: 'solid',
+            type: 'submit',
+            content: '저장',
+            className: 'page-meta-save-btn',
+            disabled: true
+          })}
         </div>
-      </form>
-    </div>
-  `;
-
-  document.body.classList.add('add-note-open');
-  document.body.appendChild(overlay);
-  document.addEventListener('keydown', onKeydown);
+      </form>`
+  });
+  const overlay = dialog.overlay;
 
   const form = overlay.querySelector('.page-meta-form');
   const dateInput = form?.querySelector('input[name="entry_date"]');
@@ -205,13 +187,6 @@ export function openPageMetaModal(options = {}) {
   const ocrResetBtn = form?.querySelector('.page-meta-ocr-reset-btn');
   const editBtn = form?.querySelector('[data-action="edit"]');
   const deleteBtn = form?.querySelector('[data-action="delete"]');
-
-  overlay.querySelector('.add-note-close')?.addEventListener('click', () => {
-    closeModal();
-  });
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal();
-  });
 
   fetchPageMeta({ folder, page: pageNumber })
     .then((meta) => {

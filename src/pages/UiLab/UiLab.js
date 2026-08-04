@@ -440,26 +440,37 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="button">
           <h2 class="ui-lab__section-title">Button</h2>
           <p class="ui-lab__section-desc">
-            공통 버튼 팩토리입니다. variant에 따라 뒤로가기·뷰어 화살표·아이콘·툴바 스타일을 만듭니다.
+            공통 버튼 팩토리입니다. 형태(shape)로 <code>circle</code> · <code>solid</code> · <code>text</code> 세 갈래를 두고,
+            circle은 size(L·M·S)와 role(fab·back·navPrev·navNext·toolbar·close)로 조합합니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/Button/Button.js</code>, <code>src/components/Button/Button.css</code></p>
           <div class="ui-lab__demo-stage ui-lab__demo-stage--nav">
-            ${renderButton({ variant: 'navPrev', ariaLabel: '이전 (데모)', content: ICON_CHEVRON })}
-            ${renderButton({ variant: 'navNext', ariaLabel: '다음 (데모)', content: ICON_CHEVRON })}
+            ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전 (데모)', content: ICON_CHEVRON })}
+            ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음 (데모)', content: ICON_CHEVRON })}
           </div>
           <div class="ui-lab__demo-stage ui-lab__demo-stage--icons">
             ${renderButton({
-              variant: 'icon',
-              ariaLabel: '아이콘 버튼 데모',
+              shape: 'circle',
+              size: 's',
+              role: 'close',
+              tone: 'ghost',
+              ariaLabel: '닫기 버튼 데모',
               content: ICON_CLOSE,
               className: 'ui-lab-demo-icon'
             })}
             ${renderButton({
-              variant: 'toolbar',
+              shape: 'circle',
+              size: 's',
+              role: 'toolbar',
               ariaLabel: '툴바 버튼 데모',
               content: MINGCUTE.edit2Fill
             })}
-            <span class="ui-lab__section-desc">icon / toolbar (위치 fixed 스타일은 실사용 맥락에서 확인)</span>
+            <span class="ui-lab__section-desc">circle S: close(ghost) / toolbar (fixed 위치 스타일은 실사용 맥락에서 확인)</span>
+          </div>
+          <div class="ui-lab__demo-stage ui-lab__demo-stage--icons">
+            ${renderButton({ shape: 'solid', content: 'solid 버튼', className: 'ui-lab-demo-solid' })}
+            ${renderButton({ shape: 'text', content: 'text 버튼' })}
+            <span class="ui-lab__section-desc">solid / text</span>
           </div>
         </section>
 

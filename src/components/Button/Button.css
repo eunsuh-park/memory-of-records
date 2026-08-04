@@ -1,6 +1,10 @@
 /**
- * 통일된 버튼 컴포넌트 스타일
- * .btn + .btn--back | .btn--back-inline | .btn--nav | .btn--icon | .btn--toolbar
+ * 공통 버튼 스타일 — 형태(shape) 기준
+ *
+ * .btn + .btn--circle | .btn--solid | .btn--text
+ *  circle 사이즈: .btn--l(52px) · .btn--m(48px, 모바일 44px) · .btn--s(32px)
+ *  circle 역할  : .btn--fab · .btn--back · .btn--back-inline · .btn--nav(+prev/next) · .btn--toolbar · .btn--close
+ *  circle 톤    : 기본(filled) · .btn--ghost(배경 없음)
  */
 
 /* 공통 리셋 */
@@ -11,30 +15,100 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ========== 뒤로가기 (좌측 상단 고정) ========== */
-.btn--back {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  z-index: 1001;
-  display: flex;
+/* ========== shape: circle ========== */
+.btn--circle {
+  box-sizing: border-box;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 48px;
-  min-height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-circle);
+  flex-shrink: 0;
+}
+
+.btn--circle.btn--l {
+  width: 3.25rem;
+  height: 3.25rem;
+  min-width: 3.25rem;
+  min-height: 3.25rem;
+}
+
+.btn--circle.btn--m {
   width: 48px;
   height: 48px;
-  padding: 0;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.btn--circle.btn--s {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* 톤: ghost — 배경 없는 버전 */
+.btn--ghost {
+  background: transparent;
+  color: inherit;
+}
+
+/* ========== role: fab (우측 하단 새 노트 추가) ========== */
+.btn--fab {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 2500;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  line-height: 0;
+  color: var(--color-primary-on);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.btn--fab svg {
+  display: block;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+}
+
+.btn--fab:hover {
+  transform: scale(1.06);
+  filter: brightness(1.05);
+  color: var(--white);
+}
+
+.btn--fab:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .btn--fab {
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+}
+
+/* ========== role: back (좌측 상단 고정) ========== */
+.btn--back {
+  position: fixed;
+  top: var(--space-4);
+  left: var(--space-4);
+  z-index: 1001;
   border: 1px solid var(--color-on-light-border, var(--color-border-light));
   background-color: var(--color-on-light-bg);
-  border-radius: 50%;
   color: var(--color-on-light);
   transition: all 0.3s ease;
 }
 
 .btn--back:hover {
   background-color: var(--color-on-light);
-  color: var(--grey-0, #fff);
+  color: var(--white);
   border-color: var(--color-on-light);
   transform: scale(1.05);
 }
@@ -47,12 +121,15 @@
 
 @media (max-width: 768px) {
   .btn--back {
-    top: max(0.75rem, env(safe-area-inset-top));
-    left: max(0.75rem, env(safe-area-inset-left));
-    min-width: 44px;
-    min-height: 44px;
+    top: max(var(--space-3), env(safe-area-inset-top));
+    left: max(var(--space-3), env(safe-area-inset-left));
+  }
+
+  .btn--circle.btn--m.btn--back {
     width: 44px;
     height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .btn--back svg {
@@ -61,26 +138,18 @@
   }
 }
 
-/* ========== 뒤로가기 (인라인, 책 내부용) ========== */
+/* ========== role: back (인라인, 책 내부용) ========== */
 .btn--back-inline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--color-on-light-border, var(--grey-200));
-  background-color: var(--color-on-light-bg, var(--grey-0));
-  border-radius: 50%;
+  border: 1px solid var(--color-on-light-border, var(--color-border));
+  background-color: var(--color-on-light-bg);
   color: var(--color-on-light);
   transition: all 0.3s ease;
-  flex-shrink: 0;
-  padding: 0;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .btn--back-inline:hover {
   background-color: var(--color-on-light);
-  color: var(--grey-0, #fff);
+  color: var(--white);
   border-color: var(--color-on-light);
   transform: scale(1.1);
 }
@@ -90,26 +159,20 @@
   height: 24px;
 }
 
-/* ========== 이전/다음 네비 (Jukebox, PDF 뷰어) ========== */
+/* ========== role: navPrev / navNext (Jukebox, 뷰어) ========== */
 .btn--nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 50;
-  padding: 12px;
-  border: none;
-  border-radius: 999px;
   background: var(--color-chrome);
   color: var(--color-chrome-on);
-  font-size: 16px;
+  font-size: var(--text-base);
   transition: background 0.2s ease, transform 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btn--nav:hover {
-  background: var(--grey-0, #fff);
+  background: var(--white);
   color: var(--color-chrome-strong);
 }
 
@@ -135,11 +198,11 @@
 }
 
 .btn--nav-prev {
-  left: 14px;
+  left: var(--space-3);
 }
 
 .btn--nav-next {
-  right: 14px;
+  right: var(--space-3);
 }
 
 .btn__nav-icon {
@@ -160,32 +223,11 @@
   transform: scaleX(-1);
 }
 
-/* ========== 아이콘 전용 (닫기 등) ========== */
-.btn--icon {
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-  padding: 0;
-}
-
-/* ========== 툴바 버튼 (PDF 페이지/줌 등) ========== */
+/* ========== role: toolbar (PDF 페이지/줌 등) ========== */
 .btn--toolbar {
-  border: none;
   background: var(--color-chrome);
   color: var(--color-chrome-on);
-  cursor: pointer;
-  border-radius: 999px;
-  font-size: 12px;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  font-size: var(--text-xs);
 }
 
 .btn--toolbar:hover {
@@ -215,4 +257,45 @@
 .pdf-toggle-spread svg,
 .niv-toggle-spread svg {
   transform: scaleY(-1);
+}
+
+/* ========== shape: solid (배경 채운 일반 버튼) ========== */
+.btn--solid {
+  width: 100%;
+  margin-top: var(--space-1);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary-on);
+  background: var(--color-primary);
+}
+
+.btn--solid:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.btn--solid:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ========== shape: text (배경 없는 회색 텍스트 버튼) ========== */
+.btn--text {
+  border: none;
+  background: transparent;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.btn--text:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.btn--text:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

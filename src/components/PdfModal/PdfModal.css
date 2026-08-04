@@ -1,16 +1,11 @@
 /**
  * PdfModal 스타일
  * 모달 및 /note/:id 전체 페이지용 PDF 뷰어
+ * (.note-detail / .note-detail-page 껍데기는 NoteDetailPage 컴포넌트로 이동)
  */
 
-.note-detail {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
 .note-cover-section {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
   text-align: center;
 }
 
@@ -18,104 +13,104 @@
   max-width: 100%;
   height: auto;
   max-height: 500px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   object-fit: contain;
   transform: scale(0.8);
 }
 
 .note-error {
   text-align: center;
-  padding: 3rem;
-  color: #999;
+  padding: var(--space-12);
+  color: var(--color-text-dim);
 }
 
 .note-header {
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-6);
+  border-bottom: 2px solid var(--color-border);
 }
 
 .note-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
-  color: #333;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  margin-bottom: var(--space-4);
+  color: var(--color-text);
 }
 
 .note-meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  color: #666;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
 }
 
 .note-period {
-  font-weight: 600;
+  font-weight: var(--font-semibold);
 }
 
 .note-separator {
-  color: #ccc;
+  color: var(--color-border);
 }
 
 .note-year {
-  color: #999;
+  color: var(--color-text-dim);
 }
 
 .note-content {
-  margin-bottom: 3rem;
+  margin-bottom: var(--space-12);
   line-height: 1.8;
 }
 
 .note-text {
-  font-size: 1.1rem;
-  color: #444;
-  margin-bottom: 2rem;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  margin-bottom: var(--space-8);
 }
 
 .note-text p {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .note-images {
   display: grid;
-  gap: 1.5rem;
-  margin-top: 2rem;
+  gap: var(--space-6);
+  margin-top: var(--space-8);
 }
 
 .note-image {
   width: 100%;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   transform: scale(0.8);
 }
 
 .note-navigation {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e0e0e0;
+  gap: var(--space-6);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
 }
 
 .note-nav-buttons {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 /* PDF 모달 오버레이 */
 .pdf-modal-overlay {
   position: fixed;
   inset: 0;
-  background: var(--color-overlay, rgba(0, 0, 0, 0.75));
+  background: var(--color-overlay);
   z-index: 3000;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px;
+  padding: var(--space-4);
   cursor: pointer;
 }
 
@@ -124,7 +119,7 @@
   width: min(1400px, 98vw);
   max-height: 95vh;
   background: transparent;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -146,19 +141,14 @@ body.pdf-modal-open {
 
 /* PDF 뷰어 */
 .pdf-viewer {
-  margin-top: 2rem;
+  margin-top: var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
   height: 100%;
 }
 
 .pdf-viewer--modal {
-  margin-top: 0;
-  flex: 1;
-}
-
-.note-detail-page .pdf-viewer {
   margin-top: 0;
   flex: 1;
 }
@@ -168,8 +158,8 @@ body.pdf-modal-open {
   position: relative;
   background: transparent;
   border: none;
-  border-radius: 18px;
-  padding: 8px;
+  border-radius: var(--radius-xl);
+  padding: var(--space-2);
   margin: 0;
   min-height: 70vh;
   display: flex;
@@ -186,7 +176,7 @@ body.pdf-modal-open {
 .pdf-canvas-container {
   position: relative;
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
   justify-content: center;
   transition: opacity 0.2s ease;
@@ -198,7 +188,7 @@ body.pdf-modal-open {
   /* 비트맵은 그대로 두고 CSS 박스로 맞춤 (전체 노출) */
   object-fit: contain;
   transition: opacity 0.2s ease;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: none;
   filter: var(--color-drop-shadow);
   flex-shrink: 0;
@@ -214,17 +204,17 @@ body.pdf-modal-open {
   display: block;
 }
 
-/* 좌우 이동 버튼: z-index 최상위 (Button 컴포넌트 사용) */
+/* 좌우 이동 버튼: z-index 최상위 (Button 컴포넌트 circle M / navPrev·navNext) */
 .pdf-canvas-wrap .btn--nav {
   z-index: 9999;
-  background: rgba(17, 24, 39, 0.6);
+  background: var(--color-chrome);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .pdf-canvas-wrap .btn--nav:hover {
-  background: white;
-  color: rgba(17, 24, 39, 0.9);
+  background: var(--white);
+  color: var(--color-chrome-strong);
 }
 
 .pdf-canvas-wrap .btn--nav:disabled:hover,
@@ -233,20 +223,15 @@ body.pdf-modal-open {
 .pdf-canvas-wrap .btn--nav.is-at-end:active,
 .pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover,
 .pdf-canvas-wrap .btn--nav[aria-disabled='true']:active {
-  background: rgba(17, 24, 39, 0.6);
-  color: #fff;
+  background: var(--color-chrome);
+  color: var(--color-chrome-on);
 }
 
 @media (max-width: 640px) {
-  .pdf-canvas-wrap .btn--nav {
-    padding: 10px 12px;
-    font-size: 14px;
-  }
-
   /* 네비 버튼이 이미지를 가리지 않도록 좌우 여백 확보 */
   .pdf-canvas-wrap {
-    padding-left: 52px;
-    padding-right: 52px;
+    padding-left: var(--space-12);
+    padding-right: var(--space-12);
     min-height: 50vh;
   }
 }
@@ -254,23 +239,25 @@ body.pdf-modal-open {
 /* PDF 모달 닫기 버튼 — 딤 위 고정, 항상 보이도록 */
 .pdf-modal-close {
   position: absolute;
-  top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
+  top: max(var(--space-3), env(safe-area-inset-top));
+  right: max(var(--space-3), env(safe-area-inset-right));
   z-index: 3010;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
-  border-radius: 999px;
-  background: rgba(17, 24, 39, 0.55);
+  border-radius: var(--radius-pill);
+  background: var(--color-chrome);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  color: #fff;
-  font-size: 20px;
+  color: var(--color-chrome-on);
+  font-size: var(--text-lg);
 }
 
 .pdf-modal-close:hover {
-  background: rgba(255, 255, 255, 0.95);
-  color: rgba(17, 24, 39, 0.9);
+  background: var(--color-on-light-bg);
+  color: var(--color-chrome-strong);
 }
 
 .pdf-modal-close svg {
@@ -279,25 +266,10 @@ body.pdf-modal-open {
   display: block;
 }
 
-/* PDF 줌/페이지 버튼 (Button toolbar variant) — 정사각 + 원형 */
+/* PDF 줌/페이지 버튼 (Button circle S / toolbar) */
 .pdf-zoom-controls .btn--toolbar,
 .pdf-page-indicator .btn--toolbar {
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  font-size: 16px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.pdf-zoom-controls .btn--toolbar svg,
-.pdf-page-indicator .btn--toolbar svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
+  font-size: var(--text-base);
 }
 
 @media (max-width: 640px) {
@@ -305,7 +277,9 @@ body.pdf-modal-open {
   .pdf-page-indicator .btn--toolbar {
     width: 28px;
     height: 28px;
-    font-size: 14px;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: var(--text-sm);
   }
 
   .pdf-zoom-controls .btn--toolbar svg,
@@ -313,7 +287,6 @@ body.pdf-modal-open {
     width: 14px;
     height: 14px;
   }
-
 }
 
 /* 모바일: 우측 하단 확대/축소 컨트롤 숨김 (핀치 줌 사용) */
@@ -331,12 +304,12 @@ body.pdf-modal-open {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: var(--color-viewer-loading, rgba(0, 0, 0, 0.35));
+  gap: var(--space-2);
+  background: var(--color-viewer-loading);
   z-index: 1;
   text-align: center;
-  padding: 16px;
-  color: rgba(255, 255, 255, 0.92);
+  padding: var(--space-4);
+  color: var(--color-chrome-on);
   pointer-events: none;
 }
 
@@ -346,13 +319,13 @@ body.pdf-modal-open {
 
 .pdf-overlay #pdf-overlay-text,
 .pdf-overlay .niv-overlay-text {
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.9rem;
+  color: var(--color-chrome-on);
+  font-size: var(--text-sm);
 }
 
 [data-theme='dark'] .pdf-overlay #pdf-overlay-text,
 [data-theme='dark'] .pdf-overlay .niv-overlay-text {
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 8px var(--color-shadow-lg);
 }
 
 .pdf-overlay-lottie {
@@ -371,80 +344,40 @@ body.pdf-modal-open {
 /* 페이지 인디케이터 */
 .pdf-page-indicator {
   position: absolute;
-  bottom: 12px;
+  bottom: var(--space-3);
   left: 50%;
   transform: translateX(-50%);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 13px;
+  color: var(--color-chrome-on);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
   z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(17, 24, 39, 0.5);
+  gap: var(--space-2);
+  background: var(--color-chrome);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .pdf-page-indicator #pdf-current-page {
-  font-weight: 700;
+  font-weight: var(--font-bold);
 }
 
 /* 줌 컨트롤 */
 .pdf-zoom-controls {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: var(--space-3);
+  right: var(--space-3);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-2);
   z-index: 2;
-  padding: 4px;
-  border-radius: 12px;
-  background: rgba(17, 24, 39, 0.4);
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
+  background: var(--color-chrome);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-}
-
-/* /note/:id 전체 페이지 + 등장 애니메이션 */
-.note-detail-page {
-  height: 100vh;
-  overflow: hidden;
-  padding: 0;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  opacity: 0;
-  transform: scale(0.98);
-  transition: none;
-}
-
-.note-detail-page.note-detail-page--mounted {
-  animation: note-detail-page-enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes note-detail-page-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.note-detail-page .note-detail {
-  height: 100%;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
