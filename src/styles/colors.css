@@ -98,6 +98,10 @@
   --color-border-light: rgba(0, 0, 0, 0.12);
 
   --color-overlay: rgba(0, 0, 0, 0.75);
+  /* 드로어 백드롭처럼 모달보다 약하게 덮는 딤 */
+  --color-overlay-soft: rgba(0, 0, 0, 0.45);
+  /* 뷰어 페이지 뒤에 아주 옅게 깔리는 스크림 */
+  --color-overlay-scrim: rgba(0, 0, 0, 0.2);
   --color-overlay-dark: rgba(17, 24, 39, 0.9);
   --color-overlay-medium: rgba(17, 24, 39, 0.75);
   --color-overlay-light: rgba(17, 24, 39, 0.5);
@@ -106,7 +110,33 @@
   /* 토스트·뷰어 화살표 등 — 테마와 무관하게 어두운 크롬 */
   --color-chrome: rgba(17, 24, 39, 0.75);
   --color-chrome-strong: rgba(17, 24, 39, 0.9);
+  --color-chrome-soft: rgba(0, 0, 0, 0.35);
   --color-chrome-on: var(--white);
+  /* 이미지 위 유리 바(뷰어 하단 시트·부채꼴 백드롭) + 그 위 버튼 상태 */
+  --color-chrome-glass: rgba(0, 0, 0, 0.15);
+  --color-chrome-on-hover: rgba(255, 255, 255, 0.12);
+  --color-chrome-on-active: rgba(255, 255, 255, 0.16);
+  /* 이미지 위 밝은 유리 패널(부채꼴 메뉴 항목) */
+  --color-chrome-panel: rgba(245, 245, 247, 0.72);
+  --color-chrome-panel-hover: rgba(255, 255, 255, 0.88);
+  /* 표지 이미지 위 반투명 흰 버튼(모바일 보기/채우기) */
+  --color-chrome-frost: rgba(255, 255, 255, 0.25);
+  --color-chrome-frost-hover: rgba(255, 255, 255, 0.32);
+
+  /* 이미지 위 회색 컨트롤(모바일 수정 pill, 필터 열림 FAB) — 테마 무관 */
+  --color-control-grey: rgba(90, 98, 110, 0.92);
+  --color-control-grey-hover: rgba(110, 118, 130, 0.95);
+
+  /* Story 책 그림자 — 종이 질감을 위한 따뜻한 색 (테마 무관 의도적 예외) */
+  --color-book-shadow: rgba(167, 121, 71, 0.3);
+  /* 책등(spine) 줄무늬·페이지 접힘 그늘 */
+  --color-book-spine: rgba(0, 0, 0, 0.75);
+  --color-book-spine-light: rgba(0, 0, 0, 0.1);
+
+  /* 유리 패널(backdrop-filter와 함께 쓰는 반투명 면) */
+  --color-glass: rgba(255, 255, 255, 0.06);
+  --color-glass-strong: rgba(255, 255, 255, 0.25);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
 
   --color-error: rgba(200, 0, 0, 0.5);
   --color-error-bg: rgba(200, 0, 0, 0.08);
@@ -117,7 +147,10 @@
   --color-shadow-lg: rgba(0, 0, 0, 0.28);
   --color-drop-shadow: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
 
+  /* 주크박스 바닥 반사 — 중앙에서 멀어질수록 옅게 (라이트 모드는 미사용) */
   --color-reflect: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
+  --color-reflect-mid: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.13));
+  --color-reflect-far: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.06));
   --color-fade-edge: linear-gradient(90deg, var(--black), transparent);
 
   /* 밝은 서피스 위 컨트롤(뒤로가기 버튼 등) */
@@ -160,6 +193,8 @@
   --color-border-light: rgba(0, 0, 0, 0.08);
 
   --color-overlay: rgba(20, 28, 36, 0.55);
+  --color-overlay-soft: rgba(20, 28, 36, 0.35);
+  --color-overlay-scrim: rgba(20, 28, 36, 0.12);
   --color-overlay-dark: rgba(255, 255, 255, 0.92);
   --color-overlay-medium: rgba(255, 255, 255, 0.8);
   --color-overlay-light: rgba(255, 255, 255, 0.65);
@@ -167,7 +202,26 @@
 
   --color-chrome: rgba(17, 24, 39, 0.75);
   --color-chrome-strong: rgba(17, 24, 39, 0.9);
+  --color-chrome-soft: rgba(0, 0, 0, 0.35);
   --color-chrome-on: var(--white);
+  --color-chrome-glass: rgba(0, 0, 0, 0.15);
+  --color-chrome-on-hover: rgba(255, 255, 255, 0.12);
+  --color-chrome-on-active: rgba(255, 255, 255, 0.16);
+  --color-chrome-panel: rgba(245, 245, 247, 0.72);
+  --color-chrome-panel-hover: rgba(255, 255, 255, 0.88);
+  --color-chrome-frost: rgba(255, 255, 255, 0.25);
+  --color-chrome-frost-hover: rgba(255, 255, 255, 0.32);
+
+  --color-control-grey: rgba(90, 98, 110, 0.92);
+  --color-control-grey-hover: rgba(110, 118, 130, 0.95);
+
+  --color-book-shadow: rgba(167, 121, 71, 0.3);
+  --color-book-spine: rgba(0, 0, 0, 0.75);
+  --color-book-spine-light: rgba(0, 0, 0, 0.1);
+
+  --color-glass: rgba(255, 255, 255, 0.45);
+  --color-glass-strong: rgba(255, 255, 255, 0.55);
+  --color-glass-border: rgba(28, 36, 44, 0.06);
 
   --color-error: rgba(180, 40, 40, 0.55);
   --color-error-bg: rgba(180, 40, 40, 0.08);

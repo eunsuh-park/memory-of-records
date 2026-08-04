@@ -5,6 +5,12 @@
  */
 
 import { render as renderButton } from '../Button/Button.js';
+import { open as openDialog } from '../Dialog/Dialog.js';
+import { render as renderField } from '../FormField/FormField.js';
+import {
+  renderPicker as renderFilePicker,
+  renderList as renderUploadList
+} from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
 import {
   convertImageDataUrlToJpeg,
@@ -20,12 +26,9 @@ import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
 import { requireAuth } from '../../services/auth.js';
-import uploadingLottieUrl from '../../uploading.json?url';
+import uploadingLottieUrl from '../../assets/uploading.json?url';
 import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
-
-const CLOSE_ICON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>";
 
 function escapeHtml(value) {
   return String(value || '')
@@ -69,7 +72,7 @@ function hideUploadingOverlay() {
  * }} [options]
  */
 export async function openAddPageModal(options = {}) {
-  if (document.querySelector('.add-page-overlay')) return;
+  if (document.querySelector('.add-page-dialog')) return;
   if (!(await requireAuth())) return;
 
   const note = options.note || {};
@@ -97,53 +100,28 @@ export async function openAddPageModal(options = {}) {
   let pages = [];
   let busy = false;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-overlay add-page-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-labelledby', 'add-page-title');
-
-  function closeModal() {
-    document.removeEventListener('keydown', onKeydown);
-    overlay.remove();
-    document.body.classList.remove('add-note-open');
-  }
-
-  function onKeydown(e) {
-    if (e.key === 'Escape' && !busy) closeModal();
-  }
+  const dialog = openDialog({
+    title: '페이지 추가',
+    titleId: 'add-page-title',
+    className: 'add-page-dialog',
+    panelClassName: 'add-page-panel',
+    canClose: () => !busy,
+    bodyHtml: '<div class="add-page-body"></div>'
+  });
+  const overlay = dialog.overlay;
+  const closeModal = dialog.close;
 
   function setStatus(message, isError = false) {
     const el = overlay.querySelector('.add-page-status');
     if (!el) return;
     el.textContent = message || '';
-    el.classList.toggle('add-note-status--error', Boolean(isError));
+    el.classList.toggle('form-status--error', Boolean(isError));
   }
 
   function renderPreviewList() {
-    const list = overlay.querySelector('.add-page-preview-list');
+    const list = overlay.querySelector('.upload-list');
     if (!list) return;
-    if (!pages.length) {
-      list.innerHTML = `<p class="add-page-empty">선택된 페이지가 없습니다. 이미지를 선택하면 미리보기가 표시됩니다.</p>`;
-      return;
-    }
-    list.innerHTML = pages
-      .map(
-        (p, index) => `
-      <li class="add-page-preview-item" data-id="${escapeHtml(p.id)}">
-        <div class="add-page-preview-num">page-${String(startPage + index).padStart(6, '0')}</div>
-        <img src="${escapeHtml(p.dataUrl)}" alt="" />
-        <div class="add-page-preview-meta">
-          <span class="add-page-preview-label">${escapeHtml(p.label || `${index + 1}`)}</span>
-          <div class="add-page-preview-actions">
-            <button type="button" class="add-page-mini-btn" data-action="up" data-id="${escapeHtml(p.id)}" ${index === 0 ? 'disabled' : ''} aria-label="위로">↑</button>
-            <button type="button" class="add-page-mini-btn" data-action="down" data-id="${escapeHtml(p.id)}" ${index === pages.length - 1 ? 'disabled' : ''} aria-label="아래로">↓</button>
-            <button type="button" class="add-page-mini-btn add-page-mini-btn--danger" data-action="remove" data-id="${escapeHtml(p.id)}" aria-label="삭제">×</button>
-          </div>
-        </div>
-      </li>`
-      )
-      .join('');
+    list.innerHTML = renderUploadList(pages, { startPage });
   }
 
   function renderBody() {
@@ -170,7 +148,7 @@ export async function openAddPageModal(options = {}) {
             <span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>
           </button>
         </div>
-        <p class="add-note-status add-page-status" role="status"></p>
+        <p class="form-status add-page-status" role="status"></p>
       `;
       return;
     }
@@ -178,20 +156,29 @@ export async function openAddPageModal(options = {}) {
     if (step === 'pdf') {
       body.innerHTML = `
         <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
-        <label class="add-note-field">
-          <span class="add-note-label">PDF 파일 <em class="add-note-req">*</em></span>
-          <label class="add-note-file-btn">
-            <span>PDF 선택</span>
-            <input type="file" name="pdfFile" accept="application/pdf,.pdf" hidden />
-          </label>
-          <span class="add-note-file-name" data-pdf-name>선택된 파일 없음</span>
-        </label>
-        <ul class="add-page-preview-list"></ul>
-        <p class="add-note-status add-page-status" role="status"></p>
+        ${renderField({
+          type: 'custom',
+          label: 'PDF 파일',
+          required: true,
+          children: renderFilePicker({
+            name: 'pdfFile',
+            pickLabel: 'PDF 선택',
+            accept: 'application/pdf,.pdf',
+            statusAttr: 'data-pdf-name'
+          })
+        })}
+        <ul class="upload-list"></ul>
+        <p class="form-status add-page-status" role="status"></p>
         <div class="add-page-footer">
           <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
-        <button type="button" class="add-note-submit add-page-submit" data-action="upload" disabled>이 순서로 업로드</button>
-      </div>
+          ${renderButton({
+            shape: 'solid',
+            content: '이 순서로 업로드',
+            className: 'add-page-submit',
+            dataset: { action: 'upload' },
+            disabled: true
+          })}
+        </div>
       `;
       renderPreviewList();
       return;
@@ -204,19 +191,32 @@ export async function openAddPageModal(options = {}) {
           ? ` (현재 ${existingCount}장 · ${existingCount + 1}번부터 이어붙임)`
           : ' (1번부터 순서대로 업로드)'
       }</p>
-      <label class="add-note-field">
-        <span class="add-note-label">이미지 파일 <em class="add-note-req">*</em> (최대 ${MAX_IMAGE_COUNT}장)</span>
-        <label class="add-note-file-btn">
-          <span data-image-pick-label>이미지 선택</span>
-          <input type="file" name="imageFiles" accept="image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif" multiple hidden />
-        </label>
-        <span class="add-note-file-name" data-image-name>아직 선택된 이미지 없음</span>
-      </label>
-      <ul class="add-page-preview-list"></ul>
-      <p class="add-note-status add-page-status" role="status"></p>
+      ${renderField({
+        type: 'custom',
+        label: `이미지 파일`,
+        required: true,
+        hint: `최대 ${MAX_IMAGE_COUNT}장`,
+        children: renderFilePicker({
+          name: 'imageFiles',
+          pickLabel: '이미지 선택',
+          accept: 'image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif',
+          multiple: true,
+          statusText: '아직 선택된 이미지 없음',
+          labelAttr: 'data-image-pick-label',
+          statusAttr: 'data-image-name'
+        })
+      })}
+      <ul class="upload-list"></ul>
+      <p class="form-status add-page-status" role="status"></p>
       <div class="add-page-footer">
         <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
-        <button type="button" class="add-note-submit add-page-submit" data-action="upload" disabled>이 순서로 업로드</button>
+        ${renderButton({
+          shape: 'solid',
+          content: '이 순서로 업로드',
+          className: 'add-page-submit',
+          dataset: { action: 'upload' },
+          disabled: true
+        })}
       </div>
     `;
     renderPreviewList();
@@ -322,9 +322,9 @@ export async function openAddPageModal(options = {}) {
 
   async function handleUpload() {
     if (!pages.length || busy) return;
+    closeModal();
     busy = true;
     updateUploadEnabled();
-    closeModal();
 
     const total = pages.length;
     let folderUrl = existingFolder;
@@ -397,32 +397,6 @@ export async function openAddPageModal(options = {}) {
     }
   }
 
-  overlay.innerHTML = `
-    ${renderButton({
-      variant: 'icon',
-      ariaLabel: '닫기',
-      content: CLOSE_ICON,
-      className: 'add-note-close'
-    })}
-    <div class="add-note-panel add-page-panel">
-      <header class="add-note-header">
-        <h2 id="add-page-title" class="add-note-title">페이지 추가</h2>
-      </header>
-      <div class="add-page-body"></div>
-    </div>
-  `;
-
-  document.body.classList.add('add-note-open');
-  document.body.appendChild(overlay);
-  document.addEventListener('keydown', onKeydown);
-
-  overlay.querySelector('.add-note-close')?.addEventListener('click', () => {
-    if (!busy) closeModal();
-  });
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay && !busy) closeModal();
-  });
-
   overlay.addEventListener('click', (e) => {
     const sourceBtn = e.target?.closest?.('[data-source]');
     if (sourceBtn) {
@@ -475,62 +449,44 @@ export async function openAddPageModal(options = {}) {
  * }} options
  */
 export function openAddPagesConfirmDialog(options = {}) {
-  if (document.querySelector('.add-page-confirm-overlay')) {
+  if (document.querySelector('.add-page-confirm-dialog')) {
     options.onCancel?.();
     return;
   }
 
   const noteName = String(options.note?.title || options.note?.name || '').trim();
+  /* 닫기 경로(딤·ESC)와 「나중에」를 구분하지 않고 취소로 취급 */
+  let confirmed = false;
 
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-overlay add-page-confirm-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-labelledby', 'add-page-confirm-title');
-
-  function close() {
-    document.removeEventListener('keydown', onKey);
-    overlay.remove();
-    document.body.classList.remove('add-note-open');
-  }
-
-  function onKey(e) {
-    if (e.key === 'Escape') {
-      close();
-      options.onCancel?.();
-    }
-  }
-
-  overlay.innerHTML = `
-    <div class="add-note-panel add-page-confirm-panel">
-      <header class="add-note-header">
-        <h2 id="add-page-confirm-title" class="add-note-title">페이지를 추가할까요?</h2>
-      </header>
+  const dialog = openDialog({
+    title: '페이지를 추가할까요?',
+    titleId: 'add-page-confirm-title',
+    className: 'add-page-confirm-dialog',
+    panelClassName: 'add-page-confirm-panel',
+    showClose: false,
+    bodyHtml: `
       <p class="add-page-confirm-text">
         ${noteName ? `<strong>${escapeHtml(noteName)}</strong> 노트에 ` : ''}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.
       </p>
       <div class="add-page-confirm-actions">
         <button type="button" class="add-page-secondary" data-choice="later">나중에</button>
-        <button type="button" class="add-note-submit" data-choice="confirm">확인</button>
-      </div>
-    </div>
-  `;
-
-  document.body.classList.add('add-note-open');
-  document.body.appendChild(overlay);
-  document.addEventListener('keydown', onKey);
-
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) {
-      close();
-      options.onCancel?.();
-      return;
+        ${renderButton({
+          shape: 'solid',
+          content: '확인',
+          className: 'add-page-confirm-ok',
+          dataset: { choice: 'confirm' }
+        })}
+      </div>`,
+    onClose: () => {
+      if (confirmed) options.onConfirm?.();
+      else options.onCancel?.();
     }
+  });
+
+  dialog.overlay.addEventListener('click', (e) => {
     const btn = e.target?.closest?.('[data-choice]');
     if (!btn) return;
-    const choice = btn.getAttribute('data-choice');
-    close();
-    if (choice === 'confirm') options.onConfirm?.();
-    else options.onCancel?.();
+    confirmed = btn.getAttribute('data-choice') === 'confirm';
+    dialog.close();
   });
 }

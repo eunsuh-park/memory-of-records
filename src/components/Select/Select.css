@@ -1,0 +1,42 @@
+/**
+ * Select 스타일
+ * .select(기본, 폼 입력과 같은 톤) · .select--pill(필터 정렬 드롭다운 톤)
+ */
+
+.select {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-2);
+  font: inherit;
+  font-size: var(--text-base);
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 필터 정렬용 pill */
+.select--pill {
+  width: auto;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-alt);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  /* 네이티브 option 드롭다운이 흰 글씨로 안 보이는 문제 방지 */
+  color-scheme: light;
+}
+
+.select--pill option {
+  color: var(--grey-dark-3);
+  background: var(--white);
+}

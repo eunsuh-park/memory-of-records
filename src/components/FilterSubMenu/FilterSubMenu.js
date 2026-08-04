@@ -11,6 +11,8 @@
  * - 모바일: 상단 접이식 네비 (캐러셀 스크롤 시 자동 접힘)
  */
 
+import { render as renderChip } from '../FilterChip/FilterChip.js';
+import { render as renderSelect } from '../Select/Select.js';
 import './FilterSubMenu.css';
 
 const SORT_OPTIONS = [
@@ -108,12 +110,13 @@ export function renderFilterSubMenu(
   const controlsHtml = controls
     ? `
     <div class="filter-controls">
-      <select class="filter-sort__select" aria-label="정렬">
-        ${SORT_OPTIONS.map(
-          (opt) =>
-            `<option value="${opt.value}" ${sortKey === opt.value ? 'selected' : ''}>${opt.label}</option>`
-        ).join('')}
-      </select>
+      ${renderSelect({
+        tone: 'pill',
+        ariaLabel: '정렬',
+        options: SORT_OPTIONS,
+        value: sortKey,
+        className: 'filter-sort__select'
+      })}
     </div>
   `
     : '';
@@ -124,26 +127,19 @@ export function renderFilterSubMenu(
         ${viewToggleHtml}
         <ul class="filter-list">
           ${filterOptions
-            .map((opt) => {
-              const isActive = selectedValue === opt.value;
-              const count = countsByFilter[opt.value] ?? 0;
-              return `
+            .map(
+              (opt) => `
               <li class="filter-item">
-                <a
-                  href="${basePath}/${opt.value}"
-                  class="filter-link filter-link--${opt.value} ${isActive ? 'active' : ''}"
-                  data-link
-                >
-                  ${
-                    opt.labelMobile
-                      ? `<span class="filter-label filter-label--desktop">${opt.label}</span><span class="filter-label filter-label--mobile">${opt.labelMobile}</span>`
-                      : `<span class="filter-label">${opt.label}</span>`
-                  }
-                  ${count > 0 ? `<span class="filter-count">${count}</span>` : ''}
-                </a>
-              </li>
-            `;
-            })
+                ${renderChip({
+                  label: opt.label,
+                  labelMobile: opt.labelMobile || '',
+                  count: countsByFilter[opt.value] ?? 0,
+                  href: `${basePath}/${opt.value}`,
+                  active: selectedValue === opt.value,
+                  className: `chip--${opt.value}`
+                })}
+              </li>`
+            )
             .join('')}
         </ul>
         ${controlsHtml}

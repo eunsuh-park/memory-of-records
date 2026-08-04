@@ -4,16 +4,16 @@
 
 .toast {
   position: fixed;
-  bottom: 3rem;
+  bottom: var(--space-12);
   left: 50%;
   transform: translateX(-50%) translateY(1rem);
-  padding: 0.75rem 1.25rem;
+  padding: var(--space-3) var(--space-5);
   background: var(--color-chrome-strong);
   color: var(--color-chrome-on);
-  font-size: 0.9rem;
-  font-weight: 500;
-  border-radius: 999px;
-  box-shadow: 0 4px 16px var(--color-shadow);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md);
   z-index: 2000;
   opacity: 0;
   transition: opacity 0.25s ease, transform 0.25s ease;

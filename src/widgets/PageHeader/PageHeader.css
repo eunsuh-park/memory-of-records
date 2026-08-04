@@ -26,13 +26,13 @@ body.story-page-active .nav-drawer-backdrop {
   display: flex;
   align-items: start;
   justify-content: space-between;
-  padding: 1rem 2rem;
-  padding-top: max(1rem, env(safe-area-inset-top));
-  background-color: var(--app-bg);
+  padding: var(--space-4) var(--space-8);
+  padding-top: max(var(--space-4), env(safe-area-inset-top));
+  background-color: var(--color-bg);
   border-bottom-left-radius: 48px;
   border-bottom-right-radius: 48px;
   max-width: 1200px;
-  width: calc(100% - 3rem);
+  width: calc(100% - var(--space-12));
   margin: 0 auto;
   box-sizing: border-box;
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -92,9 +92,9 @@ body.story-page-active .nav-drawer-backdrop {
   color: inherit;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   min-height: 44px;
-  padding: 0.25rem 0;
+  padding: var(--space-1) 0;
 }
 
 .page-header__logo:focus {
@@ -121,7 +121,7 @@ body.story-page-active .nav-drawer-backdrop {
 }
 
 .page-header__right {
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .page-header__right--mobile,
@@ -129,7 +129,7 @@ body.story-page-active .nav-drawer-backdrop {
   display: none;
 }
 
-/* Light / Dark pill 토글 */
+/* Light / Dark pill 토글 — 스위치 파랑은 팔레트에 없는 컨트롤 전용 색 */
 .theme-switch {
   --theme-switch-blue: #2f6bff;
   --theme-switch-muted: #a0a8b4;
@@ -138,7 +138,7 @@ body.story-page-active .nav-drawer-backdrop {
   height: 34px;
   padding: 0;
   border: none;
-  border-radius: 99px;
+  border-radius: var(--radius-pill);
   background: transparent !important;
   color: inherit;
   box-shadow: none;
@@ -159,7 +159,7 @@ body.story-page-active .nav-drawer-backdrop {
   left: 3px;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-circle);
   background: var(--theme-switch-blue);
   transition: left 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 0;
@@ -193,7 +193,7 @@ body.story-page-active .nav-drawer-backdrop {
 
 .theme-switch[data-theme='light'] .theme-switch__icon--sun,
 .theme-switch[data-theme='dark'] .theme-switch__icon--moon {
-  color: #ffffff;
+  color: var(--white);
 }
 
 .theme-switch__icon svg {
@@ -204,10 +204,10 @@ body.story-page-active .nav-drawer-backdrop {
 .page-header__auth-link,
 .page-header__auth-btn {
   text-decoration: none;
-  color: var(--app-text-muted);
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-weight: var(--font-medium);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
   transition: background-color 0.3s, color 0.3s;
   min-height: 44px;
   display: inline-flex;
@@ -229,14 +229,14 @@ body.story-page-active .nav-drawer-backdrop {
 .page-header__auth-link:focus,
 .page-header__auth-btn:hover,
 .page-header__auth-btn:focus {
-  color: var(--app-text);
+  color: var(--color-text);
   background-color: var(--color-surface-active);
   outline: none;
 }
 
 .page-header__story-link.active,
 .page-header__auth-link.active {
-  color: var(--app-text);
+  color: var(--color-text);
   background-color: var(--color-surface-selected);
 }
 
@@ -250,8 +250,8 @@ body.story-page-active .nav-drawer-backdrop {
 }
 
 .nav-drawer__auth {
-  margin-top: 0.35rem;
-  padding-top: 0.35rem;
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
   border-top: 1px solid var(--color-border);
 }
 
@@ -269,17 +269,12 @@ body.story-page-active .nav-drawer-backdrop {
     width: 100%;
     max-width: none;
     margin: 0;
-    padding: 0.65rem 1rem 0.95rem;
-    padding-top: max(0.65rem, env(safe-area-inset-top));
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    background-color: #2c333f;
+    padding: var(--space-2) var(--space-4) var(--space-3);
+    padding-top: max(var(--space-2), env(safe-area-inset-top));
+    border-bottom-left-radius: var(--radius-none);
+    border-bottom-right-radius: var(--radius-none);
     align-items: stretch;
     justify-content: flex-start;
-  }
-
-  [data-theme='light'] .page-header {
-    background-color: #eceff3;
   }
 
   .page-header__top {
@@ -317,6 +312,7 @@ body.story-page-active .nav-drawer-backdrop {
     max-height: 36px;
   }
 
+  /* 아이콘 버튼: 전역 button 스타일을 눌러야 해서 !important 유지 */
   .page-header__menu-btn {
     display: inline-flex;
     align-items: center;
@@ -326,21 +322,16 @@ body.story-page-active .nav-drawer-backdrop {
     margin: 0;
     padding: 0;
     border: none !important;
-    border-radius: 0;
+    border-radius: var(--radius-none);
     background: transparent !important;
     background-color: transparent !important;
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+    color: var(--color-text) !important;
+    -webkit-text-fill-color: var(--color-text) !important;
     cursor: pointer;
     box-shadow: none !important;
     outline: none;
     filter: none !important;
     opacity: 1 !important;
-  }
-
-  [data-theme='light'] .page-header__menu-btn {
-    color: #1c242c !important;
-    -webkit-text-fill-color: #1c242c !important;
   }
 
   .page-header__menu-btn:hover,
@@ -360,21 +351,17 @@ body.story-page-active .nav-drawer-backdrop {
   }
 
   .page-header__menu-btn svg path {
-    stroke: #ffffff !important;
-  }
-
-  [data-theme='light'] .page-header__menu-btn svg path {
-    stroke: #1c242c !important;
+    stroke: currentColor !important;
   }
 
   .page-header__center {
     order: 2;
     flex: 1 1 auto;
-    width: calc(100% + 2rem);
-    margin-left: -1rem;
-    margin-right: -1rem;
+    width: calc(100% + var(--space-8));
+    margin-left: calc(var(--space-4) * -1);
+    margin-right: calc(var(--space-4) * -1);
     justify-content: stretch;
-    padding: 0.35rem 0 0.55rem;
+    padding: var(--space-1) 0 var(--space-2);
     min-height: 0;
     max-height: 6rem;
     overflow: hidden;
@@ -394,7 +381,7 @@ body.story-page-active .nav-drawer-backdrop {
   }
 
   .page-header--nav-collapsed {
-    padding-bottom: 0.85rem;
+    padding-bottom: var(--space-3);
   }
 
   /* 헤더 하단 접기/펼치기 토글 — 주크박스(필터 있을 때)만 */
@@ -416,18 +403,13 @@ body.story-page-active .nav-drawer-backdrop {
     margin: 0;
     padding: 0;
     border: none;
-    border-radius: 50%;
-    background: #2c333f !important;
-    background-color: #2c333f !important;
-    color: #fff !important;
+    border-radius: var(--radius-circle);
+    /* 헤더 배경과 이어 붙은 반원처럼 보이게 같은 색 */
+    background: var(--color-bg) !important;
+    background-color: var(--color-bg) !important;
+    color: var(--color-text) !important;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  }
-
-  [data-theme='light'] .page-header__nav-toggle {
-    background: #eceff3 !important;
-    background-color: #eceff3 !important;
-    color: #1c242c !important;
+    box-shadow: var(--shadow-sm);
   }
 
   .page-header__nav-toggle svg {
@@ -453,18 +435,9 @@ body.story-page-active .nav-drawer-backdrop {
     pointer-events: auto;
   }
 
-  /* ========== 우측 드로어 ========== */
+  /* ========== 우측 드로어 (백드롭은 Dim 컴포넌트) ========== */
   .nav-drawer-backdrop {
     display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 1100;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
   }
 
   .nav-drawer {
@@ -476,35 +449,23 @@ body.story-page-active .nav-drawer-backdrop {
     z-index: 1101;
     width: min(72vw, 300px);
     height: 100%;
-    padding: max(0.85rem, env(safe-area-inset-top)) 0 max(1rem, env(safe-area-inset-bottom));
-    background: #323a48;
+    padding: max(var(--space-3), env(safe-area-inset-top)) 0
+      max(var(--space-4), env(safe-area-inset-bottom));
+    background: var(--color-bg-alt);
     box-sizing: border-box;
     transform: translateX(105%);
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  [data-theme='light'] .nav-drawer {
-    background: #f4f6f8;
   }
 
   body.nav-drawer-open .nav-drawer {
     transform: translateX(0);
   }
 
-  body.nav-drawer-open .nav-drawer-backdrop {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .nav-drawer-backdrop[hidden] {
-    display: none !important;
-  }
-
   .nav-drawer__top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.35rem 1rem 0.85rem;
+    padding: var(--space-1) var(--space-4) var(--space-3);
   }
 
   .nav-drawer__close {
@@ -516,16 +477,12 @@ body.story-page-active .nav-drawer-backdrop {
     margin: 0;
     padding: 0;
     border: none !important;
-    border-radius: 0;
+    border-radius: var(--radius-none);
     background: transparent !important;
     background-color: transparent !important;
-    color: #ffffff !important;
+    color: var(--color-text) !important;
     cursor: pointer;
     box-shadow: none !important;
-  }
-
-  [data-theme='light'] .nav-drawer__close {
-    color: #1c242c !important;
   }
 
   .nav-drawer__close svg {
@@ -533,45 +490,32 @@ body.story-page-active .nav-drawer-backdrop {
   }
 
   .nav-drawer__close svg path {
-    stroke: #ffffff !important;
-  }
-
-  [data-theme='light'] .nav-drawer__close svg path {
-    stroke: #1c242c !important;
+    stroke: currentColor !important;
   }
 
   .nav-drawer__nav {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.5rem 0;
+    gap: var(--space-1);
+    padding: var(--space-2) 0;
   }
 
   .nav-drawer__link {
     display: flex;
     align-items: center;
     min-height: 3rem;
-    padding: 0.75rem 1.25rem;
-    color: rgba(255, 255, 255, 0.78);
+    padding: var(--space-3) var(--space-5);
+    color: var(--color-text-muted);
     text-decoration: none;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: var(--text-base);
+    font-weight: var(--font-medium);
     border-left: 3px solid transparent;
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  [data-theme='light'] .nav-drawer__link {
-    color: rgba(28, 36, 44, 0.7);
-  }
-
   .nav-drawer__link.active {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-    border-left-color: var(--color-primary, #ffd966);
-  }
-
-  [data-theme='light'] .nav-drawer__link.active {
-    color: #1c242c;
-    background: rgba(28, 36, 44, 0.06);
+    color: var(--color-text);
+    background: var(--color-surface-hover);
+    border-left-color: var(--color-primary);
   }
 }

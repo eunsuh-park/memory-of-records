@@ -21,7 +21,7 @@ import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
-import { formatNoteSizeLabel } from '../../utils/noteSize.js';
+import { render as renderNoteInfoPanel } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
@@ -33,10 +33,7 @@ import './Jukebox.css';
 const ICONS = {
   close:
     "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>",
-  edit: MINGCUTE.edit2Fill,
   plus: MINGCUTE.addFill,
-  noteAdd: MINGCUTE.addFill,
-  pageAdd: MINGCUTE.fileNewFill,
   eye: MINGCUTE.eye2Fill
 };
 
@@ -614,8 +611,8 @@ export function renderJukebox() {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        ${renderButton({ variant: 'navPrev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-prev' })}
-        ${renderButton({ variant: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-prev' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
         <div class="jukebox-gallery centerized">
           <div class="jukebox-loading" role="status" aria-live="polite">
 <dotlottie-wc class="loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
@@ -673,7 +670,7 @@ function openNoteModal(note) {
   const overlay = document.createElement('div');
   overlay.className = 'pdf-modal-overlay';
   overlay.innerHTML = `
-    ${renderButton({ variant: 'icon', ariaLabel: '닫기', content: ICONS.close, className: 'pdf-modal-close' })}
+    ${renderButton({ shape: 'circle', size: 's', role: 'close', tone: 'ghost', ariaLabel: '닫기', content: ICONS.close, className: 'pdf-modal-close' })}
     <div class="pdf-modal" role="dialog" aria-modal="true">
       <div class="pdf-modal-content"></div>
     </div>
@@ -745,103 +742,8 @@ function sortNotes(notes, sortKey) {
   return list;
 }
 
-function categoryLabel(note, filterMode) {
-  if (filterMode === 'type') return note.type || note.notebookType || '';
-  return note.notebookType || note.type || '';
-}
-
 function isMobileJukebox() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
-}
-
-/**
- * @param {Object|null} note
- * @param {'period'|'type'} filterMode
- * @param {{ index?: number, total?: number, actionsOpen?: boolean }} [opts]
- */
-function renderFocusedNoteInfo(note, filterMode, opts = {}) {
-  const { index = 0, total = 0, actionsOpen = false } = opts;
-  const pager =
-    total > 0 ? `${escapeHtml(String(index + 1))} / ${escapeHtml(String(total))}` : '';
-
-  if (!note) {
-    return `<div class="jukebox-focus-info" aria-live="polite" data-actions-open="false">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
-          <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-          <div class="jukebox-focus-info__actions">
-            <button
-              type="button"
-              class="jukebox-focus-info__create"
-              aria-label="노트 추가"
-              title="노트 추가"
-            >${ICONS.noteAdd}</button>
-          </div>
-        </div>
-      </div>
-      <div class="jukebox-focus-info__mobile">
-        <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-      </div>
-    </div>`;
-  }
-
-  const title = escapeHtml(note.title || '제목 없음');
-  const category = escapeHtml(categoryLabel(note, filterMode));
-  const pages =
-    note.pageCount != null ? `${escapeHtml(String(note.pageCount))}장` : '';
-  const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
-  const memo = escapeHtml(note.description || '');
-  const noteId = escapeHtml(note.id || '');
-  const metaParts = [category, pages, size].filter(Boolean);
-
-  return `
-    <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header">
-          <h2 class="jukebox-focus-info__title">${title}</h2>
-          <div class="jukebox-focus-info__actions">
-            <button
-              type="button"
-              class="jukebox-focus-info__edit"
-              data-note-id="${noteId}"
-              aria-label="노트 정보 수정"
-              title="노트 정보 수정"
-            >${ICONS.edit}</button>
-            <button
-              type="button"
-              class="jukebox-focus-info__add"
-              data-note-id="${noteId}"
-              aria-label="페이지 추가"
-              title="페이지 추가"
-            >${ICONS.pageAdd}</button>
-            <button
-              type="button"
-              class="jukebox-focus-info__create"
-              aria-label="노트 추가"
-              title="노트 추가"
-            >${ICONS.noteAdd}</button>
-          </div>
-        </div>
-        ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
-        ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
-      </div>
-      <div class="jukebox-focus-info__mobile">
-        <p class="jukebox-focus-info__note-title">${title}</p>
-        ${
-          actionsOpen
-            ? `<button
-          type="button"
-          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"
-          data-note-id="${noteId}"
-          aria-label="수정"
-        >${ICONS.edit}<span>수정</span></button>`
-            : pager
-              ? `<span class="jukebox-focus-info__pager">${pager}</span>`
-              : ''
-        }
-      </div>
-    </div>
-  `;
 }
 
 /** 카드 위 보기/채우기 오버레이 HTML */
@@ -906,8 +808,8 @@ export function renderJukeboxWithFilter(options) {
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
       <div class="jukebox-gallery-wrap">
-        ${renderButton({ variant: 'navPrev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-prev' })}
-        ${renderButton({ variant: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-prev' })}
+        ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음', content: JUKEBOX_NAV_ICON_SVG, className: 'jukebox-nav-next' })}
         <div class="jukebox-gallery centerized">
           <div class="jukebox-loading" role="status" aria-live="polite">
             <dotlottie-wc class="loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width:300px;height:300px" autoplay loop></dotlottie-wc>
@@ -915,7 +817,7 @@ export function renderJukeboxWithFilter(options) {
           </div>
         </div>
       </div>
-      <div class="jukebox-focus-slot">${renderFocusedNoteInfo(null, filterMode)}</div>
+      <div class="jukebox-focus-slot">${renderNoteInfoPanel(null, filterMode)}</div>
     </div>
   `;
 
@@ -964,7 +866,7 @@ export function renderJukeboxWithFilter(options) {
     if (index < 0) index = 0;
     const note = list[index] || list[0] || null;
     if (focusSlot) {
-      focusSlot.innerHTML = renderFocusedNoteInfo(note, filterMode, {
+      focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
         index,
         total: list.length,
         actionsOpen: cardActionsOpen
@@ -1137,6 +1039,6 @@ export function renderJukeboxWithFilter(options) {
         sortKey
       });
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
-      if (focusSlot) focusSlot.innerHTML = renderFocusedNoteInfo(null, filterMode);
+      if (focusSlot) focusSlot.innerHTML = renderNoteInfoPanel(null, filterMode);
     });
 }

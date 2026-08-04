@@ -1,6 +1,11 @@
 /**
- * 통일된 버튼 컴포넌트
- * variant: back | backInline | navPrev | navNext | icon | toolbar
+ * 공통 버튼 컴포넌트 — 형태(shape) 기준
+ *
+ * shape
+ *  - 'circle': 원형 버튼. size('l'|'m'|'s') + role('fab'|'back'|'navPrev'|'navNext'|'toolbar'|'close')
+ *              + tone('filled'|'ghost')
+ *  - 'solid' : 배경이 채워진 일반 버튼 (제출 버튼 등)
+ *  - 'text'  : 배경 없는 회색 텍스트 버튼
  */
 
 import './Button.css';
@@ -11,47 +16,86 @@ export const BACK_ARROW_SVG = `
   </svg>
 `;
 
+/** circle role → CSS 클래스 */
+const CIRCLE_ROLE_CLASS = {
+  fab: 'btn--fab',
+  back: 'btn--back',
+  navPrev: 'btn--nav btn--nav-prev',
+  navNext: 'btn--nav btn--nav-next',
+  toolbar: 'btn--toolbar',
+  close: 'btn--close'
+};
+
+/** circle role → 기본 size (호출 시 size를 주면 그 값이 우선) */
+const CIRCLE_ROLE_SIZE = {
+  fab: 'l',
+  back: 'm',
+  navPrev: 'm',
+  navNext: 'm',
+  toolbar: 's',
+  close: 's'
+};
+
 /**
  * @param {Object} options
- * @param {'back'|'backInline'|'navPrev'|'navNext'|'icon'|'toolbar'} options.variant
- * @param {string} options.ariaLabel
+ * @param {'circle'|'solid'|'text'} [options.shape='solid']
+ * @param {'l'|'m'|'s'} [options.size] - circle 전용. 생략 시 role의 기본 사이즈
+ * @param {'fab'|'back'|'navPrev'|'navNext'|'toolbar'|'close'} [options.role] - circle 전용
+ * @param {'filled'|'ghost'} [options.tone='filled'] - circle 전용. ghost는 배경 없음
+ * @param {boolean} [options.inline=false] - role='back'의 인라인(고정 위치 없는) 버전
+ * @param {string} [options.ariaLabel]
  * @param {string} [options.id]
- * @param {string} [options.content] - inner HTML (아이콘/텍스트). back/backInline은 미지정 시 BACK_ARROW_SVG 사용
+ * @param {string} [options.content] - inner HTML (아이콘/텍스트). role='back'은 미지정 시 BACK_ARROW_SVG
  * @param {'button'|'submit'} [options.type='button']
  * @param {string} [options.className] - 추가 클래스 (예: pdf-modal-close)
  * @param {boolean} [options.dataLink] - data-link 속성 (뒤로가기 등)
+ * @param {boolean} [options.disabled]
+ * @param {Record<string, string>} [options.dataset] - data-* 속성 (예: { action: 'upload' })
  * @returns {string} HTML 문자열
  */
-export function render(options) {
+export function render(options = {}) {
   const {
-    variant,
-    ariaLabel,
+    shape = 'solid',
+    size,
+    role = '',
+    tone = 'filled',
+    inline = false,
+    ariaLabel = '',
     id = '',
     content = '',
     type = 'button',
     className = '',
-    dataLink = false
+    dataLink = false,
+    disabled = false,
+    dataset = null
   } = options;
 
-  const baseClass = 'btn';
-  let variantClass = `btn--${variant}`;
-  // navPrev/navNext → btn--nav + btn--nav-prev / btn--nav-next (CSS와 일치)
-  if (variant === 'navPrev') variantClass = 'btn--nav btn--nav-prev';
-  else if (variant === 'navNext') variantClass = 'btn--nav btn--nav-next';
-  const extra = [className].filter(Boolean).join(' ');
-  const classAttr = [baseClass, variantClass, extra].filter(Boolean).join(' ');
-  const idAttr = id ? ` id="${id}"` : '';
-  const dataLinkAttr = dataLink ? ' data-link' : '';
+  const classes = ['btn', `btn--${shape}`];
+
+  if (shape === 'circle') {
+    classes.push(`btn--${size || CIRCLE_ROLE_SIZE[role] || 'm'}`);
+    if (role === 'back' && inline) classes.push('btn--back-inline');
+    else if (CIRCLE_ROLE_CLASS[role]) classes.push(CIRCLE_ROLE_CLASS[role]);
+    if (tone === 'ghost') classes.push('btn--ghost');
+  }
+  if (className) classes.push(className);
 
   let inner = content;
-  if ((variant === 'back' || variant === 'backInline') && !inner) {
-    inner = BACK_ARROW_SVG;
-  }
-
-  if (variant === 'navPrev' || variant === 'navNext') {
-    const iconMod = variant === 'navNext' ? ' btn__nav-icon--next' : '';
+  if (role === 'back' && !inner) inner = BACK_ARROW_SVG;
+  if (role === 'navPrev' || role === 'navNext') {
+    const iconMod = role === 'navNext' ? ' btn__nav-icon--next' : '';
     inner = `<span class="btn__nav-icon${iconMod}">${inner}</span>`;
   }
 
-  return `<button type="${type}" class="${classAttr}"${idAttr} aria-label="${ariaLabel}"${dataLinkAttr}>${inner}</button>`;
+  const attrs = [
+    `type="${type}"`,
+    `class="${classes.join(' ')}"`,
+    id ? `id="${id}"` : '',
+    ariaLabel ? `aria-label="${ariaLabel}"` : '',
+    dataLink ? 'data-link' : '',
+    disabled ? 'disabled' : '',
+    ...Object.entries(dataset || {}).map(([key, value]) => `data-${key}="${value}"`)
+  ].filter(Boolean);
+
+  return `<button ${attrs.join(' ')}>${inner}</button>`;
 }

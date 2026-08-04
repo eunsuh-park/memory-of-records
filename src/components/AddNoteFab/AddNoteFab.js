@@ -8,9 +8,13 @@
  */
 
 import { render as renderButton } from '../Button/Button.js';
+import { open as openDialog } from '../Dialog/Dialog.js';
+import { render as renderField, renderColorSwatches } from '../FormField/FormField.js';
+import { renderOptions as renderSelectOptions } from '../Select/Select.js';
+import { renderPicker as renderFilePicker } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
-import { typeOptions } from '../../services/typeOptions.js';
-import { periodOptions } from '../../services/periodOptions.js';
+import { typeOptions } from '../../data/typeOptions.js';
+import { periodOptions } from '../../data/periodOptions.js';
 import {
   createNotionNote,
   cropImageDataUrlToSize,
@@ -30,11 +34,8 @@ import {
 } from '../AddPageModal/AddPageModal.js';
 import { requireAuth } from '../../services/auth.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import uploadingLottieUrl from '../../uploading.json?url';
+import uploadingLottieUrl from '../../assets/uploading.json?url';
 import './AddNoteFab.css';
-
-const CLOSE_ICON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>";
 
 const PLUS_ICON = MINGCUTE.addFill;
 
@@ -43,6 +44,7 @@ const FALLBACK_PERIODS = periodOptions.map((p) => p.label);
 const FALLBACK_COLORS = ['파랑', '빨강', '검정', '초록', '노랑', '보라', '회색', '갈색', '분홍', '흰색'];
 const FALLBACK_SIZES = ['A4', 'A5', 'A6', 'B5', 'B6', '16절', '8절', '4절'];
 
+/* 노트 표지 색상 이름 → 스와치 색. 실제 노트 색을 흉내내는 값이라 테마 토큰이 아니다 */
 const COLOR_CHIP_HEX = {
   파랑: '#4a7fcb',
   빨강: '#c94c4c',
@@ -55,6 +57,9 @@ const COLOR_CHIP_HEX = {
   분홍: '#e89bb5',
   흰색: '#f5f5f5'
 };
+
+/** 스와치가 배경에 묻히는 밝은 색 (테두리 보정) */
+const LIGHT_COLOR_NAMES = ['흰색', '노랑'];
 
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
@@ -93,48 +98,10 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
-function optionHtml(values, placeholder, selected = '') {
-  const list = [...values];
-  if (selected && !list.includes(selected)) list.push(selected);
-  const opts = [`<option value="">${escapeHtml(placeholder)}</option>`];
-  for (const v of list) {
-    const sel = v === selected ? ' selected' : '';
-    opts.push(`<option value="${escapeHtml(v)}"${sel}>${escapeHtml(v)}</option>`);
-  }
-  return opts.join('');
-}
-
 function datalistHtml(id, values) {
   return `<datalist id="${escapeHtml(id)}">${values
     .map((v) => `<option value="${escapeHtml(v)}"></option>`)
     .join('')}</datalist>`;
-}
-
-function colorHexFor(name) {
-  if (COLOR_CHIP_HEX[name]) return COLOR_CHIP_HEX[name];
-  let hash = 0;
-  const s = String(name || '');
-  for (let i = 0; i < s.length; i += 1) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
-  const hue = hash % 360;
-  return `hsl(${hue} 42% 52%)`;
-}
-
-function colorChipsHtml(colors, selected = '') {
-  const list = [...colors];
-  if (selected && !list.includes(selected)) list.push(selected);
-  return list
-    .map((name) => {
-      const hex = colorHexFor(name);
-      const checked = name === selected ? 'checked' : '';
-      const isLight = name === '흰색' || name === '노랑';
-      return `
-        <label class="add-note-color-chip${isLight ? ' add-note-color-chip--light' : ''}" title="${escapeHtml(name)}">
-          <input type="radio" name="color" value="${escapeHtml(name)}" ${checked} />
-          <span class="add-note-color-swatch" style="--chip-color:${escapeHtml(hex)}"></span>
-          <span class="add-note-color-name">${escapeHtml(name)}</span>
-        </label>`;
-    })
-    .join('');
 }
 
 function coverPreviewHtml(kind, existingUrl) {
@@ -173,15 +140,21 @@ function noteToFormSeed(note) {
 export function mountAddNoteFab(options = {}) {
   if (document.querySelector('.add-note-fab')) return;
 
-  const fab = document.createElement('button');
-  fab.type = 'button';
-  fab.className = 'add-note-fab';
-  fab.setAttribute('aria-label', '새 노트 추가');
-  fab.innerHTML = PLUS_ICON;
-  fab.addEventListener('click', () => {
+  document.body.insertAdjacentHTML(
+    'beforeend',
+    renderButton({
+      shape: 'circle',
+      size: 'l',
+      role: 'fab',
+      ariaLabel: '새 노트 추가',
+      content: PLUS_ICON,
+      className: 'add-note-fab'
+    })
+  );
+
+  document.querySelector('.add-note-fab')?.addEventListener('click', () => {
     void openAddNoteModal({ onCreated: options.onCreated });
   });
-  document.body.appendChild(fab);
 }
 
 /**
@@ -193,7 +166,7 @@ export function mountAddNoteFab(options = {}) {
  * }} [options]
  */
 export async function openAddNoteModal(options = {}) {
-  if (document.querySelector('.add-note-overlay')) return;
+  if (document.querySelector('.add-note-dialog')) return;
   if (!(await requireAuth())) return;
 
   const isEdit = options.mode === 'edit' && Boolean(options.note?.id);
@@ -211,150 +184,147 @@ export async function openAddNoteModal(options = {}) {
   const initialFrontUrl = seed?.coverFrontUrl || '';
   const initialBackUrl = seed?.coverBackUrl || '';
 
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.setAttribute('aria-labelledby', 'add-note-title');
-
-  overlay.innerHTML = `
-    ${renderButton({
-      variant: 'icon',
-      ariaLabel: '닫기',
-      content: CLOSE_ICON,
-      className: 'add-note-close'
-    })}
-    <div class="add-note-panel">
-      <header class="add-note-header">
-        <h2 id="add-note-title" class="add-note-title">${isEdit ? '노트 정보 수정' : '새 노트 추가'}</h2>
-      </header>
-      <form class="add-note-form" novalidate>
-        <label class="add-note-field">
-          <span class="add-note-label">이름 <em class="add-note-req">*</em></span>
-          <input class="add-note-input" name="name" type="text" required placeholder="예: 2026_업무노트" autocomplete="off" value="${escapeHtml(seed?.name || '')}" />
-        </label>
-
-        ${
-          isEdit
-            ? `<div class="add-note-covers add-note-covers--readonly" aria-label="표지 (수정 불가)">
-          <div class="add-note-cover-field" data-kind="front">
-            <span class="add-note-label">표지 앞면</span>
-            <span class="add-note-file-name">수정 시 표지는 변경되지 않습니다</span>
-            <div class="add-note-preview" data-preview="front" aria-hidden="true">
-              ${coverPreviewHtml('front', initialFrontUrl)}
-            </div>
-          </div>
-          <div class="add-note-cover-field" data-kind="back">
-            <span class="add-note-label">표지 뒷면</span>
-            <span class="add-note-file-name">수정 시 표지는 변경되지 않습니다</span>
-            <div class="add-note-preview" data-preview="back" aria-hidden="true">
-              ${coverPreviewHtml('back', initialBackUrl)}
-            </div>
-          </div>
+  const coverFieldHtml = (kind, required) => {
+    const label = kind === 'back' ? '표지 뒷면' : '표지 앞면';
+    const existingUrl = kind === 'back' ? initialBackUrl : initialFrontUrl;
+    const inputName = kind === 'back' ? 'coverBack' : 'coverFront';
+    const picker = isEdit
+      ? `<span class="upload-pick__status">수정 시 표지는 변경되지 않습니다</span>`
+      : renderFilePicker({
+          name: inputName,
+          accept: 'image/*',
+          pickLabel: '파일 선택'
+        });
+    return renderField({
+      type: 'custom',
+      label,
+      required: required && !isEdit,
+      className: 'add-note-cover-field',
+      children: `
+        ${picker}
+        <div class="add-note-preview" data-preview="${kind}" aria-hidden="true">
+          ${coverPreviewHtml(kind, isEdit ? existingUrl : '')}
         </div>`
-            : `<div class="add-note-covers">
-          <div class="add-note-cover-field" data-kind="front">
-            <span class="add-note-label">표지 앞면 <em class="add-note-req">*</em></span>
-            <label class="add-note-file-btn">
-              <span>파일 선택</span>
-              <input type="file" name="coverFront" accept="image/*" required hidden />
-            </label>
-            <span class="add-note-file-name">선택된 파일 없음</span>
-            <div class="add-note-preview" data-preview="front" aria-hidden="true">
-              ${coverPreviewHtml('front', '')}
-            </div>
-          </div>
-          <div class="add-note-cover-field" data-kind="back">
-            <span class="add-note-label">표지 뒷면 <em class="add-note-req">*</em></span>
-            <label class="add-note-file-btn">
-              <span>파일 선택</span>
-              <input type="file" name="coverBack" accept="image/*" required hidden />
-            </label>
-            <span class="add-note-file-name">선택된 파일 없음</span>
-            <div class="add-note-preview" data-preview="back" aria-hidden="true">
-              ${coverPreviewHtml('back', '')}
-            </div>
-          </div>
-        </div>`
-        }
+    });
+  };
 
-        <div class="add-note-row add-note-row--2">
-          <label class="add-note-field">
-            <span class="add-note-label">노트 종류 <em class="add-note-req">*</em></span>
-            <select class="add-note-select" name="notebookType" required>
-              ${optionHtml(typeOptionsList, '선택', initialType)}
-            </select>
-          </label>
-          <label class="add-note-field">
-            <span class="add-note-label">시기</span>
-            <select class="add-note-select" name="periodName">
-              ${optionHtml(periodOptionsList, '선택 (선택사항)', initialPeriod)}
-            </select>
-          </label>
+  const formHtml = `
+      <form class="form add-note-form" novalidate>
+        ${renderField({
+          label: '이름',
+          name: 'name',
+          required: true,
+          placeholder: '예: 2026_업무노트',
+          value: seed?.name || ''
+        })}
+
+        <div class="add-note-covers${isEdit ? ' add-note-covers--readonly' : ''}"${
+          isEdit ? ' aria-label="표지 (수정 불가)"' : ''
+        }>
+          ${coverFieldHtml('front', true)}
+          ${coverFieldHtml('back', true)}
         </div>
 
-        <fieldset class="add-note-field add-note-color-field">
-          <legend class="add-note-label">색상</legend>
-          <div class="add-note-color-chips" role="radiogroup" aria-label="색상">
-            ${colorChipsHtml(colorOptions, initialColor)}
-          </div>
-        </fieldset>
-
-        <label class="add-note-field">
-          <span class="add-note-label">크기</span>
-          <input
-            class="add-note-input"
-            name="size"
-            type="text"
-            list="add-note-size-list"
-            placeholder="예: A5 또는 직접 입력"
-            autocomplete="off"
-            value="${escapeHtml(initialSize)}"
-          />
-          ${datalistHtml('add-note-size-list', sizeOptions)}
-        </label>
-
-        <div class="add-note-row add-note-row--2">
-          <label class="add-note-field">
-            <span class="add-note-label">사용 시작일 <em class="add-note-req">*</em></span>
-            <input class="add-note-input" name="periodStart" type="date" required value="${escapeHtml(seed?.periodStart || '')}" />
-          </label>
-          <div class="add-note-field">
-            <span class="add-note-label">사용 종료일</span>
-            <input class="add-note-input" name="periodEnd" type="date" value="${escapeHtml(seed?.periodEnd || '')}" />
-            <label class="add-note-check add-note-check--inline">
-              <input type="checkbox" name="stillInUse" ${seed?.stillInUse ? 'checked' : ''} />
-              <span>아직 사용 중</span>
-            </label>
-          </div>
+        <div class="form-row form-row--2">
+          ${renderField({
+            type: 'select',
+            label: '노트 종류',
+            name: 'notebookType',
+            required: true,
+            placeholder: '선택',
+            options: typeOptionsList,
+            value: initialType
+          })}
+          ${renderField({
+            type: 'select',
+            label: '시기',
+            name: 'periodName',
+            placeholder: '선택 (선택사항)',
+            options: periodOptionsList,
+            value: initialPeriod
+          })}
         </div>
 
-        <label class="add-note-field">
-          <span class="add-note-label">메모</span>
-          <textarea class="add-note-textarea" name="notes" rows="4" placeholder="${escapeHtml(NOTES_PLACEHOLDER)}">${escapeHtml(seed?.notes || '')}</textarea>
-        </label>
+        ${renderField({
+          type: 'colorRadioGroup',
+          label: '색상',
+          name: 'color',
+          value: initialColor,
+          colors: colorOptions,
+          colorMap: COLOR_CHIP_HEX,
+          lightNames: LIGHT_COLOR_NAMES
+        })}
 
-        <label class="add-note-check">
+        ${renderField({
+          label: '크기',
+          name: 'size',
+          placeholder: '예: A5 또는 직접 입력',
+          value: initialSize,
+          list: 'add-note-size-list',
+          extra: datalistHtml('add-note-size-list', sizeOptions)
+        })}
+
+        <div class="form-row form-row--2">
+          ${renderField({
+            type: 'date',
+            label: '사용 시작일',
+            name: 'periodStart',
+            required: true,
+            value: seed?.periodStart || ''
+          })}
+          ${renderField({
+            type: 'custom',
+            label: '사용 종료일',
+            children: `
+              <input class="field__input" type="date" name="periodEnd" value="${escapeHtml(
+                seed?.periodEnd || ''
+              )}" autocomplete="off" />
+              <label class="form-check form-check--inline">
+                <input type="checkbox" name="stillInUse" ${seed?.stillInUse ? 'checked' : ''} />
+                <span>아직 사용 중</span>
+              </label>`
+          })}
+        </div>
+
+        ${renderField({
+          type: 'textarea',
+          label: '메모',
+          name: 'notes',
+          rows: 4,
+          placeholder: NOTES_PLACEHOLDER,
+          value: seed?.notes || ''
+        })}
+
+        <label class="form-check">
           <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
           <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
         </label>
 
-        <p class="add-note-status" hidden></p>
+        <p class="form-status add-note-status" hidden></p>
 
-        <button type="submit" class="add-note-submit">${isEdit ? '노트 수정하기' : '+ 노트 만들기'}</button>
+        ${renderButton({
+          shape: 'solid',
+          type: 'submit',
+          content: isEdit ? '노트 수정하기' : '+ 노트 만들기',
+          className: 'add-note-submit'
+        })}
       </form>
-    </div>
   `;
 
-  document.body.appendChild(overlay);
-  document.body.classList.add('add-note-open');
+  const dialog = openDialog({
+    title: isEdit ? '노트 정보 수정' : '새 노트 추가',
+    titleId: 'add-note-title',
+    className: 'add-note-dialog',
+    bodyHtml: formHtml
+  });
+  const overlay = dialog.overlay;
 
   const form = overlay.querySelector('.add-note-form');
   const statusEl = overlay.querySelector('.add-note-status');
   const submitBtn = overlay.querySelector('.add-note-submit');
   const typeSelect = form?.querySelector('select[name="notebookType"]');
   const periodSelect = form?.querySelector('select[name="periodName"]');
-  const colorChips = form?.querySelector('.add-note-color-chips');
+  const colorChips = form?.querySelector('.field__swatches');
   const sizeInput = form?.querySelector('input[name="size"]');
   const sizeList = form?.querySelector('#add-note-size-list');
   const periodEndInput = form?.querySelector('input[name="periodEnd"]');
@@ -377,15 +347,26 @@ export async function openAddNoteModal(options = {}) {
     .then((meta) => {
       if (meta?.options?.notebook_type?.length && typeSelect) {
         const prev = typeSelect.value || initialType;
-        typeSelect.innerHTML = optionHtml(meta.options.notebook_type, '선택', prev);
+        typeSelect.innerHTML = renderSelectOptions(meta.options.notebook_type, {
+          placeholder: '선택',
+          selected: prev
+        });
       }
       if (meta?.options?.period_name?.length && periodSelect) {
         const prev = periodSelect.value || initialPeriod;
-        periodSelect.innerHTML = optionHtml(meta.options.period_name, '선택 (선택사항)', prev);
+        periodSelect.innerHTML = renderSelectOptions(meta.options.period_name, {
+          placeholder: '선택 (선택사항)',
+          selected: prev
+        });
       }
       if (meta?.options?.color?.length && colorChips) {
         const prev = form.querySelector('input[name="color"]:checked')?.value || initialColor;
-        colorChips.innerHTML = colorChipsHtml(meta.options.color, prev);
+        colorChips.innerHTML = renderColorSwatches(meta.options.color, {
+          selected: prev,
+          name: 'color',
+          colorMap: COLOR_CHIP_HEX,
+          lightNames: LIGHT_COLOR_NAMES
+        });
       }
       if (meta?.options?.size?.length && sizeList) {
         sizeList.innerHTML = meta.options.size
@@ -409,39 +390,21 @@ export async function openAddNoteModal(options = {}) {
     }
     statusEl.hidden = false;
     statusEl.textContent = message;
-    statusEl.classList.toggle('add-note-status--error', isError);
+    statusEl.classList.toggle('form-status--error', isError);
   };
 
-  const closeModal = () => {
-    overlay.remove();
-    document.body.classList.remove('add-note-open');
-    document.removeEventListener('keydown', handleEscape);
-  };
-
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') closeModal();
-  };
-  document.addEventListener('keydown', handleEscape);
-
-  overlay.querySelector('.add-note-close')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeModal();
-  });
-
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal();
-  });
+  const closeModal = dialog.close;
 
   /* 파일 선택 → 미리보기 (생성 모드만) */
   if (!isEdit) {
     overlay.querySelectorAll('input[type="file"]').forEach((input) => {
       input.addEventListener('change', () => {
         const field = input.closest('.add-note-cover-field');
-        const nameEl = field?.querySelector('.add-note-file-name');
+        const nameEl = field?.querySelector('.upload-pick__status');
         const preview = field?.querySelector('.add-note-preview');
         const file = input.files?.[0];
         if (!file) {
-          const kind = field?.dataset.kind === 'back' ? 'back' : 'front';
+          const kind = preview?.dataset.preview === 'back' ? 'back' : 'front';
           if (nameEl) nameEl.textContent = '선택된 파일 없음';
           if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
           return;

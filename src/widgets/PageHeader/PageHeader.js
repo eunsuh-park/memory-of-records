@@ -12,6 +12,7 @@ import {
   setFilterSubMenuCollapsed,
   isFilterSubMenuCollapsed
 } from '../../components/FilterSubMenu/FilterSubMenu.js';
+import { render as renderDim } from '../../components/Dim/Dim.js';
 import { getSession, logout, clearSessionCache } from '../../services/auth.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { router } from '../../router.js';
@@ -23,23 +24,12 @@ const THEME_ICON_SUN =
 const THEME_ICON_MOON =
   "<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path fill='currentColor' d='M20.2 14.6A7.6 7.6 0 0 1 9.4 3.8 8.4 8.4 0 1 0 20.2 14.6Z'/></svg>";
 
-const ICON_MENU_DARK =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#ffffff' stroke-width='2' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
-const ICON_MENU_LIGHT =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#1c242c' stroke-width='2' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
+/* 아이콘 색은 CSS(--color-text)가 정하므로 currentColor로 그린다 */
+const ICON_MENU =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
 
-function menuIconSvg(theme) {
-  return theme === 'light' ? ICON_MENU_LIGHT : ICON_MENU_DARK;
-}
-
-const ICON_DRAWER_CLOSE_DARK =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
-const ICON_DRAWER_CLOSE_LIGHT =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='#1c242c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
-
-function drawerCloseIconSvg(theme) {
-  return theme === 'light' ? ICON_DRAWER_CLOSE_LIGHT : ICON_DRAWER_CLOSE_DARK;
-}
+const ICON_DRAWER_CLOSE =
+  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
 
 function getActualPath(pathname) {
   if (BASE_URL === '/') return pathname;
@@ -84,7 +74,7 @@ function setDrawerOpen(open) {
   const drawer = document.querySelector('#page-nav-drawer');
   const backdrop = document.querySelector('.nav-drawer-backdrop');
   if (drawer) drawer.setAttribute('aria-hidden', String(!open));
-  if (backdrop) backdrop.hidden = !open;
+  backdrop?.classList.toggle('is-visible', open);
 }
 
 function closeDrawer() {
@@ -121,10 +111,6 @@ function bindThemeToggles(root) {
         btn.setAttribute('aria-label', themeToggleLabel(next));
         btn.setAttribute('title', themeToggleLabel(next));
       });
-      const menuBtn = root.querySelector('[data-drawer-open]');
-      if (menuBtn) menuBtn.innerHTML = menuIconSvg(next);
-      const closeBtn = root.querySelector('.nav-drawer__close');
-      if (closeBtn) closeBtn.innerHTML = drawerCloseIconSvg(next);
     });
   });
 }
@@ -158,7 +144,7 @@ export function renderPageHeader() {
             aria-expanded="false"
             aria-controls="page-nav-drawer"
             data-drawer-open
-          >${menuIconSvg(theme)}</button>
+          >${ICON_MENU}</button>
         </div>
         <div class="page-header__right page-header__right--desktop">
           ${renderThemeSwitch(theme)}
@@ -186,7 +172,13 @@ export function renderPageHeader() {
       >${MINGCUTE.downLine}</button>
     </header>
 
-    <div class="nav-drawer-backdrop" data-drawer-close hidden></div>
+    ${renderDim({
+      tone: 'blur',
+      zIndex: 1100,
+      visible: false,
+      className: 'dim--fixed nav-drawer-backdrop',
+      dataset: { 'drawer-close': '' }
+    })}
     <aside
       class="nav-drawer"
       id="page-nav-drawer"
@@ -199,7 +191,7 @@ export function renderPageHeader() {
           class="nav-drawer__close"
           aria-label="메뉴 닫기"
           data-drawer-close
-        >${drawerCloseIconSvg(theme)}</button>
+        >${ICON_DRAWER_CLOSE}</button>
         ${renderThemeSwitch(theme, 'theme-switch nav-drawer__theme')}
       </div>
       <nav class="nav-drawer__nav">

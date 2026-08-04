@@ -1,0 +1,63 @@
+/**
+ * 사이즈·타이포 토큰
+ *
+ * 1) radius — px 유지. 글자 크기와 무관해야 자연스러운 값이라 rem으로 바꾸지 않는다.
+ * 2) spacing — rem 기준 4px(0.25rem) 그리드. 나중에 브레이크포인트별로
+ *    html { font-size } 만 조정하면 전체 여백이 비례해 줄어들 수 있도록 rem으로 통일한다.
+ * 3) shadow — offset/blur는 px, 색은 colors.css의 --color-shadow* 재사용.
+ * 4) font — 스택 2종(sans/mono) + 타입 스케일 8단계 + weight 4단계.
+ */
+
+:root {
+  /* ===== Radius ===== */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* ===== Spacing (4px 그리드) ===== */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+  --space-16: 4rem; /* 64px */
+
+  /* ===== Shadow ===== */
+  --shadow-sm: 0 2px 8px var(--color-shadow-sm);
+  --shadow-md: 0 4px 16px var(--color-shadow);
+  --shadow-lg: 0 16px 48px var(--color-shadow-lg);
+
+  /* ===== Font ===== */
+  --font-sans: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Noto Sans KR', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /*
+   * Type scale
+   * 2xs는 크기가 고정된 마이크로 라벨(모바일 헤더 칩 80×28, 푸터 고지)에만 쓴다.
+   * 본문·UI 텍스트는 xs 이상을 쓸 것.
+   */
+  --text-2xs: 0.55rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.85rem;
+  --text-base: 1rem;
+  --text-md: 1.1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.5rem;
+
+  /* Weight */
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+}
