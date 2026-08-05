@@ -158,6 +158,8 @@ body.story-page-active #main-content {
 .gallery-placeholder-icon {
   width: 40%;
   max-width: 120px;
+  /* 플레이스홀더 배경(--grey-light-2) 위에서 옅게 보이는 회색 */
+  color: var(--grey-light-7);
   pointer-events: none;
 }
 

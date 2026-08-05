@@ -7,10 +7,8 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { render as renderDim } from '../Dim/Dim.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Dialog.css';
-
-const CLOSE_ICON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><path fill='currentColor' d='M15.889 6.697a1.001 1.001 0 0 1 1.415 1.414L13.414 12l3.89 3.89a1 1 0 0 1-1.414 1.414L12 13.414l-3.889 3.89a1 1 0 1 1-1.414-1.414L10.586 12 6.697 8.11a1 1 0 0 1 1.414-1.414L12 10.586z'/></svg>";
 
 /**
  * 모달을 열고 참조를 돌려준다. 닫기 버튼·딤 클릭·ESC를 Dialog가 처리한다.
@@ -62,7 +60,7 @@ export function open(config = {}) {
             role: 'close',
             tone: 'ghost',
             ariaLabel: '닫기',
-            content: CLOSE_ICON,
+            content: MINGCUTE.closeLine,
             className: 'dialog__close'
           })
         : ''

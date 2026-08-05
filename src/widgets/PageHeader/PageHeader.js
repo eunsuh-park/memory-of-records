@@ -19,18 +19,6 @@ import { router } from '../../router.js';
 
 const BASE_URL = import.meta.env.BASE_URL || '/';
 
-const THEME_ICON_SUN =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><circle cx='12' cy='12' r='3.6' fill='currentColor'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 2.5v2.2M12 19.3V21.5M4.6 4.6l1.55 1.55M17.85 17.85l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.55-1.55M17.85 6.15l1.55-1.55'/></svg>";
-const THEME_ICON_MOON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path fill='currentColor' d='M20.2 14.6A7.6 7.6 0 0 1 9.4 3.8 8.4 8.4 0 1 0 20.2 14.6Z'/></svg>";
-
-/* 아이콘 색은 CSS(--color-text)가 정하므로 currentColor로 그린다 */
-const ICON_MENU =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' d='M4 7h16M4 12h16M4 17h16'/></svg>";
-
-const ICON_DRAWER_CLOSE =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M20 6v12M4 12h12.5m0 0-3.5-3.5M16.5 12 13 15.5'/></svg>";
-
 function getActualPath(pathname) {
   if (BASE_URL === '/') return pathname;
   const basePathWithoutTrailingSlash = BASE_URL.endsWith('/')
@@ -96,8 +84,8 @@ function renderThemeSwitch(theme, className = 'theme-switch') {
       data-theme-toggle
     >
       <span class="theme-switch__thumb" aria-hidden="true"></span>
-      <span class="theme-switch__icon theme-switch__icon--sun">${THEME_ICON_SUN}</span>
-      <span class="theme-switch__icon theme-switch__icon--moon">${THEME_ICON_MOON}</span>
+      <span class="theme-switch__icon theme-switch__icon--sun">${MINGCUTE.sunFill}</span>
+      <span class="theme-switch__icon theme-switch__icon--moon">${MINGCUTE.moonFill}</span>
     </button>
   `;
 }
@@ -144,7 +132,7 @@ export function renderPageHeader() {
             aria-expanded="false"
             aria-controls="page-nav-drawer"
             data-drawer-open
-          >${ICON_MENU}</button>
+          >${MINGCUTE.menuLine}</button>
         </div>
         <div class="page-header__right page-header__right--desktop">
           ${renderThemeSwitch(theme)}
@@ -191,7 +179,7 @@ export function renderPageHeader() {
           class="nav-drawer__close"
           aria-label="메뉴 닫기"
           data-drawer-close
-        >${ICON_DRAWER_CLOSE}</button>
+        >${MINGCUTE.arrowToRightLine}</button>
         ${renderThemeSwitch(theme, 'theme-switch nav-drawer__theme')}
       </div>
       <nav class="nav-drawer__nav">

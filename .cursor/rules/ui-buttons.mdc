@@ -19,8 +19,11 @@ alwaysApply: true
 
 - 아이콘은 **오직** `src/assets/mingcuteIcons.js`의 `MINGCUTE` 세트에서 가져온다.
 - 컴포넌트·페이지 파일에 SVG 문자열을 직접 적지 않는다. 로컬 `ICONS` 상수도 만들지 않는다.
-- 필요한 아이콘이 세트에 없으면 세트에 먼저 추가한다. 정확한 MingCute 아이콘을 못 찾으면
-  의미가 가장 가까운 기존 아이콘을 임시로 쓰고 주석에 임시라고 남긴다. 아이콘 없이 비워 두지 않는다.
+- `mingcuteIcons.js`는 자동 생성 파일이라 손으로 고치지 않는다. 아이콘을 추가·교체할 때는
+ `scripts/generate-mingcute-icons.mjs`의 `ICONS` 목록에 `{ key, name, desc }`를 넣고 `npm run icons`를 돌린다.
+ `name`은 https://icon-sets.iconify.design/mingcute/ 에서 찾은 kebab-case 이름이다.
+- 정확한 MingCute 아이콘을 못 찾으면 의미가 가장 가까운 기존 아이콘을 임시로 쓰고 주석에 임시라고 남긴다.
+ 아이콘 없이 비워 두지 않는다.
 - 아이콘은 `fill="currentColor"`라 버튼 `color`를 따른다. 아이콘에 색을 직접 박지 않는다.
 - 크기는 `Button.css`가 정한다(`circle` 기본 1.25rem, role별 override). 인라인 style로 크기를 주지 않는다.
 

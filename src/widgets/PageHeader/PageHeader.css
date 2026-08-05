@@ -198,6 +198,8 @@ body.story-page-active .nav-drawer-backdrop {
 
 .theme-switch__icon svg {
   display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .page-header__story-link,
@@ -487,6 +489,8 @@ body.story-page-active .nav-drawer-backdrop {
 
   .nav-drawer__close svg {
     display: block;
+    width: 22px;
+    height: 22px;
   }
 
   .nav-drawer__close svg path {

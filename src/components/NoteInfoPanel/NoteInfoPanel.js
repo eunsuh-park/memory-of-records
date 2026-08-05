@@ -10,12 +10,6 @@ import { formatNoteSizeLabel } from '../../utils/noteSize.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './NoteInfoPanel.css';
 
-const ICONS = {
-  edit: MINGCUTE.edit2Fill,
-  noteAdd: MINGCUTE.addFill,
-  pageAdd: MINGCUTE.fileNewFill
-};
-
 function escapeHtml(value) {
   return String(value || '')
     .replace(/&/g, '&amp;')
@@ -52,7 +46,7 @@ export function render(note, filterMode, opts = {}) {
               class="jukebox-focus-info__create"
               aria-label="노트 추가"
               title="노트 추가"
-            >${ICONS.noteAdd}</button>
+            >${MINGCUTE.addFill}</button>
           </div>
         </div>
       </div>
@@ -82,20 +76,20 @@ export function render(note, filterMode, opts = {}) {
               data-note-id="${noteId}"
               aria-label="노트 정보 수정"
               title="노트 정보 수정"
-            >${ICONS.edit}</button>
+            >${MINGCUTE.edit2Fill}</button>
             <button
               type="button"
               class="jukebox-focus-info__add"
               data-note-id="${noteId}"
               aria-label="페이지 추가"
               title="페이지 추가"
-            >${ICONS.pageAdd}</button>
+            >${MINGCUTE.fileNewFill}</button>
             <button
               type="button"
               class="jukebox-focus-info__create"
               aria-label="노트 추가"
               title="노트 추가"
-            >${ICONS.noteAdd}</button>
+            >${MINGCUTE.addFill}</button>
           </div>
         </div>
         ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
@@ -110,7 +104,7 @@ export function render(note, filterMode, opts = {}) {
           class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"
           data-note-id="${noteId}"
           aria-label="수정"
-        >${ICONS.edit}<span>수정</span></button>`
+        >${MINGCUTE.edit2Fill}<span>수정</span></button>`
             : pager
               ? `<span class="jukebox-focus-info__pager">${pager}</span>`
               : ''

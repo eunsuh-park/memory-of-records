@@ -269,12 +269,6 @@
   background-color: transparent;
 }
 
-/* book_open 아이콘 상하 보정 */
-.pdf-toggle-spread svg,
-.niv-toggle-spread svg {
-  transform: scaleY(-1);
-}
-
 /* ========== shape: solid (배경 채운 일반 버튼) ========== */
 .btn--solid {
   width: 100%;
