@@ -13,6 +13,7 @@ import {
   isFilterSubMenuCollapsed
 } from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { render as renderDim } from '../../components/Dim/Dim.js';
+import { render as renderButton } from '../../components/Button/Button.js';
 import { getSession, logout, clearSessionCache } from '../../services/auth.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { router } from '../../router.js';
@@ -36,11 +37,14 @@ function themeToggleLabel(theme) {
 
 function isNotesPath(path) {
   return (
-    path === '/' ||
     path.startsWith('/timeline') ||
     path.startsWith('/by-type') ||
     path.startsWith('/note/')
   );
+}
+
+function isLandingPath(path) {
+  return path === '/';
 }
 
 function syncNavToggle(header) {
@@ -109,14 +113,66 @@ export function renderPageHeader() {
 
   const currentPath = getActualPath(window.location.pathname);
   const theme = getStoredTheme();
+  const landingActive = isLandingPath(currentPath);
   const notesActive = isNotesPath(currentPath);
   const storyActive = currentPath.startsWith('/story');
   const loginActive = currentPath.startsWith('/login');
 
   closeDrawer();
 
+  const landingNavDesktop = landingActive
+    ? `
+          <nav class="page-header__marketing" aria-label="제품 안내">
+            <a href="#features" class="page-header__marketing-link" data-landing-anchor="features">기능</a>
+            <a href="#demo" class="page-header__marketing-link" data-landing-anchor="demo">데모</a>
+          </nav>`
+    : '';
+
+  const landingCtaDesktop = landingActive
+    ? renderButton({
+        shape: 'solid',
+        className: 'page-header__waitlist-btn',
+        content: `${MINGCUTE.mailSendLine}<span>얼리 액세스</span>`,
+        ariaLabel: '얼리 액세스',
+        dataset: { 'landing-anchor': 'waitlist' }
+      })
+    : `
+          <a
+            href="/story"
+            class="page-header__story-link ${storyActive ? 'active' : ''}"
+            data-link
+          >
+            Story
+          </a>`;
+
+  const drawerNav = landingActive
+    ? `
+        <a href="#features" class="nav-drawer__link" data-landing-anchor="features" data-drawer-close>기능</a>
+        <a href="#demo" class="nav-drawer__link" data-landing-anchor="demo" data-drawer-close>데모</a>
+        ${renderButton({
+          shape: 'text',
+          className: 'nav-drawer__link nav-drawer__link--btn',
+          content: `${MINGCUTE.mailSendLine}<span>얼리 액세스</span>`,
+          ariaLabel: '얼리 액세스',
+          dataset: { 'landing-anchor': 'waitlist', 'drawer-close': '' }
+        })}
+        <a href="/story" class="nav-drawer__link ${storyActive ? 'active' : ''}" data-link data-drawer-close>Story</a>`
+    : `
+        <a
+          href="/timeline"
+          class="nav-drawer__link ${notesActive ? 'active' : ''}"
+          data-link
+          data-drawer-close
+        >Notes</a>
+        <a
+          href="/story"
+          class="nav-drawer__link ${storyActive ? 'active' : ''}"
+          data-link
+          data-drawer-close
+        >Story</a>`;
+
   container.innerHTML = `
-    <header class="page-header">
+    <header class="page-header${landingActive ? ' page-header--landing' : ''}">
       <div class="page-header__top">
         <div class="page-header__left">
           <a href="/" class="page-header__logo" data-link>
@@ -135,15 +191,10 @@ export function renderPageHeader() {
           >${MINGCUTE.menuLine}</button>
         </div>
         <div class="page-header__right page-header__right--desktop">
+          ${landingNavDesktop}
           ${renderThemeSwitch(theme)}
           <span class="page-header__auth" data-auth-slot></span>
-          <a
-            href="/story"
-            class="page-header__story-link ${storyActive ? 'active' : ''}"
-            data-link
-          >
-            Story
-          </a>
+          ${landingCtaDesktop}
         </div>
       </div>
       <div class="page-header__center" id="sub-menu">
@@ -183,18 +234,7 @@ export function renderPageHeader() {
         ${renderThemeSwitch(theme, 'theme-switch nav-drawer__theme')}
       </div>
       <nav class="nav-drawer__nav">
-        <a
-          href="/timeline"
-          class="nav-drawer__link ${notesActive ? 'active' : ''}"
-          data-link
-          data-drawer-close
-        >Notes</a>
-        <a
-          href="/story"
-          class="nav-drawer__link ${storyActive ? 'active' : ''}"
-          data-link
-          data-drawer-close
-        >Story</a>
+        ${drawerNav}
         <div class="nav-drawer__auth" data-auth-slot-drawer></div>
       </nav>
     </aside>
@@ -295,4 +335,21 @@ export function renderPageHeader() {
 
   /* FilterSubMenu 리렌더 후에도 헤더 토글 상태 동기화 */
   window.__syncPageHeaderNavToggle = () => syncNavToggle(header);
+
+  container.querySelectorAll('[data-landing-anchor]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      const id = el.getAttribute('data-landing-anchor');
+      if (!id) return;
+      e.preventDefault();
+      closeDrawer();
+      if (!isLandingPath(getActualPath(window.location.pathname))) {
+        router.navigate('/');
+        requestAnimationFrame(() => {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return;
+      }
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
 }

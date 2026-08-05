@@ -40,7 +40,15 @@ const ICONS = [
   { key: 'arrowToRightLine', name: 'arrow-to-right-line', desc: '우측 드로어 닫기' },
   { key: 'sunFill', name: 'sun-fill', desc: '테마 스위치 · 라이트' },
   { key: 'moonFill', name: 'moon-fill', desc: '테마 스위치 · 다크' },
-  { key: 'pic2Fill', name: 'pic-2-fill', desc: '이미지 플레이스홀더' }
+  { key: 'pic2Fill', name: 'pic-2-fill', desc: '이미지 플레이스홀더' },
+  { key: 'rightLine', name: 'right-line', desc: '오른쪽 화살표 (CTA · 다음)' },
+  { key: 'mailSendLine', name: 'mail-send-line', desc: '대기열 · 메일 보내기' },
+  { key: 'calendarLine', name: 'calendar-line', desc: '시기별 보기' },
+  { key: 'foldersLine', name: 'folders-line', desc: '유형별 보기' },
+  { key: 'pdfLine', name: 'pdf-line', desc: 'PDF · 갤러리 보기' },
+  { key: 'scanLine', name: 'scan-line', desc: '스캔 단계' },
+  { key: 'classify2Line', name: 'classify-2-line', desc: '정리 단계' },
+  { key: 'book5Line', name: 'book-5-line', desc: '다시 읽기 단계' }
 ];
 
 const res = await fetch(`${API}?icons=${ICONS.map((icon) => icon.name).join(',')}`);

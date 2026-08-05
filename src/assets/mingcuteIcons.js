@@ -84,5 +84,37 @@ export const MINGCUTE = {
 
   /** 이미지 플레이스홀더 · mingcute:pic-2-fill */
   pic2Fill:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm18 8.686l-4.172-4.171a1 1 0 0 0-1.414 0L4.93 19H4V5h16zM6 8.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0' clip-rule='evenodd'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm18 8.686l-4.172-4.171a1 1 0 0 0-1.414 0L4.93 19H4V5h16zM6 8.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0' clip-rule='evenodd'/></svg>",
+
+  /** 오른쪽 화살표 (CTA · 다음) · mingcute:right-line */
+  rightLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9.343 6.343L15 12l-5.657 5.657'/></svg>",
+
+  /** 대기열 · 메일 보내기 · mingcute:mail-send-line */
+  mailSendLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-width='2' d='m3 6.5l8.68 7.233a.5.5 0 0 0 .64 0L21 6.5M2 11h2m-3 3h5M3 7V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1'/></svg>",
+
+  /** 시기별 보기 · mingcute:calendar-line */
+  calendarLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M17 4a1 1 0 1 0-2 0zm-2 2a1 1 0 1 0 2 0zM9 4a1 1 0 0 0-2 0zM7 6a1 1 0 0 0 2 0zM5 6v1h14V5H5zm15 1h-1v12h2V7zm-1 13v-1H5v2h14zM4 19h1V7H3v12zm0-8v1h16v-2H4zm12-7h-1v2h2V4zM8 4H7v2h2V4zM5 20v-1H3a2 2 0 0 0 2 2zm15-1h-1v2a2 2 0 0 0 2-2zM19 6v1h2a2 2 0 0 0-2-2zM5 6V5a2 2 0 0 0-2 2h2z'/></svg>",
+
+  /** 유형별 보기 · mingcute:folders-line */
+  foldersLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M17 16h3a1 1 0 0 0 1-1V7.5a1 1 0 0 0-1-1h-4.52a1 1 0 0 1-.78-.375l-1.4-1.75A1 1 0 0 0 12.52 4H8a1 1 0 0 0-1 1v3m1.52 0H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7.5a1 1 0 0 0-1-1h-4.52a1 1 0 0 1-.78-.375l-1.4-1.75A1 1 0 0 0 8.52 8Z'/></svg>",
+
+  /** PDF · 갤러리 보기 · mingcute:pdf-line */
+  pdfLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linejoin='round' stroke-width='2' d='M13 3v5.5a.5.5 0 0 0 .5.5H19m-7 3l-.074.468a6 6 0 0 1-2.156 3.734l-.368.298l.442-.17a6 6 0 0 1 4.31 0l.444.17l-.37-.299a6 6 0 0 1-2.155-3.732zm1.586-9H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.414a1 1 0 0 0-.293-.707l-4.414-4.414A1 1 0 0 0 13.586 3Z'/></svg>",
+
+  /** 스캔 단계 · mingcute:scan-line */
+  scanLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-width='2' d='M4 8V5a1 1 0 0 1 1-1h4M4 16v3a1 1 0 0 0 1 1h4M20 8V5a1 1 0 0 0-1-1h-4m5 12v3a1 1 0 0 1-1 1h-4M4 12h16'/></svg>",
+
+  /** 정리 단계 · mingcute:classify-2-line */
+  classify2Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M17.707 3.465a1 1 0 0 0-1.414 0l-2.828 2.828a1 1 0 0 0 0 1.415l2.828 2.828a1 1 0 0 0 1.414 0l2.828-2.828a1 1 0 0 0 0-1.415zM10 5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1zm10 10a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1zm-10 0a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1z'/></svg>",
+
+  /** 다시 읽기 단계 · mingcute:book-5-line */
+  book5Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M4 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm4.01 0a1 1 0 0 1 1-1H11a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9.01a1 1 0 0 1-1-1zm4.988.79a1 1 0 0 1 .707-1.224l1.931-.518a1 1 0 0 1 1.225.707l4.141 15.455a1 1 0 0 1-.707 1.224l-1.932.518a1 1 0 0 1-1.224-.707z'/></svg>"
 };

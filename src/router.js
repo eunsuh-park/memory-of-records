@@ -5,6 +5,7 @@
 import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
 import { renderStory } from './pages/Story/Story.js';
+import { renderLanding } from './pages/Landing/Landing.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 import { renderUiLab } from './pages/UiLab/UiLab.js';
 import { renderLogin } from './pages/Login/Login.js';
@@ -15,7 +16,7 @@ const BASE_URL = import.meta.env.BASE_URL || '/';
 class Router {
   constructor() {
     this.routes = [
-      { path: '/', handler: () => renderTimeline(null) },
+      { path: '/', handler: () => renderLanding() },
       { path: '/timeline', handler: () => renderTimeline(null) },
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/by-type', handler: () => renderByType(null) },
@@ -92,12 +93,20 @@ class Router {
       document.documentElement.classList.remove('story-page-active');
       document.body.classList.remove('story-page-active');
     }
+    if (path !== '/') {
+      if (typeof mainContent.__landingCleanup === 'function') {
+        mainContent.__landingCleanup();
+        mainContent.__landingCleanup = null;
+      }
+      document.documentElement.classList.remove('landing-page-active');
+      document.body.classList.remove('landing-page-active');
+    }
     if (!path.startsWith('/note/')) {
       document.body.classList.remove('note-detail-modal');
     }
 
     // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type 통합 페이지에서 사용)
-    const isNotesPage = path === '/' || path.startsWith('/timeline') || path.startsWith('/by-type');
+    const isNotesPage = path.startsWith('/timeline') || path.startsWith('/by-type');
     if (!isNotesPage) {
       document.body.classList.remove('jukebox-active', 'filter-nav-collapsed', 'filter-nav-open');
       mainContent?.classList.remove('jukebox-active');
