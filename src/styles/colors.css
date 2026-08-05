@@ -112,11 +112,11 @@
   --color-chrome-strong: rgba(17, 24, 39, 0.9);
   --color-chrome-soft: rgba(0, 0, 0, 0.35);
   --color-chrome-on: var(--white);
-  /* 이미지 위 유리 바(뷰어 하단 시트·부채꼴 백드롭) + 그 위 버튼 상태 */
+  /* 이미지 위 유리 바(뷰어 하단 시트) + 그 위 버튼 상태 */
   --color-chrome-glass: rgba(0, 0, 0, 0.15);
   --color-chrome-on-hover: rgba(255, 255, 255, 0.12);
   --color-chrome-on-active: rgba(255, 255, 255, 0.16);
-  /* 이미지 위 밝은 유리 패널(부채꼴 메뉴 항목) */
+  /* 이미지 위 밝은 유리 패널 */
   --color-chrome-panel: rgba(245, 245, 247, 0.72);
   --color-chrome-panel-hover: rgba(255, 255, 255, 0.88);
   /* 표지 이미지 위 반투명 흰 버튼(모바일 보기/채우기) */

@@ -37,7 +37,7 @@ Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에
 | `--color-border` | 두 테마 모두 grey 8단계 |
 | `--color-primary` | 다크 `primary-3`, 라이트 `primary-5`. `-on`은 두 테마 모두 `grey-dark-3` 고정 |
 | `--color-overlay-*`, `--color-shadow-*`, `--color-surface-*` | 합성이 목적이라 grey 참조 대신 테마별 알파값을 직접 정의 |
-| `--color-chrome-*` | 두 테마 값이 **동일**. 스캔 이미지 위에 얹혀 항상 어두운 배경을 전제하는 것들(뷰어 시트·부채꼴 메뉴·화살표)의 의도적 예외 |
+| `--color-chrome-*` | 두 테마 값이 **동일**. 스캔 이미지 위에 얹혀 항상 어두운 배경을 전제하는 것들(뷰어 시트·화살표)의 의도적 예외 |
 
 의도적 예외가 하나 더 있습니다. Story의 데스크톱 책 지면(`--color-book-*`, `--white`/`--grey-light-*` 직접 참조)은 테마와 무관하게 "종이"여야 해서 semantic을 쓰지 않습니다. 타블렛(≤1024px) 이하에서 책형 장식을 버릴 때 앱 테마 토큰으로 전환합니다.
 
@@ -51,7 +51,7 @@ Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에
 | `--radius-sm` | 4px | 인라인 코드·미니 버튼·스크롤바 |
 | `--radius-md` | 8px | 폼 입력·카드·패널 기본 |
 | `--radius-lg` | 12px | 모달 패널·데모 스테이지 등 큰 면 |
-| `--radius-xl` | 16px | 부채꼴 메뉴 항목, Story 책 프레임 |
+| `--radius-xl` | 16px | Story 책 프레임, Login 패널 |
 | `--radius-pill` | 999px | 칩·토스트·테마 토글 |
 | `--radius-circle` | 50% | 원형 버튼(FAB·네비·툴바) |
 
@@ -101,6 +101,8 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 - `shape: 'solid'` — 배경이 채워진 일반 버튼. 폼 제출(노트 만들기, 로그인, 페이지 업로드)이 여기입니다.
 - `shape: 'text'` — 배경 없는 회색 텍스트 버튼. hover 시 색만 진해집니다. 아직 실사용처는 없고 골격만 있습니다.
 
+두 가지는 규칙으로 못 박아 뒀습니다(`.cursor/rules/ui-buttons.mdc`). 버튼은 `<button>`을 직접 쓰지 않고 항상 이 팩토리를 거치며, 아이콘 버튼의 내용은 공용 MingCute 세트(`src/assets/mingcuteIcons.js`)에서만 가져옵니다. 컴포넌트 파일에 SVG를 직접 적거나 파일마다 `ICONS` 상수를 만들지 않고, 세트에 없는 아이콘은 세트에 추가한 뒤 이름으로 참조합니다. 아이콘 크기는 `Button.css`가 정합니다(circle 기본 1.25rem, role별 override).
+
 Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip).
 
 **FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, 라벨 + 개수 + 선택 상태(`.is-active`)를 가진 탭형 칩입니다. `--m`/`--s` 두 사이즈가 있고 좁은 화면용 짧은 라벨(`labelMobile`)을 함께 받습니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
@@ -131,7 +133,7 @@ Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보�
 
 **AddPageModal**은 `src/components/AddPageModal/AddPageModal.js`와 공통 스타일 `AddPageModal.css`로 PDF/이미지 페이지 추가를 처리합니다. `insertAfterPage`로 현재 페이지 다음에 삽입할 수 있습니다. 같은 폴더의 **PageMetaModal**(`PageMetaModal.js`)은 읽기 전용으로 연 뒤, 수정 모드 진입 시에만 로그인을 요구합니다. 삭제 버튼은 준비 중 토스트만 띄웁니다. 두 파일은 모달 껍데기를 Dialog로 옮긴 뒤로 서로 공유하는 코드가 없지만, 스타일 시트(`AddPageModal.css`)를 아직 함께 쓰고 있어 폴더는 분리하지 않았습니다.
 
-**NoteImageViewer**는 `src/components/NoteImageViewer/NoteImageViewer.js` · `NoteImageViewer.css`로 Cloudinary 페이지 이미지를 보여 줍니다. 하단 시트와 페이지 번호 롱프레스 부채꼴 메뉴(페이지 추가)가 여기에 있습니다.
+**NoteImageViewer**는 `src/components/NoteImageViewer/NoteImageViewer.js` · `NoteImageViewer.css`로 Cloudinary 페이지 이미지를 보여 줍니다. 컨트롤 마크업은 `ViewerChrome.js`로 분리했고, 좌우 페이지 이동은 circle M / navPrev·navNext, 하단 시트(정보 · 페이지 추가 · 처음/마지막 이동 · 뷰 원상복구)는 circle S / toolbar / ghost, 양면 토글은 circle S / toolbar입니다. 아이콘은 전부 MingCute 세트에서 가져오고, `/ui-lab`의 뷰어 크롬 데모가 같은 함수를 재사용합니다.
 
 **PdfModal**은 `src/components/PdfModal/PdfModal.js` · `PdfModal.css`로 PDF 폴백 뷰어이자 뷰어 레이아웃 스타일의 기반입니다.
 

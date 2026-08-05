@@ -6,6 +6,10 @@
  *              + tone('filled'|'ghost')
  *  - 'solid' : 배경이 채워진 일반 버튼 (제출 버튼 등)
  *  - 'text'  : 배경 없는 회색 텍스트 버튼
+ *
+ * 아이콘 버튼의 content는 반드시 공용 MingCute 세트(src/assets/mingcuteIcons.js)에서 가져온다.
+ * 컴포넌트 파일에 SVG를 직접 적지 말고, 없는 아이콘은 세트에 추가한 뒤 쓴다.
+ * 규칙: .cursor/rules/ui-buttons.mdc · 실물 예시: /ui-lab
  */
 
 import './Button.css';
@@ -44,6 +48,8 @@ const CIRCLE_ROLE_SIZE = {
  * @param {'filled'|'ghost'} [options.tone='filled'] - circle 전용. ghost는 배경 없음
  * @param {boolean} [options.inline=false] - role='back'의 인라인(고정 위치 없는) 버전
  * @param {string} [options.ariaLabel]
+ * @param {string} [options.title] - 마우스 툴팁
+ * @param {boolean} [options.ariaPressed] - 토글 버튼의 초기 상태
  * @param {string} [options.id]
  * @param {string} [options.content] - inner HTML (아이콘/텍스트). role='back'은 미지정 시 BACK_ARROW_SVG
  * @param {'button'|'submit'} [options.type='button']
@@ -61,6 +67,8 @@ export function render(options = {}) {
     tone = 'filled',
     inline = false,
     ariaLabel = '',
+    title = '',
+    ariaPressed = null,
     id = '',
     content = '',
     type = 'button',
@@ -92,6 +100,8 @@ export function render(options = {}) {
     `class="${classes.join(' ')}"`,
     id ? `id="${id}"` : '',
     ariaLabel ? `aria-label="${ariaLabel}"` : '',
+    title ? `title="${title}"` : '',
+    ariaPressed === null ? '' : `aria-pressed="${ariaPressed ? 'true' : 'false'}"`,
     dataLink ? 'data-link' : '',
     disabled ? 'disabled' : '',
     ...Object.entries(dataset || {}).map(([key, value]) => `data-${key}="${value}"`)

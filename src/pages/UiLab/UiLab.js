@@ -4,14 +4,10 @@
  */
 
 import { render as renderButton } from '../../components/Button/Button.js';
+import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './UiLab.css';
-
-const ICON_CHEVRON =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M15 6 9 12l6 6'/></svg>";
-const ICON_CLOSE =
-  "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M6 6l12 12M18 6 6 18'/></svg>";
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const STEPS_6 = [1, 2, 3, 4, 5, 6];
@@ -148,14 +144,14 @@ const RESPONSIVE_MATRIX = [
     points: '768 · 640px',
     mobile: [
       '이미지 컨테이너 좌우 52px 여백 — 네비 버튼과 겹침 회피',
-      '하단 시트 min(380px, 100% - 1.25rem) · 버튼 2.15rem',
-      '부채꼴 메뉴 아이템 5rem · ≤640px에서 zoom stage gap 12 → 8px'
+      '하단 시트 min(380px, 100% - 1.25rem) · 시트 버튼 2.15rem',
+      '≤640px에서 zoom stage gap 12 → 8px'
     ],
     tablet: ['데스크톱과 동일'],
     desktop: [
       '이미지 컨테이너 padding 8px 8px 72px',
-      '하단 시트 min(420px, 100% - 1.5rem) · 버튼 2.35rem',
-      'spread FAB 2.2rem · 부채꼴 아이템 5.4rem'
+      '하단 시트 min(420px, 100% - 1.5rem) · 시트 버튼 2.35rem · 처음/마지막 1.85rem',
+      'spread FAB 2.2rem'
     ]
   },
   {
@@ -299,6 +295,41 @@ function renderSwatchGroup({ title, names }) {
     </div>`;
 }
 
+/**
+ * 버튼에 넣을 수 있는 아이콘 목록. 여기 없는 아이콘이 필요하면 세트에 먼저 추가한다.
+ * @returns {string}
+ */
+function renderIconGrid() {
+  return Object.entries(MINGCUTE)
+    .map(
+      ([name, svg]) => `
+      <div class="ui-lab__icon-cell">
+        <span class="ui-lab__icon-preview">${svg}</span>
+        <p class="ui-lab__icon-name">${name}</p>
+      </div>`
+    )
+    .join('');
+}
+
+/**
+ * 라벨 + 데모 스테이지 한 줄. flow는 fixed·absolute role을 흐름대로 눕혀 보여준다.
+ * @param {string} label
+ * @param {string} demoHtml
+ * @param {{ flow?: boolean, stageClass?: string }} [options]
+ * @returns {string}
+ */
+function renderVariantRow(label, demoHtml, options = {}) {
+  const { flow = true, stageClass = '' } = options;
+  const classes = ['ui-lab__demo-stage'];
+  if (flow) classes.push('ui-lab__demo-stage--flow');
+  if (stageClass) classes.push(stageClass);
+  return `
+    <div class="ui-lab__variant">
+      <p class="ui-lab__variant-label">${label}</p>
+      <div class="${classes.join(' ')}">${demoHtml}</div>
+    </div>`;
+}
+
 function renderBandColumn(entry, band) {
   const items = entry[band.id] || [];
   return `
@@ -437,41 +468,111 @@ export function renderUiLab() {
           <div class="ui-lab__bp-list">${renderResponsiveMatrix()}</div>
         </section>
 
+        <section class="ui-lab__section" id="icons">
+          <h2 class="ui-lab__section-title">Icons · MingCute</h2>
+          <p class="ui-lab__section-desc">
+            버튼·툴바에 쓰는 아이콘은 전부 이 세트에서 가져옵니다. 컴포넌트 파일에 SVG를 직접 적지 않고,
+            필요한 아이콘이 없으면 <code>mingcuteIcons.js</code>에 먼저 추가한 뒤 이름으로 참조합니다.
+            <code>fill</code>은 <code>currentColor</code>라 버튼 색을 그대로 따릅니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/assets/mingcuteIcons.js</code>, <code>.cursor/rules/ui-buttons.mdc</code></p>
+          <div class="ui-lab__icon-grid">${renderIconGrid()}</div>
+        </section>
+
         <section class="ui-lab__section" id="button">
           <h2 class="ui-lab__section-title">Button</h2>
           <p class="ui-lab__section-desc">
             공통 버튼 팩토리입니다. 형태(shape)로 <code>circle</code> · <code>solid</code> · <code>text</code> 세 갈래를 두고,
             circle은 size(L·M·S)와 role(fab·back·navPrev·navNext·toolbar·close)로 조합합니다.
+            아이콘 버튼의 내용은 항상 <code>MINGCUTE</code> 세트에서 가져오고, 컴포넌트 파일에 SVG를 직접 적지 않습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/Button/Button.js</code>, <code>src/components/Button/Button.css</code></p>
-          <div class="ui-lab__demo-stage ui-lab__demo-stage--nav">
-            ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전 (데모)', content: ICON_CHEVRON })}
-            ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음 (데모)', content: ICON_CHEVRON })}
+          ${renderVariantRow(
+            'circle · size — L 52px / M 48px / S 32px (role toolbar)',
+            [
+              renderButton({ shape: 'circle', size: 'l', role: 'toolbar', ariaLabel: 'circle L 데모', content: MINGCUTE.addFill }),
+              renderButton({ shape: 'circle', size: 'm', role: 'toolbar', ariaLabel: 'circle M 데모', content: MINGCUTE.addFill }),
+              renderButton({ shape: 'circle', size: 's', role: 'toolbar', ariaLabel: 'circle S 데모', content: MINGCUTE.addFill })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            'circle · role — fab(실사용은 fixed) / back inline / toolbar / close ghost',
+            [
+              renderButton({ shape: 'circle', role: 'fab', ariaLabel: '새 노트 추가 데모', content: MINGCUTE.fileNewFill }),
+              renderButton({ shape: 'circle', role: 'back', inline: true, ariaLabel: '뒤로가기 데모' }),
+              renderButton({ shape: 'circle', role: 'toolbar', ariaLabel: '툴바 버튼 데모', content: MINGCUTE.edit2Fill }),
+              renderButton({
+                shape: 'circle',
+                role: 'close',
+                tone: 'ghost',
+                ariaLabel: '닫기 버튼 데모',
+                content: MINGCUTE.closeLine,
+                className: 'ui-lab-demo-icon'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            'circle · role navPrev / navNext — 부모 기준 absolute 좌우 중앙 (next는 CSS로 좌우 반전)',
+            [
+              renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전 (데모)', content: MINGCUTE.leftLine }),
+              renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음 (데모)', content: MINGCUTE.leftLine })
+            ].join(''),
+            { flow: false, stageClass: 'ui-lab__demo-stage--nav' }
+          )}
+          ${renderVariantRow(
+            'circle · tone — toolbar filled / toolbar ghost (배경만 지우고 나머지는 role 그대로)',
+            [
+              renderButton({ shape: 'circle', role: 'toolbar', ariaLabel: 'filled 데모', content: MINGCUTE.eye2Fill }),
+              renderButton({ shape: 'circle', role: 'toolbar', tone: 'ghost', ariaLabel: 'ghost 데모', content: MINGCUTE.eye2Line })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            'shape — solid / text',
+            [
+              renderButton({ shape: 'solid', content: 'solid 버튼', className: 'ui-lab-demo-solid' }),
+              renderButton({ shape: 'text', content: 'text 버튼' })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            'state — disabled / nav is-at-end (마지막 페이지 시각 처리)',
+            [
+              renderButton({ shape: 'circle', role: 'toolbar', ariaLabel: 'disabled 데모', content: MINGCUTE.downLine, disabled: true }),
+              renderButton({ shape: 'solid', content: 'solid disabled', className: 'ui-lab-demo-solid', disabled: true }),
+              renderButton({ shape: 'text', content: 'text disabled', disabled: true }),
+              renderButton({
+                shape: 'circle',
+                size: 'm',
+                role: 'navNext',
+                ariaLabel: 'is-at-end 데모',
+                content: MINGCUTE.leftLine,
+                className: 'is-at-end'
+              })
+            ].join('')
+          )}
+        </section>
+
+        <section class="ui-lab__section" id="viewer-chrome">
+          <h2 class="ui-lab__section-title">NoteImageViewer · 뷰어 크롬</h2>
+          <p class="ui-lab__section-desc">
+            뷰어 버튼은 좌우 페이지 이동(circle M · navPrev/navNext), 하단 시트(circle S · ghost),
+            양면 토글(circle S · toolbar) 세 묶음이고 모두 공통 Button 컴포넌트로 만듭니다.
+            아래는 실제 뷰어와 같은 마크업(<code>renderViewerChrome()</code>)을 그대로 얹은 정적 데모라 눌러도 동작하지 않습니다.
+          </p>
+          <p class="ui-lab__files">
+            참조:
+            <code>src/components/NoteImageViewer/ViewerChrome.js</code>,
+            <code>src/components/NoteImageViewer/NoteImageViewer.css</code>
+          </p>
+          <div class="ui-lab__viewer-stage note-image-viewer" data-lab="viewer-chrome">
+            <div class="ui-lab__viewer-page" aria-hidden="true">페이지 이미지</div>
+            ${renderViewerChrome()}
           </div>
-          <div class="ui-lab__demo-stage ui-lab__demo-stage--icons">
-            ${renderButton({
-              shape: 'circle',
-              size: 's',
-              role: 'close',
-              tone: 'ghost',
-              ariaLabel: '닫기 버튼 데모',
-              content: ICON_CLOSE,
-              className: 'ui-lab-demo-icon'
-            })}
-            ${renderButton({
-              shape: 'circle',
-              size: 's',
-              role: 'toolbar',
-              ariaLabel: '툴바 버튼 데모',
-              content: MINGCUTE.edit2Fill
-            })}
-            <span class="ui-lab__section-desc">circle S: close(ghost) / toolbar (fixed 위치 스타일은 실사용 맥락에서 확인)</span>
-          </div>
-          <div class="ui-lab__demo-stage ui-lab__demo-stage--icons">
-            ${renderButton({ shape: 'solid', content: 'solid 버튼', className: 'ui-lab-demo-solid' })}
-            ${renderButton({ shape: 'text', content: 'text 버튼' })}
-            <span class="ui-lab__section-desc">solid / text</span>
-          </div>
+          <ul class="ui-lab__list">
+            <li>하단 시트 4칸: 페이지 정보 · 페이지 추가 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구</li>
+            <li>양면 토글은 <code>aria-pressed</code>로 켜짐을 표시하고, 켜지면 배경이 진해집니다</li>
+            <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
+            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구</li>
+          </ul>
         </section>
 
         <section class="ui-lab__section" id="toast">
@@ -479,7 +580,12 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">짧은 상태 메시지를 화면 하단에 잠깐 띄웁니다.</p>
           <p class="ui-lab__files">참조: <code>src/components/Toast/Toast.js</code>, <code>src/components/Toast/Toast.css</code></p>
           <div class="ui-lab__row">
-            <button type="button" class="ui-lab__primary-btn" data-lab="toast">토스트 보기</button>
+            ${renderButton({
+              shape: 'solid',
+              content: '토스트 보기',
+              className: 'ui-lab-demo-solid',
+              dataset: { lab: 'toast' }
+            })}
           </div>
         </section>
 
@@ -530,7 +636,7 @@ export function renderUiLab() {
           </p>
           <ul class="ui-lab__list">
             <li>노트 추가/수정: Notes 주크박스 하단·카드 액션</li>
-            <li>페이지 추가: 뷰어에서 페이지 번호 롱프레스 → 페이지 추가</li>
+            <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
         </section>
@@ -538,11 +644,13 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="viewers">
           <h2 class="ui-lab__section-title">NoteImageViewer · PdfModal</h2>
           <p class="ui-lab__section-desc">
-            페이지 이미지 뷰어와 PDF 폴백 뷰어입니다. 모달·전체 페이지 모드, 하단 시트, 부채꼴 메뉴, 줌/패닝이 여기에 있습니다.
+            페이지 이미지 뷰어와 PDF 폴백 뷰어입니다. 모달·전체 페이지 모드, 하단 시트, 줌/패닝이 여기에 있습니다.
+            버튼 구성은 위 <a href="#viewer-chrome">뷰어 크롬</a> 데모에서 확인할 수 있습니다.
           </p>
           <p class="ui-lab__files">
             참조:
             <code>src/components/NoteImageViewer/NoteImageViewer.js</code>,
+            <code>src/components/NoteImageViewer/ViewerChrome.js</code>,
             <code>src/components/NoteImageViewer/NoteImageViewer.css</code>,
             <code>src/components/PdfModal/PdfModal.js</code>,
             <code>src/components/PdfModal/PdfModal.css</code>
@@ -582,4 +690,11 @@ export function renderUiLab() {
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
   });
+
+  /* 정적 데모라 실제 페이지 수가 없으니 표시용 값만 채운다 */
+  const chromeDemo = root.querySelector('[data-lab="viewer-chrome"]');
+  if (chromeDemo) {
+    const totalEl = chromeDemo.querySelector('.niv-total-pages');
+    if (totalEl) totalEl.textContent = '12';
+  }
 }

@@ -4,7 +4,10 @@
  * 초기 표시: 컨테이너에 이미지 전체가 들어가도록 contain
  * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
  * 확대/축소·패닝: .niv-zoom-stage transform
- * 하단 시트: 정보 | 프로그레스 | 원상복구
+ * 하단 시트: 정보 | 페이지 추가 | 프로그레스 | 원상복구
+ *
+ * 버튼은 모두 공통 Button 컴포넌트(circle)로 만들고,
+ * 여기서는 시트 안에서 쓸 크기·상태만 덮는다.
  *
  * 색: 이 화면은 항상 어두운 배경 위에 스캔 이미지를 올리므로
  * 테마 무관 크롬 토큰(--color-chrome*)을 쓴다 (라이트 모드에서도 동일).
@@ -77,7 +80,7 @@
   transform: translateX(-50%);
   z-index: 5;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   align-items: center;
   gap: var(--space-1);
   width: min(420px, calc(100% - var(--space-6)));
@@ -92,47 +95,35 @@
   color: var(--color-chrome-on);
 }
 
-.niv-sheet-btn,
-.niv-sheet-nav {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-circle);
-  background: transparent;
-  background-color: transparent;
+.note-image-viewer .btn.niv-sheet-btn,
+.note-image-viewer .btn.niv-sheet-nav {
   color: var(--color-chrome-on);
-  cursor: pointer;
-  flex-shrink: 0;
 }
 
-.niv-sheet-btn {
+.note-image-viewer .btn.niv-sheet-btn {
   width: 2.35rem;
   height: 2.35rem;
   min-width: 2.35rem;
   min-height: 2.35rem;
 }
 
-.niv-sheet-btn:hover,
-.niv-sheet-btn:focus-visible,
-.niv-sheet-nav:hover,
-.niv-sheet-nav:focus-visible {
+.note-image-viewer .btn.niv-sheet-btn:hover,
+.note-image-viewer .btn.niv-sheet-btn:focus-visible,
+.note-image-viewer .btn.niv-sheet-nav:hover,
+.note-image-viewer .btn.niv-sheet-nav:focus-visible {
   background: var(--color-chrome-on-hover);
   background-color: var(--color-chrome-on-hover);
   outline: none;
 }
 
-.niv-sheet-btn:disabled,
-.niv-sheet-nav:disabled {
+.note-image-viewer .btn.niv-sheet-btn:disabled,
+.note-image-viewer .btn.niv-sheet-nav:disabled {
   opacity: 0.35;
   cursor: default;
 }
 
-.niv-sheet-btn svg,
-.niv-sheet-nav svg {
+.note-image-viewer .btn.niv-sheet-btn svg,
+.note-image-viewer .btn.niv-sheet-nav svg {
   width: 1.05rem;
   height: 1.05rem;
   display: block;
@@ -154,34 +145,10 @@
   align-items: baseline;
   justify-content: center;
   gap: var(--space-1);
-  margin: 0;
   padding: var(--space-1) var(--space-2);
-  border: none !important;
-  border-radius: var(--radius-pill);
-  background: transparent !important;
-  background-color: transparent !important;
-  color: inherit;
-  font: inherit;
-  font-size: inherit;
-  font-weight: inherit;
   white-space: nowrap;
-  cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
-  touch-action: manipulation;
-  box-shadow: none !important;
-}
-
-.niv-sheet-progress__label:hover,
-.niv-sheet-progress__label:focus-visible {
-  background: var(--color-chrome-on-hover) !important;
-  background-color: var(--color-chrome-on-hover) !important;
-  outline: none;
-}
-
-.note-image-viewer.niv-fan-open .niv-sheet-progress__label {
-  background: var(--color-chrome-on-active) !important;
-  background-color: var(--color-chrome-on-active) !important;
 }
 
 .niv-sheet-progress__sep {
@@ -189,212 +156,39 @@
   font-weight: var(--font-regular);
 }
 
-.niv-sheet-nav {
+.note-image-viewer .btn.niv-sheet-nav {
   width: 1.85rem;
   height: 1.85rem;
   min-width: 1.85rem;
   min-height: 1.85rem;
 }
 
-.niv-sheet-nav svg {
+.note-image-viewer .btn.niv-sheet-nav svg {
   width: 0.95rem;
   height: 0.95rem;
 }
 
-/* ========== 부채꼴 메뉴 (페이지 번호 롱프레스) ========== */
-.niv-fan {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  pointer-events: none;
-}
-
-.niv-fan[hidden] {
-  display: none !important;
-}
-
-.niv-fan.is-open {
-  pointer-events: auto;
-}
-
-/* 메뉴 열린 동안 하단 시트(페이지 번호)는 딤 위에 유지 */
-.note-image-viewer.niv-fan-open .niv-bottom-sheet {
-  z-index: 7;
-}
-
-.niv-fan__backdrop {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: var(--color-chrome-glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  cursor: pointer;
-}
-
-.niv-fan.is-open .niv-fan__backdrop {
-  opacity: 1;
-}
-
-/* 앵커: 화면 중앙 하단 페이지 번호 위치 */
-.niv-fan__panel {
-  position: absolute;
-  left: 50%;
-  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 1.55rem);
-  width: 0;
-  height: 0;
-  z-index: 1;
-}
-
-.niv-fan__origin {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: var(--radius-circle);
-  background: var(--color-chrome-on-hover);
-  transform: translate(-50%, -50%) scale(0.4);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.2s ease;
-}
-
-.niv-fan.is-open .niv-fan__origin {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-}
-
-/* 45도 기울인 사각 타일이라 원형이 아닌 큰 라운드를 쓴다 */
-.niv-fan .niv-fan__item {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  width: 5.4rem;
-  height: 5.4rem;
-  margin: 0;
-  padding: var(--space-1);
-  border: none;
-  border-radius: var(--radius-xl);
-  background: var(--color-chrome-panel);
-  background-color: var(--color-chrome-panel);
-  color: var(--color-on-light);
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transform-origin: center center;
-  transform:
-    translate(-50%, -50%)
-    rotate(calc(var(--angle, 0) * 1deg))
-    translateY(0)
-    rotate(calc(var(--angle, 0) * -1deg))
-    rotate(45deg)
-    scale(0.25);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.2s ease;
-  transition-delay: 0ms;
-}
-
-.niv-fan.is-open .niv-fan__item {
-  transform:
-    translate(-50%, -50%)
-    rotate(calc(var(--angle, 0) * 1deg))
-    translateY(-7.1rem)
-    rotate(calc(var(--angle, 0) * -1deg))
-    rotate(45deg)
-    scale(1);
-  opacity: 1;
-  pointer-events: auto;
-  transition-delay: calc(var(--i, 0) * 40ms);
-}
-
-.niv-fan .niv-fan__item:hover,
-.niv-fan .niv-fan__item:focus-visible {
-  background: var(--color-chrome-panel-hover);
-  background-color: var(--color-chrome-panel-hover);
-  outline: none;
-}
-
-.niv-fan__label {
-  display: block;
-  transform: rotate(-45deg);
-  font-size: var(--text-xs);
-  font-weight: var(--font-bold);
-  line-height: 1.15;
-  color: var(--color-on-light);
-  text-align: center;
-  letter-spacing: -0.03em;
-}
-
-@media (max-width: 768px) {
-  .niv-fan__panel {
-    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 1.35rem);
-  }
-
-  .niv-fan.is-open .niv-fan__item {
-    transform:
-      translate(-50%, -50%)
-      rotate(calc(var(--angle, 0) * 1deg))
-      translateY(-6.6rem)
-      rotate(calc(var(--angle, 0) * -1deg))
-      rotate(45deg)
-      scale(1);
-  }
-
-  .niv-fan .niv-fan__item {
-    width: 5rem;
-    height: 5rem;
-  }
-
-  .niv-fan__label {
-    font-size: var(--text-xs);
-  }
-}
-
 /* 양면 토글: 하단 시트 위 작은 FAB (시안에 없는 보조 컨트롤) */
-.niv-spread-fab {
+.note-image-viewer .btn.niv-spread-fab {
   position: absolute;
   right: max(12px, env(safe-area-inset-right));
   bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem);
   z-index: 4;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 2.2rem;
   height: 2.2rem;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-circle);
-  background: var(--color-chrome);
-  background-color: var(--color-chrome);
-  color: var(--color-chrome-on);
-  cursor: pointer;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
-.niv-spread-fab svg {
+.note-image-viewer .btn.niv-spread-fab svg {
   width: 1rem;
   height: 1rem;
   display: block;
 }
 
-.niv-spread-fab[aria-pressed='true'] {
+.note-image-viewer .btn.niv-spread-fab[aria-pressed='true'] {
   color: var(--color-chrome-on);
   opacity: 1;
   background: var(--color-chrome-strong);
@@ -418,13 +212,13 @@
     color: var(--color-chrome-on);
   }
 
-  .niv-sheet-btn,
-  .niv-sheet-nav,
+  .note-image-viewer .btn.niv-sheet-btn,
+  .note-image-viewer .btn.niv-sheet-nav,
   .niv-sheet-progress {
     color: var(--color-chrome-on);
   }
 
-  .niv-sheet-btn {
+  .note-image-viewer .btn.niv-sheet-btn {
     width: 2.15rem;
     height: 2.15rem;
     min-width: 2.15rem;
@@ -435,7 +229,7 @@
     font-size: var(--text-sm);
   }
 
-  .niv-spread-fab {
+  .note-image-viewer .btn.niv-spread-fab {
     bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem);
   }
 }

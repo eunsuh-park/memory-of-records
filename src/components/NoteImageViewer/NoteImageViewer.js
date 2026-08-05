@@ -12,7 +12,7 @@
 import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderPdfViewer } from '../PdfModal/PdfModal.js';
-import { render as renderButton } from '../Button/Button.js';
+import { renderViewerChrome } from './ViewerChrome.js';
 import {
   render as wrapInNoteDetailPage,
   mount as mountNoteDetailPage
@@ -38,29 +38,6 @@ const LOADING_LOTTIE =
 
 /** 현재 페이지 기준 앞뒤로 미리 로드할 페이지 수 */
 const PRELOAD_RADIUS = 2;
-
-const ICONS = {
-  arrowsLeftLine:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>arrows_left_line</title><g id='arrows_left_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0h24ZM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036c-.01-.003-.019 0-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.016-.018Zm.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01-.184-.092Z'/><path fill='currentColor' d='M11.707 6.293a1 1 0 0 1 0 1.414L7.414 12l4.293 4.293a1 1 0 0 1-1.414 1.414l-5-5a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0Zm6 0a1 1 0 0 1 0 1.414L13.414 12l4.293 4.293a1 1 0 0 1-1.414 1.414l-5-5a1 1 0 0 1 0-1.414l5-5a1 1 0 0 1 1.414 0Z'/></g></svg>",
-  arrowsRightLine:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>arrows_right_line</title><g id='arrows_right_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0h24ZM12.594 23.258l-.012.002-.071.035-.02.004-.014-.004-.071-.036c-.01-.003-.019 0-.024.006l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.016-.018Zm.264-.113-.014.002-.184.093-.01.01-.003.011.018.43.005.012.008.008.201.092c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.003-.011.018-.43-.003-.012-.01-.01-.184-.092Z'/><path fill='currentColor' d='M9.707 11.293a1 1 0 0 1 0 1.414l-5.657 5.657a1 1 0 1 1-1.414-1.414l4.95-4.95-4.95-4.95a1 1 0 0 1 1.414-1.414l5.657 5.657Zm6 0a1 1 0 0 1 0 1.414l-5.657 5.657a1 1 0 1 1-1.414-1.414l4.95-4.95-4.95-4.95a1 1 0 0 1 1.414-1.414l5.657 5.657Z'/></g></svg>",
-  leftLine:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>left_line</title><g id='left_line' fill='none' fill-rule='evenodd'><path d='M24 0v24H0V0h24ZM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018Zm.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022Zm-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01-.184-.092Z'/><path fill='currentColor' d='M8.293 12.707a1 1 0 0 1 0-1.414l5.657-5.657a1 1 0 1 1 1.414 1.414L10.414 12l4.95 4.95a1 1 0 0 1-1.414 1.414l-5.657-5.657Z'/></g></svg>",
-  bookOpen:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'><title>book_open</title><g fill='none'><path d='M24 0v24H0V0zM12.593 23.258l-.011.002-.071.035-.02.004-.014-.004-.071-.035c-.01-.004-.019-.001-.024.005l-.004.01-.017.428.005.02.01.013.104.074.015.004.012-.004.104-.074.012-.016.004-.017-.017-.427c-.002-.01-.009-.017-.017-.018m.265-.113-.013.002-.185.093-.01.01-.003.011.018.43.005.012.008.007.201.093c.012.004.023 0 .029-.008l.004-.014-.034-.614c-.003-.012-.01-.02-.02-.022m-.715.002a.023.023 0 0 0-.027.006l-.006.014-.034.614c0 .012.007.02.017.024l.015-.002.201-.093.01-.008.004-.011.017-.43-.003-.012-.01-.01z'/><path fill='currentColor' d='M12 2c.912 0 1.758.482 2.214 1.192C15.548 3.622 17.081 4 18.5 4c1.168 0 2.302-.258 3.295-.728.45-.212.705-.279.876-.287A1 1 0 0 1 24 4v13a1 1 0 0 1-.553.894c-.123.061-.27.106-.54.207-1.134.427-2.536.899-4.407.899-1.92 0-3.452-.378-4.714-1.192A3.022 3.022 0 0 1 12 18a3.022 3.022 0 0 1-1.786-.192C8.952 18.622 7.42 19 5.5 19c-1.871 0-3.273-.472-4.407-.9-.27-.1-.417-.145-.54-.206A1 1 0 0 1 0 17V4a1 1 0 0 1 1.33-.986c.17.008.425.075.875.287C3.198 3.742 4.332 4 5.5 4c1.419 0 2.952-.378 3.786-.808C9.742 2.482 10.588 2 11.5 2Zm0 2c-.088 0-.42.141-.886.442C10.298 5.122 8.581 6 5.5 6c-.832 0-1.61-.158-2.5-.442V16.5c1.121.358 2.29.5 3 .5 1.581 0 2.952-.378 3.786-.808.456-.3.788-.442.714-.442V4Zm2 0v11.75c-.074 0 .258.141.714.442C15.548 16.622 17.081 17 18.5 17c.71 0 1.879-.142 3-.5V5.558c-.89.284-1.668.442-2.5.442-3.081 0-4.798-.878-5.614-1.558C13.42 4.141 13.088 4 13 4Z'/></g></svg>",
-  edit:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M12.5 6.5l5 5M4 20l4.5-1.2L19.3 8a1.7 1.7 0 0 0-2.4-2.4L6.1 16.4 4 20z'/></svg>",
-  info:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><circle cx='12' cy='12' r='9' stroke='currentColor' stroke-width='1.8'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 11v6'/><circle cx='12' cy='7.5' r='1.1' fill='currentColor'/></svg>",
-  resetView:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M8 4H5a1 1 0 0 0-1 1v3M16 4h3a1 1 0 0 1 1 1v3M8 20H5a1 1 0 0 1-1-1v-3M16 20h3a1 1 0 0 0 1-1v-3'/><circle cx='12' cy='12' r='2.2' stroke='currentColor' stroke-width='1.8'/></svg>",
-  trash:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'/></svg>",
-  eyeOff:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M3 3l18 18'/><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round' d='M10.6 10.6a2 2 0 0 0 2.8 2.8M9.5 5.5C10.3 5.2 11.1 5 12 5c4.5 0 8.3 2.9 10 7-.5 1.2-1.2 2.3-2.1 3.2M6.1 6.1C4.5 7.2 3.2 8.7 2 12c1.7 4.1 5.5 7 10 7 1.2 0 2.3-.2 3.4-.6'/></svg>",
-  plus:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' aria-hidden='true'><path stroke='currentColor' stroke-width='1.8' stroke-linecap='round' d='M12 5v14M5 12h14'/></svg>"
-};
 
 /** folderUrl → Promise<Set<number>> (숨김 페이지 조회 캐시) */
 const hiddenPagesCache = new Map();
@@ -124,45 +101,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''} note-image-viewer">
       <div class="pdf-canvas-wrap">
-        ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전 페이지', content: ICONS.leftLine, className: 'niv-nav-prev' })}
-        ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음 페이지', content: ICONS.leftLine, className: 'niv-nav-next' })}
-        <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
-          <button type="button" class="niv-sheet-btn niv-page-info" aria-label="페이지 정보(메타데이터) 보기" title="페이지 정보">
-            ${ICONS.info}
-          </button>
-          <div class="niv-sheet-progress">
-            <button type="button" class="niv-sheet-nav niv-nav-first" aria-label="처음 페이지">${ICONS.arrowsLeftLine}</button>
-            <button
-              type="button"
-              class="niv-sheet-progress__label"
-              aria-label="페이지 메뉴 (길게 누르기)"
-              aria-expanded="false"
-              aria-controls="niv-fan-menu"
-              title="길게 눌러 페이지 메뉴"
-              data-fan-trigger
-            >
-              <span class="niv-current-page">1</span>
-              <span class="niv-sheet-progress__sep">/</span>
-              <span class="niv-total-pages">-</span>
-            </button>
-            <button type="button" class="niv-sheet-nav niv-nav-last" aria-label="마지막 페이지">${ICONS.arrowsRightLine}</button>
-          </div>
-          <button type="button" class="niv-sheet-btn niv-reset-view" aria-label="뷰 원상복구" title="처음 크기와 위치로">
-            ${ICONS.resetView}
-          </button>
-        </div>
-        <div class="niv-fan" id="niv-fan-menu" hidden aria-hidden="true">
-          <button type="button" class="niv-fan__backdrop" data-fan-close aria-label="메뉴 닫기"></button>
-          <div class="niv-fan__panel" role="menu" aria-label="페이지 액션">
-            <span class="niv-fan__origin" aria-hidden="true"></span>
-            <button type="button" class="niv-fan__item" role="menuitem" data-fan-action="add" style="--i:0;--angle:0" aria-label="페이지 추가">
-              <span class="niv-fan__label">페이지<br />추가</span>
-            </button>
-          </div>
-        </div>
-        <button type="button" class="niv-toggle-spread niv-spread-fab" aria-label="양면 보기 전환" title="양면 보기" aria-pressed="false">
-          ${ICONS.bookOpen}
-        </button>
+        ${renderViewerChrome()}
         <div class="niv-image-container">
           <div class="niv-zoom-stage">
             <img class="niv-page-image niv-page-image--left" alt="" draggable="false" referrerpolicy="no-referrer" />
@@ -194,15 +133,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const lastBtn = targetEl.querySelector('.niv-nav-last');
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
+  const addPageBtn = targetEl.querySelector('.niv-add-page');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
-  const fanTrigger = targetEl.querySelector('[data-fan-trigger]');
-  const fanMenu = targetEl.querySelector('.niv-fan');
-  const fanBackdrop = targetEl.querySelector('.niv-fan__backdrop');
-  const fanItems = targetEl.querySelectorAll('.niv-fan__item');
-  let fanOpen = false;
-  const FAN_LONG_PRESS_MS = 420;
-  let fanPressTimer = null;
-  let fanPressStart = null;
   const currentPageEl = targetEl.querySelector('.niv-current-page');
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
@@ -675,36 +607,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     });
   }
 
-  function clearFanPress() {
-    if (fanPressTimer) {
-      window.clearTimeout(fanPressTimer);
-      fanPressTimer = null;
-    }
-    fanPressStart = null;
-  }
-
-  function setFanOpen(open) {
-    fanOpen = !!open;
-    if (!fanMenu) return;
-    viewerEl?.classList.toggle('niv-fan-open', fanOpen);
-    if (fanOpen) {
-      fanMenu.hidden = false;
-      fanMenu.setAttribute('aria-hidden', 'false');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => fanMenu.classList.add('is-open'));
-      });
-    } else {
-      fanMenu.classList.remove('is-open');
-      window.setTimeout(() => {
-        if (!fanOpen) {
-          fanMenu.hidden = true;
-          fanMenu.setAttribute('aria-hidden', 'true');
-        }
-      }, 280);
-    }
-    fanTrigger?.setAttribute('aria-expanded', String(fanOpen));
-  }
-
   async function refreshAfterPageInsert(result) {
     const nextFolder = String(result?.pdfFolderUrl || folderUrl || '').trim();
     const nextCount = Math.max(0, Math.floor(Number(result?.pageCount) || 0));
@@ -748,43 +650,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       onDone: (result) => {
         void refreshAfterPageInsert(result);
       }
-    });
-  }
-
-  function handleFanAction(action) {
-    setFanOpen(false);
-    if (action === 'add') {
-      void openInsertPageModal();
-    }
-  }
-
-  function bindFanLongPress(el) {
-    if (!el) return;
-    el.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      clearFanPress();
-      fanPressStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
-      try {
-        el.setPointerCapture(e.pointerId);
-      } catch {
-        /* ignore */
-      }
-      fanPressTimer = window.setTimeout(() => {
-        fanPressTimer = null;
-        fanPressStart = null;
-        setFanOpen(true);
-      }, FAN_LONG_PRESS_MS);
-    });
-    el.addEventListener('pointermove', (e) => {
-      if (!fanPressStart || e.pointerId !== fanPressStart.id) return;
-      const dx = e.clientX - fanPressStart.x;
-      const dy = e.clientY - fanPressStart.y;
-      if (Math.hypot(dx, dy) > 12) clearFanPress();
-    });
-    el.addEventListener('pointerup', clearFanPress);
-    el.addEventListener('pointercancel', clearFanPress);
-    el.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
     });
   }
 
@@ -846,13 +711,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   });
   toggleSpreadBtn?.addEventListener('click', toggleSpreadMode);
   pageInfoBtn?.addEventListener('click', () => openCurrentPageMeta());
-  bindFanLongPress(fanTrigger);
-  fanBackdrop?.addEventListener('click', () => setFanOpen(false));
-  fanItems.forEach((item) => {
-    item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleFanAction(item.getAttribute('data-fan-action'));
-    });
+  addPageBtn?.addEventListener('click', () => {
+    void openInsertPageModal();
   });
   resetViewBtn?.addEventListener('click', () => {
     resetViewTransform();
@@ -860,10 +720,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   });
 
   const handleKeydown = (event) => {
-    if (event.key === 'Escape' && fanOpen) {
-      setFanOpen(false);
-      return;
-    }
     if (event.key === 'ArrowLeft') stepPages(-1);
     else if (event.key === 'ArrowRight') stepPages(1);
     else if (event.key === 's' || event.key === 'S') toggleSpreadMode();
