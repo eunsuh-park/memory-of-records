@@ -118,11 +118,93 @@
   min-height: 4.5rem;
 }
 
-.ui-lab__demo-stage--icons .btn--close,
-.ui-lab__demo-stage--icons .btn--toolbar {
+/* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */
+.ui-lab__demo-stage--flow .btn--fab,
+.ui-lab__demo-stage--flow .btn--back,
+.ui-lab__demo-stage--flow .btn--nav {
+  position: static;
+  transform: none;
+  z-index: auto;
+}
+
+.ui-lab__demo-stage--flow .btn--back-inline {
+  margin-bottom: 0;
+}
+
+/* toolbar는 어두운 크롬 위를 전제해 흰색이라, 밝은 스테이지에서는 본문 색으로 되돌린다 */
+.ui-lab__demo-stage .btn--toolbar.btn--ghost {
+  color: var(--color-text);
+}
+
+.ui-lab__variant {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ===== 아이콘 세트 ===== */
+
+.ui-lab__icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-2);
+}
+
+.ui-lab__icon-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.ui-lab__icon-preview svg {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.ui-lab__icon-name {
+  margin: 0;
+  font-size: var(--text-2xs);
+  font-family: var(--font-mono);
+  color: var(--color-text-dim);
+  word-break: break-all;
+  text-align: center;
+}
+
+.ui-lab__variant-label {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+}
+
+/* 뷰어 크롬 데모: 실제 뷰어처럼 어두운 면 위에 컨트롤을 절대배치로 얹는다 */
+.ui-lab__viewer-stage {
   position: relative;
-  top: auto;
-  right: auto;
+  min-height: 14rem;
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  background: var(--color-chrome-strong);
+  overflow: hidden;
+}
+
+.ui-lab__viewer-page {
+  position: absolute;
+  inset: var(--space-3) 60px 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-chrome-on-hover);
+  color: var(--color-chrome-on);
+  font-size: var(--text-xs);
+  opacity: 0.5;
 }
 
 /* 데모용 solid 버튼은 폭을 내용에 맞춤 (실사용은 폼 안에서 100%) */
@@ -230,40 +312,6 @@
   color: var(--color-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-.ui-lab__ghost-btn {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-}
-
-.ui-lab__ghost-btn:hover {
-  background: var(--color-surface-hover);
-}
-
-.ui-lab__primary-btn {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  background: var(--color-primary);
-  color: var(--color-primary-on);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-}
-
-.ui-lab__primary-btn:hover {
-  filter: brightness(1.05);
 }
 
 /* ===== 해상도별 표시 형식 매트릭스 ===== */
