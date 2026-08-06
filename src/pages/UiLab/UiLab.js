@@ -27,7 +27,7 @@ const ATOMIC_RAMPS = [
   },
   {
     title: 'Primary · yellow',
-    desc: '브랜드 6단계. 다크는 3단계, 라이트는 5단계를 --color-primary로 쓴다.',
+    desc: '브랜드 6단계. 다크는 2단계, 라이트는 4단계를 --color-primary로 쓴다.',
     names: STEPS_6.map((n) => `--primary-${n}`),
     labels: STEPS_6
   },
