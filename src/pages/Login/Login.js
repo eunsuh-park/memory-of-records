@@ -1,6 +1,6 @@
 /**
- * ??? ??? (/login)
- * ?? ??? ???? ? HttpOnly ?? ??
+ * 로그인 페이지 (/login)
+ * 공유 관리자 비밀번호 → HttpOnly 세션 쿠키
  */
 
 import { login, getSession, safeNextPath } from '../../services/auth.js';
@@ -33,12 +33,12 @@ export async function renderLogin() {
   mainContent.innerHTML = `
     <div class="login-page">
       <div class="login-panel">
-        <h1 class="login-title">???</h1>
-        <p class="login-lede">??�???? ????? ????? ??? ????? ?????. ????? ??? ?? ?????.</p>
+        <h1 class="login-title">로그인</h1>
+        <p class="login-lede">노트·페이지를 추가하거나 수정하려면 관리자 비밀번호가 필요합니다. 둘러보기는 로그인 없이 가능합니다.</p>
         <form class="form login-form" novalidate>
           ${renderField({
             type: 'password',
-            label: '????',
+            label: '비밀번호',
             name: 'password',
             required: true,
             autocomplete: 'current-password'
@@ -47,11 +47,11 @@ export async function renderLogin() {
           ${renderButton({
             shape: 'solid',
             type: 'submit',
-            content: '???',
+            content: '로그인',
             className: 'login-submit'
           })}
         </form>
-        <a class="login-back" href="/" data-link>??? ????</a>
+        <a class="login-back" href="/" data-link>홈으로 돌아가기</a>
       </div>
     </div>
   `;
@@ -68,7 +68,7 @@ export async function renderLogin() {
     const password = String(passwordInput?.value || '');
     if (!password) {
       if (statusEl) {
-        statusEl.textContent = '????? ??? ???';
+        statusEl.textContent = '비밀번호를 입력해 주세요';
         statusEl.classList.add('form-status--error');
       }
       return;
@@ -76,20 +76,20 @@ export async function renderLogin() {
 
     if (submitBtn) submitBtn.disabled = true;
     if (statusEl) {
-      statusEl.textContent = '?? ??';
+      statusEl.textContent = '확인 중…';
       statusEl.classList.remove('form-status--error');
     }
 
     try {
       await login(password);
-      showToast('????????');
+      showToast('로그인되었습니다');
       router.navigate(next);
     } catch (err) {
       if (statusEl) {
-        statusEl.textContent = err?.message || '???? ??????';
+        statusEl.textContent = err?.message || '로그인에 실패했습니다';
         statusEl.classList.add('form-status--error');
       }
-      showToast(err?.message || '???? ??????');
+      showToast(err?.message || '로그인에 실패했습니다');
       if (submitBtn) submitBtn.disabled = false;
       passwordInput?.focus();
       passwordInput?.select();
