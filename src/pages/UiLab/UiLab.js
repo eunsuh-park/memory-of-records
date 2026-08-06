@@ -663,7 +663,7 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="pages">
           <h2 class="ui-lab__section-title">Pages · composition</h2>
           <p class="ui-lab__section-desc">
-            라우트 단위 페이지는 위 컴포넌트를 조합합니다. Jukebox는 Timeline/By type의 갤러리 본체이고, Story는 별도 풀스크린 서사 페이지입니다.
+            라우트 단위 페이지는 위 컴포넌트를 조합합니다. Jukebox는 Timeline/By type의 갤러리 본체이고, Story는 카드 레이아웃 정적 페이지입니다.
           </p>
           <p class="ui-lab__files">
             참조:

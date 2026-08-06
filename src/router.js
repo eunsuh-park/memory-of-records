@@ -89,11 +89,6 @@ class Router {
       return;
     }
 
-    /* Story가 아닐 때 story-page-active 제거 (Top Nav 복원) */
-    if (!path.startsWith('/story')) {
-      document.documentElement.classList.remove('story-page-active');
-      document.body.classList.remove('story-page-active');
-    }
     if (!path.startsWith('/note/')) {
       document.body.classList.remove('note-detail-modal');
     }

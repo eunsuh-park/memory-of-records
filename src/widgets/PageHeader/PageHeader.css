@@ -4,19 +4,6 @@
  * 모바일: 로고 중앙 + 햄버거, 접이식 필터, 우측 드로어
  */
 
-/* Story 페이지: 헤더 숨김 */
-body.story-page-active .page-header {
-  transform: translateY(-100%);
-  pointer-events: none;
-}
-
-body.story-page-active .page-header__nav-toggle,
-body.story-page-active .page-header__right--mobile,
-body.story-page-active .nav-drawer,
-body.story-page-active .nav-drawer-backdrop {
-  display: none !important;
-}
-
 .page-header {
   position: fixed;
   top: 0;
