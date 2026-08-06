@@ -24,10 +24,8 @@
 }
 
 .story-card__media {
-  width: min(240px, 55%);
-  margin: var(--space-6) auto 0;
-  aspect-ratio: 4 / 3;
-  border-radius: var(--radius-md);
+  width: 100%;
+  aspect-ratio: 21 / 9;
   overflow: hidden;
   background: var(--color-bg);
 }
@@ -49,7 +47,7 @@
 }
 
 .story-card__placeholder-icon {
-  width: min(72px, 40%);
+  width: min(96px, 18%);
   color: var(--color-text-dim);
   pointer-events: none;
 }
