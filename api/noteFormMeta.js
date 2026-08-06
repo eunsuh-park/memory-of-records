@@ -14,8 +14,8 @@ const FALLBACK_COLORS = ['파랑', '빨강', '검정', '초록', '노랑', '보�
 const FALLBACK_SIZES = ['A4', 'A5', 'A6', 'B5', 'B6', '16절', '8절', '4절'];
 const FALLBACK_PERIODS = [
   'Elementary School',
-  'University',
   'Middle & High School',
+  'University',
   'After School'
 ];
 
