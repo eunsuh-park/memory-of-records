@@ -698,6 +698,11 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
   right: var(--space-4);
 }
 
+body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev[hidden],
+body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev {
     left: max(var(--space-2), env(safe-area-inset-left));
