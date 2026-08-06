@@ -20,9 +20,11 @@ import {
   cropImageDataUrlToSize,
   fetchNoteFormMeta,
   getImageSizeFromDataUrl,
+  MAX_COVER_BYTES,
   readFileAsDataUrl,
   updateNotionNote,
-  uploadCoverImage
+  uploadCoverImage,
+  validateCoverImageFile
 } from '../../services/createNote.js';
 import { renameNoteContentFolder } from '../../services/pages.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
@@ -129,6 +131,7 @@ function noteToFormSeed(note) {
     stillInUse: !periodEnd,
     notes: note?.description || '',
     isKept: note?.isKept !== false,
+    visible: note?.visible !== false,
     coverFrontUrl: note?.coverFrontUrl || '',
     coverBackUrl: note?.coverBackUrl || ''
   };
@@ -200,6 +203,7 @@ export async function openAddNoteModal(options = {}) {
       label,
       required: required && !isEdit,
       className: 'add-note-cover-field',
+      hint: isEdit ? '' : `${Math.floor(MAX_COVER_BYTES / (1024 * 1024))}MB 이하 이미지`,
       children: `
         ${picker}
         <div class="add-note-preview" data-preview="${kind}" aria-hidden="true">
@@ -298,6 +302,11 @@ export async function openAddNoteModal(options = {}) {
         <label class="form-check">
           <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
           <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
+        </label>
+
+        <label class="form-check">
+          <input type="checkbox" name="visible" ${!seed || seed.visible ? 'checked' : ''} />
+          <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
         </label>
 
         <p class="form-status add-note-status" hidden></p>
@@ -402,11 +411,20 @@ export async function openAddNoteModal(options = {}) {
         const field = input.closest('.add-note-cover-field');
         const nameEl = field?.querySelector('.upload-pick__status');
         const preview = field?.querySelector('.add-note-preview');
+        const kind = preview?.dataset.preview === 'back' ? 'back' : 'front';
         const file = input.files?.[0];
         if (!file) {
-          const kind = preview?.dataset.preview === 'back' ? 'back' : 'front';
           if (nameEl) nameEl.textContent = '선택된 파일 없음';
           if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
+          return;
+        }
+        const validated = validateCoverImageFile(file);
+        if (!validated.ok) {
+          input.value = '';
+          if (nameEl) nameEl.textContent = '선택된 파일 없음';
+          if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
+          setStatus(validated.message, true);
+          showToast(validated.message);
           return;
         }
         if (nameEl) nameEl.textContent = file.name;
@@ -433,6 +451,7 @@ export async function openAddNoteModal(options = {}) {
     const periodEnd = stillInUse ? '' : String(fd.get('periodEnd') || '').trim();
     const notes = String(fd.get('notes') || '').trim();
     const isKept = Boolean(fd.get('isKept'));
+    const visible = Boolean(fd.get('visible'));
     const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
     const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
 
@@ -462,7 +481,7 @@ export async function openAddNoteModal(options = {}) {
       periodEnd: periodEnd || undefined,
       notes: notes || undefined,
       isKept,
-      visible: true
+      visible
     };
     closeModal();
 
@@ -553,7 +572,7 @@ export async function openAddNoteModal(options = {}) {
         periodEnd: metaPayload.periodEnd,
         notes: metaPayload.notes,
         isKept: metaPayload.isKept,
-        visible: true
+        visible: metaPayload.visible
       });
 
       if (created?.id) markNoteUnseen(created.id);
