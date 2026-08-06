@@ -79,13 +79,15 @@ button.jukebox-focus-info__create {
   display: none;
 }
 
-button.jukebox-focus-info__edit:hover,
-button.jukebox-focus-info__add:hover,
-button.jukebox-focus-info__create:hover {
-  color: var(--white);
-  background: var(--color-primary);
-  background-color: var(--color-primary);
-  filter: brightness(1.05);
+@media (hover: hover) and (pointer: fine) {
+  button.jukebox-focus-info__edit:hover,
+  button.jukebox-focus-info__add:hover,
+  button.jukebox-focus-info__create:hover {
+    color: var(--white);
+    background: var(--color-primary);
+    background-color: var(--color-primary);
+    filter: brightness(1.05);
+  }
 }
 
 button.jukebox-focus-info__edit:focus-visible,
@@ -246,7 +248,6 @@ button.jukebox-focus-info__create:focus-visible {
     filter: none !important;
   }
 
-  button.jukebox-focus-info__pager--edit:hover,
   button.jukebox-focus-info__pager--edit:focus-visible {
     background: var(--color-control-grey-hover) !important;
     background-color: var(--color-control-grey-hover) !important;
@@ -259,5 +260,15 @@ button.jukebox-focus-info__create:focus-visible {
     width: 0.95rem;
     height: 0.95rem;
     display: block;
+  }
+}
+
+@media (max-width: 768px) and (hover: hover) and (pointer: fine) {
+  button.jukebox-focus-info__pager--edit:hover {
+    background: var(--color-control-grey-hover) !important;
+    background-color: var(--color-control-grey-hover) !important;
+    color: var(--white) !important;
+    outline: none;
+    filter: none !important;
   }
 }

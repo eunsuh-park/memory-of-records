@@ -205,8 +205,10 @@ body.story-page-active #main-content {
   border-radius: var(--radius-sm);
 }
 
-.story-book-content-R::-webkit-scrollbar-thumb:hover {
-  background-color: var(--grey-light-10);
+@media (hover: hover) and (pointer: fine) {
+  .story-book-content-R::-webkit-scrollbar-thumb:hover {
+    background-color: var(--grey-light-10);
+  }
 }
 
 .story-book-content-R::-webkit-scrollbar-button {
@@ -392,10 +394,6 @@ body.story-page-active #main-content {
     display: none;
   }
 
-  .story-book-content-L:hover {
-    opacity: 1;
-  }
-
   .story-image-container,
   .story-image {
     height: 100%;
@@ -418,10 +416,6 @@ body.story-page-active #main-content {
     padding: var(--space-8) var(--space-6) var(--space-12);
     margin-right: 0;
     overflow: visible;
-    background-color: var(--color-bg);
-  }
-
-  .story-book-content-R:hover {
     background-color: var(--color-bg);
   }
 
@@ -467,6 +461,16 @@ body.story-page-active #main-content {
 
   .story-caption small {
     color: var(--color-text-dim);
+  }
+}
+
+@media (max-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .story-book-content-L:hover {
+    opacity: 1;
+  }
+
+  .story-book-content-R:hover {
+    background-color: var(--color-bg);
   }
 }
 

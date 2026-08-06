@@ -146,11 +146,17 @@ body.story-page-active .nav-drawer-backdrop {
   flex-shrink: 0;
 }
 
-.theme-switch:hover,
 .theme-switch:focus-visible {
   background: transparent !important;
   box-shadow: none;
   outline: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .theme-switch:hover {
+    background: transparent !important;
+    box-shadow: none;
+  }
 }
 
 .theme-switch__thumb {
@@ -203,6 +209,7 @@ body.story-page-active .nav-drawer-backdrop {
 }
 
 .page-header__story-link,
+.page-header__business-link,
 .page-header__auth-link,
 .page-header__auth-btn {
   text-decoration: none;
@@ -225,18 +232,28 @@ body.story-page-active .nav-drawer-backdrop {
   align-items: center;
 }
 
-.page-header__story-link:hover,
 .page-header__story-link:focus,
-.page-header__auth-link:hover,
+.page-header__business-link:focus,
 .page-header__auth-link:focus,
-.page-header__auth-btn:hover,
 .page-header__auth-btn:focus {
   color: var(--color-text);
   background-color: var(--color-surface-active);
   outline: none;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .page-header__story-link:hover,
+  .page-header__business-link:hover,
+  .page-header__auth-link:hover,
+  .page-header__auth-btn:hover {
+    color: var(--color-text);
+    background-color: var(--color-surface-active);
+    outline: none;
+  }
+}
+
 .page-header__story-link.active,
+.page-header__business-link.active,
 .page-header__auth-link.active {
   color: var(--color-text);
   background-color: var(--color-surface-selected);
@@ -336,7 +353,6 @@ body.story-page-active .nav-drawer-backdrop {
     opacity: 1 !important;
   }
 
-  .page-header__menu-btn:hover,
   .page-header__menu-btn:focus-visible {
     background: transparent !important;
     background-color: transparent !important;
@@ -426,7 +442,6 @@ body.story-page-active .nav-drawer-backdrop {
     transform: rotate(180deg);
   }
 
-  .page-header__nav-toggle:hover,
   .page-header__nav-toggle:focus-visible {
     filter: brightness(1.08);
     outline: none;
@@ -521,5 +536,20 @@ body.story-page-active .nav-drawer-backdrop {
     color: var(--color-text);
     background: var(--color-surface-hover);
     border-left-color: var(--color-primary);
+  }
+}
+
+@media (max-width: 768px) and (hover: hover) and (pointer: fine) {
+  .page-header__menu-btn:hover {
+    background: transparent !important;
+    background-color: transparent !important;
+    outline: none;
+    opacity: 1 !important;
+    filter: brightness(0.9);
+  }
+
+  .page-header__nav-toggle:hover {
+    filter: brightness(1.08);
+    outline: none;
   }
 }

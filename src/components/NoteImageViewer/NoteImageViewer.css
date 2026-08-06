@@ -107,13 +107,20 @@
   min-height: 2.35rem;
 }
 
-.note-image-viewer .btn.niv-sheet-btn:hover,
 .note-image-viewer .btn.niv-sheet-btn:focus-visible,
-.note-image-viewer .btn.niv-sheet-nav:hover,
 .note-image-viewer .btn.niv-sheet-nav:focus-visible {
   background: var(--color-chrome-on-hover);
   background-color: var(--color-chrome-on-hover);
   outline: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-image-viewer .btn.niv-sheet-btn:hover,
+  .note-image-viewer .btn.niv-sheet-nav:hover {
+    background: var(--color-chrome-on-hover);
+    background-color: var(--color-chrome-on-hover);
+    outline: none;
+  }
 }
 
 .note-image-viewer .btn.niv-sheet-btn:disabled,

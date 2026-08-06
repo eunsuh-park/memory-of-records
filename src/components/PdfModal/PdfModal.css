@@ -212,19 +212,27 @@ body.pdf-modal-open {
   -webkit-backdrop-filter: blur(10px);
 }
 
-.pdf-canvas-wrap .btn--nav:hover {
-  background: var(--white);
-  color: var(--color-chrome-strong);
+@media (hover: hover) and (pointer: fine) {
+  .pdf-canvas-wrap .btn--nav:hover {
+    background: var(--white);
+    color: var(--color-chrome-strong);
+  }
 }
 
-.pdf-canvas-wrap .btn--nav:disabled:hover,
 .pdf-canvas-wrap .btn--nav:disabled:active,
-.pdf-canvas-wrap .btn--nav.is-at-end:hover,
 .pdf-canvas-wrap .btn--nav.is-at-end:active,
-.pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover,
 .pdf-canvas-wrap .btn--nav[aria-disabled='true']:active {
   background: var(--color-chrome);
   color: var(--color-chrome-on);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pdf-canvas-wrap .btn--nav:disabled:hover,
+  .pdf-canvas-wrap .btn--nav.is-at-end:hover,
+  .pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover {
+    background: var(--color-chrome);
+    color: var(--color-chrome-on);
+  }
 }
 
 @media (max-width: 640px) {
@@ -255,9 +263,11 @@ body.pdf-modal-open {
   font-size: var(--text-lg);
 }
 
-.pdf-modal-close:hover {
-  background: var(--color-on-light-bg);
-  color: var(--color-chrome-strong);
+@media (hover: hover) and (pointer: fine) {
+  .pdf-modal-close:hover {
+    background: var(--color-on-light-bg);
+    color: var(--color-chrome-strong);
+  }
 }
 
 .pdf-modal-close svg {

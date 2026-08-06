@@ -34,7 +34,9 @@ footer p {
   opacity: 0.7;
 }
 
-.footer-lab-link:hover {
-  color: var(--color-primary);
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .footer-lab-link:hover {
+    color: var(--color-primary);
+    opacity: 1;
+  }
 }

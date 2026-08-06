@@ -18,8 +18,10 @@
   cursor: pointer;
 }
 
-.upload-pick:hover {
-  background: var(--color-surface-active);
+@media (hover: hover) and (pointer: fine) {
+  .upload-pick:hover {
+    background: var(--color-surface-active);
+  }
 }
 
 .upload-pick__status {
@@ -113,8 +115,10 @@
   cursor: pointer;
 }
 
-.upload-item__btn:hover:not(:disabled) {
-  background: var(--color-surface-active);
+@media (hover: hover) and (pointer: fine) {
+  .upload-item__btn:hover:not(:disabled) {
+    background: var(--color-surface-active);
+  }
 }
 
 .upload-item__btn:disabled {
@@ -122,8 +126,10 @@
   cursor: not-allowed;
 }
 
-.upload-item__btn--danger:hover:not(:disabled) {
-  background: var(--color-error-bg);
-  border-color: var(--color-error);
-  color: var(--color-error-text);
+@media (hover: hover) and (pointer: fine) {
+  .upload-item__btn--danger:hover:not(:disabled) {
+    background: var(--color-error-bg);
+    border-color: var(--color-error);
+    color: var(--color-error-text);
+  }
 }

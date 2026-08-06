@@ -36,9 +36,11 @@
   font-size: var(--text-xs);
 }
 
-.chip:hover:not(.is-active) {
-  color: var(--color-text);
-  background-color: var(--color-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover:not(.is-active) {
+    color: var(--color-text);
+    background-color: var(--color-surface-hover);
+  }
 }
 
 .chip.is-active {

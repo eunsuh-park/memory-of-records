@@ -35,9 +35,14 @@ body.dialog-open {
   color: var(--color-chrome-on);
 }
 
-.dialog__close:hover,
 .dialog__close:focus-visible {
   background: var(--color-chrome-on-hover);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dialog__close:hover {
+    background: var(--color-chrome-on-hover);
+  }
 }
 
 .dialog__panel {

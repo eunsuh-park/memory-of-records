@@ -42,8 +42,10 @@ a {
   transition: color 0.3s;
 }
 
-a:hover {
-  color: var(--hover-color);
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    color: var(--hover-color);
+  }
 }
 
 /* 제목 스타일 */
@@ -67,8 +69,10 @@ button:not(.btn) {
   transition: all 0.25s;
 }
 
-button:not(.btn):hover {
-  background-color: var(--hover-color);
+@media (hover: hover) and (pointer: fine) {
+  button:not(.btn):hover {
+    background-color: var(--hover-color);
+  }
 }
 
 button:focus,
