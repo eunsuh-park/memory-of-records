@@ -187,9 +187,47 @@ function updateCardAngles(gallery) {
         gallery.dispatchEvent(
           new CustomEvent('jukebox:centered', { detail: { noteId, index: i } })
         );
+        updateJukeboxNavButtons(gallery);
       }
     }
   });
+}
+
+function getClosestCardIndex(gallery) {
+  const metrics = getCardMetrics(gallery);
+  if (metrics.length === 0) return -1;
+  const viewCenter = gallery.scrollLeft + gallery.clientWidth / 2;
+  let closestIdx = 0;
+  let closestDist = Infinity;
+  metrics.forEach((m, i) => {
+    const dist = Math.abs(m.center - viewCenter);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestIdx = i;
+    }
+  });
+  return closestIdx;
+}
+
+/** 첫/끝 카드이거나 노트가 없으면 이전·다음 버튼 숨김 */
+function updateJukeboxNavButtons(gallery) {
+  const prevBtn = gallery?._jukeboxNavPrev;
+  const nextBtn = gallery?._jukeboxNavNext;
+  if (!prevBtn && !nextBtn) return;
+
+  const count = getCardMetrics(gallery).length;
+  if (count === 0) {
+    prevBtn?.setAttribute('hidden', '');
+    nextBtn?.setAttribute('hidden', '');
+    return;
+  }
+
+  const idx = getClosestCardIndex(gallery);
+  if (idx <= 0) prevBtn?.setAttribute('hidden', '');
+  else prevBtn?.removeAttribute('hidden');
+
+  if (idx >= count - 1) nextBtn?.setAttribute('hidden', '');
+  else nextBtn?.removeAttribute('hidden');
 }
 
 /**
@@ -417,36 +455,20 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
   /* 카드 클릭 핸들러(renderJukeboxWithFilter)에서 재사용할 수 있도록 노출 */
   gallery.jukeboxScrollCardToCenter = scrollCardToCenter;
 
-  function getClosestCardIndex() {
-    const metrics = getCardMetrics(gallery);
-    if (metrics.length === 0) return -1;
-    const viewCenter = gallery.scrollLeft + gallery.clientWidth / 2;
-    let closestIdx = 0;
-    let closestDist = Infinity;
-    metrics.forEach((m, i) => {
-      const dist = Math.abs(m.center - viewCenter);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestIdx = i;
-      }
-    });
-    return closestIdx;
-  }
-
-  /* 이전 버튼: 중앙에 가장 가까운 카드의 이전 카드로 스크롤 (맨 앞이면 첫 카드로) */
+  /* 이전 버튼: 중앙에 가장 가까운 카드의 이전 카드로 스크롤 */
   prevBtn?.addEventListener('click', () => {
     const metrics = getCardMetrics(gallery);
-    const idx = getClosestCardIndex();
+    const idx = getClosestCardIndex(gallery);
     if (idx > 0) scrollCardToCenter(metrics[idx - 1].el);
-    else if (metrics.length > 0) scrollCardToCenter(metrics[0].el);
   });
-  /* 다음 버튼: 중앙에 가장 가까운 카드의 다음 카드로 스크롤 (맨 뒤면 마지막 카드로) */
+  /* 다음 버튼: 중앙에 가장 가까운 카드의 다음 카드로 스크롤 */
   nextBtn?.addEventListener('click', () => {
     const metrics = getCardMetrics(gallery);
-    const idx = getClosestCardIndex();
+    const idx = getClosestCardIndex(gallery);
     if (idx >= 0 && idx < metrics.length - 1) scrollCardToCenter(metrics[idx + 1].el);
-    else if (metrics.length > 0) scrollCardToCenter(metrics[metrics.length - 1].el);
   });
+
+  updateJukeboxNavButtons(gallery);
 }
 
 /**
@@ -459,8 +481,12 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
  */
 export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   if (!gallery) return;
+  gallery._jukeboxNavPrev = prevBtn;
+  gallery._jukeboxNavNext = nextBtn;
+
   if (!Array.isArray(allNotes) || allNotes.length === 0) {
     gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
+    updateJukeboxNavButtons(gallery);
     return;
   }
   const itemsHtml = allNotes
@@ -584,6 +610,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     if (!gallery.isConnected) return;
     if (!state.userScrolled) centerFirstCard();
     gallery.style.removeProperty('scroll-snap-type');
+    updateJukeboxNavButtons(gallery);
   });
 }
 
@@ -617,6 +644,9 @@ export function renderJukebox() {
   const gallery = mainContent.querySelector('.jukebox-gallery');
   const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
   const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
+  gallery._jukeboxNavPrev = prevBtn;
+  gallery._jukeboxNavNext = nextBtn;
+  updateJukeboxNavButtons(gallery);
 
   /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 */
   Promise.allSettled([getNotionNotebooks(), getNotionTypeItems()])
@@ -642,6 +672,9 @@ export function renderJukebox() {
     .catch((err) => {
       console.warn('Jukebox: 노트 로드 실패', err);
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
+      gallery._jukeboxNavPrev = prevBtn;
+      gallery._jukeboxNavNext = nextBtn;
+      updateJukeboxNavButtons(gallery);
     });
 }
 
@@ -816,6 +849,9 @@ export function renderJukeboxWithFilter(options) {
   const focusSlot = mainContent.querySelector('.jukebox-focus-slot');
   const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
   const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
+  gallery._jukeboxNavPrev = prevBtn;
+  gallery._jukeboxNavNext = nextBtn;
+  updateJukeboxNavButtons(gallery);
 
   /** 모바일: 중앙 카드 탭 시 보기/채우기·수정 노출 */
   let cardActionsOpen = false;
