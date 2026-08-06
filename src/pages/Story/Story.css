@@ -105,22 +105,6 @@
   margin: 0;
 }
 
-.story-content h3 {
-  margin: 0;
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-text);
-}
-
-.story-content ul {
-  margin: 0;
-  padding-left: 2.5em;
-}
-
-.story-content li {
-  padding-left: 0.5em;
-}
-
 .story-content small {
   color: var(--color-text-muted);
 }
