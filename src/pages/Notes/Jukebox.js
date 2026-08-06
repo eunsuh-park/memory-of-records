@@ -740,7 +740,7 @@ function isMobileJukebox() {
 function renderCardActionOverlay(noteId) {
   const id = escapeHtml(noteId || '');
   return `
-    <div class="jukebox-card-actions" data-note-id="${id}" hidden>
+    <div class="jukebox-card-actions" data-note-id="${id}" inert>
       <button type="button" class="jukebox-card-action jukebox-card-action--view" data-note-id="${id}" aria-label="보기">
         <span class="jukebox-card-action__icon">${MINGCUTE.eye2Fill}</span>
         <span class="jukebox-card-action__label">보기</span>
@@ -842,8 +842,8 @@ export function renderJukeboxWithFilter(options) {
     gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
       const card = el.closest('.jukebox-card');
       const show = cardActionsOpen && card?.classList.contains('jukebox-card--centered');
-      if (show) el.removeAttribute('hidden');
-      else el.setAttribute('hidden', '');
+      el.classList.toggle('is-open', show);
+      el.toggleAttribute('inert', !show);
     });
     updateFocusInfo(boundNotes);
   }
@@ -865,8 +865,8 @@ export function renderJukeboxWithFilter(options) {
     gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
       const card = el.closest('.jukebox-card');
       const show = cardActionsOpen && card?.classList.contains('jukebox-card--centered');
-      if (show) el.removeAttribute('hidden');
-      else el.setAttribute('hidden', '');
+      el.classList.toggle('is-open', show);
+      el.toggleAttribute('inert', !show);
     });
   }
 

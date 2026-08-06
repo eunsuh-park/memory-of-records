@@ -219,8 +219,10 @@ body.jukebox-active.loading-active .notes-scrollbar {
 }
 
 /* 그림자는 img drop-shadow이므로 호버 시 별도 제거 불필요 */
-.by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .by-type-jukebox .jukebox-gallery .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
+    box-shadow: none;
+  }
 }
 
 /* 타입별 리스트 왼쪽 설명 영역 */
@@ -386,8 +388,10 @@ body.jukebox-active.loading-active .notes-scrollbar {
   -webkit-tap-highlight-color: transparent;
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-new-badge:hover {
-  filter: brightness(1.08);
+@media (hover: hover) and (pointer: fine) {
+  .jukebox-gallery > div.jukebox-card .jukebox-new-badge:hover {
+    filter: brightness(1.08);
+  }
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-new-badge:focus-visible {
@@ -441,13 +445,18 @@ body.jukebox-active.loading-active .notes-scrollbar {
  * (호버로 카드를 이동/확대하면 위치 재계산과 맞물려 카드가 흔들림.
  *  중앙 카드는 스냅으로 이미 정중앙·정면·최대 배율 상태이므로 플립만 수행)
  */
-.jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover,
 .jukebox-gallery > div.jukebox-card.jukebox-card--centered:active {
   z-index: 101;
 }
 
-.jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
-  opacity: 0;
+@media (hover: hover) and (pointer: fine) {
+  .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover {
+    z-index: 101;
+  }
+
+  .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
+    opacity: 0;
+  }
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-card-inner {
@@ -459,8 +468,10 @@ body.jukebox-active.loading-active .notes-scrollbar {
   box-shadow: none;
 }
 
-.jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
-  transform: rotateY(180deg);
+@media (hover: hover) and (pointer: fine) {
+  .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
+    transform: rotateY(180deg);
+  }
 }
 
 .jukebox-gallery > div.jukebox-card .jukebox-card-face {
@@ -705,7 +716,11 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     bottom: calc(48px + max(var(--space-3), env(safe-area-inset-bottom)));
   }
 
-  /* 카드 위 보기 / 채우기 — frame59 시안 (button:not(.btn)보다 특이도 높게) */
+  /*
+   * 카드 위 보기 / 채우기 — frame59 시안 (button:not(.btn)보다 특이도 높게)
+   * display:none 대신 opacity로 열고 닫아, 버튼이 사라질 때도 자연스럽게 페이드 아웃된다.
+   * (닫힌 동안은 inert로 탭/스크린리더 접근을 막는다)
+   */
   .jukebox-card-actions {
     position: absolute;
     inset: 0;
@@ -716,18 +731,17 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     gap: var(--space-3);
     pointer-events: none;
     border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.2s ease;
   }
 
-  .jukebox-card-actions[hidden] {
-    display: none !important;
-  }
-
-  .jukebox-card-actions:not([hidden]) {
+  .jukebox-card-actions.is-open {
+    opacity: 1;
     pointer-events: auto;
   }
 
   /* 노트 탭 시 표지 위에 옅은 딤 */
-  .jukebox-card-actions:not([hidden])::before {
+  .jukebox-card-actions::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -770,7 +784,6 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     transition: background-color 0.2s ease;
   }
 
-  button.jukebox-card-action:hover,
   button.jukebox-card-action:focus-visible {
     background: var(--color-chrome-frost-hover) !important;
     background-color: var(--color-chrome-frost-hover) !important;
@@ -810,14 +823,12 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     line-height: 1 !important;
   }
 
-  /* FAB: 필터 네비 열린 때만 표시 (시안 좌측 화면) */
+  /*
+   * FAB: 필터 네비 열린 때만 표시 (시안 좌측 화면)
+   * display 대신 opacity/pointer-events로 전환해 나타나고 사라질 때 자연스럽게 페이드된다.
+   */
   body.jukebox-active button.add-note-fab,
   body.jukebox-active .add-note-fab {
-    display: none;
-  }
-
-  body.jukebox-active.filter-nav-open button.add-note-fab,
-  body.jukebox-active.filter-nav-open .add-note-fab {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -832,6 +843,32 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     background-color: var(--color-control-grey);
     color: var(--color-chrome-on);
     box-shadow: var(--shadow-md);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  body.jukebox-active.filter-nav-open button.add-note-fab,
+  body.jukebox-active.filter-nav-open .add-note-fab {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  body.jukebox-active.filter-nav-open button.add-note-fab svg,
+  body.jukebox-active.filter-nav-open .add-note-fab svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-chrome-on);
+  }
+}
+
+@media (max-width: 768px) and (hover: hover) and (pointer: fine) {
+  button.jukebox-card-action:hover {
+    background: var(--color-chrome-frost-hover) !important;
+    background-color: var(--color-chrome-frost-hover) !important;
+    color: var(--color-chrome-on) !important;
+    outline: none !important;
+    filter: none !important;
   }
 
   body.jukebox-active.filter-nav-open button.add-note-fab:hover,
@@ -840,12 +877,5 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     background-color: var(--color-control-grey-hover);
     color: var(--color-chrome-on);
     filter: none;
-  }
-
-  body.jukebox-active.filter-nav-open button.add-note-fab svg,
-  body.jukebox-active.filter-nav-open .add-note-fab svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    color: var(--color-chrome-on);
   }
 }
