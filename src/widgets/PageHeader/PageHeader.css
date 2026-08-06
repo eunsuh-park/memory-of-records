@@ -209,7 +209,6 @@ body.story-page-active .nav-drawer-backdrop {
 }
 
 .page-header__story-link,
-.page-header__business-link,
 .page-header__auth-link,
 .page-header__auth-btn {
   text-decoration: none;
@@ -233,7 +232,6 @@ body.story-page-active .nav-drawer-backdrop {
 }
 
 .page-header__story-link:focus,
-.page-header__business-link:focus,
 .page-header__auth-link:focus,
 .page-header__auth-btn:focus {
   color: var(--color-text);
@@ -243,7 +241,6 @@ body.story-page-active .nav-drawer-backdrop {
 
 @media (hover: hover) and (pointer: fine) {
   .page-header__story-link:hover,
-  .page-header__business-link:hover,
   .page-header__auth-link:hover,
   .page-header__auth-btn:hover {
     color: var(--color-text);
@@ -253,7 +250,6 @@ body.story-page-active .nav-drawer-backdrop {
 }
 
 .page-header__story-link.active,
-.page-header__business-link.active,
 .page-header__auth-link.active {
   color: var(--color-text);
   background-color: var(--color-surface-selected);

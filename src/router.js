@@ -5,7 +5,6 @@
 import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
 import { renderStory } from './pages/Story/Story.js';
-import { renderBusiness } from './pages/Business/Business.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 import { renderUiLab } from './pages/UiLab/UiLab.js';
 import { renderLogin } from './pages/Login/Login.js';
@@ -22,7 +21,6 @@ class Router {
       { path: '/by-type', handler: () => renderByType(null) },
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
       { path: '/story', handler: renderStory },
-      { path: '/business', handler: renderBusiness },
       { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
       { path: '/login', handler: () => { void renderLogin(); } },
       /* 내부 리뷰용 — 메인 네비에 노출하지 않음 */

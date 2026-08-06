@@ -111,7 +111,6 @@ export function renderPageHeader() {
   const theme = getStoredTheme();
   const notesActive = isNotesPath(currentPath);
   const storyActive = currentPath.startsWith('/story');
-  const businessActive = currentPath.startsWith('/business');
   const loginActive = currentPath.startsWith('/login');
 
   closeDrawer();
@@ -144,13 +143,6 @@ export function renderPageHeader() {
             data-link
           >
             Story
-          </a>
-          <a
-            href="/business"
-            class="page-header__business-link ${businessActive ? 'active' : ''}"
-            data-link
-          >
-            Business
           </a>
         </div>
       </div>
@@ -203,12 +195,6 @@ export function renderPageHeader() {
           data-link
           data-drawer-close
         >Story</a>
-        <a
-          href="/business"
-          class="nav-drawer__link ${businessActive ? 'active' : ''}"
-          data-link
-          data-drawer-close
-        >Business</a>
         <div class="nav-drawer__auth" data-auth-slot-drawer></div>
       </nav>
     </aside>
