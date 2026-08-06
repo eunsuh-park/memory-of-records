@@ -142,7 +142,7 @@ export function renderPageHeader() {
             class="page-header__story-link ${storyActive ? 'active' : ''}"
             data-link
           >
-            Story
+            Intro
           </a>
         </div>
       </div>
@@ -194,7 +194,7 @@ export function renderPageHeader() {
           class="nav-drawer__link ${storyActive ? 'active' : ''}"
           data-link
           data-drawer-close
-        >Story</a>
+        >Intro</a>
         <div class="nav-drawer__auth" data-auth-slot-drawer></div>
       </nav>
     </aside>

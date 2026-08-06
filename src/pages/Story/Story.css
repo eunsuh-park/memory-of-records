@@ -24,7 +24,10 @@
 }
 
 .story-card__media {
-  aspect-ratio: 16 / 10;
+  width: min(240px, 55%);
+  margin: var(--space-6) auto 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-bg);
 }
@@ -46,7 +49,7 @@
 }
 
 .story-card__placeholder-icon {
-  width: min(120px, 30%);
+  width: min(72px, 40%);
   color: var(--color-text-dim);
   pointer-events: none;
 }
