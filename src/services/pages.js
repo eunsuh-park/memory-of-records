@@ -14,6 +14,11 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 
 const MAX_IMAGE_COUNT = 10;
+/* 서버(api/pages.js) 페이지 이미지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+/* PDF 자체는 서버에 직접 업로드하지 않지만(페이지별로 변환 후 업로드),
+ * 너무 큰 파일은 브라우저에서 변환이 오래 걸리거나 멈출 수 있어 권장 상한을 안내 */
+export const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
 /**
  * @param {File} file
@@ -98,8 +103,33 @@ export function validateImageFiles(files, options = {}) {
     if (!isAllowedImageFile(file)) {
       return { ok: false, message: 'PNG, JPEG, JPG, GIF만 업로드할 수 있습니다' };
     }
+    if (file.size > MAX_IMAGE_BYTES) {
+      const limitMb = Math.floor(MAX_IMAGE_BYTES / (1024 * 1024));
+      return {
+        ok: false,
+        message: `${file.name || '이미지'}: ${limitMb}MB 이하 파일만 업로드할 수 있습니다`
+      };
+    }
   }
   return { ok: true, files: list };
+}
+
+/**
+ * @param {File} file
+ * @returns {{ ok: true } | { ok: false, message: string }}
+ */
+export function validatePdfFile(file) {
+  if (!file) return { ok: false, message: 'PDF 파일을 선택해주세요' };
+  if (file.size > MAX_PDF_BYTES) {
+    const limitMb = Math.floor(MAX_PDF_BYTES / (1024 * 1024));
+    return {
+      ok: false,
+      message: `PDF는 ${limitMb}MB 이하 파일을 권장합니다 (현재 ${Math.ceil(
+        file.size / (1024 * 1024)
+      )}MB)`
+    };
+  }
+  return { ok: true };
 }
 
 export { MAX_IMAGE_COUNT };

@@ -15,12 +15,15 @@ import { showToast } from '../Toast/Toast.js';
 import {
   convertImageDataUrlToJpeg,
   convertPdfFileToJpegDataUrls,
+  MAX_IMAGE_BYTES,
   MAX_IMAGE_COUNT,
+  MAX_PDF_BYTES,
   readFileAsDataUrl,
   shiftPagesAfter,
   updateNotionNotePages,
   uploadPageImage,
-  validateImageFiles
+  validateImageFiles,
+  validatePdfFile
 } from '../../services/pages.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
@@ -160,6 +163,7 @@ export async function openAddPageModal(options = {}) {
           type: 'custom',
           label: 'PDF 파일',
           required: true,
+          hint: `권장 ${Math.floor(MAX_PDF_BYTES / (1024 * 1024))}MB 이하 · 페이지별로 자동 변환됩니다`,
           children: renderFilePicker({
             name: 'pdfFile',
             pickLabel: 'PDF 선택',
@@ -195,7 +199,7 @@ export async function openAddPageModal(options = {}) {
         type: 'custom',
         label: `이미지 파일`,
         required: true,
-        hint: `최대 ${MAX_IMAGE_COUNT}장`,
+        hint: `최대 ${MAX_IMAGE_COUNT}장 · 장당 ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB 이하`,
         children: renderFilePicker({
           name: 'imageFiles',
           pickLabel: '이미지 선택',
@@ -261,6 +265,16 @@ export async function openAddPageModal(options = {}) {
     if (!file) return;
     const nameEl = overlay.querySelector('[data-pdf-name]');
     if (nameEl) nameEl.textContent = file.name || 'PDF';
+
+    const validated = validatePdfFile(file);
+    if (!validated.ok) {
+      setStatus(validated.message, true);
+      const input = overlay.querySelector('input[name="pdfFile"]');
+      if (input) input.value = '';
+      if (nameEl) nameEl.textContent = '선택된 파일 없음';
+      return;
+    }
+
     setStatus('PDF를 이미지로 변환하는 중…');
     busy = true;
     updateUploadEnabled();

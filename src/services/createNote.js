@@ -2,6 +2,28 @@
  * 새 노트 생성·표지 업로드·폼 메타 클라이언트 서비스
  */
 
+/* 서버(api/uploadCover.js) 표지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
+export const MAX_COVER_BYTES = 8 * 1024 * 1024;
+
+/**
+ * @param {File} file
+ * @returns {{ ok: true } | { ok: false, message: string }}
+ */
+export function validateCoverImageFile(file) {
+  if (!file) return { ok: false, message: '이미지를 선택해주세요' };
+  if (!String(file.type || '').startsWith('image/')) {
+    return { ok: false, message: '이미지 파일만 선택할 수 있습니다' };
+  }
+  if (file.size > MAX_COVER_BYTES) {
+    const limitMb = Math.floor(MAX_COVER_BYTES / (1024 * 1024));
+    return {
+      ok: false,
+      message: `표지 이미지는 ${limitMb}MB 이하 파일만 업로드할 수 있습니다`
+    };
+  }
+  return { ok: true };
+}
+
 /**
  * @returns {Promise<{
  *   ok: boolean,
