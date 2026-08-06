@@ -36,7 +36,6 @@ export async function renderStory() {
         </div>
         <div class="story-card__body">
           <header class="story-header">
-            <h1 class="story-title">${title}</h1>
             ${subtitle ? `<div class="story-subtitle">${subtitle}</div>` : ''}
           </header>
           ${
