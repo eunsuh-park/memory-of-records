@@ -21,7 +21,10 @@
   justify-content: center;
   overflow: hidden;
   touch-action: none;
-  padding: var(--space-2) var(--space-2) 72px;
+  padding: max(var(--space-2), env(safe-area-inset-top))
+    max(var(--space-2), env(safe-area-inset-right))
+    calc(4.5rem + env(safe-area-inset-bottom))
+    max(var(--space-2), env(safe-area-inset-left));
   box-sizing: border-box;
 }
 
@@ -203,9 +206,11 @@
 }
 
 @media (max-width: 768px) {
-  /* 노트 기본 맞춤 시 하단 시트와 안 겹치게 여백 확보 */
   .niv-image-container {
-    padding: var(--space-1) 52px calc(4.75rem + env(safe-area-inset-bottom));
+    padding: max(var(--space-1), env(safe-area-inset-top))
+      max(var(--space-1), env(safe-area-inset-right))
+      calc(4.25rem + env(safe-area-inset-bottom))
+      max(var(--space-1), env(safe-area-inset-left));
   }
 
   .niv-bottom-sheet {
