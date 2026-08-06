@@ -50,6 +50,21 @@ body,
   background-color: unset;
 }
 
+/* /note/:id 뷰어 — 헤더 여백 없이 전체 화면 */
+body.note-detail-active .main-wrapper {
+  height: 100vh;
+  height: 100dvh;
+}
+
+body.note-detail-active .app-main {
+  padding-top: 0;
+  height: 100%;
+}
+
+body.note-detail-active #main-content {
+  height: 100%;
+}
+
 /* 전역 스타일 - 기본 설정 */
 * {
   box-sizing: border-box;

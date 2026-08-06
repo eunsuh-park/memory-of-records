@@ -87,7 +87,10 @@ class Router {
       return;
     }
 
-    if (!path.startsWith('/note/')) {
+    if (path.startsWith('/note/')) {
+      document.body.classList.add('note-detail-active');
+    } else {
+      document.body.classList.remove('note-detail-active');
       document.body.classList.remove('note-detail-modal');
     }
 
