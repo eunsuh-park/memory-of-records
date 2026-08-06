@@ -26,6 +26,18 @@ function navigateTo(path) {
 }
 
 /**
+ * requireAuth 실패로 /login으로 보내기 전에, document.body에 떠 있는 모달/뷰어를
+ * 닫아 로그인 폼이 그 뒤에 가려지지 않게 한다.
+ * 모든 모달의 닫기 버튼은 공통 Button(role: 'close')이라 .btn--close 클래스를 공유하므로
+ * 이 클래스를 훅으로 재사용한다(각 모달의 canClose 가드는 그대로 존중됨).
+ */
+function closeOpenOverlays() {
+  document.querySelectorAll('.btn--close').forEach((btn) => {
+    if (btn instanceof HTMLElement) btn.click();
+  });
+}
+
+/**
  * @param {{ force?: boolean }} [options]
  * @returns {Promise<{ ok: boolean, authenticated: boolean, exp?: number|null, message?: string }>}
  */
@@ -118,6 +130,7 @@ export async function requireAuth(options = {}) {
   if (!options.silent) {
     showToast('편집하려면 로그인해 주세요');
   }
+  closeOpenOverlays();
   const qs = new URLSearchParams({ next });
   navigateTo(`/login?${qs.toString()}`);
   return false;
