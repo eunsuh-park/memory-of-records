@@ -8,6 +8,7 @@ import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrom
 import { showToast } from '../../components/Toast/Toast.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
+import '../../components/NoteImageViewer/NoteImageViewer.css';
 import './UiLab.css';
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -577,6 +578,53 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
+            '페이지 북마크 토글 — desktop bookmark-fill · mobile off=bookmark-line / on=bookmark-fill (is_bookmarked)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '북마크 추가',
+                title: '북마크 추가',
+                ariaPressed: false,
+                content: MINGCUTE.bookmarkFill,
+                className: 'niv-bookmark niv-bookmark--desktop niv-sheet-btn'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '북마크 해제',
+                title: '북마크 해제',
+                ariaPressed: true,
+                content: MINGCUTE.bookmarkFill,
+                className: 'niv-bookmark niv-bookmark--desktop niv-sheet-btn is-bookmarked'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                ariaLabel: '북마크 추가',
+                title: '북마크 추가 (모바일 off)',
+                ariaPressed: false,
+                content: MINGCUTE.bookmarkLine,
+                className: 'niv-bookmark niv-bookmark--mobile is-lab-static'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                ariaLabel: '북마크 해제',
+                title: '북마크 해제 (모바일 on)',
+                ariaPressed: true,
+                content: MINGCUTE.bookmarkFill,
+                className: 'niv-bookmark niv-bookmark--mobile is-bookmarked is-lab-static'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
             'shape — solid / text',
             [
               renderButton({ shape: 'solid', content: 'solid 버튼', className: 'ui-lab-demo-solid' }),
@@ -618,7 +666,9 @@ export function renderUiLab() {
             ${renderViewerChrome()}
           </div>
           <ul class="ui-lab__list">
-            <li>하단 시트 4칸: 페이지 정보 · 페이지 추가 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구</li>
+            <li>하단 시트 5칸: 페이지 정보 · 페이지 추가 · 북마크 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구</li>
+            <li>모바일 북마크는 양면 토글 위 FAB로 표시되고, 시트 안 북마크는 숨깁니다</li>
+            <li>북마크는 Cloudinary <code>is_bookmarked</code>와 연결되며, 변경 시 토스트를 띄웁니다</li>
             <li>양면 토글은 <code>aria-pressed</code>로 켜짐을 표시하고, 켜지면 배경이 진해집니다</li>
             <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
             <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구</li>

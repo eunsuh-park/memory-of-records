@@ -338,7 +338,8 @@ export async function fetchPageMeta({ folder, page }) {
  *   pageNumber?: number,
  *   entry_date?: string,
  *   ocr_text?: string,
- *   visible?: boolean
+ *   visible?: boolean,
+ *   is_bookmarked?: boolean
  * }} payload
  */
 export async function updatePageMeta(payload) {
