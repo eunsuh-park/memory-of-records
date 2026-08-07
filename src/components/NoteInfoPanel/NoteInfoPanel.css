@@ -68,6 +68,22 @@ button.jukebox-focus-info__favorite.btn:disabled {
   cursor: wait;
 }
 
+/* 모바일 변형: off=white 50% (전용 0.5 토큰 없음 → --white color-mix), on=primary */
+button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']) {
+  color: color-mix(in srgb, var(--white) 50%, transparent);
+}
+
+button.jukebox-focus-info__favorite--mobile.btn.is-favorite,
+button.jukebox-focus-info__favorite--mobile.btn[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']):hover {
+    color: color-mix(in srgb, var(--white) 70%, transparent);
+  }
+}
+
 /* 전역 button:not(.btn)(padding·radius)보다 특이도 높게 원형 강제 */
 button.jukebox-focus-info__edit,
 button.jukebox-focus-info__add,
@@ -228,12 +244,13 @@ button.jukebox-focus-info__create:focus-visible {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-2);
+    gap: var(--space-1);
     max-width: 100%;
   }
 
   .jukebox-focus-info__note-title {
     margin: 0;
+    min-width: 0;
     max-width: 100%;
     font-size: var(--text-base);
     font-weight: var(--font-semibold);
@@ -244,6 +261,22 @@ button.jukebox-focus-info__create:focus-visible {
     text-overflow: ellipsis;
     white-space: nowrap;
     text-shadow: 0 1px 10px var(--color-shadow-lg);
+  }
+
+  /* 모바일 off: star-line · 50% white (--white 기준, 전용 0.5 토큰 없음) */
+  button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']) {
+    color: color-mix(in srgb, var(--white) 50%, transparent);
+  }
+
+  button.jukebox-focus-info__favorite--mobile.btn.is-favorite,
+  button.jukebox-focus-info__favorite--mobile.btn[aria-pressed='true'] {
+    color: var(--color-primary);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']):hover {
+      color: color-mix(in srgb, var(--white) 70%, transparent);
+    }
   }
 
   [data-theme='light'] .jukebox-focus-info__note-title {

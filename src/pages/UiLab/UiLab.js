@@ -528,7 +528,7 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
-            '즐겨찾기 토글 — ghost toolbar · star-fill (false=회색 / true=primary, aria-pressed)',
+            '즐겨찾기 토글 — desktop star-fill(회색/primary) · mobile off=star-line(white 50%) / on=star-fill(primary)',
             [
               renderButton({
                 shape: 'circle',
@@ -539,7 +539,7 @@ export function renderUiLab() {
                 title: '즐겨찾기 추가',
                 ariaPressed: false,
                 content: MINGCUTE.starFill,
-                className: 'jukebox-focus-info__favorite'
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--desktop'
               }),
               renderButton({
                 shape: 'circle',
@@ -550,7 +550,29 @@ export function renderUiLab() {
                 title: '즐겨찾기 해제',
                 ariaPressed: true,
                 content: MINGCUTE.starFill,
-                className: 'jukebox-focus-info__favorite is-favorite'
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--desktop is-favorite'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 추가',
+                title: '즐겨찾기 추가 (모바일 off)',
+                ariaPressed: false,
+                content: MINGCUTE.starLine,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 해제',
+                title: '즐겨찾기 해제 (모바일 on)',
+                ariaPressed: true,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile is-favorite'
               })
             ].join('')
           )}

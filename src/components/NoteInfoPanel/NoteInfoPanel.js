@@ -26,8 +26,15 @@ function categoryLabel(note, filterMode) {
   return note.notebookType || note.type || '';
 }
 
-function renderFavoriteButton(noteId, favorites) {
+/**
+ * @param {string} noteId
+ * @param {boolean} favorites
+ * @param {'desktop'|'mobile'} variant
+ */
+function renderFavoriteButton(noteId, favorites, variant = 'desktop') {
   const pressed = Boolean(favorites);
+  /* 모바일 off만 star-line, 그 외(데스크톱·on)는 star-fill */
+  const icon = variant === 'mobile' && !pressed ? MINGCUTE.starLine : MINGCUTE.starFill;
   return renderButton({
     shape: 'circle',
     size: 's',
@@ -36,11 +43,12 @@ function renderFavoriteButton(noteId, favorites) {
     ariaLabel: pressed ? '즐겨찾기 해제' : '즐겨찾기 추가',
     title: pressed ? '즐겨찾기 해제' : '즐겨찾기 추가',
     ariaPressed: pressed,
-    content: MINGCUTE.starFill,
-    className: `jukebox-focus-info__favorite${pressed ? ' is-favorite' : ''}`,
+    content: icon,
+    className: `jukebox-focus-info__favorite jukebox-focus-info__favorite--${variant}${pressed ? ' is-favorite' : ''}`,
     dataset: {
       'note-id': noteId,
-      action: 'favorite'
+      action: 'favorite',
+      variant
     }
   });
 }
@@ -84,7 +92,8 @@ export function render(note, filterMode, opts = {}) {
   const memo = escapeHtml(note.description || '');
   const noteId = escapeHtml(note.id || '');
   const favorites = isFavoriteNote(note);
-  const favoriteBtn = renderFavoriteButton(noteId, favorites);
+  const favoriteBtnDesktop = renderFavoriteButton(noteId, favorites, 'desktop');
+  const favoriteBtnMobile = renderFavoriteButton(noteId, favorites, 'mobile');
   const metaParts = [category, pages, size].filter(Boolean);
 
   return `
@@ -93,7 +102,7 @@ export function render(note, filterMode, opts = {}) {
         <div class="jukebox-focus-info__header">
           <h2 class="jukebox-focus-info__title">${title}</h2>
           <div class="jukebox-focus-info__actions">
-            ${favoriteBtn}
+            ${favoriteBtnDesktop}
             <button
               type="button"
               class="jukebox-focus-info__edit"
@@ -122,7 +131,7 @@ export function render(note, filterMode, opts = {}) {
       <div class="jukebox-focus-info__mobile">
         <div class="jukebox-focus-info__mobile-row">
           <p class="jukebox-focus-info__note-title">${title}</p>
-          ${favoriteBtn}
+          ${favoriteBtnMobile}
         </div>
         ${
           actionsOpen
