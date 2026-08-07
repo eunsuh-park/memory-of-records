@@ -38,6 +38,36 @@
   flex-shrink: 0;
 }
 
+/* 즐겨찾기: ghost toolbar — false=회색, true=primary */
+button.jukebox-focus-info__favorite.btn {
+  color: var(--color-text-muted);
+  background: transparent;
+  background-color: transparent;
+}
+
+button.jukebox-focus-info__favorite.btn.is-favorite,
+button.jukebox-focus-info__favorite.btn[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.jukebox-focus-info__favorite.btn:hover {
+    color: var(--color-primary);
+    background: transparent;
+    background-color: transparent;
+  }
+}
+
+button.jukebox-focus-info__favorite.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+button.jukebox-focus-info__favorite.btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 /* 전역 button:not(.btn)(padding·radius)보다 특이도 높게 원형 강제 */
 button.jukebox-focus-info__edit,
 button.jukebox-focus-info__add,
@@ -192,6 +222,14 @@ button.jukebox-focus-info__create:focus-visible {
     gap: var(--space-2);
     width: 100%;
     pointer-events: auto;
+  }
+
+  .jukebox-focus-info__mobile-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    max-width: 100%;
   }
 
   .jukebox-focus-info__note-title {

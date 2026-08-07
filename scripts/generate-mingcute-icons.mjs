@@ -40,7 +40,8 @@ const ICONS = [
   { key: 'arrowToRightLine', name: 'arrow-to-right-line', desc: '우측 드로어 닫기' },
   { key: 'sunFill', name: 'sun-fill', desc: '테마 스위치 · 라이트' },
   { key: 'moonFill', name: 'moon-fill', desc: '테마 스위치 · 다크' },
-  { key: 'pic2Fill', name: 'pic-2-fill', desc: '이미지 플레이스홀더' }
+  { key: 'pic2Fill', name: 'pic-2-fill', desc: '이미지 플레이스홀더' },
+  { key: 'starFill', name: 'star-fill', desc: '즐겨찾기 (별)' }
 ];
 
 const res = await fetch(`${API}?icons=${ICONS.map((icon) => icon.name).join(',')}`);

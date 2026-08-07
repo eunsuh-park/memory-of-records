@@ -7,7 +7,9 @@
  */
 
 import { formatNoteSizeLabel } from '../../utils/noteSize.js';
+import { isFavoriteNote } from '../../utils/noteFavorites.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { render as renderButton } from '../Button/Button.js';
 import './NoteInfoPanel.css';
 
 function escapeHtml(value) {
@@ -22,6 +24,25 @@ function escapeHtml(value) {
 function categoryLabel(note, filterMode) {
   if (filterMode === 'type') return note.type || note.notebookType || '';
   return note.notebookType || note.type || '';
+}
+
+function renderFavoriteButton(noteId, favorites) {
+  const pressed = Boolean(favorites);
+  return renderButton({
+    shape: 'circle',
+    size: 's',
+    role: 'toolbar',
+    tone: 'ghost',
+    ariaLabel: pressed ? '즐겨찾기 해제' : '즐겨찾기 추가',
+    title: pressed ? '즐겨찾기 해제' : '즐겨찾기 추가',
+    ariaPressed: pressed,
+    content: MINGCUTE.starFill,
+    className: `jukebox-focus-info__favorite${pressed ? ' is-favorite' : ''}`,
+    dataset: {
+      'note-id': noteId,
+      action: 'favorite'
+    }
+  });
 }
 
 /**
@@ -62,6 +83,8 @@ export function render(note, filterMode, opts = {}) {
   const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
   const memo = escapeHtml(note.description || '');
   const noteId = escapeHtml(note.id || '');
+  const favorites = isFavoriteNote(note);
+  const favoriteBtn = renderFavoriteButton(noteId, favorites);
   const metaParts = [category, pages, size].filter(Boolean);
 
   return `
@@ -70,6 +93,7 @@ export function render(note, filterMode, opts = {}) {
         <div class="jukebox-focus-info__header">
           <h2 class="jukebox-focus-info__title">${title}</h2>
           <div class="jukebox-focus-info__actions">
+            ${favoriteBtn}
             <button
               type="button"
               class="jukebox-focus-info__edit"
@@ -96,7 +120,10 @@ export function render(note, filterMode, opts = {}) {
         ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
       </div>
       <div class="jukebox-focus-info__mobile">
-        <p class="jukebox-focus-info__note-title">${title}</p>
+        <div class="jukebox-focus-info__mobile-row">
+          <p class="jukebox-focus-info__note-title">${title}</p>
+          ${favoriteBtn}
+        </div>
         ${
           actionsOpen
             ? `<button

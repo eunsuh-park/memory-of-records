@@ -27,6 +27,7 @@ import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
+import { updateNoteFavorite } from '../../services/createNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -923,6 +924,53 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
+      const favoriteBtn = e.target?.closest?.('.jukebox-focus-info__favorite');
+      if (favoriteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (favoriteBtn.disabled) return;
+        const noteId = favoriteBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note) return;
+
+        const next = !note.favorites;
+        const syncFavoriteButtons = (value, { disabled = false } = {}) => {
+          const label = value ? '즐겨찾기 해제' : '즐겨찾기 추가';
+          focusSlot
+            .querySelectorAll(`.jukebox-focus-info__favorite[data-note-id="${CSS.escape(noteId)}"]`)
+            .forEach((btn) => {
+              btn.disabled = disabled;
+              btn.classList.toggle('is-favorite', value);
+              btn.setAttribute('aria-pressed', value ? 'true' : 'false');
+              btn.setAttribute('aria-label', label);
+              btn.setAttribute('title', label);
+            });
+        };
+
+        note.favorites = next;
+        if (Array.isArray(allNotesCache)) {
+          const cached = allNotesCache.find((n) => n.id === noteId);
+          if (cached) cached.favorites = next;
+        }
+        syncFavoriteButtons(next, { disabled: true });
+
+        updateNoteFavorite({ id: noteId, favorites: next })
+          .catch((err) => {
+            console.warn('Jukebox: 즐겨찾기 변경 실패', err);
+            note.favorites = !next;
+            if (Array.isArray(allNotesCache)) {
+              const cached = allNotesCache.find((n) => n.id === noteId);
+              if (cached) cached.favorites = !next;
+            }
+            syncFavoriteButtons(!next, { disabled: false });
+            showToast(err?.message || '즐겨찾기 변경에 실패했습니다.');
+          })
+          .finally(() => {
+            syncFavoriteButtons(Boolean(note.favorites), { disabled: false });
+          });
+        return;
+      }
+
       const createBtn = e.target?.closest?.('.jukebox-focus-info__create');
       if (createBtn) {
         e.preventDefault();

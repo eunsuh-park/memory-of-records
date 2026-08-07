@@ -135,6 +135,25 @@ export async function updateNotionNote(payload) {
 }
 
 /**
+ * Notion favorites 토글
+ * @param {{ id: string, favorites: boolean }} payload
+ */
+export async function updateNoteFavorite(payload) {
+  const response = await fetch('/api/updateFavorite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.details?.message || data?.error || '즐겨찾기 변경에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
  * File → data URL (base64)
  * @param {File} file
  * @returns {Promise<string>}

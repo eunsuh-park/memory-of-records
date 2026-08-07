@@ -5,7 +5,7 @@
  * Body:
  * {
  *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
- *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?
+ *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
  */
 import {
@@ -110,6 +110,14 @@ export default async function handler(req, res) {
     );
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
     const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
+    const favoritesProp = findSchemaProperty(
+      schema,
+      'favorites',
+      'Favorites',
+      'favorite',
+      'Favorite',
+      '즐겨찾기'
+    );
 
     if (frontProp?.type === 'url') {
       properties[frontProp.key] = { url: coverFrontUrl };
@@ -205,6 +213,17 @@ export default async function handler(req, res) {
       properties[visibleProp.key] = { checkbox: Boolean(visible) };
     } else if (visibleProp?.type === 'select' && visible) {
       properties[visibleProp.key] = { select: { name: 'true' } };
+    }
+
+    /* favorites 기본값 false */
+    const favorites =
+      body.favorites === true || body.favorites === 'true' || body.favorites === 1;
+    if (favoritesProp?.type === 'checkbox') {
+      properties[favoritesProp.key] = { checkbox: Boolean(favorites) };
+    } else if (favoritesProp?.type === 'select') {
+      properties[favoritesProp.key] = favorites
+        ? { select: { name: 'true' } }
+        : { select: null };
     }
 
     const page = await notionFetch('/pages', {
