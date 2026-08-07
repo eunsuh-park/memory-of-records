@@ -958,6 +958,9 @@ export function renderJukeboxWithFilter(options) {
         syncFavoriteButtons(next, { disabled: true });
 
         updateNoteFavorite({ id: noteId, favorites: next })
+          .then(() => {
+            showToast(next ? '즐겨찾기에 추가했습니다' : '즐겨찾기를 해제했습니다');
+          })
           .catch((err) => {
             console.warn('Jukebox: 즐겨찾기 변경 실패', err);
             note.favorites = !next;
