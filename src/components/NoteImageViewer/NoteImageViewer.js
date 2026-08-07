@@ -23,9 +23,10 @@ import {
   fitAspectBox,
   isLandscapeSpread
 } from '../../utils/noteSize.js';
-import { buildPageImageUrl } from '../../services/pages.js';
+import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
 import '../PdfModal/PdfModal.css';
@@ -135,6 +136,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
   const addPageBtn = targetEl.querySelector('.niv-add-page');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
+  const bookmarkBtns = [...targetEl.querySelectorAll('.niv-bookmark')];
   const currentPageEl = targetEl.querySelector('.niv-current-page');
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
@@ -168,6 +170,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const MAX_VIEW_SCALE = 4;
   /** Cloudinary metadata visible=false 페이지 번호 (뷰어에서 건너뜀) */
   let hiddenPages = new Set();
+  /** pageNum → is_bookmarked */
+  const bookmarkedByPage = new Map();
+  let bookmarkRequestId = 0;
   /** pageNum → HTMLImageElement (preload 캐시) */
   const preloadedImages = new Map();
   /** 실제로 단페이지 두 장을 나란히 보여주는 중일 때만 true */
@@ -403,6 +408,83 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
     /* 실제로 두 장을 붙일 때만 양면 레이아웃 */
     viewerEl?.classList.toggle('spread-mode', isPairing);
+    bookmarkBtns.forEach((btn) => {
+      btn.disabled = !ready;
+    });
+  }
+
+  /**
+   * favorites와 동일: mobile off만 line, 데스크톱·on은 fill
+   * @param {boolean} value
+   * @param {{ disabled?: boolean }} [opts]
+   */
+  function syncBookmarkButtons(value, { disabled = false } = {}) {
+    const pressed = Boolean(value);
+    const label = pressed ? '북마크 해제' : '북마크 추가';
+    bookmarkBtns.forEach((btn) => {
+      const isMobile = btn.classList.contains('niv-bookmark--mobile');
+      btn.innerHTML = isMobile && !pressed ? MINGCUTE.bookmarkLine : MINGCUTE.bookmarkFill;
+      btn.disabled = disabled || !ready;
+      btn.classList.toggle('is-bookmarked', pressed);
+      btn.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
+    });
+  }
+
+  async function refreshBookmarkState(num) {
+    if (!folderUrl || !Number.isFinite(num) || num < 1) {
+      syncBookmarkButtons(false);
+      return;
+    }
+    if (bookmarkedByPage.has(num)) {
+      syncBookmarkButtons(bookmarkedByPage.get(num));
+      return;
+    }
+    const requestId = ++bookmarkRequestId;
+    try {
+      const meta = await fetchPageMeta({ folder: folderUrl, page: num });
+      if (requestId !== bookmarkRequestId || pageNum !== num) return;
+      const value = Boolean(meta?.is_bookmarked);
+      bookmarkedByPage.set(num, value);
+      syncBookmarkButtons(value);
+    } catch (err) {
+      console.warn('NoteImageViewer: 북마크 상태 조회 실패', err);
+      if (requestId !== bookmarkRequestId || pageNum !== num) return;
+      syncBookmarkButtons(false);
+    }
+  }
+
+  async function toggleBookmark() {
+    if (!ready || !folderUrl) {
+      showToast('페이지를 불러온 뒤 북마크할 수 있습니다');
+      return;
+    }
+    const current = bookmarkedByPage.has(pageNum)
+      ? Boolean(bookmarkedByPage.get(pageNum))
+      : false;
+    const next = !current;
+    const targetPage = pageNum;
+    bookmarkedByPage.set(targetPage, next);
+    syncBookmarkButtons(next, { disabled: true });
+
+    try {
+      await updatePageMeta({
+        folder: folderUrl,
+        pageNumber: targetPage,
+        is_bookmarked: next
+      });
+      showToast(next ? '북마크에 추가했습니다' : '북마크를 해제했습니다');
+    } catch (err) {
+      console.warn('NoteImageViewer: 북마크 변경 실패', err);
+      bookmarkedByPage.set(targetPage, current);
+      if (pageNum === targetPage) syncBookmarkButtons(current, { disabled: false });
+      showToast(err?.message || '북마크 변경에 실패했습니다.');
+    } finally {
+      if (pageNum === targetPage) {
+        syncBookmarkButtons(Boolean(bookmarkedByPage.get(targetPage)), { disabled: false });
+      }
+    }
   }
 
   function preloadPage(num) {
@@ -463,6 +545,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     isPairing = false;
     viewerEl?.classList.remove('spread-mode');
     updateControls();
+    void refreshBookmarkState(num);
     const token = ++renderToken;
     const preLeft = preloadPage(num);
     if (!preLeft) return;
@@ -614,6 +697,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (nextCount > 0) totalPages = nextCount;
     mediaVersion = Date.now();
     preloadedImages.clear();
+    bookmarkedByPage.clear();
     if (folderUrl) {
       hiddenPagesCache.delete(folderUrl);
       hiddenPages = await fetchHiddenPages(folderUrl, { force: true });
@@ -713,6 +797,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   pageInfoBtn?.addEventListener('click', () => openCurrentPageMeta());
   addPageBtn?.addEventListener('click', () => {
     void openInsertPageModal();
+  });
+  bookmarkBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      void toggleBookmark();
+    });
   });
   resetViewBtn?.addEventListener('click', () => {
     resetViewTransform();

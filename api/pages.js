@@ -146,6 +146,19 @@ function normalizeVisible(value) {
   return !['false', 'no', '0', 'off', 'hidden', '숨김'].includes(s);
 }
 
+/** is_bookmarked: 없으면 false (visible과 달리 opt-in) */
+function normalizeBookmarked(value) {
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0) return false;
+  const s = String(value ?? '').trim().toLowerCase();
+  if (!s) return false;
+  return ['true', 'yes', '1', 'on', 'bookmarked'].includes(s);
+}
+
+function toMetaBoolFlag(value) {
+  return value !== false && value !== 'false' && value !== 0 && value !== '0';
+}
+
 function buildNotionPropertyPayload(prop, value) {
   if (!prop) return null;
   if (prop.type === 'url') return { url: value || null };
@@ -170,7 +183,7 @@ function resolvePublicId(body) {
   return `${folder}/${pageStem(body.pageNumber)}`;
 }
 
-function buildMetadataString({ entry_date, ocr_text, visible }) {
+function buildMetadataString({ entry_date, ocr_text, visible, is_bookmarked }) {
   const parts = [];
   if (entry_date !== undefined) {
     const d = trimOrEmpty(entry_date);
@@ -185,13 +198,15 @@ function buildMetadataString({ entry_date, ocr_text, visible }) {
     parts.push(`ocr_text=${text}`);
   }
   if (visible !== undefined) {
-    const v = visible !== false && visible !== 'false' && visible !== 0 && visible !== '0';
-    parts.push(`visible=${v ? 'true' : 'false'}`);
+    parts.push(`visible=${toMetaBoolFlag(visible) ? 'true' : 'false'}`);
+  }
+  if (is_bookmarked !== undefined) {
+    parts.push(`is_bookmarked=${toMetaBoolFlag(is_bookmarked) ? 'true' : 'false'}`);
   }
   return parts.join('|');
 }
 
-function buildContextString({ entry_date, ocr_text, visible }) {
+function buildContextString({ entry_date, ocr_text, visible, is_bookmarked }) {
   const parts = [];
   if (entry_date !== undefined) parts.push(`entry_date=${trimOrEmpty(entry_date).slice(0, 10)}`);
   if (ocr_text !== undefined) {
@@ -202,8 +217,10 @@ function buildContextString({ entry_date, ocr_text, visible }) {
     parts.push(`ocr_text=${text}`);
   }
   if (visible !== undefined) {
-    const v = visible !== false && visible !== 'false' && visible !== 0 && visible !== '0';
-    parts.push(`visible=${v ? 'true' : 'false'}`);
+    parts.push(`visible=${toMetaBoolFlag(visible) ? 'true' : 'false'}`);
+  }
+  if (is_bookmarked !== undefined) {
+    parts.push(`is_bookmarked=${toMetaBoolFlag(is_bookmarked) ? 'true' : 'false'}`);
   }
   return parts.join('|');
 }
@@ -523,6 +540,9 @@ async function handleGetMeta(req, res) {
     readMetaValue(meta, 'ocr_text', 'ocrtext', 'ocr') ??
     readMetaValue(context, 'ocr_text', 'ocrtext', 'ocr');
   const visibleRaw = readMetaValue(meta, 'visible') ?? readMetaValue(context, 'visible');
+  const bookmarkedRaw =
+    readMetaValue(meta, 'is_bookmarked', 'isbookmarked', 'bookmarked') ??
+    readMetaValue(context, 'is_bookmarked', 'isbookmarked', 'bookmarked');
 
   res.setHeader('Cache-Control', 'no-store');
   return res.status(200).json({
@@ -531,7 +551,8 @@ async function handleGetMeta(req, res) {
     pageNumber,
     entry_date: normalizeDate(entryDate),
     ocr_text: ocrText == null ? '' : String(ocrText),
-    visible: normalizeVisible(visibleRaw)
+    visible: normalizeVisible(visibleRaw),
+    is_bookmarked: normalizeBookmarked(bookmarkedRaw)
   });
 }
 
@@ -555,23 +576,26 @@ async function handleUpdateMeta(req, res, body) {
   if (
     body.entry_date === undefined &&
     body.ocr_text === undefined &&
-    body.visible === undefined
+    body.visible === undefined &&
+    body.is_bookmarked === undefined
   ) {
     return res.status(400).json({
       error: 'Validation failed',
-      message: '수정할 필드(entry_date, ocr_text, visible)가 없습니다'
+      message: '수정할 필드(entry_date, ocr_text, visible, is_bookmarked)가 없습니다'
     });
   }
 
   const metadata = buildMetadataString({
     entry_date: body.entry_date,
     ocr_text: body.ocr_text,
-    visible: body.visible
+    visible: body.visible,
+    is_bookmarked: body.is_bookmarked
   });
   const context = buildContextString({
     entry_date: body.entry_date,
     ocr_text: body.ocr_text,
-    visible: body.visible
+    visible: body.visible,
+    is_bookmarked: body.is_bookmarked
   });
   if (!metadata && !context) {
     return res.status(400).json({
