@@ -7,6 +7,7 @@ import { render as renderButton } from '../../components/Button/Button.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import './UiLab.css';
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -524,6 +525,55 @@ export function renderUiLab() {
             [
               renderButton({ shape: 'circle', role: 'toolbar', ariaLabel: 'filled 데모', content: MINGCUTE.eye2Fill }),
               renderButton({ shape: 'circle', role: 'toolbar', tone: 'ghost', ariaLabel: 'ghost 데모', content: MINGCUTE.eye2Line })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            '즐겨찾기 토글 — desktop star-fill(회색/primary) · mobile off=star-line(white 50%) / on=star-fill(primary)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 추가',
+                title: '즐겨찾기 추가',
+                ariaPressed: false,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--desktop'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 해제',
+                title: '즐겨찾기 해제',
+                ariaPressed: true,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--desktop is-favorite'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 추가',
+                title: '즐겨찾기 추가 (모바일 off)',
+                ariaPressed: false,
+                content: MINGCUTE.starLine,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 해제',
+                title: '즐겨찾기 해제 (모바일 on)',
+                ariaPressed: true,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile is-favorite'
+              })
             ].join('')
           )}
           ${renderVariantRow(

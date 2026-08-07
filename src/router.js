@@ -20,6 +20,7 @@ class Router {
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/by-type', handler: () => renderByType(null) },
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
+      /* 즐겨찾기 전용 페이지는 FAVORITES_PATH(/favorites) + filterFavoriteNotes로 추가 예정 */
       { path: '/story', handler: renderStory },
       { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
       { path: '/login', handler: () => { void renderLogin(); } },

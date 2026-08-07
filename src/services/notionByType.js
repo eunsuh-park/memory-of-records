@@ -4,6 +4,7 @@
 import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
+import { parseNotionFavorites } from '../utils/noteFavorites.js';
 
 /** visibility → { data, promise } */
 const cachedNotionTypeItems = new Map();
@@ -193,6 +194,7 @@ export function convertNotionPageToTypeItem(page) {
       getProperty(properties, 'size', 'Size', '사이즈', '노트 사이즈', 'note_size', 'Note Size')
     ) || null;
   const visible = isNotionPageVisible(page);
+  const favorites = parseNotionFavorites(page);
 
   return {
     id: page?.id || '',
@@ -211,7 +213,8 @@ export function convertNotionPageToTypeItem(page) {
     pdfFolderUrl,
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,
-    visible
+    visible,
+    favorites
   };
 }
 

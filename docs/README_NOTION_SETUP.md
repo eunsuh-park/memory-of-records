@@ -71,6 +71,15 @@
   환경 변수가 없거나 조회에 실패하면 안전하게 전체 페이지를 노출합니다(fail-open).
   참고: CDN 캐시가 있어 메타데이터 변경 후 최대 약 5분 뒤에 반영될 수 있습니다.
 
+## 즐겨찾기 (favorites)
+
+- Notion 노트북 DB에 `favorites` 컬럼(Checkbox, 기본값 false)을 둡니다.
+- Jukebox 포커스 정보 패널의 별(star-fill) 버튼이 이 값과 연결되며, 클릭 시
+  `POST /api/updateFavorite`로 토글합니다.
+- 클라이언트 노트 객체에는 `favorites: boolean`이 포함됩니다.
+- 이후 즐겨찾기만 모은 페이지(`/favorites`)는 `src/utils/noteFavorites.js`의
+  `FAVORITES_PATH` · `filterFavoriteNotes()`를 사용하면 됩니다.
+
 ## 사용 방법
 
 `src/pages/Story.js`에서 노션 데이터를 사용하도록 수정하면 됩니다.
