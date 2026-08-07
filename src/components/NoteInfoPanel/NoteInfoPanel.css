@@ -263,22 +263,6 @@ button.jukebox-focus-info__create:focus-visible {
     text-shadow: 0 1px 10px var(--color-shadow-lg);
   }
 
-  /* 모바일 off: star-line · 50% white (--white 기준, 전용 0.5 토큰 없음) */
-  button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']) {
-    color: color-mix(in srgb, var(--white) 50%, transparent);
-  }
-
-  button.jukebox-focus-info__favorite--mobile.btn.is-favorite,
-  button.jukebox-focus-info__favorite--mobile.btn[aria-pressed='true'] {
-    color: var(--color-primary);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']):hover {
-      color: color-mix(in srgb, var(--white) 70%, transparent);
-    }
-  }
-
   [data-theme='light'] .jukebox-focus-info__note-title {
     text-shadow: none;
   }
