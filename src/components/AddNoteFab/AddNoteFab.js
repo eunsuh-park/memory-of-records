@@ -596,7 +596,16 @@ export async function openAddNoteModal(options = {}) {
           onConfirm: () => {
             openAddPageModal({
               note: createdNote,
-              onDone: () => options.onCreated?.(created)
+              onDone: (result) => {
+                /* 페이지 업로드 결과(pdfFolderUrl·pageCount)를 넘기고 목록을 다시 불러온다 */
+                options.onCreated?.({
+                  ...created,
+                  ...(result || {}),
+                  id: created?.id || result?.id,
+                  pdfFolderUrl: result?.pdfFolderUrl || '',
+                  pageCount: result?.pageCount || 0
+                });
+              }
             });
           }
         });

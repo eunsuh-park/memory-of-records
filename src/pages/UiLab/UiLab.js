@@ -130,9 +130,13 @@ const RESPONSIVE_MATRIX = [
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '바닥 반사 off, 모바일 포커스 정보(제목 + 1/N)로 교체',
       '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
-      'FAB는 필터가 열렸을 때만 노출 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
+      'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
-    tablet: ['.notes-container padding-top 90px', '갤러리·카드·포커스 UI는 데스크톱과 동일'],
+    tablet: [
+      '.notes-container padding-top 90px',
+      '필터 칩 수평 스크롤 · 짧은 라벨(labelMobile) 사용',
+      'FAB 항상 표시(Primary)'
+    ],
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
