@@ -108,6 +108,7 @@
  * ========== 타블렛 (1024px 이하): 스케일 축소, 전부 표시 ==========
  * 터치 환경이므로 마우스 기준 데스크톱 값보다 높이를 줄이지 않고
  * 탭하기 편한 최소 터치 타겟(2.5rem/40px)을 보장한다.
+ * 칩이 넘치면 수평 스크롤로 잘림을 막는다.
  */
 @media (max-width: 1024px) {
   .view-mode-toggle {
@@ -122,14 +123,37 @@
     min-height: 2.5rem;
   }
 
+  .sub-menu {
+    max-width: min(96vw, 920px);
+    width: max-content;
+  }
+
+  .sub-nav {
+    max-width: 100%;
+  }
+
   .filter-list {
     gap: var(--space-1);
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: var(--space-1);
   }
 
   .filter-list .chip {
     padding: var(--space-2) var(--space-3);
     font-size: var(--text-sm);
     min-height: 2.5rem;
+    flex-shrink: 0;
+    max-width: 11rem;
+  }
+
+  .filter-list .chip .chip__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

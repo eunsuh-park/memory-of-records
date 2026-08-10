@@ -334,6 +334,38 @@ export async function openAddPageModal(options = {}) {
     }
   }
 
+  /**
+   * Cloudinary 업로드와 Notion pdf_folder_url/page_count를 최대한 같이 맞춘다.
+   * 중간에 끊겨도 이미 올라간 장수만큼 Notion에 남겨 "Load Failed"를 막는다.
+   */
+  async function linkNotePages(folderUrl, pageCount, { required = true } = {}) {
+    if (!noteId || !folderUrl || !Number.isFinite(pageCount) || pageCount < 1) {
+      if (required) {
+        throw new Error('노트 페이지 정보를 갱신할 수 없습니다');
+      }
+      return null;
+    }
+    const attempts = required ? 3 : 1;
+    let lastError = null;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await updateNotionNotePages({
+          id: noteId,
+          pdfFolderUrl: folderUrl,
+          pageCount
+        });
+      } catch (err) {
+        lastError = err;
+        console.warn(`[AddPage] Notion link attempt ${attempt}/${attempts}`, err);
+        if (attempt < attempts) {
+          await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
+        }
+      }
+    }
+    if (required) throw lastError || new Error('노트 페이지 정보 갱신에 실패했습니다');
+    return null;
+  }
+
   async function handleUpload() {
     if (!pages.length || busy) return;
     closeModal();
@@ -343,7 +375,9 @@ export async function openAddPageModal(options = {}) {
     const total = pages.length;
     let folderUrl = existingFolder;
     let folderPath = existingFolder;
-    const newPageCount = existingCount + total;
+    let uploadedCount = 0;
+    let linkedCount = existingCount;
+    let updated = null;
 
     showUploadingOverlay(`페이지 업로드 중… 0/${total}`);
 
@@ -372,18 +406,37 @@ export async function openAddPageModal(options = {}) {
         });
         if (!folderUrl && result.folderUrl) folderUrl = result.folderUrl;
         if (result.folder) folderPath = result.folder;
+        uploadedCount += 1;
+
+        /* 첫 장부터 Notion에 폴더 URL을 심어 부분 실패 시에도 뷰어가 열리게 한다 */
+        if (folderUrl) {
+          const runningCount = existingCount + uploadedCount;
+          const isFirstLink = linkedCount === existingCount && existingCount === 0;
+          showUploadingOverlay(
+            isFirstLink || i === pages.length - 1
+              ? '노트 정보를 갱신하는 중…'
+              : `페이지 업로드 중… ${i + 1}/${total}`
+          );
+          const linkResult = await linkNotePages(folderUrl, runningCount, {
+            required: isFirstLink || i === pages.length - 1
+          });
+          if (linkResult) {
+            updated = linkResult;
+            linkedCount = runningCount;
+          }
+        }
       }
 
       if (!folderUrl) {
         throw new Error('업로드된 페이지 폴더 URL을 확인하지 못했습니다');
       }
 
-      showUploadingOverlay('노트 정보를 갱신하는 중…');
-      const updated = await updateNotionNotePages({
-        id: noteId,
-        pdfFolderUrl: folderUrl,
-        pageCount: newPageCount
-      });
+      const newPageCount = existingCount + uploadedCount;
+      if (linkedCount !== newPageCount) {
+        showUploadingOverlay('노트 정보를 갱신하는 중…');
+        updated = await linkNotePages(folderUrl, newPageCount, { required: true });
+        linkedCount = newPageCount;
+      }
 
       if (noteId) markNoteUnseen(noteId);
       clearNotionNotebooksCache();
@@ -391,21 +444,50 @@ export async function openAddPageModal(options = {}) {
       hideUploadingOverlay();
       showToast(
         needsShift
-          ? `${total}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다`
-          : `${total}페이지가 추가되었습니다`
+          ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다`
+          : `${uploadedCount}페이지가 추가되었습니다`
       );
       options.onDone?.({
-        ...updated,
+        ...(updated || {}),
         id: noteId,
         pdfFolderUrl: folderUrl,
-        pageCount: newPageCount,
+        pageCount: linkedCount,
         insertAfterPage,
-        insertedCount: total
+        insertedCount: uploadedCount
       });
     } catch (err) {
       console.error('[AddPage] upload', err);
+      /* Cloudinary까지 올라간 장수가 있으면 Notion에 부분 반영 시도 */
+      if (folderUrl && uploadedCount > 0 && linkedCount < existingCount + uploadedCount) {
+        try {
+          updated = await linkNotePages(folderUrl, existingCount + uploadedCount, {
+            required: false
+          });
+          if (updated) linkedCount = existingCount + uploadedCount;
+        } catch (linkErr) {
+          console.warn('[AddPage] partial Notion link failed', linkErr);
+        }
+      }
       hideUploadingOverlay();
-      showToast(err?.message || '페이지 추가에 실패했습니다.');
+      if (folderUrl && uploadedCount > 0 && linkedCount > existingCount) {
+        if (noteId) markNoteUnseen(noteId);
+        clearNotionNotebooksCache();
+        clearNotionTypeItemsCache();
+        showToast(
+          `${uploadedCount}/${total}페이지만 저장됐습니다. ${err?.message || '나머지 업로드에 실패했습니다.'}`
+        );
+        options.onDone?.({
+          ...(updated || {}),
+          id: noteId,
+          pdfFolderUrl: folderUrl,
+          pageCount: linkedCount,
+          insertAfterPage,
+          insertedCount: linkedCount - existingCount,
+          partial: true
+        });
+      } else {
+        showToast(err?.message || '페이지 추가에 실패했습니다.');
+      }
     } finally {
       busy = false;
     }

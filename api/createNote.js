@@ -194,11 +194,26 @@ export default async function handler(req, res) {
     }
 
     const notes = trimOrEmpty(body.notes);
-    if (notes && notesProp) {
+    if (notes) {
+      if (!notesProp) {
+        return res.status(500).json({
+          error: 'Schema error',
+          message:
+            '메모(notes)를 저장할 Notion 속성(notes/메모/description 등 rich_text)이 없습니다'
+        });
+      }
       if (notesProp.type === 'rich_text') {
         assignIfPresent(properties, notesProp, buildRichText(notes));
       } else if (notesProp.type === 'title') {
-        /* skip — title은 name에 사용 */
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key})이 title이라 노트 이름과 겹칩니다. rich_text 속성을 추가해 주세요`
+        });
+      } else {
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key}) 타입이 ${notesProp.type}입니다. rich_text여야 합니다`
+        });
       }
     }
 

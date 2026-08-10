@@ -829,8 +829,8 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   }
 
   /*
-   * FAB: 필터 네비 열린 때만 표시 (시안 좌측 화면)
-   * display 대신 opacity/pointer-events로 전환해 나타나고 사라질 때 자연스럽게 페이드된다.
+   * FAB: 필터 네비 상태와 무관하게 항상 표시 (태블릿·모바일 UX)
+   * Primary 색상은 Button .btn--fab 토큰을 유지한다.
    */
   body.jukebox-active button.add-note-fab,
   body.jukebox-active .add-note-fab {
@@ -844,26 +844,20 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     min-width: 3rem;
     min-height: 3rem;
     border-radius: var(--radius-circle);
-    background: var(--color-control-grey);
-    background-color: var(--color-control-grey);
-    color: var(--color-chrome-on);
+    background: var(--color-primary);
+    background-color: var(--color-primary);
+    color: var(--color-primary-on);
     box-shadow: var(--shadow-md);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-  }
-
-  body.jukebox-active.filter-nav-open button.add-note-fab,
-  body.jukebox-active.filter-nav-open .add-note-fab {
     opacity: 1;
     pointer-events: auto;
+    transition: opacity 0.2s ease, transform 0.15s ease, filter 0.15s ease;
   }
 
-  body.jukebox-active.filter-nav-open button.add-note-fab svg,
-  body.jukebox-active.filter-nav-open .add-note-fab svg {
+  body.jukebox-active button.add-note-fab svg,
+  body.jukebox-active .add-note-fab svg {
     width: 1.25rem;
     height: 1.25rem;
-    color: var(--color-chrome-on);
+    color: currentColor;
   }
 }
 
@@ -876,11 +870,12 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     filter: none !important;
   }
 
-  body.jukebox-active.filter-nav-open button.add-note-fab:hover,
-  body.jukebox-active.filter-nav-open .add-note-fab:hover {
-    background: var(--color-control-grey-hover);
-    background-color: var(--color-control-grey-hover);
-    color: var(--color-chrome-on);
-    filter: none;
+  body.jukebox-active button.add-note-fab:hover,
+  body.jukebox-active .add-note-fab:hover {
+    background: var(--color-primary);
+    background-color: var(--color-primary);
+    color: var(--white);
+    filter: brightness(1.05);
+    transform: scale(1.06);
   }
 }

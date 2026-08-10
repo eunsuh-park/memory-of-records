@@ -144,10 +144,22 @@ export default async function handler(req, res) {
       properties[endProp.key] = periodEnd ? { date: { start: periodEnd } } : { date: null };
     }
 
-    if (notesProp) {
+    if (body.notes !== undefined) {
       const notes = trimOrEmpty(body.notes);
+      if (!notesProp) {
+        return res.status(500).json({
+          error: 'Schema error',
+          message:
+            '메모(notes)를 저장할 Notion 속성(notes/메모/description 등 rich_text)이 없습니다'
+        });
+      }
       if (notesProp.type === 'rich_text') {
         properties[notesProp.key] = notes ? buildRichText(notes) : { rich_text: [] };
+      } else {
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key}) 타입이 ${notesProp.type}입니다. rich_text여야 합니다`
+        });
       }
     }
 
