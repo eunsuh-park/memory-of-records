@@ -27,7 +27,7 @@
   - [x] 앨범에서 북마크 해제 시 해당 장이 목록에서 빠짐
 - 진행 로그:
   - 시작 260812 — 표지 생성 · API · 뷰어 album 모드
-  - 완료 260812 — `cloudinaryBookmarkedPages` · 가상 노트 · 표지 webp
+  - 완료 260812 — `cloudinaryBookmarkedPages` · Bookmark Note · Cloudinary 표지 · 원본 노트 링크
 
 ### 3. 업로드 진행률 + 완료 Dialog `P1`
 - 상태: todo

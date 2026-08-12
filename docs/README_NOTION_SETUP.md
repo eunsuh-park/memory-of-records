@@ -80,12 +80,15 @@
 - 즐겨찾기만 모은 페이지(`/favorites`)는 `src/pages/Notes/Favorites.js`와
   `FAVORITES_PATH` · `filterFavoriteNotes()` · `getFavoriteNotes()`를 사용합니다.
 
-## 페이지 북마크 모음 (가상 노트)
+## 기본 Bookmark Note (모든 유저)
 
 - 페이지 북마크는 Cloudinary `is_bookmarked` 메타데이터입니다.
-- Jukebox 맨 앞의 **Bookmarks** 가상 노트(`virtual:bookmarks`)가
+- Jukebox 맨 앞의 **Bookmark Note**(`virtual:bookmarks`)가 기본으로 제공되며,
   `GET /api/cloudinaryBookmarkedPages`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
-- 표지: 배경 없는 PNG (`src/assets/bookmarks-cover-front.png` · `bookmarks-cover-back.png`)
+- 표지: Cloudinary `Notebooks_v3/Cover/Front|Back/Bookmark_Note` (또는 `Bookmark Note`)
+  - 메타: `GET /api/bookmarkNote`
+  - 로드 실패 시 로컬 PNG 폴백
+- 페이지 정보(상세 설명) 모달에 **원본 노트** 링크를 표시합니다.
 
 ## 사용 방법
 

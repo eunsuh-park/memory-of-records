@@ -29,7 +29,12 @@ import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
 import { getBookmarkedPages } from '../../services/bookmarkedPages.js';
-import { createBookmarksNote, isBookmarksNoteId } from '../../utils/bookmarksNote.js';
+import {
+  createBookmarksNote,
+  ensureBookmarkNoteCovers,
+  isBookmarksNoteId
+} from '../../utils/bookmarksNote.js';
+import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -717,11 +722,12 @@ async function openBookmarksNoteModal(note) {
   });
 
   try {
-    const pages = Array.isArray(note?.pages) ? note.pages : await getBookmarkedPages({ force: true });
+    const rawPages = Array.isArray(note?.pages) ? note.pages : await getBookmarkedPages({ force: true });
+    const pages = await attachSourceNotes(rawPages);
     content.innerHTML = '';
     cleanupViewer = renderNoteImageViewer(content, note?.id || 'virtual:bookmarks', {
       mode: 'modal',
-      title: note?.title || 'Bookmarks',
+      title: note?.title || 'Bookmark Note',
       pages,
       pageCount: pages.length
     });
@@ -1176,8 +1182,8 @@ export function renderJukeboxWithFilter(options) {
     }
   });
 
-  loadNotes()
-    .then((allNotes) => {
+  Promise.all([loadNotes(), ensureBookmarkNoteCovers().catch(() => null)])
+    .then(([allNotes]) => {
       allNotesCache = allNotes || [];
       applyFiltersAndRender();
     })

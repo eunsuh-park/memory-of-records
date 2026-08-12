@@ -30,8 +30,10 @@ import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
 import {
   BOOKMARKS_NOTE_TITLE,
   isBookmarksNoteId,
-  createBookmarksNote
+  createBookmarksNote,
+  ensureBookmarkNoteCovers
 } from '../../utils/bookmarksNote.js';
+import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -750,10 +752,20 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       showToast('페이지를 불러온 뒤 확인할 수 있습니다');
       return;
     }
+    const entry = isAlbumMode ? albumEntry(pageNum) : null;
+    let sourceNote = entry?.sourceNote || null;
+    if (isAlbumMode && !sourceNote && entry) {
+      const enriched = await attachSourceNotes([entry]);
+      sourceNote = enriched[0]?.sourceNote || null;
+      if (sourceNote && albumPages?.[pageNum - 1]) {
+        albumPages[pageNum - 1] = { ...albumPages[pageNum - 1], sourceNote };
+      }
+    }
     openPageMetaModal({
       folder: ref.folder,
       pageNumber: ref.pageNumber,
       imageUrl: pageImageSrc(pageNum),
+      sourceNote,
       onSaved: async (meta) => {
         if (isAlbumMode) {
           if (meta?.visible === false || meta?.is_bookmarked === false) {
@@ -849,10 +861,13 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (isBookmarksAlbum || isAlbumMode) {
       showOverlay('북마크 불러오는 중...');
       try {
+        await ensureBookmarkNoteCovers().catch(() => null);
         if (!isAlbumMode) {
           const pages = await getBookmarkedPages({ force: true });
-          albumPages = Array.isArray(pages) ? pages : [];
+          albumPages = await attachSourceNotes(Array.isArray(pages) ? pages : []);
           isAlbumMode = true;
+        } else if (Array.isArray(albumPages) && albumPages.some((p) => !p?.sourceNote)) {
+          albumPages = await attachSourceNotes(albumPages);
         }
         totalPages = albumPages.length;
         noteTitle = noteTitle || BOOKMARKS_NOTE_TITLE;
@@ -1050,11 +1065,16 @@ export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
   if (isBookmarksNoteId(id)) {
-    renderNoteImageViewer(mainContent, id, {
-      mode: 'page',
-      title: BOOKMARKS_NOTE_TITLE,
-      note: createBookmarksNote()
-    });
+    void ensureBookmarkNoteCovers()
+      .catch(() => null)
+      .then(() => {
+        const note = createBookmarksNote();
+        renderNoteImageViewer(mainContent, id, {
+          mode: 'page',
+          title: note.title || BOOKMARKS_NOTE_TITLE,
+          note
+        });
+      });
     return;
   }
   renderNoteImageViewer(mainContent, id);

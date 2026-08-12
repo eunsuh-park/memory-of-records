@@ -142,9 +142,9 @@ Memory of Records — 요청·아이디어 누적 목록.
 ### 북마크 페이지 가상 노트 모아보기 `(수집 260812)`
 - 상태: done (260812 · 이 브랜치)
 - 우선순위: P1
-- 목적: 북마크된 페이지를 Bookmarks 가상 노트 한 권으로 모아 본다
+- 목적: 모든 유저 기본 **Bookmark Note**에 북마크 페이지를 모은다
 - 화면/진입: Jukebox 선두 카드 · `/note/virtual:bookmarks`
-- 데이터/API: `GET /api/cloudinaryBookmarkedPages` · 배경 없는 플랫 PNG 표지
+- 데이터/API: `GET /api/cloudinaryBookmarkedPages` · `GET /api/bookmarkNote` 표지 · 페이지 정보에 원본 노트 링크
 
 ### 제스처 네비게이션 `(수집 260812)`
 - 상태: done (Notion·코드상 스와이프/터치 스크롤 존재)
