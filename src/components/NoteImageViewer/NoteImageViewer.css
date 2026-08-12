@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: 0;
   transform-origin: center center;
   will-change: transform;
   transition: transform 0.05s linear;
@@ -318,6 +318,6 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
 
 @media (max-width: 640px) {
   .niv-zoom-stage {
-    gap: var(--space-2);
+    gap: 0;
   }
 }

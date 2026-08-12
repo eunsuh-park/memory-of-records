@@ -20,6 +20,13 @@ export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
  * 너무 큰 파일은 브라우저에서 변환이 오래 걸리거나 멈출 수 있어 권장 상한을 안내 */
 export const MAX_PDF_BYTES = 50 * 1024 * 1024;
 
+/** 페이지 JPEG 장변 상한(px). 비율 유지, 확대는 하지 않음. skill: jpg-normalize-on-upload */
+export const PAGE_JPEG_MAX_EDGE = 3200;
+/** 페이지 JPEG 품질 (0~1) */
+export const PAGE_JPEG_QUALITY = 0.95;
+/** PDF.js 렌더 스케일 — 높을수록 선명 (이후 장변 정규화) */
+export const PDF_RENDER_SCALE = 2.5;
+
 /**
  * @param {File} file
  * @returns {Promise<string>}
@@ -36,26 +43,52 @@ export function readFileAsDataUrl(file) {
 /**
  * 임의 이미지 data URL → JPEG data URL (뷰어 page-*.jpg 규칙)
  * @param {string} dataUrl
- * @param {number} [quality=0.9]
+ * @param {number} [quality=PAGE_JPEG_QUALITY]
  * @returns {Promise<string>}
  */
-export function convertImageDataUrlToJpeg(dataUrl, quality = 0.9) {
-  if (String(dataUrl || '').startsWith('data:image/jpeg')) return Promise.resolve(dataUrl);
+export function convertImageDataUrlToJpeg(dataUrl, quality = PAGE_JPEG_QUALITY) {
+  return normalizePageImageToJpeg(dataUrl, { quality });
+}
+
+/**
+ * 페이지 업로드용 JPG 정규화
+ * - JPEG로 통일
+ * - 장변이 PAGE_JPEG_MAX_EDGE를 넘으면 비율 유지 축소 (확대 없음)
+ * - 흰 배경 합성 (투명 PNG 대비)
+ *
+ * @param {string} dataUrl
+ * @param {{ quality?: number, maxEdge?: number }} [options]
+ * @returns {Promise<string>}
+ */
+export function normalizePageImageToJpeg(dataUrl, options = {}) {
+  const quality =
+    Number(options.quality) > 0 && Number(options.quality) <= 1
+      ? Number(options.quality)
+      : PAGE_JPEG_QUALITY;
+  const maxEdge =
+    Number(options.maxEdge) > 0 ? Math.floor(Number(options.maxEdge)) : PAGE_JPEG_MAX_EDGE;
+
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       try {
+        const srcW = Math.max(1, img.naturalWidth || img.width);
+        const srcH = Math.max(1, img.naturalHeight || img.height);
+        const longEdge = Math.max(srcW, srcH);
+        const scale = longEdge > maxEdge ? maxEdge / longEdge : 1;
+        const width = Math.max(1, Math.round(srcW * scale));
+        const height = Math.max(1, Math.round(srcH * scale));
         const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, img.naturalWidth || img.width);
-        canvas.height = Math.max(1, img.naturalHeight || img.height);
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           reject(new Error('이미지 변환을 지원하지 않는 환경입니다'));
           return;
         }
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL('image/jpeg', quality));
       } catch (err) {
         reject(err instanceof Error ? err : new Error('JPEG 변환에 실패했습니다'));
@@ -179,7 +212,7 @@ async function ensurePdfJs() {
 }
 
 /**
- * PDF 파일을 페이지별 JPEG data URL로 변환
+ * PDF 파일을 페이지별 JPEG data URL로 변환 (정규화 포함)
  * @param {File} file
  * @param {{ onProgress?: (done: number, total: number) => void, scale?: number }} [options]
  * @returns {Promise<string[]>}
@@ -192,7 +225,7 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
   const total = pdf.numPages || 0;
   if (!total) throw new Error('PDF에 페이지가 없습니다');
 
-  const scale = Number(options.scale) > 0 ? Number(options.scale) : 1.5;
+  const scale = Number(options.scale) > 0 ? Number(options.scale) : PDF_RENDER_SCALE;
   const results = [];
 
   for (let i = 1; i <= total; i += 1) {
@@ -204,7 +237,8 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('캔버스를 사용할 수 없습니다');
     await page.render({ canvasContext: ctx, viewport }).promise;
-    results.push(canvas.toDataURL('image/jpeg', 0.88));
+    const raw = canvas.toDataURL('image/jpeg', PAGE_JPEG_QUALITY);
+    results.push(await normalizePageImageToJpeg(raw));
     options.onProgress?.(i, total);
   }
 
@@ -216,7 +250,8 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
  *   file: string,
  *   noteName: string,
  *   pageNumber: number,
- *   folder?: string
+ *   folder?: string,
+ *   visible?: boolean
  * }} payload
  */
 export async function uploadPageImage(payload) {

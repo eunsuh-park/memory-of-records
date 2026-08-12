@@ -30,6 +30,10 @@
   color: var(--color-text-dim);
 }
 
+.add-page-private {
+  margin: 0;
+}
+
 .add-page-source-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

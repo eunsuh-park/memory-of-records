@@ -707,6 +707,7 @@ function openNoteModal(note) {
   const cleanupViewer = pdfFolderUrl
     ? renderNoteImageViewer(content, noteId, {
         mode: 'modal',
+        note,
         pdfFolderUrl,
         pageCount: note?.pageCount,
         size: note?.size,

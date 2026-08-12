@@ -2,7 +2,7 @@
  * 우측 하단 FAB(+) → 새 노트 추가 / 노트 정보 수정 모달
  *
  * 흐름:
- * 1) 폼 작성 (이름·앞뒤표지·타입·사용 시작일 필수, is_kept/visible 기본 true)
+ * 1) 폼 작성 (이름·앞뒤표지·타입·사용 시작일 필수, is_kept 기본 true, 비공개 업로드 선택 시 visible=false)
  * 2) 뒷표지를 앞표지 크기에 맞춰 크롭 → Cloudinary 업로드 (Front/Back 폴더, 파일명=노트명)
  * 3) Notion DB에 페이지 생성 또는 기존 페이지 PATCH
  */
@@ -305,8 +305,8 @@ export async function openAddNoteModal(options = {}) {
         </label>
 
         <label class="form-check">
-          <input type="checkbox" name="visible" ${!seed || seed.visible ? 'checked' : ''} />
-          <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
+          <input type="checkbox" name="privateUpload" ${seed && seed.visible === false ? 'checked' : ''} />
+          <span>이 노트를 비공개로 업로드</span>
         </label>
 
         <p class="form-status add-note-status" hidden></p>
@@ -451,7 +451,8 @@ export async function openAddNoteModal(options = {}) {
     const periodEnd = stillInUse ? '' : String(fd.get('periodEnd') || '').trim();
     const notes = String(fd.get('notes') || '').trim();
     const isKept = Boolean(fd.get('isKept'));
-    const visible = Boolean(fd.get('visible'));
+    const privateUpload = Boolean(fd.get('privateUpload'));
+    const visible = !privateUpload;
     const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
     const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
 

@@ -377,7 +377,12 @@ async function handleUpload(req, res, body) {
   const folder = resolveUploadFolder(body);
   const publicId = pageStem(pageNumber);
   const timestamp = Math.floor(Date.now() / 1000);
-  const metadata = 'visible=true';
+  /* 클라이언트에서 비공개 업로드 체크 시 visible=false */
+  const visible =
+    body.visible === false || body.visible === 'false' || body.visible === 0 || body.visible === '0'
+      ? false
+      : true;
+  const metadata = `visible=${visible ? 'true' : 'false'}`;
 
   const paramsToSign = {
     folder,

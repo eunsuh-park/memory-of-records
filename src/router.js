@@ -4,10 +4,12 @@
 
 import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
+import { renderFavorites } from './pages/Notes/Favorites.js';
 import { renderStory } from './pages/Story/Story.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 import { renderUiLab } from './pages/UiLab/UiLab.js';
 import { renderLogin } from './pages/Login/Login.js';
+import { FAVORITES_PATH } from './utils/noteFavorites.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -20,7 +22,8 @@ class Router {
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/by-type', handler: () => renderByType(null) },
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
-      /* 즐겨찾기 전용 페이지는 FAVORITES_PATH(/favorites) + filterFavoriteNotes로 추가 예정 */
+      { path: FAVORITES_PATH, handler: () => renderFavorites() },
+      { path: `${FAVORITES_PATH}/:filter`, handler: () => renderFavorites() },
       { path: '/story', handler: renderStory },
       { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
       { path: '/login', handler: () => { void renderLogin(); } },
@@ -96,14 +99,18 @@ class Router {
     }
 
     // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type 통합 페이지에서 사용)
-    const isNotesPage = path === '/' || path.startsWith('/timeline') || path.startsWith('/by-type');
+    const isNotesPage =
+      path === '/' ||
+      path.startsWith('/timeline') ||
+      path.startsWith('/by-type') ||
+      path.startsWith(FAVORITES_PATH);
     if (!isNotesPage) {
       document.body.classList.remove('jukebox-active', 'filter-nav-collapsed', 'filter-nav-open');
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
 
-    // Timeline/By type 페이지가 아닐 때 서브 메뉴 내용만 비움 (노드는 유지)
+    // Timeline/By type/Favorites 페이지가 아닐 때 서브 메뉴 내용만 비움 (노드는 유지)
     if (!isNotesPage) {
       const subMenu = document.getElementById('sub-menu');
       if (subMenu) subMenu.innerHTML = '';

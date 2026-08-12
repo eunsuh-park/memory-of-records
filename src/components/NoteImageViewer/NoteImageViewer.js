@@ -4,7 +4,7 @@
  * pdf_folder_url(폴더 base URL) + page_count로 페이지 이미지 URL을 조립해
  * 한 번에 한 페이지(또는 양면)씩 표시합니다.
  * - 모달: Jukebox에서 노트 클릭 시
- * - 전체 페이지: /note/:id 경로
+ * - 전체 페이지: /note/:slug (또는 UUID)
  *
  * pdf_folder_url이 비어 있는 노트는 기존 PDF 뷰어(PdfModal)로 폴백합니다.
  */
@@ -26,6 +26,7 @@ import {
 import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
+import { buildNoteSlug, findNoteByRouteParam, noteShareUrl } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -72,18 +73,29 @@ function fetchHiddenPages(folderUrl, { force = false } = {}) {
   return promise;
 }
 
-async function findNoteById(noteId) {
+async function loadAllNotes() {
   const [notebookResult, typeResult] = await Promise.allSettled([
     getNotionNotebooks(),
     getNotionTypeItems()
   ]);
   const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
   const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
-  return (
-    (notebooks || []).find((note) => note.id === noteId) ||
-    (typeItems || []).find((note) => note.id === noteId) ||
-    null
-  );
+  const byId = new Map();
+  for (const note of [...(notebooks || []), ...(typeItems || [])]) {
+    if (note?.id && !byId.has(note.id)) byId.set(note.id, note);
+  }
+  return Array.from(byId.values());
+}
+
+/** UUID 또는 slug로 노트 조회 */
+async function findNoteByRouteParamAsync(param) {
+  const notes = await loadAllNotes();
+  return findNoteByRouteParam(notes, param);
+}
+
+async function findNoteById(noteId) {
+  const notes = await loadAllNotes();
+  return notes.find((note) => note.id === noteId) || null;
 }
 
 /**
@@ -96,7 +108,9 @@ async function findNoteById(noteId) {
 export function renderNoteImageViewer(targetEl, id, options = {}) {
   if (!targetEl) return null;
 
-  const noteId = decodeURIComponent(String(id || '')).trim();
+  const routeParam = decodeURIComponent(String(id || '')).trim();
+  let noteId = routeParam;
+  let shareNote = options.note || null;
   const isModal = options.mode === 'modal';
 
   const viewerMarkup = `
@@ -135,6 +149,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
   const addPageBtn = targetEl.querySelector('.niv-add-page');
+  const shareNoteBtn = targetEl.querySelector('.niv-share-note');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
   const bookmarkBtns = [...targetEl.querySelectorAll('.niv-bookmark')];
   const currentPageEl = targetEl.querySelector('.niv-current-page');
@@ -750,11 +765,69 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     showPage(firstVisible);
   }
 
+  async function copyShareLink() {
+    const note =
+      shareNote ||
+      (noteId
+        ? { id: noteId, title: noteTitle, slug: buildNoteSlug({ id: noteId, title: noteTitle }) }
+        : null);
+    if (!note?.id) {
+      showToast('공유할 노트 정보가 없습니다.');
+      return;
+    }
+    const url = noteShareUrl(note);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement('input');
+        input.value = url;
+        input.setAttribute('readonly', '');
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+      }
+      showToast('노트 링크를 복사했습니다');
+    } catch (err) {
+      console.warn('NoteImageViewer: share copy failed', err);
+      showToast('링크 복사에 실패했습니다');
+    }
+  }
+
   async function initViewer() {
-    if (!folderUrl) {
-      /* /note/:id 직접 진입: 노트 조회 후 뷰어 선택 */
+    /* 라우트 파라미터(UUID 또는 slug) → 노트 해석 */
+    if (!shareNote || !folderUrl) {
       showOverlay('노트 불러오는 중...');
-      const note = await findNoteById(noteId);
+      const note = shareNote || (await findNoteByRouteParamAsync(routeParam));
+      if (note) {
+        shareNote = note;
+        noteId = note.id || noteId;
+        if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
+        if (!folderUrl && note.pdfFolderUrl) folderUrl = String(note.pdfFolderUrl).trim();
+        if (totalPages === null && note.pageCount) {
+          totalPages = Math.floor(Number(note.pageCount));
+        }
+        if (!noteSize && note.size) noteSize = note.size;
+
+        /* 전체 페이지 진입 시 주소창을 slug URL로 맞춤 (공유 가능) */
+        if (!isModal && note.id) {
+          const slugPath = `/note/${encodeURIComponent(buildNoteSlug(note))}`;
+          const base = import.meta.env.BASE_URL || '/';
+          const full =
+            base === '/' ? slugPath : `${base.replace(/\/$/, '')}${slugPath}`;
+          if (window.location.pathname !== full) {
+            window.history.replaceState({}, '', full);
+          }
+        }
+      }
+    }
+
+    if (!folderUrl) {
+      /* /note/:slug 직접 진입: 노트 조회 후 뷰어 선택 */
+      const note = shareNote || (await findNoteById(noteId));
       if (note?.pdfFolderUrl) {
         folderUrl = String(note.pdfFolderUrl).trim();
         if (totalPages === null && note.pageCount) {
@@ -762,6 +835,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         }
         if (!noteSize && note.size) noteSize = note.size;
         if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
+        shareNote = note;
+        noteId = note.id || noteId;
       } else if (note?.pdfUrl || !isModal) {
         /* 아직 마이그레이션 전(pdf_folder_url 없음): 기존 PDF 뷰어로 폴백 */
         cleanup();
@@ -797,6 +872,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   pageInfoBtn?.addEventListener('click', () => openCurrentPageMeta());
   addPageBtn?.addEventListener('click', () => {
     void openInsertPageModal();
+  });
+  shareNoteBtn?.addEventListener('click', () => {
+    void copyShareLink();
   });
   bookmarkBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -923,8 +1001,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 }
 
 /**
- * /note/:id 라우트용: main-content에 전체 페이지로 렌더링
+ * /note/:id|slug 라우트용: main-content에 전체 페이지로 렌더링
  * pdf_folder_url이 있으면 이미지 뷰어, 없으면 기존 PDF 뷰어로 폴백합니다.
+ * 주소는 slug 형식(`/note/{title}-{idShort}`)으로 맞춥니다.
  */
 export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');

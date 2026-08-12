@@ -5,6 +5,7 @@ import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
 import { parseNotionFavorites } from '../utils/noteFavorites.js';
+import { buildNoteSlug } from '../utils/noteSlug.js';
 
 const NOTEBOOK_DB_ID = '18dfb9c7066e4df99962c5fed616b3db';
 
@@ -239,10 +240,13 @@ export function convertNotionPageToNotebook(page) {
     ) || null;
   const visible = isNotionPageVisible(page);
   const favorites = parseNotionFavorites(page);
+  const id = page?.id || '';
+  const slug = buildNoteSlug({ id, title });
 
   return {
-    id: page?.id || '',
+    id,
     title,
+    slug,
     type,
     notebookType,
     periodName: periodName ? String(periodName).trim() : '',

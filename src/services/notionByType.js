@@ -5,6 +5,7 @@ import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
 import { parseNotionFavorites } from '../utils/noteFavorites.js';
+import { buildNoteSlug } from '../utils/noteSlug.js';
 
 /** visibility → { data, promise } */
 const cachedNotionTypeItems = new Map();
@@ -195,10 +196,13 @@ export function convertNotionPageToTypeItem(page) {
     ) || null;
   const visible = isNotionPageVisible(page);
   const favorites = parseNotionFavorites(page);
+  const id = page?.id || '';
+  const slug = buildNoteSlug({ id, title });
 
   return {
-    id: page?.id || '',
+    id,
     title,
+    slug,
     type,
     notebookType: type,
     periodName: periodName ? String(periodName).trim() : '',

@@ -13,11 +13,11 @@ import {
 } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
 import {
-  convertImageDataUrlToJpeg,
   convertPdfFileToJpegDataUrls,
   MAX_IMAGE_BYTES,
   MAX_IMAGE_COUNT,
   MAX_PDF_BYTES,
+  normalizePageImageToJpeg,
   readFileAsDataUrl,
   shiftPagesAfter,
   updateNotionNotePages,
@@ -102,6 +102,8 @@ export async function openAddPageModal(options = {}) {
   /** @type {{ id: string, dataUrl: string, label: string }[]} */
   let pages = [];
   let busy = false;
+  /** 체크 시 Cloudinary visible=false */
+  let privateUpload = false;
 
   const dialog = openDialog({
     title: '페이지 추가',
@@ -172,6 +174,10 @@ export async function openAddPageModal(options = {}) {
           })
         })}
         <ul class="upload-list"></ul>
+        <label class="form-check add-page-private">
+          <input type="checkbox" name="privateUpload" data-private-upload ${privateUpload ? 'checked' : ''} />
+          <span>이 페이지를 비공개로 업로드</span>
+        </label>
         <p class="form-status add-page-status" role="status"></p>
         <div class="add-page-footer">
           <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
@@ -199,7 +205,7 @@ export async function openAddPageModal(options = {}) {
         type: 'custom',
         label: `이미지 파일`,
         required: true,
-        hint: `최대 ${MAX_IMAGE_COUNT}장 · 장당 ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB 이하`,
+        hint: `최대 ${MAX_IMAGE_COUNT}장 · 장당 ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB 이하 · JPG 정규화(장변 3200px)`,
         children: renderFilePicker({
           name: 'imageFiles',
           pickLabel: '이미지 선택',
@@ -211,6 +217,10 @@ export async function openAddPageModal(options = {}) {
         })
       })}
       <ul class="upload-list"></ul>
+      <label class="form-check add-page-private">
+        <input type="checkbox" name="privateUpload" data-private-upload ${privateUpload ? 'checked' : ''} />
+        <span>이 페이지를 비공개로 업로드</span>
+      </label>
       <p class="form-status add-page-status" role="status"></p>
       <div class="add-page-footer">
         <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
@@ -312,7 +322,7 @@ export async function openAddPageModal(options = {}) {
     updateUploadEnabled();
     try {
       const dataUrls = await Promise.all(validated.files.map((f) => readFileAsDataUrl(f)));
-      const jpegUrls = await Promise.all(dataUrls.map((url) => convertImageDataUrlToJpeg(url)));
+      const jpegUrls = await Promise.all(dataUrls.map((url) => normalizePageImageToJpeg(url)));
       const stamp = Date.now();
       const added = jpegUrls.map((dataUrl, i) => ({
         id: `img-${stamp}-${pages.length + i}`,
@@ -368,6 +378,9 @@ export async function openAddPageModal(options = {}) {
 
   async function handleUpload() {
     if (!pages.length || busy) return;
+    const privateInput = overlay.querySelector('[data-private-upload]');
+    privateUpload = Boolean(privateInput?.checked);
+    const pageVisible = !privateUpload;
     closeModal();
     busy = true;
     updateUploadEnabled();
@@ -402,7 +415,8 @@ export async function openAddPageModal(options = {}) {
           file: pages[i].dataUrl,
           noteName,
           pageNumber,
-          folder: folderPath || undefined
+          folder: folderPath || undefined,
+          visible: pageVisible
         });
         if (!folderUrl && result.folderUrl) folderUrl = result.folderUrl;
         if (result.folder) folderPath = result.folder;
@@ -525,7 +539,12 @@ export async function openAddPageModal(options = {}) {
 
   overlay.addEventListener('change', (e) => {
     const input = e.target;
-    if (!(input instanceof HTMLInputElement) || input.type !== 'file') return;
+    if (!(input instanceof HTMLInputElement)) return;
+    if (input.matches('[data-private-upload]')) {
+      privateUpload = Boolean(input.checked);
+      return;
+    }
+    if (input.type !== 'file') return;
     if (input.name === 'pdfFile') {
       handlePdfSelected(input.files?.[0] || null);
     } else if (input.name === 'imageFiles') {

@@ -66,7 +66,7 @@ export function renderBookmarkButton(bookmarked = false, variant = 'desktop') {
   });
 }
 
-/** 하단 시트: 정보 | 페이지 추가 | 북마크 | 처음·현재/전체·마지막 | 뷰 원상복구 */
+/** 하단 시트: 정보 | 페이지 추가 | 북마크 | 공유 | 처음·현재/전체·마지막 | 뷰 원상복구 */
 export function renderBottomSheet() {
   return `
     <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
@@ -91,6 +91,16 @@ export function renderBottomSheet() {
         className: 'niv-sheet-btn niv-add-page'
       })}
       ${renderBookmarkButton(false, 'desktop')}
+      ${renderButton({
+        shape: 'circle',
+        size: 's',
+        role: 'toolbar',
+        tone: 'ghost',
+        ariaLabel: '노트 링크 복사',
+        title: '공유 링크 복사',
+        content: MINGCUTE.share2Line,
+        className: 'niv-sheet-btn niv-share-note'
+      })}
       <div class="niv-sheet-progress">
         ${renderButton({
           shape: 'circle',
