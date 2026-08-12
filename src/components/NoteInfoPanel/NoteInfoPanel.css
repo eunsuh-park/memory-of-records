@@ -252,7 +252,7 @@ button.jukebox-focus-info__create:focus-visible {
   flex-shrink: 0;
   height: var(--note-indicator-h);
   border-radius: var(--radius-pill);
-  background: var(--color-chrome-on);
+  background: var(--color-text);
 }
 
 .note-indicator__item--focus {
