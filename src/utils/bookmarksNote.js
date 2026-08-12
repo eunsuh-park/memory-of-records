@@ -5,7 +5,8 @@
  * 열면 Cloudinary is_bookmarked 페이지들을 한 앨범처럼 본다.
  */
 
-import bookmarksCoverUrl from '../assets/bookmarks-cover.webp';
+import bookmarksCoverFrontUrl from '../assets/bookmarks-cover-front.webp';
+import bookmarksCoverBackUrl from '../assets/bookmarks-cover-back.webp';
 
 export const BOOKMARKS_NOTE_ID = 'virtual:bookmarks';
 export const BOOKMARKS_NOTE_TITLE = 'Bookmarks';
@@ -32,8 +33,8 @@ export function createBookmarksNote(overrides = {}) {
   return {
     id: BOOKMARKS_NOTE_ID,
     title: BOOKMARKS_NOTE_TITLE,
-    coverFrontUrl: bookmarksCoverUrl,
-    coverBackUrl: null,
+    coverFrontUrl: bookmarksCoverFrontUrl,
+    coverBackUrl: bookmarksCoverBackUrl,
     pdfFolderUrl: null,
     pdfUrl: null,
     pageCount,
