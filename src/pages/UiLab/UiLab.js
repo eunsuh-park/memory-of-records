@@ -7,6 +7,7 @@ import { render as renderButton } from '../../components/Button/Button.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
 import './UiLab.css';
@@ -128,7 +129,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일 포커스 정보(제목 + 1/N)로 교체',
+      '바닥 반사 off, 모바일 포커스 정보(제목 + 노트 인디케이터)로 교체',
       '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
       'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -580,6 +581,15 @@ export function renderUiLab() {
                 className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile is-favorite'
               })
             ].join('')
+          )}
+          ${renderVariantRow(
+            '노트 인디케이터 — focused 항상 중앙 · 거리 1 짧은 캡슐 · 2+ 원형 페이드 (시작/중간/끝)',
+            [
+              renderNoteIndicator(0, 12),
+              renderNoteIndicator(5, 12),
+              renderNoteIndicator(11, 12)
+            ].join(''),
+            { flow: false, stageClass: 'ui-lab__demo-stage--note-indicator' }
           )}
           ${renderVariantRow(
             '페이지 북마크 토글 — desktop bookmark-fill · mobile off=bookmark-line / on=bookmark-fill (is_bookmarked)',
