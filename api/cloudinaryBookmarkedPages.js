@@ -18,22 +18,9 @@
  * }
  */
 import { isCloudinaryResourceVisible } from './_lib/visibility.js';
+import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
 
 const CONTENT_ROOT = process.env.CLOUDINARY_CONTENT_FOLDER || 'Notebooks_v3/Content';
-
-function getCloudinaryCredentials() {
-  const fromUrl = String(process.env.CLOUDINARY_URL || '').match(
-    /^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/
-  );
-  if (fromUrl) {
-    return { apiKey: fromUrl[1], apiSecret: fromUrl[2], cloudName: fromUrl[3] };
-  }
-  return {
-    apiKey: process.env.CLOUDINARY_API_KEY || null,
-    apiSecret: process.env.CLOUDINARY_API_SECRET || null,
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME || null
-  };
-}
 
 function normalizeBookmarked(value) {
   if (value === true || value === 1) return true;
@@ -171,7 +158,7 @@ export default async function handler(req, res) {
   }
 
   const credentials = getCloudinaryCredentials();
-  if (!credentials.apiKey || !credentials.apiSecret || !credentials.cloudName) {
+  if (!credentials?.apiKey || !credentials?.apiSecret || !credentials?.cloudName) {
     return res.status(500).json({
       error: 'Cloudinary configuration missing',
       message:

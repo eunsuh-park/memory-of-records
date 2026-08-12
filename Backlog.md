@@ -5,7 +5,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 > 마지막 enrich: 260812  
 > Inbox 잔여: 0  
 > 소스: Notion 백로그(정리 기준일 2026-08-07) → capture 260812 → enrich 260812  
-> 코드 반영 참고: main에 PR #19–22 머지됨. 미머지 초안: PR #23(모바일 인디케이터), #24(slug·Favorites 페이지·JPG·2-page gap 등)
+> 코드 반영 참고: main에 PR #19–22 · #26(Favorites) · #27(Favorites UI) · #29(Bookmark Note) 머지됨. 이번 정리에서 #23(모바일 인디케이터) 합침. 미머지 초안: PR #24(slug·JPG·비공개 업로드·2-page gap 등). #25·#28은 main에 흡수되어 폐기.
 
 - 수집: `backlog-capture` · 정리: `backlog-enrich` · 실행: `backlog-to-roadmap` → `Roadmap.md`
 
@@ -76,7 +76,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 원문 메모: 「FAB 항상 · 칩 오버플로우 · 라벨 동적 조정 · Sprint 3 묶음」
 
 ### 모바일 뷰 수정 · 인디케이터 · 푸터 `(수집 260812)`
-- 상태: backlog (초안 PR #23)
+- 상태: done (main · PR #23 흡수, 260812)
 - 우선순위: P1
 - 목적: 모바일에서 푸터 가시성, 노트 인디케이터(중앙 포커스 캡슐+페이드), 캐러셀 위글 제거, 화살표 숨김
 - 화면/진입: Jukebox · NoteInfoPanel · Footer
@@ -120,7 +120,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 원문 메모: 「Notion favorites · 토글 UI · boolean」
 
 ### Favorites 모아보기 페이지 · 네비 진입 `(수집 260812)`
-- 상태: done (260812 · 이 브랜치)
+- 상태: done (main · PR #26/#27, 260812)
 - 우선순위: P0 — 토글은 있었으나 모아보기 화면이 main에 없었음
 - 목적: favorites===true 노트만 주크박스로 모아 보고, Timeline/By type과 같이 전환한다
 - 화면/진입: `/favorites` · FilterSubMenu 뷰 토글 · PageHeader/드로어 링크
@@ -140,7 +140,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 원문 메모: 「bookmarked · 토글 UI」
 
 ### 북마크 페이지 가상 노트 모아보기 `(수집 260812)`
-- 상태: done (260812 · 이 브랜치)
+- 상태: done (main · PR #29, 260812)
 - 우선순위: P1
 - 목적: 모든 유저 기본 **Bookmark Note**에 북마크 페이지를 모은다
 - 화면/진입: Jukebox 선두 카드 · `/note/virtual:bookmarks`

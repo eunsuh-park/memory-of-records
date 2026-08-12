@@ -619,16 +619,17 @@ body.jukebox-active.loading-active .notes-scrollbar {
     margin-left: -2.5vw;
   }
 
-  /* 모바일에서 중앙 확대 스케일을 살짝 낮춰 잘림 완화 */
+  /* 모바일에서 중앙 확대 스케일을 살짝 낮춰 잘림 완화.
+   * transform에 transition을 두면 스크롤 중 JS가 매 프레임 갱신하는
+   * rotateY/scale과 싸워 카드가 흔들린다 → 트랜지션 없음(담백한 스냅). */
   .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
     transform:
       translate3d(0, 0, var(--jukebox-translate-z, 0))
       rotateY(var(--jukebox-rotate-y, 0deg))
       scale(calc(var(--jukebox-scale, 1) * 0.88));
-    transition: transform 0.22s ease;
   }
 
-  /* 노트 탭(보기/채우기 열림): 현재 크기 대비 115% */
+  /* 노트 탭(보기/채우기 열림): 현재 크기 대비 115% — 열림/닫힘만 짧게 보간 */
   body.jukebox-card-actions-open
     .jukebox-gallery
     > div.jukebox-card.jukebox-card--centered
@@ -637,6 +638,7 @@ body.jukebox-active.loading-active .notes-scrollbar {
       translate3d(0, 0, var(--jukebox-translate-z, 0))
       rotateY(var(--jukebox-rotate-y, 0deg))
       scale(calc(var(--jukebox-scale, 1) * 0.88 * 1.15));
+    transition: transform 0.18s ease;
   }
 }
 
@@ -704,16 +706,10 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 }
 
 @media (max-width: 768px) {
-  body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev {
-    left: max(var(--space-2), env(safe-area-inset-left));
-    padding: var(--space-2);
-    opacity: 0.7;
-  }
-
+  /* 모바일: 스와이프로 이동하므로 좌우 화살표 숨김 */
+  body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev,
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
-    right: max(var(--space-2), env(safe-area-inset-right));
-    padding: var(--space-2);
-    opacity: 0.7;
+    display: none !important;
   }
 
   .jukebox-focus-slot {

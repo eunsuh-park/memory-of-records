@@ -23,44 +23,7 @@ export const NOTE_COLOR_PAINT = {
   자주: '#C2185B'
 };
 
-/** 파일명/슬러그용 */
-export const NOTE_COLOR_SLUG = {
-  파랑: 'blue',
-  노랑: 'yellow',
-  빨강: 'red',
-  초록: 'green',
-  분홍: 'pink',
-  주황: 'orange',
-  보라: 'purple',
-  하늘: 'sky',
-  연두: 'lime',
-  갈색: 'brown',
-  남색: 'navy',
-  회색: 'gray',
-  무지개: 'rainbow',
-  흰색: 'white',
-  검정: 'black',
-  자주: 'wine'
-};
-
 export const NOTE_COLOR_NAMES = Object.keys(NOTE_COLOR_PAINT);
 
+/** 스와치가 배경에 묻히는 밝은 색 (테두리 보정) */
 export const LIGHT_NOTE_COLORS = new Set(['흰색', '노랑', '연두', '하늘']);
-
-export function resolveNoteColorPaint(colorName, fallback = '보라') {
-  const key = String(colorName || '').trim();
-  if (NOTE_COLOR_PAINT[key]) return { name: key, paint: NOTE_COLOR_PAINT[key] };
-  const fb = NOTE_COLOR_PAINT[fallback] ? fallback : '보라';
-  return { name: fb, paint: NOTE_COLOR_PAINT[fb] };
-}
-
-export function isLightNoteColor(colorName) {
-  return LIGHT_NOTE_COLORS.has(String(colorName || '').trim());
-}
-
-export function darkenHex(hex, amount = 0.22) {
-  const raw = String(hex || '').replace('#', '');
-  if (!/^[0-9a-fA-F]{6}$/.test(raw)) return hex;
-  const n = (i) => Math.max(0, Math.min(255, Math.round(parseInt(raw.slice(i, i + 2), 16) * (1 - amount))));
-  return `#${[0, 2, 4].map((i) => n(i).toString(16).padStart(2, '0')).join('')}`;
-}

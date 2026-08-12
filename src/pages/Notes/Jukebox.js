@@ -11,8 +11,6 @@
  * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
  */
 
-import { getNotionNotebooks } from '../../services/notionNotebooks.js';
-import { getNotionTypeItems } from '../../services/notionByType.js';
 import {
   collapseFilterSubMenu,
   renderFilterSubMenu
@@ -503,9 +501,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
       const noteId = escapeHtml(note.id || '');
-      const showBadge = Boolean(
-        note.id && !note.isVirtualBookmarks && !isBookmarksNoteId(note.id) && isNoteUnseen(note.id)
-      );
+      const showBadge = Boolean(note.id && !isBookmarksNoteId(note.id) && isNoteUnseen(note.id));
       /*
        * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
        * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
@@ -624,70 +620,6 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   });
 }
 
-export function renderJukebox() {
-  const mainContent = document.getElementById('main-content');
-  if (!mainContent) return;
-
-  mainContent.className = 'app-main jukebox-active';
-  const mainWrapper = mainContent.closest('.main-wrapper');
-  if (mainWrapper) {
-    mainWrapper.classList.add('jukebox-active');
-  }
-  document.body.classList.add('jukebox-active');
-
-  mainContent.innerHTML = `
-    <div class="jukebox-fullscreen" id="jukebox-fullscreen">
-      <div class="jukebox-gallery-wrap">
-        ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전', content: MINGCUTE.leftLine, className: 'jukebox-nav-prev' })}
-        ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음', content: MINGCUTE.leftLine, className: 'jukebox-nav-next' })}
-        <div class="jukebox-gallery centerized">
-          <div class="jukebox-loading" role="status" aria-live="polite">
-<dotlottie-wc class="loading-lottie" src="${JUKEBOX_LOADING_LOTTIE}" style="width: 300px; height: 300px" autoplay loop></dotlottie-wc>
-            <p class="loading-text">노트를 불러오는 중...</p>
-        </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const galleryWrap = mainContent.querySelector('.jukebox-gallery-wrap');
-  const gallery = mainContent.querySelector('.jukebox-gallery');
-  const prevBtn = galleryWrap?.querySelector('.jukebox-nav-prev');
-  const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
-  gallery._jukeboxNavPrev = prevBtn;
-  gallery._jukeboxNavNext = nextBtn;
-  updateJukeboxNavButtons(gallery);
-
-  /* Timeline(노트북) + ByType 데이터를 둘 다 불러와 id 기준 중복 제거 후 전부 표시 */
-  Promise.allSettled([getNotionNotebooks(), getNotionTypeItems()])
-    .then(([notebookResult, typeResult]) => {
-      const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
-      const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
-      const byId = new Map();
-      const add = (item) => {
-        if (item?.id && !byId.has(item.id)) {
-          byId.set(item.id, {
-            id: item.id,
-            title: item.title ?? '제목 없음',
-            coverFrontUrl: item.coverFrontUrl || null,
-            coverBackUrl: item.coverBackUrl || null
-          });
-        }
-      };
-      (Array.isArray(notebooks) ? notebooks : []).forEach(add);
-      (Array.isArray(typeItems) ? typeItems : []).forEach(add);
-      const allNotes = Array.from(byId.values());
-      fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes);
-    })
-    .catch((err) => {
-      console.warn('Jukebox: 노트 로드 실패', err);
-      gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
-      gallery._jukeboxNavPrev = prevBtn;
-      gallery._jukeboxNavNext = nextBtn;
-      updateJukeboxNavButtons(gallery);
-    });
-}
-
 async function openBookmarksNoteModal(note) {
   const existing = document.querySelector('.pdf-modal-overlay');
   if (existing) existing.remove();
@@ -740,7 +672,7 @@ async function openBookmarksNoteModal(note) {
 }
 
 function openNoteModal(note) {
-  if (note?.isVirtualBookmarks || isBookmarksNoteId(note?.id)) {
+  if (isBookmarksNoteId(note?.id)) {
     void openBookmarksNoteModal(note);
     return;
   }
@@ -1110,7 +1042,7 @@ export function renderJukeboxWithFilter(options) {
           e.preventDefault();
           e.stopPropagation();
           if (viewBtn) openNoteModal(note);
-          else if (note.isVirtualBookmarks || isBookmarksNoteId(note.id)) {
+          else if (isBookmarksNoteId(note.id)) {
             showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
           } else {
             openAddPageModal({
@@ -1160,8 +1092,10 @@ export function renderJukeboxWithFilter(options) {
       (note) => resolveFilterKey(note) === selectedValue
     );
     const sorted = sortNotes(byPeriodOrType, sortKey);
-    /* 북마크 가상 노트는 필터와 무관하게 맨 앞 */
-    bindGallery([createBookmarksNote(), ...sorted]);
+    /* Timeline/By type만 Bookmark Note를 맨 앞에 붙인다. Favorites는 즐겨찾기 노트만. */
+    const galleryNotes =
+      filterMode === 'favorites' ? sorted : [createBookmarksNote(), ...sorted];
+    bindGallery(galleryNotes);
 
     const counts = getNotesCount(allNotesCache);
     renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle, {
