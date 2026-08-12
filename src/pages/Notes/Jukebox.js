@@ -28,6 +28,8 @@ import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js'
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
+import { getBookmarkedPages } from '../../services/bookmarkedPages.js';
+import { createBookmarksNote, isBookmarksNoteId } from '../../utils/bookmarksNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -496,7 +498,9 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
       const noteId = escapeHtml(note.id || '');
-      const showBadge = Boolean(note.id && isNoteUnseen(note.id));
+      const showBadge = Boolean(
+        note.id && !note.isVirtualBookmarks && !isBookmarksNoteId(note.id) && isNoteUnseen(note.id)
+      );
       /*
        * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
        * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
@@ -679,7 +683,62 @@ export function renderJukebox() {
     });
 }
 
+async function openBookmarksNoteModal(note) {
+  const existing = document.querySelector('.pdf-modal-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-modal-overlay';
+  overlay.innerHTML = `
+    ${renderButton({ shape: 'circle', size: 's', role: 'close', tone: 'ghost', ariaLabel: '닫기', content: MINGCUTE.closeLine, className: 'pdf-modal-close' })}
+    <div class="pdf-modal" role="dialog" aria-modal="true">
+      <div class="pdf-modal-content"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.classList.add('pdf-modal-open');
+  const content = overlay.querySelector('.pdf-modal-content');
+  content.innerHTML = `<div class="jukebox-empty" style="padding:2rem;text-align:center">북마크 불러오는 중…</div>`;
+
+  let cleanupViewer = null;
+  const closeModal = () => {
+    cleanupViewer?.();
+    overlay.remove();
+    document.body.classList.remove('pdf-modal-open');
+    document.removeEventListener('keydown', handleEscape);
+  };
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') closeModal();
+  };
+  document.addEventListener('keydown', handleEscape);
+  overlay.querySelector('.pdf-modal-close')?.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+
+  try {
+    const pages = Array.isArray(note?.pages) ? note.pages : await getBookmarkedPages({ force: true });
+    content.innerHTML = '';
+    cleanupViewer = renderNoteImageViewer(content, note?.id || 'virtual:bookmarks', {
+      mode: 'modal',
+      title: note?.title || 'Bookmarks',
+      pages,
+      pageCount: pages.length
+    });
+  } catch (err) {
+    console.warn('Jukebox: 북마크 노트 열기 실패', err);
+    content.innerHTML = `<div class="jukebox-empty" style="padding:2rem;text-align:center">${
+      err?.message || '북마크 페이지를 불러올 수 없습니다.'
+    }</div>`;
+  }
+}
+
 function openNoteModal(note) {
+  if (note?.isVirtualBookmarks || isBookmarksNoteId(note?.id)) {
+    void openBookmarksNoteModal(note);
+    return;
+  }
+
   const noteId = note?.id || '';
   const pdfFolderUrl = note?.pdfFolderUrl ? String(note.pdfFolderUrl).trim() : '';
   const pdfUrl = note?.pdfUrl ? String(note.pdfUrl).trim() : '';
@@ -1045,7 +1104,9 @@ export function renderJukeboxWithFilter(options) {
           e.preventDefault();
           e.stopPropagation();
           if (viewBtn) openNoteModal(note);
-          else {
+          else if (note.isVirtualBookmarks || isBookmarksNoteId(note.id)) {
+            showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
+          } else {
             openAddPageModal({
               note,
               onDone: refreshAfterNoteEdit
@@ -1093,7 +1154,8 @@ export function renderJukeboxWithFilter(options) {
       (note) => resolveFilterKey(note) === selectedValue
     );
     const sorted = sortNotes(byPeriodOrType, sortKey);
-    bindGallery(sorted);
+    /* 북마크 가상 노트는 필터와 무관하게 맨 앞 */
+    bindGallery([createBookmarksNote(), ...sorted]);
 
     const counts = getNotesCount(allNotesCache);
     renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle, {

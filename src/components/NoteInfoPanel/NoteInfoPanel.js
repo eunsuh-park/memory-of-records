@@ -8,6 +8,7 @@
 
 import { formatNoteSizeLabel } from '../../utils/noteSize.js';
 import { isFavoriteNote } from '../../utils/noteFavorites.js';
+import { isBookmarksNoteId } from '../../utils/bookmarksNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderButton } from '../Button/Button.js';
 import './NoteInfoPanel.css';
@@ -91,18 +92,18 @@ export function render(note, filterMode, opts = {}) {
   const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
   const memo = escapeHtml(note.description || '');
   const noteId = escapeHtml(note.id || '');
+  const isVirtualBookmarks = Boolean(note.isVirtualBookmarks) || isBookmarksNoteId(note.id);
   const favorites = isFavoriteNote(note);
-  const favoriteBtnDesktop = renderFavoriteButton(noteId, favorites, 'desktop');
-  const favoriteBtnMobile = renderFavoriteButton(noteId, favorites, 'mobile');
+  const favoriteBtnDesktop = isVirtualBookmarks
+    ? ''
+    : renderFavoriteButton(noteId, favorites, 'desktop');
+  const favoriteBtnMobile = isVirtualBookmarks
+    ? ''
+    : renderFavoriteButton(noteId, favorites, 'mobile');
   const metaParts = [category, pages, size].filter(Boolean);
-
-  return `
-    <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header">
-          <h2 class="jukebox-focus-info__title">${title}</h2>
-          <div class="jukebox-focus-info__actions">
-            ${favoriteBtnDesktop}
+  const editActions = isVirtualBookmarks
+    ? ''
+    : `
             <button
               type="button"
               class="jukebox-focus-info__edit"
@@ -116,7 +117,16 @@ export function render(note, filterMode, opts = {}) {
               data-note-id="${noteId}"
               aria-label="페이지 추가"
               title="페이지 추가"
-            >${MINGCUTE.fileNewFill}</button>
+            >${MINGCUTE.fileNewFill}</button>`;
+
+  return `
+    <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
+      <div class="jukebox-focus-info__desktop">
+        <div class="jukebox-focus-info__header">
+          <h2 class="jukebox-focus-info__title">${title}</h2>
+          <div class="jukebox-focus-info__actions">
+            ${favoriteBtnDesktop}
+            ${editActions}
             <button
               type="button"
               class="jukebox-focus-info__create"
@@ -134,7 +144,7 @@ export function render(note, filterMode, opts = {}) {
           ${favoriteBtnMobile}
         </div>
         ${
-          actionsOpen
+          actionsOpen && !isVirtualBookmarks
             ? `<button
           type="button"
           class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"

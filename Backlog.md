@@ -139,6 +139,13 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 화면/진입: ViewerChrome · Cloudinary metadata
 - 원문 메모: 「bookmarked · 토글 UI」
 
+### 북마크 페이지 가상 노트 모아보기 `(수집 260812)`
+- 상태: roadmap (이번 실행)
+- 우선순위: P1
+- 목적: 북마크된 페이지를 Bookmarks 가상 노트 한 권으로 모아 본다
+- 화면/진입: Jukebox 선두 카드 · `/note/virtual:bookmarks`
+- 데이터/API: `GET /api/cloudinaryBookmarkedPages` · 표지 `bookmarks-cover.webp`
+
 ### 제스처 네비게이션 `(수집 260812)`
 - 상태: done (Notion·코드상 스와이프/터치 스크롤 존재)
 - 우선순위: P1 (완료로 기록)

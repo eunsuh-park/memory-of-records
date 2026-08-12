@@ -80,6 +80,13 @@
 - 즐겨찾기만 모은 페이지(`/favorites`)는 `src/pages/Notes/Favorites.js`와
   `FAVORITES_PATH` · `filterFavoriteNotes()` · `getFavoriteNotes()`를 사용합니다.
 
+## 페이지 북마크 모음 (가상 노트)
+
+- 페이지 북마크는 Cloudinary `is_bookmarked` 메타데이터입니다.
+- Jukebox 맨 앞의 **Bookmarks** 가상 노트(`virtual:bookmarks`)가
+  `GET /api/cloudinaryBookmarkedPages`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
+- 표지 에셋: `src/assets/bookmarks-cover.webp`
+
 ## 사용 방법
 
 `src/pages/Story.js`에서 노션 데이터를 사용하도록 수정하면 됩니다.

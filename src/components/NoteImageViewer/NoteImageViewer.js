@@ -24,8 +24,14 @@ import {
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
+import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bookmarkedPages.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
+import {
+  BOOKMARKS_NOTE_TITLE,
+  isBookmarksNoteId,
+  createBookmarksNote
+} from '../../utils/bookmarksNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -90,7 +96,8 @@ async function findNoteById(noteId) {
  * 페이지 이미지 뷰어를 targetEl에 렌더링합니다.
  * @param {HTMLElement} targetEl - 렌더 대상
  * @param {string} id - 노트 ID
- * @param {Object} options - { mode, pdfFolderUrl?, pageCount?, size? }
+ * @param {Object} options - { mode, pdfFolderUrl?, pageCount?, size?, pages? }
+ *   pages가 있으면 폴더 순회 대신 해당 URL 목록을 가상 앨범으로 표시 (북마크 노트)
  * @returns {Function} cleanup 함수
  */
 export function renderNoteImageViewer(targetEl, id, options = {}) {
@@ -98,6 +105,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   const noteId = decodeURIComponent(String(id || '')).trim();
   const isModal = options.mode === 'modal';
+  const isBookmarksAlbum = isBookmarksNoteId(noteId) || Array.isArray(options.pages);
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''} note-image-viewer">
@@ -141,20 +149,63 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
   let folderUrl = String(options.pdfFolderUrl || '').trim();
+  /** 가상 앨범(북마크): 1-based index → 원본 페이지 엔트리 */
+  let albumPages = Array.isArray(options.pages)
+    ? options.pages.filter((p) => p && (p.url || (p.folderUrl && p.pageNumber)))
+    : null;
+  let isAlbumMode = Array.isArray(albumPages);
   /* page_count가 비어 있으면 null: 로드 실패 지점에서 마지막 페이지를 동적으로 확정 */
-  let totalPages =
-    Number.isFinite(Number(options.pageCount)) && Number(options.pageCount) > 0
+  let totalPages = isAlbumMode
+    ? albumPages.length
+    : Number.isFinite(Number(options.pageCount)) && Number(options.pageCount) > 0
       ? Math.floor(Number(options.pageCount))
       : null;
-  const hasKnownPageCount = totalPages !== null;
+  const hasKnownPageCount = totalPages !== null || isBookmarksAlbum;
   let noteSize = options.size || null;
-  let noteTitle = String(options.title || options.noteTitle || '').trim();
+  let noteTitle = String(
+    options.title || options.noteTitle || (isBookmarksAlbum ? BOOKMARKS_NOTE_TITLE : '')
+  ).trim();
   /** 중간 삽입 후 Cloudinary/브라우저 캐시 무효화용 */
   let mediaVersion = 0;
   /** size 없을 때: 첫 1페이지 이미지 비율을 노트 전체에 고정 */
   let fallbackSingleAspect = null;
 
+  if ((isAlbumMode || isBookmarksAlbum) && addPageBtn) {
+    addPageBtn.hidden = true;
+    addPageBtn.setAttribute('aria-hidden', 'true');
+  }
+
+  function albumEntry(num) {
+    if (!isAlbumMode || !Number.isFinite(num) || num < 1) return null;
+    return albumPages[num - 1] || null;
+  }
+
+  /** 메타/북마크 API용: 앨범이면 원본 folder+page, 아니면 현재 노트 */
+  function sourceRef(num = pageNum) {
+    if (isAlbumMode) {
+      const entry = albumEntry(num);
+      if (!entry) return null;
+      return {
+        folder: String(entry.folderUrl || '').trim(),
+        pageNumber: Math.floor(Number(entry.pageNumber) || 0)
+      };
+    }
+    return {
+      folder: folderUrl,
+      pageNumber: num
+    };
+  }
+
   function pageImageSrc(num) {
+    if (isAlbumMode) {
+      const entry = albumEntry(num);
+      if (!entry) return '';
+      if (entry.url) {
+        return mediaVersion ? `${entry.url}${entry.url.includes('?') ? '&' : '?'}v=${mediaVersion}` : entry.url;
+      }
+      const base = buildPageImageUrl(entry.folderUrl, entry.pageNumber);
+      return mediaVersion ? `${base}?v=${mediaVersion}` : base;
+    }
     const base = buildPageImageUrl(folderUrl, num);
     return mediaVersion ? `${base}?v=${mediaVersion}` : base;
   }
@@ -433,8 +484,16 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function refreshBookmarkState(num) {
-    if (!folderUrl || !Number.isFinite(num) || num < 1) {
+    const ref = sourceRef(num);
+    if (!ref?.folder || !ref.pageNumber) {
       syncBookmarkButtons(false);
+      return;
+    }
+    /* 북마크 앨범에 들어온 페이지는 기본적으로 북마크된 상태 */
+    if (isAlbumMode) {
+      const value = bookmarkedByPage.has(num) ? Boolean(bookmarkedByPage.get(num)) : true;
+      bookmarkedByPage.set(num, value);
+      syncBookmarkButtons(value);
       return;
     }
     if (bookmarkedByPage.has(num)) {
@@ -443,7 +502,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
     const requestId = ++bookmarkRequestId;
     try {
-      const meta = await fetchPageMeta({ folder: folderUrl, page: num });
+      const meta = await fetchPageMeta({ folder: ref.folder, page: ref.pageNumber });
       if (requestId !== bookmarkRequestId || pageNum !== num) return;
       const value = Boolean(meta?.is_bookmarked);
       bookmarkedByPage.set(num, value);
@@ -455,14 +514,33 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
   }
 
+  async function removeAlbumPageAt(index1Based) {
+    if (!isAlbumMode || !albumPages) return;
+    albumPages = albumPages.filter((_, i) => i !== index1Based - 1);
+    totalPages = albumPages.length;
+    bookmarkedByPage.clear();
+    preloadedImages.clear();
+    clearBookmarkedPagesCache();
+    if (totalPages === 0) {
+      ready = false;
+      updateControls();
+      syncBookmarkButtons(false);
+      showOverlay('북마크된 페이지가 없습니다.');
+      return;
+    }
+    const next = Math.min(index1Based, totalPages);
+    showPage(next);
+  }
+
   async function toggleBookmark() {
-    if (!ready || !folderUrl) {
+    const ref = sourceRef(pageNum);
+    if (!ready || !ref?.folder || !ref.pageNumber) {
       showToast('페이지를 불러온 뒤 북마크할 수 있습니다');
       return;
     }
     const current = bookmarkedByPage.has(pageNum)
       ? Boolean(bookmarkedByPage.get(pageNum))
-      : false;
+      : isAlbumMode;
     const next = !current;
     const targetPage = pageNum;
     bookmarkedByPage.set(targetPage, next);
@@ -470,18 +548,22 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
     try {
       await updatePageMeta({
-        folder: folderUrl,
-        pageNumber: targetPage,
+        folder: ref.folder,
+        pageNumber: ref.pageNumber,
         is_bookmarked: next
       });
       showToast(next ? '북마크에 추가했습니다' : '북마크를 해제했습니다');
+      if (isAlbumMode && !next) {
+        await removeAlbumPageAt(targetPage);
+        return;
+      }
     } catch (err) {
       console.warn('NoteImageViewer: 북마크 변경 실패', err);
       bookmarkedByPage.set(targetPage, current);
       if (pageNum === targetPage) syncBookmarkButtons(current, { disabled: false });
       showToast(err?.message || '북마크 변경에 실패했습니다.');
     } finally {
-      if (pageNum === targetPage) {
+      if (pageNum === targetPage && !(isAlbumMode && !next)) {
         syncBookmarkButtons(Boolean(bookmarkedByPage.get(targetPage)), { disabled: false });
       }
     }
@@ -663,17 +745,26 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function openCurrentPageMeta() {
-    if (!folderUrl || !ready) {
+    const ref = sourceRef(pageNum);
+    if (!ref?.folder || !ready) {
       showToast('페이지를 불러온 뒤 확인할 수 있습니다');
       return;
     }
     openPageMetaModal({
-      folder: folderUrl,
-      pageNumber: pageNum,
+      folder: ref.folder,
+      pageNumber: ref.pageNumber,
       imageUrl: pageImageSrc(pageNum),
       onSaved: async (meta) => {
-        hiddenPagesCache.delete(String(folderUrl || '').trim());
-        hiddenPages = await fetchHiddenPages(folderUrl, { force: true });
+        if (isAlbumMode) {
+          if (meta?.visible === false || meta?.is_bookmarked === false) {
+            await removeAlbumPageAt(pageNum);
+            return;
+          }
+          showPage(pageNum);
+          return;
+        }
+        hiddenPagesCache.delete(String(ref.folder || '').trim());
+        hiddenPages = await fetchHiddenPages(ref.folder, { force: true });
         if (meta?.visible === false) {
           const next = findVisiblePage(pageNum + 1, 1) ?? findVisiblePage(pageNum - 1, -1);
           if (next == null) {
@@ -709,6 +800,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function openInsertPageModal() {
+    if (isAlbumMode || isBookmarksAlbum) {
+      showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
+      return;
+    }
     let title = noteTitle;
     if (!title || !folderUrl || totalPages == null) {
       const note = await findNoteById(noteId);
@@ -751,6 +846,31 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function initViewer() {
+    if (isBookmarksAlbum || isAlbumMode) {
+      showOverlay('북마크 불러오는 중...');
+      try {
+        if (!isAlbumMode) {
+          const pages = await getBookmarkedPages({ force: true });
+          albumPages = Array.isArray(pages) ? pages : [];
+          isAlbumMode = true;
+        }
+        totalPages = albumPages.length;
+        noteTitle = noteTitle || BOOKMARKS_NOTE_TITLE;
+        hiddenPages = new Set();
+        if (!albumPages.length) {
+          ready = false;
+          updateControls();
+          showOverlay('북마크된 페이지가 없습니다.');
+          return;
+        }
+        startViewer();
+      } catch (err) {
+        console.warn('NoteImageViewer: 북마크 목록 로드 실패', err);
+        showOverlay(err?.message || '북마크 페이지를 불러올 수 없습니다.');
+      }
+      return;
+    }
+
     if (!folderUrl) {
       /* /note/:id 직접 진입: 노트 조회 후 뷰어 선택 */
       showOverlay('노트 불러오는 중...');
@@ -929,5 +1049,13 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
+  if (isBookmarksNoteId(id)) {
+    renderNoteImageViewer(mainContent, id, {
+      mode: 'page',
+      title: BOOKMARKS_NOTE_TITLE,
+      note: createBookmarksNote()
+    });
+    return;
+  }
   renderNoteImageViewer(mainContent, id);
 }
