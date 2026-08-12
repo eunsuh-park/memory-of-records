@@ -15,6 +15,10 @@ let inflight = null;
  * }>}
  */
 export async function fetchBookmarkNoteMeta({ force = false } = {}) {
+  if (force) {
+    cache = null;
+    inflight = null;
+  }
   if (!force && cache) return cache;
   if (!force && inflight) return inflight;
 

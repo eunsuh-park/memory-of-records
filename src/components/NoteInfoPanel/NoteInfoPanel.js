@@ -92,16 +92,16 @@ export function render(note, filterMode, opts = {}) {
   const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
   const memo = escapeHtml(note.description || '');
   const noteId = escapeHtml(note.id || '');
-  const isVirtualBookmarks = Boolean(note.isVirtualBookmarks) || isBookmarksNoteId(note.id);
+  const isBookmarks = isBookmarksNoteId(note.id);
   const favorites = isFavoriteNote(note);
-  const favoriteBtnDesktop = isVirtualBookmarks
+  const favoriteBtnDesktop = isBookmarks
     ? ''
     : renderFavoriteButton(noteId, favorites, 'desktop');
-  const favoriteBtnMobile = isVirtualBookmarks
+  const favoriteBtnMobile = isBookmarks
     ? ''
     : renderFavoriteButton(noteId, favorites, 'mobile');
   const metaParts = [category, pages, size].filter(Boolean);
-  const editActions = isVirtualBookmarks
+  const editActions = isBookmarks
     ? ''
     : `
             <button
@@ -144,7 +144,7 @@ export function render(note, filterMode, opts = {}) {
           ${favoriteBtnMobile}
         </div>
         ${
-          actionsOpen && !isVirtualBookmarks
+          actionsOpen && !isBookmarks
             ? `<button
           type="button"
           class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"

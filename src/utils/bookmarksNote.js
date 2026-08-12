@@ -1,7 +1,7 @@
 /**
  * 모든 유저에게 기본 제공되는 Bookmark Note
  *
- * Notion에 없는 synthetic note. Cloudinary Cover/Front|Back/Bookmark_Note 표지를 쓰고,
+ * Notion에 없는 synthetic note. Cloudinary `Bookmark Note` 폴더 표지를 쓰고,
  * 북마크된 페이지들을 한 앨범처럼 모아 본다.
  */
 

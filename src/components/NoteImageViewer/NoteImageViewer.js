@@ -107,7 +107,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   const noteId = decodeURIComponent(String(id || '')).trim();
   const isModal = options.mode === 'modal';
-  const isBookmarksAlbum = isBookmarksNoteId(noteId) || Array.isArray(options.pages);
+  const isBookmarksAlbum = isBookmarksNoteId(noteId);
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''} note-image-viewer">
@@ -768,7 +768,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       sourceNote,
       onSaved: async (meta) => {
         if (isAlbumMode) {
-          if (meta?.visible === false || meta?.is_bookmarked === false) {
+          if (meta?.visible === false) {
             await removeAlbumPageAt(pageNum);
             return;
           }
@@ -813,7 +813,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   async function openInsertPageModal() {
     if (isAlbumMode || isBookmarksAlbum) {
-      showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
+      showToast(
+        isBookmarksAlbum
+          ? '북마크 모음에는 페이지를 추가할 수 없습니다.'
+          : '이 모아보기에는 페이지를 추가할 수 없습니다.'
+      );
       return;
     }
     let title = noteTitle;
@@ -858,7 +862,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function initViewer() {
-    if (isBookmarksAlbum || isAlbumMode) {
+    if (isBookmarksAlbum) {
       showOverlay('북마크 불러오는 중...');
       try {
         await ensureBookmarkNoteCovers().catch(() => null);
@@ -883,6 +887,19 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         console.warn('NoteImageViewer: 북마크 목록 로드 실패', err);
         showOverlay(err?.message || '북마크 페이지를 불러올 수 없습니다.');
       }
+      return;
+    }
+
+    if (isAlbumMode) {
+      totalPages = albumPages.length;
+      hiddenPages = new Set();
+      if (!albumPages.length) {
+        ready = false;
+        updateControls();
+        showOverlay('표시할 페이지가 없습니다.');
+        return;
+      }
+      startViewer();
       return;
     }
 
