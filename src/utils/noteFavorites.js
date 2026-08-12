@@ -2,7 +2,7 @@
  * Notion `favorites` 속성 헬퍼
  *
  * - DB 기본값 false. 속성이 없거나 비어 있으면 false로 취급한다.
- * - 즐겨찾기 전용 페이지(/favorites)에서 filterFavoriteNotes로 목록을 모을 예정.
+ * - 즐겨찾기 전용 페이지(/favorites)에서 filterFavoriteNotes로 목록을 모은다.
  */
 
 export const FAVORITES_PATH = '/favorites';

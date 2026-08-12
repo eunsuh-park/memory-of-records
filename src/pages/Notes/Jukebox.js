@@ -794,8 +794,8 @@ function renderCardActionOverlay(noteId) {
  * By Type:  filterOptions = typeOptions  (notebook_type 5개 태그 1:1)
  *
  * @param {Object} options
- * @param {'period'|'type'} options.filterMode
- * @param {string} options.basePath - '/timeline' | '/by-type'
+ * @param {'period'|'type'|'favorites'} options.filterMode
+ * @param {string} options.basePath - '/timeline' | '/by-type' | '/favorites'
  * @param {string} options.selectedValue - 현재 선택된 필터 값
  * @param {Array<{value: string, label: string}>} options.filterOptions
  * @param {() => Promise<Array>} options.loadNotes
@@ -960,6 +960,12 @@ export function renderJukeboxWithFilter(options) {
         updateNoteFavorite({ id: noteId, favorites: next })
           .then(() => {
             showToast(next ? '즐겨찾기에 추가했습니다' : '즐겨찾기를 해제했습니다');
+            if (filterMode === 'favorites' && !next) {
+              if (Array.isArray(allNotesCache)) {
+                allNotesCache = allNotesCache.filter((n) => n.id !== noteId);
+              }
+              applyFiltersAndRender();
+            }
           })
           .catch((err) => {
             console.warn('Jukebox: 즐겨찾기 변경 실패', err);

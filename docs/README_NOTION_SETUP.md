@@ -77,8 +77,8 @@
 - Jukebox 포커스 정보 패널의 별(star-fill) 버튼이 이 값과 연결되며, 클릭 시
   `POST /api/updateFavorite`로 토글합니다.
 - 클라이언트 노트 객체에는 `favorites: boolean`이 포함됩니다.
-- 이후 즐겨찾기만 모은 페이지(`/favorites`)는 `src/utils/noteFavorites.js`의
-  `FAVORITES_PATH` · `filterFavoriteNotes()`를 사용하면 됩니다.
+- 즐겨찾기만 모은 페이지(`/favorites`)는 `src/pages/Notes/Favorites.js`와
+  `FAVORITES_PATH` · `filterFavoriteNotes()` · `getFavoriteNotes()`를 사용합니다.
 
 ## 사용 방법
 

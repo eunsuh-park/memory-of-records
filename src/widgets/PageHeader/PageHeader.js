@@ -39,6 +39,7 @@ function isNotesPath(path) {
     path === '/' ||
     path.startsWith('/timeline') ||
     path.startsWith('/by-type') ||
+    path.startsWith('/favorites') ||
     path.startsWith('/note/')
   );
 }
@@ -110,6 +111,7 @@ export function renderPageHeader() {
   const currentPath = getActualPath(window.location.pathname);
   const theme = getStoredTheme();
   const notesActive = isNotesPath(currentPath);
+  const favoritesActive = currentPath.startsWith('/favorites');
   const storyActive = currentPath.startsWith('/story');
   const loginActive = currentPath.startsWith('/login');
 
@@ -137,6 +139,13 @@ export function renderPageHeader() {
         <div class="page-header__right page-header__right--desktop">
           ${renderThemeSwitch(theme)}
           <span class="page-header__auth" data-auth-slot></span>
+          <a
+            href="/favorites"
+            class="page-header__story-link ${favoritesActive ? 'active' : ''}"
+            data-link
+          >
+            Favorites
+          </a>
           <a
             href="/story"
             class="page-header__story-link ${storyActive ? 'active' : ''}"
@@ -185,10 +194,16 @@ export function renderPageHeader() {
       <nav class="nav-drawer__nav">
         <a
           href="/timeline"
-          class="nav-drawer__link ${notesActive ? 'active' : ''}"
+          class="nav-drawer__link ${notesActive && !favoritesActive ? 'active' : ''}"
           data-link
           data-drawer-close
         >Notes</a>
+        <a
+          href="/favorites"
+          class="nav-drawer__link ${favoritesActive ? 'active' : ''}"
+          data-link
+          data-drawer-close
+        >Favorites</a>
         <a
           href="/story"
           class="nav-drawer__link ${storyActive ? 'active' : ''}"
