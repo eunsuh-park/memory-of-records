@@ -85,8 +85,9 @@
 - 페이지 북마크는 Cloudinary `is_bookmarked` 메타데이터입니다.
 - Jukebox 맨 앞의 **Bookmark Note**(`virtual:bookmarks`)가 기본으로 제공되며,
   `GET /api/cloudinaryBookmarkedPages`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
-- 표지: Cloudinary `Notebooks_v3/Cover/Front|Back/Bookmark_Note` (또는 `Bookmark Note`)
-  - 메타: `GET /api/bookmarkNote`
+- 표지: Cloudinary 폴더 **`Bookmark Note`** 의 `front` / `back` 이미지
+  - 조회: `GET /api/bookmarkNote` (폴더 우선, 없으면 Cover/Front|Back 폴백)
+  - 업로드 스크립트: `node scripts/upload-bookmark-covers.mjs` (CLOUDINARY_* 필요)
   - 로드 실패 시 로컬 PNG 폴백
 - 페이지 정보(상세 설명) 모달에 **원본 노트** 링크를 표시합니다.
 
