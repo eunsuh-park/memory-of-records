@@ -124,10 +124,9 @@ export function renderFilterSubMenu(
   `
     : '';
 
-  container.innerHTML = `
-    <aside class="sub-menu">
-      <nav class="sub-nav" id="sub-menu-panel">
-        ${viewToggleHtml}
+  const filterListHtml =
+    Array.isArray(filterOptions) && filterOptions.length > 0
+      ? `
         <ul class="filter-list">
           ${filterOptions
             .map(
@@ -145,6 +144,14 @@ export function renderFilterSubMenu(
             )
             .join('')}
         </ul>
+      `
+      : '';
+
+  container.innerHTML = `
+    <aside class="sub-menu">
+      <nav class="sub-nav" id="sub-menu-panel">
+        ${viewToggleHtml}
+        ${filterListHtml}
         ${controlsHtml}
       </nav>
     </aside>
