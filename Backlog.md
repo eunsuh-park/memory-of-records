@@ -144,7 +144,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 우선순위: P1
 - 목적: 북마크된 페이지를 Bookmarks 가상 노트 한 권으로 모아 본다
 - 화면/진입: Jukebox 선두 카드 · `/note/virtual:bookmarks`
-- 데이터/API: `GET /api/cloudinaryBookmarkedPages` · 표지 front/back webp (플랫 앵글)
+- 데이터/API: `GET /api/cloudinaryBookmarkedPages` · 색상별 플랫 SVG 표지 (+ 크래프트 라벨)
 
 ### 제스처 네비게이션 `(수집 260812)`
 - 상태: done (Notion·코드상 스와이프/터치 스크롤 존재)

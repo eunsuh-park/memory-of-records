@@ -85,7 +85,9 @@
 - 페이지 북마크는 Cloudinary `is_bookmarked` 메타데이터입니다.
 - Jukebox 맨 앞의 **Bookmarks** 가상 노트(`virtual:bookmarks`)가
   `GET /api/cloudinaryBookmarkedPages`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
-- 표지 에셋: `src/assets/bookmarks-cover-front.webp` · `bookmarks-cover-back.webp` (플랫 정면/후면)
+- 표지: 색상별 플랫 SVG (`src/assets/bookmarks-covers/{slug}-front|back.svg`)
+  - 생성: `npm run bookmarks-covers`
+  - 기본 색 `남색` (localStorage `mor.bookmarksCoverColor`로 변경 가능)
 
 ## 사용 방법
 

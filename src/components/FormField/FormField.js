@@ -50,13 +50,21 @@ export function renderColorSwatches(colors = [], config = {}) {
 
   return list
     .map((colorName) => {
-      const hex = colorMap[colorName] || fallbackColor(colorName);
+      const paint = colorMap[colorName] || fallbackColor(colorName);
       const checked = colorName === selected ? 'checked' : '';
       const isLight = lightNames.includes(colorName);
+      const isGradient = String(paint).includes('gradient');
+      const classes = [
+        'field__swatch',
+        isLight ? 'field__swatch--light' : '',
+        isGradient ? 'field__swatch--gradient' : ''
+      ]
+        .filter(Boolean)
+        .join(' ');
       return `
-        <label class="field__swatch${isLight ? ' field__swatch--light' : ''}" title="${escapeHtml(colorName)}">
+        <label class="${classes}" title="${escapeHtml(colorName)}">
           <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(colorName)}" ${checked} />
-          <span class="field__swatch-dot" style="--swatch-color:${escapeHtml(hex)}"></span>
+          <span class="field__swatch-dot" style="--swatch-color:${escapeHtml(paint)}"></span>
           <span class="field__swatch-name">${escapeHtml(colorName)}</span>
         </label>`;
     })

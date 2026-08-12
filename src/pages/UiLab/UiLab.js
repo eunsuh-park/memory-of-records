@@ -7,6 +7,12 @@ import { render as renderButton } from '../../components/Button/Button.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import {
+  BOOKMARKS_COVER_COLOR_NAMES,
+  getBookmarksCoverUrls,
+  setBookmarksCoverColor,
+  getBookmarksCoverColor
+} from '../../utils/bookmarksCoverSvg.js';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
 import './UiLab.css';
@@ -764,6 +770,32 @@ export function renderUiLab() {
           </ul>
         </section>
 
+        <section class="ui-lab__section" id="bookmarks-covers">
+          <h2 class="ui-lab__section-title">Bookmarks · 색상별 SVG 표지</h2>
+          <p class="ui-lab__section-desc">
+            가상 북마크 노트의 플랫 앞·뒷표지. 클릭하면 Jukebox에 쓰는 기본 색을 바꿉니다 (현재:
+            <strong data-lab="bookmarks-color">${getBookmarksCoverColor()}</strong>).
+          </p>
+          <p class="ui-lab__files">
+            참조: <code>src/utils/bookmarksCoverSvg.js</code>,
+            <code>src/assets/bookmarks-covers/</code>,
+            <code>npm run bookmarks-covers</code>
+          </p>
+          <div class="ui-lab__bookmarks-grid">
+            ${BOOKMARKS_COVER_COLOR_NAMES.map((colorName) => {
+              const { coverFrontUrl, coverBackUrl } = getBookmarksCoverUrls(colorName);
+              return `
+              <button type="button" class="ui-lab__bookmarks-card" data-bookmarks-color="${colorName}" title="${colorName} 표지 사용">
+                <span class="ui-lab__bookmarks-pair">
+                  <img src="${coverFrontUrl}" alt="${colorName} 앞표지" />
+                  <img src="${coverBackUrl}" alt="${colorName} 뒷표지" />
+                </span>
+                <span class="ui-lab__bookmarks-name">${colorName}</span>
+              </button>`;
+            }).join('')}
+          </div>
+        </section>
+
         <section class="ui-lab__section" id="pages">
           <h2 class="ui-lab__section-title">Pages · composition</h2>
           <p class="ui-lab__section-desc">
@@ -793,6 +825,16 @@ export function renderUiLab() {
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
+  });
+
+  root.querySelectorAll('[data-bookmarks-color]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const color = btn.getAttribute('data-bookmarks-color');
+      const next = setBookmarksCoverColor(color);
+      const label = root.querySelector('[data-lab="bookmarks-color"]');
+      if (label) label.textContent = next;
+      showToast(`Bookmarks 표지 색: ${next}`);
+    });
   });
 
   /* 정적 데모라 실제 페이지 수가 없으니 표시용 값만 채운다 */

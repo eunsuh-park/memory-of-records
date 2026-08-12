@@ -3,10 +3,13 @@
  *
  * Notion에 없는 synthetic note. Jukebox에 카드로 끼워 넣고,
  * 열면 Cloudinary is_bookmarked 페이지들을 한 앨범처럼 본다.
+ * 표지는 색상별 플랫 SVG (`bookmarksCoverSvg`).
  */
 
-import bookmarksCoverFrontUrl from '../assets/bookmarks-cover-front.webp';
-import bookmarksCoverBackUrl from '../assets/bookmarks-cover-back.webp';
+import {
+  getBookmarksCoverColor,
+  getBookmarksCoverUrls
+} from './bookmarksCoverSvg.js';
 
 export const BOOKMARKS_NOTE_ID = 'virtual:bookmarks';
 export const BOOKMARKS_NOTE_TITLE = 'Bookmarks';
@@ -19,7 +22,7 @@ export function isBookmarksNoteId(id) {
 }
 
 /**
- * @param {{ pageCount?: number|null, pages?: Array|null }} [overrides]
+ * @param {{ pageCount?: number|null, pages?: Array|null, color?: string|null }} [overrides]
  */
 export function createBookmarksNote(overrides = {}) {
   const pages = Array.isArray(overrides.pages) ? overrides.pages : null;
@@ -30,11 +33,14 @@ export function createBookmarksNote(overrides = {}) {
         ? pages.length
         : null;
 
+  const color = overrides.color || getBookmarksCoverColor();
+  const covers = getBookmarksCoverUrls(color);
+
   return {
     id: BOOKMARKS_NOTE_ID,
     title: BOOKMARKS_NOTE_TITLE,
-    coverFrontUrl: bookmarksCoverFrontUrl,
-    coverBackUrl: bookmarksCoverBackUrl,
+    coverFrontUrl: covers.coverFrontUrl,
+    coverBackUrl: covers.coverBackUrl,
     pdfFolderUrl: null,
     pdfUrl: null,
     pageCount,
@@ -42,7 +48,7 @@ export function createBookmarksNote(overrides = {}) {
     description: '북마크한 페이지 모음',
     type: 'Bookmarks',
     notebookType: 'Bookmarks',
-    color: null,
+    color: covers.color,
     favorites: false,
     visible: true,
     isVirtualBookmarks: true,

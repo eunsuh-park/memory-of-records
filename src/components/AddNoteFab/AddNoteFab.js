@@ -36,6 +36,7 @@ import {
 } from '../AddPageModal/AddPageModal.js';
 import { requireAuth } from '../../services/auth.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { NOTE_COLOR_PAINT, LIGHT_NOTE_COLORS, NOTE_COLOR_NAMES } from '../../utils/noteColorMap.js';
 import uploadingLottieUrl from '../../assets/uploading.json?url';
 import './AddNoteFab.css';
 
@@ -43,25 +44,14 @@ const PLUS_ICON = MINGCUTE.addFill;
 
 const FALLBACK_TYPES = typeOptions.map((t) => t.labelKr);
 const FALLBACK_PERIODS = periodOptions.map((p) => p.label);
-const FALLBACK_COLORS = ['파랑', '빨강', '검정', '초록', '노랑', '보라', '회색', '갈색', '분홍', '흰색'];
+const FALLBACK_COLORS = NOTE_COLOR_NAMES;
 const FALLBACK_SIZES = ['A4', 'A5', 'A6', 'B5', 'B6', '16절', '8절', '4절'];
 
 /* 노트 표지 색상 이름 → 스와치 색. 실제 노트 색을 흉내내는 값이라 테마 토큰이 아니다 */
-const COLOR_CHIP_HEX = {
-  파랑: '#4a7fcb',
-  빨강: '#c94c4c',
-  검정: '#1a1a1a',
-  초록: '#4a9b6e',
-  노랑: '#e6c84a',
-  보라: '#8b6bb8',
-  회색: '#8a8a8a',
-  갈색: '#8b5a3c',
-  분홍: '#e89bb5',
-  흰색: '#f5f5f5'
-};
+const COLOR_CHIP_HEX = NOTE_COLOR_PAINT;
 
 /** 스와치가 배경에 묻히는 밝은 색 (테두리 보정) */
-const LIGHT_COLOR_NAMES = ['흰색', '노랑'];
+const LIGHT_COLOR_NAMES = [...LIGHT_NOTE_COLORS];
 
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';

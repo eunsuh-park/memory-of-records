@@ -300,6 +300,48 @@
   color: var(--color-text-dim);
 }
 
+.ui-lab__bookmarks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--space-3);
+}
+
+.ui-lab__bookmarks-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.ui-lab__bookmarks-card:hover {
+  border-color: var(--color-primary);
+}
+
+.ui-lab__bookmarks-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+}
+
+.ui-lab__bookmarks-pair img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: #14161c;
+}
+
+.ui-lab__bookmarks-name {
+  font-size: var(--text-xs);
+  color: var(--color-text-dim);
+}
+
 .ui-lab__list {
   margin: 0;
   padding-left: var(--space-5);
