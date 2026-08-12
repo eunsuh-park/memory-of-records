@@ -140,13 +140,6 @@ export function renderPageHeader() {
           ${renderThemeSwitch(theme)}
           <span class="page-header__auth" data-auth-slot></span>
           <a
-            href="/favorites"
-            class="page-header__story-link ${favoritesActive ? 'active' : ''}"
-            data-link
-          >
-            Favorites
-          </a>
-          <a
             href="/story"
             class="page-header__story-link ${storyActive ? 'active' : ''}"
             data-link
