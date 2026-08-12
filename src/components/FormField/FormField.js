@@ -29,12 +29,12 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
-/** 이름이 없는 색상에도 안정적인 색을 주기 위한 해시 → hue */
+/** 맵에 없는 색상 이름 → 선명한 해시 색 (라벨 불일치 방지용 최후 수단) */
 function fallbackColor(name) {
   let hash = 0;
   const s = String(name || '');
   for (let i = 0; i < s.length; i += 1) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
-  return `hsl(${hash % 360} 42% 52%)`;
+  return `hsl(${hash % 360} 72% 52%)`;
 }
 
 /**
@@ -50,13 +50,21 @@ export function renderColorSwatches(colors = [], config = {}) {
 
   return list
     .map((colorName) => {
-      const hex = colorMap[colorName] || fallbackColor(colorName);
+      const paint = colorMap[colorName] || fallbackColor(colorName);
       const checked = colorName === selected ? 'checked' : '';
       const isLight = lightNames.includes(colorName);
+      const isGradient = String(paint).includes('gradient');
+      const classes = [
+        'field__swatch',
+        isLight ? 'field__swatch--light' : '',
+        isGradient ? 'field__swatch--gradient' : ''
+      ]
+        .filter(Boolean)
+        .join(' ');
       return `
-        <label class="field__swatch${isLight ? ' field__swatch--light' : ''}" title="${escapeHtml(colorName)}">
+        <label class="${classes}" title="${escapeHtml(colorName)}">
           <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(colorName)}" ${checked} />
-          <span class="field__swatch-dot" style="--swatch-color:${escapeHtml(hex)}"></span>
+          <span class="field__swatch-dot" style="--swatch-color:${escapeHtml(paint)}"></span>
           <span class="field__swatch-name">${escapeHtml(colorName)}</span>
         </label>`;
     })

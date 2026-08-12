@@ -164,6 +164,12 @@
   transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
+/* 무지개 등: --swatch-color에 linear-gradient 전달 */
+.field__swatch--gradient .field__swatch-dot {
+  background-image: var(--swatch-color);
+  background-color: transparent;
+}
+
 .field__swatch--light .field__swatch-dot {
   box-shadow: inset 0 0 0 1px var(--color-surface-selected), 0 0 0 1px var(--color-shadow-lg);
 }
