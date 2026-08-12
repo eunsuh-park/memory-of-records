@@ -136,6 +136,29 @@
   color-scheme: light;
 }
 
+.page-meta-source {
+  gap: var(--space-1);
+}
+
+.page-meta-source-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  word-break: break-word;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page-meta-source-link:hover {
+    color: var(--color-text);
+  }
+}
+
 .page-meta-date-hint {
   margin: 0;
   font-size: var(--text-xs);

@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "vercel:dev": "vercel dev",
     "icons": "node scripts/generate-mingcute-icons.mjs",
+    "bookmarks:upload-covers": "node scripts/upload-bookmark-covers.mjs",
     "migrate:cloudinary": "node scripts/cloudinary-notion-migrate.mjs"
   },
   "devDependencies": {
