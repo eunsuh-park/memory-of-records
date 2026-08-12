@@ -1,7 +1,7 @@
 /**
  * NoteInfoPanel 스타일
  * Jukebox 중앙 카드 정보 패널. 위치(.jukebox-focus-slot)는 Jukebox.css가 잡고,
- * 여기서는 패널 내부(유리 배경 · 제목 · 메타 · 액션 버튼 · 모바일 페이저)만 다룬다.
+ * 여기서는 패널 내부(유리 배경 · 제목 · 메타 · 액션 버튼 · 모바일 노트 인디케이터)만 다룬다.
  */
 
 .jukebox-focus-info {
@@ -214,8 +214,75 @@ button.jukebox-focus-info__create:focus-visible {
   width: 100%;
 }
 
+/*
+ * 노트 인디케이터 (모바일 주크박스)
+ * focused는 항상 정중앙. 좌·우 사이드가 flex:1 로 대칭을 유지한다.
+ * 거리 0: 넓은 캡슐 / 1: 짧은 캡슐 / 2+: 원형, 멀수록 투명
+ */
+.note-indicator {
+  --note-indicator-h: 0.5rem;
+  --note-indicator-gap: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(18rem, 100%);
+  max-width: 100%;
+  min-height: var(--note-indicator-h);
+  pointer-events: none;
+}
+
+.note-indicator__side {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: var(--note-indicator-gap);
+  min-width: 0;
+}
+
+.note-indicator__side--left {
+  justify-content: flex-end;
+}
+
+.note-indicator__side--right {
+  justify-content: flex-start;
+}
+
+.note-indicator__item {
+  box-sizing: border-box;
+  flex-shrink: 0;
+  height: var(--note-indicator-h);
+  border-radius: var(--radius-pill);
+  background: var(--color-chrome-on);
+}
+
+.note-indicator__item--focus {
+  width: 2.75rem;
+  opacity: 1;
+  margin: 0 var(--note-indicator-gap);
+}
+
+.note-indicator__item--d1 {
+  width: 1.75rem;
+  opacity: 0.55;
+}
+
+.note-indicator__item--d2 {
+  width: var(--note-indicator-h);
+  opacity: 0.35;
+}
+
+.note-indicator__item--d3 {
+  width: var(--note-indicator-h);
+  opacity: 0.22;
+}
+
+.note-indicator__item--d4 {
+  width: var(--note-indicator-h);
+  opacity: 0.12;
+}
+
 @media (max-width: 768px) {
-  /* 모바일 포커스: 노트명 + 1/N (+ 액션 시 수정 필) */
+  /* 모바일 포커스: 노트명 + 노트 인디케이터 (+ 액션 시 수정 필) */
   .jukebox-focus-info {
     background: transparent;
     border: none;
@@ -267,7 +334,8 @@ button.jukebox-focus-info__create:focus-visible {
     text-shadow: none;
   }
 
-  .jukebox-focus-info__pager {
+  /* 노트 탭 시 인디케이터 자리에 "수정" 버튼 */
+  button.jukebox-focus-info__pager--edit {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -276,28 +344,16 @@ button.jukebox-focus-info__create:focus-visible {
     min-width: 3.5rem;
     min-height: 1.85rem;
     margin: 0;
-    padding: var(--space-1) var(--space-3);
+    padding: var(--space-2) var(--space-4);
     border: none;
     border-radius: var(--radius-pill);
     font: inherit;
-    font-size: var(--text-xs);
-    font-weight: var(--font-medium);
-    color: var(--color-chrome-on);
-    background: var(--color-chrome-soft);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
     text-align: center;
-    cursor: default;
-  }
-
-  /* 1/N 페이저가 노트 탭 시 "수정" 버튼으로 변형 */
-  button.jukebox-focus-info__pager--edit {
     color: var(--white) !important;
     background: var(--color-control-grey) !important;
     background-color: var(--color-control-grey) !important;
-    font-size: var(--text-sm);
-    font-weight: var(--font-semibold);
-    padding: var(--space-2) var(--space-4);
     cursor: pointer;
     box-shadow: none !important;
     filter: none !important;

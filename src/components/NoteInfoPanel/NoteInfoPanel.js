@@ -2,7 +2,7 @@
  * NoteInfoPanel
  *
  * Jukebox 중앙 카드(포커스된 노트)의 정보 표시영역.
- * 데스크톱은 제목·메타·메모 + 액션 버튼, 모바일은 제목 + 페이저(또는 수정 버튼)로 갈라진다.
+ * 데스크톱은 제목·메타·메모 + 액션 버튼, 모바일은 제목 + 노트 인디케이터(또는 수정 버튼)로 갈라진다.
  * 기존 `.jukebox-focus-info__desktop` / `__mobile` 분기와 클래스명을 그대로 유지한다.
  */
 
@@ -11,6 +11,9 @@ import { isFavoriteNote } from '../../utils/noteFavorites.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderButton } from '../Button/Button.js';
 import './NoteInfoPanel.css';
+
+/** 포커스 기준 한쪽 최대 슬롯 수 (전체 최대 1 + 2*N) */
+const NOTE_INDICATOR_MAX_SIDE = 4;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -24,6 +27,53 @@ function escapeHtml(value) {
 function categoryLabel(note, filterMode) {
   if (filterMode === 'type') return note.type || note.notebookType || '';
   return note.notebookType || note.type || '';
+}
+
+/**
+ * 모바일 노트 인디케이터
+ * - focused(거리 0): 가운데 넓은 흰, 불투명
+ * - 인접(거리 1): 짧은 캡슐
+ * - 그 밖(거리 2+): 원형 점, 멀수록 투명
+ * - focused는 항상 컨테이너 정중앙 (좌·우 flex:1 사이드)
+ *
+ * @param {number} index - 0-based
+ * @param {number} total
+ * @returns {string}
+ */
+export function renderNoteIndicator(index, total) {
+  const count = Math.max(0, Number(total) || 0);
+  if (count <= 0) return '';
+  const current = Math.max(0, Math.min(count - 1, Number(index) || 0));
+
+  const leftItems = [];
+  for (let dist = Math.min(NOTE_INDICATOR_MAX_SIDE, current); dist >= 1; dist -= 1) {
+    leftItems.push(
+      `<span class="note-indicator__item note-indicator__item--d${dist}" aria-hidden="true"></span>`
+    );
+  }
+
+  const rightItems = [];
+  const rightMax = Math.min(NOTE_INDICATOR_MAX_SIDE, count - 1 - current);
+  for (let dist = 1; dist <= rightMax; dist += 1) {
+    rightItems.push(
+      `<span class="note-indicator__item note-indicator__item--d${dist}" aria-hidden="true"></span>`
+    );
+  }
+
+  const label = `${current + 1} / ${count}`;
+  return `
+    <div
+      class="note-indicator"
+      role="img"
+      aria-label="${escapeHtml(label)}"
+      data-index="${current}"
+      data-total="${count}"
+    >
+      <div class="note-indicator__side note-indicator__side--left">${leftItems.join('')}</div>
+      <span class="note-indicator__item note-indicator__item--focus" aria-hidden="true"></span>
+      <div class="note-indicator__side note-indicator__side--right">${rightItems.join('')}</div>
+    </div>
+  `;
 }
 
 /**
@@ -61,8 +111,7 @@ function renderFavoriteButton(noteId, favorites, variant = 'desktop') {
  */
 export function render(note, filterMode, opts = {}) {
   const { index = 0, total = 0, actionsOpen = false } = opts;
-  const pager =
-    total > 0 ? `${escapeHtml(String(index + 1))} / ${escapeHtml(String(total))}` : '';
+  const noteIndicator = renderNoteIndicator(index, total);
 
   if (!note) {
     return `<div class="jukebox-focus-info" aria-live="polite" data-actions-open="false">
@@ -141,9 +190,7 @@ export function render(note, filterMode, opts = {}) {
           data-note-id="${noteId}"
           aria-label="수정"
         >${MINGCUTE.edit2Fill}<span>수정</span></button>`
-            : pager
-              ? `<span class="jukebox-focus-info__pager">${pager}</span>`
-              : ''
+            : noteIndicator
         }
       </div>
     </div>
