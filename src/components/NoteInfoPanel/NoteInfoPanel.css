@@ -68,6 +68,11 @@ button.jukebox-focus-info__favorite.btn:disabled {
   cursor: wait;
 }
 
+button.jukebox-focus-info__delete.btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 /* 모바일 변형: off=white 50% (전용 0.5 토큰 없음 → --white color-mix), on=primary */
 button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']) {
   color: color-mix(in srgb, var(--white) 50%, transparent);
@@ -87,7 +92,8 @@ button.jukebox-focus-info__favorite--mobile.btn[aria-pressed='true'] {
 /* 전역 button:not(.btn)(padding·radius)보다 특이도 높게 원형 강제 */
 button.jukebox-focus-info__edit,
 button.jukebox-focus-info__add,
-button.jukebox-focus-info__create {
+button.jukebox-focus-info__create,
+button.jukebox-focus-info__delete.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -113,7 +119,8 @@ button.jukebox-focus-info__create {
 
 button.jukebox-focus-info__edit svg,
 button.jukebox-focus-info__add svg,
-button.jukebox-focus-info__create svg {
+button.jukebox-focus-info__create svg,
+button.jukebox-focus-info__delete.btn svg {
   width: 1rem;
   height: 1rem;
   display: block;
@@ -128,7 +135,8 @@ button.jukebox-focus-info__create {
 @media (hover: hover) and (pointer: fine) {
   button.jukebox-focus-info__edit:hover,
   button.jukebox-focus-info__add:hover,
-  button.jukebox-focus-info__create:hover {
+  button.jukebox-focus-info__create:hover,
+  button.jukebox-focus-info__delete.btn:hover {
     color: var(--white);
     background: var(--color-primary);
     background-color: var(--color-primary);
@@ -138,7 +146,8 @@ button.jukebox-focus-info__create {
 
 button.jukebox-focus-info__edit:focus-visible,
 button.jukebox-focus-info__add:focus-visible,
-button.jukebox-focus-info__create:focus-visible {
+button.jukebox-focus-info__create:focus-visible,
+button.jukebox-focus-info__delete.btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -381,5 +390,54 @@ button.jukebox-focus-info__create:focus-visible {
     color: var(--white) !important;
     outline: none;
     filter: none !important;
+  }
+}
+
+/* 노트 삭제 확인 Dialog */
+.note-delete-panel {
+  width: min(420px, 100%);
+}
+
+.note-delete-name {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+  color: var(--color-error-text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.note-delete-text {
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.note-delete-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.note-delete-actions .btn--solid {
+  margin-top: 0;
+}
+
+.note-delete-cancel.btn--text {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-delete-cancel.btn--text:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
   }
 }

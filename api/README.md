@@ -9,7 +9,8 @@
 | `GET /api/noteFormMeta` | 새 노트 폼 select 옵션 | `src/services/createNote.js` |
 | `POST /api/uploadCover` | 표지 이미지 Cloudinary 업로드 | `src/services/createNote.js` |
 | `POST /api/createNote` | Notion DB에 새 페이지 생성 | `src/services/createNote.js` |
+| `POST /api/trashNote` | 노트를 휴지통 DB로 이동 | `src/services/createNote.js` (`trashNotionNote`) |
 
 **파일명:** API 파일은 카멜케이스 통일 (예: `notionByPeriod.js`, `notionByType.js`). 프로젝트 명명 규칙은 `docs/ARCHITECTURE.md` 참고.
 
-**필요 환경 변수:** `NOTION_API_KEY`, `NOTION_DATABASE_ID` / `NOTION_DB_ID` (노트북), `NOTION_BY_TYPE_DB_ID` (by-type용, 없으면 `NOTION_DATABASE_ID` 사용), `CLOUDINARY_URL` 또는 `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`.
+**필요 환경 변수:** `NOTION_API_KEY`, `NOTION_DATABASE_ID` / `NOTION_DB_ID` (노트북), `NOTION_TRASH_DATABASE_ID` / `NOTION_TRASH_DB_ID` (휴지통, 삭제 시 필요), `NOTION_BY_TYPE_DB_ID` (by-type용, 없으면 `NOTION_DATABASE_ID` 사용), `CLOUDINARY_URL` 또는 `CLOUDINARY_CLOUD_NAME` + `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET`.

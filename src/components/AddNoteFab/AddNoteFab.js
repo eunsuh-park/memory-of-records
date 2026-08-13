@@ -141,7 +141,7 @@ export function mountAddNoteFab(options = {}) {
       role: 'fab',
       ariaLabel: '새 노트 추가',
       content: PLUS_ICON,
-      className: 'add-note-fab'
+      className: 'add-note-fab auth-only'
     })
   );
 

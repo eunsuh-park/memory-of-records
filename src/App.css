@@ -98,3 +98,13 @@ button {
   margin-top: 0;
 }
 
+/* 로그인 전: 편집 전용 컨트롤 숨김 (노트 추가·수정·페이지 추가·삭제) */
+body:not(.is-authenticated) .auth-only {
+  display: none !important;
+}
+
+/* /ui-lab 정적 데모는 로그인과 무관하게 보여 준다 */
+body:not(.is-authenticated) .ui-lab .auth-only {
+  display: inline-flex !important;
+}
+

@@ -19,13 +19,14 @@ import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
-import { render as renderNoteInfoPanel } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
+import { render as renderNoteInfoPanel, openDeleteNoteDialog } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
+import { isAuthenticated, onAuthChange } from '../../services/auth.js';
 import { getBookmarkedPages } from '../../services/bookmarkedPages.js';
 import {
   createBookmarksNote,
@@ -776,7 +777,7 @@ function renderCardActionOverlay(noteId) {
         <span class="jukebox-card-action__icon">${MINGCUTE.eye2Fill}</span>
         <span class="jukebox-card-action__label">보기</span>
       </button>
-      <button type="button" class="jukebox-card-action jukebox-card-action--fill" data-note-id="${id}" aria-label="채우기">
+      <button type="button" class="jukebox-card-action jukebox-card-action--fill auth-only" data-note-id="${id}" aria-label="채우기">
         <span class="jukebox-card-action__icon">${MINGCUTE.addFill}</span>
         <span class="jukebox-card-action__label">채우기</span>
       </button>
@@ -838,7 +839,7 @@ export function renderJukeboxWithFilter(options) {
           </div>
         </div>
       </div>
-      <div class="jukebox-focus-slot">${renderNoteInfoPanel(null, filterMode)}</div>
+      <div class="jukebox-focus-slot">${renderNoteInfoPanel(null, filterMode, { canEdit: isAuthenticated() })}</div>
     </div>
   `;
 
@@ -855,6 +856,15 @@ export function renderJukeboxWithFilter(options) {
   let cardActionsOpen = false;
   /** @type {Array} */
   let boundNotes = [];
+  let canEdit = isAuthenticated();
+
+  if (typeof mainContent._unsubJukeboxAuth === 'function') {
+    mainContent._unsubJukeboxAuth();
+  }
+  mainContent._unsubJukeboxAuth = onAuthChange((authed) => {
+    canEdit = authed;
+    updateFocusInfo(boundNotes);
+  });
 
   function getFilteredSortedNotes() {
     if (!allNotesCache) return [];
@@ -893,7 +903,8 @@ export function renderJukeboxWithFilter(options) {
       focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
         index,
         total: list.length,
-        actionsOpen: cardActionsOpen
+        actionsOpen: cardActionsOpen,
+        canEdit
       });
     }
     gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
@@ -985,6 +996,21 @@ export function renderJukeboxWithFilter(options) {
         e.preventDefault();
         e.stopPropagation();
         openAddNoteModal({ onCreated: refreshAfterNoteEdit });
+        return;
+      }
+
+      const deleteBtn = e.target?.closest?.('.jukebox-focus-info__delete');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (deleteBtn.disabled) return;
+        const noteId = deleteBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note || isBookmarksNoteId(note.id)) return;
+        openDeleteNoteDialog({
+          note,
+          onDeleted: refreshAfterNoteEdit
+        });
         return;
       }
 

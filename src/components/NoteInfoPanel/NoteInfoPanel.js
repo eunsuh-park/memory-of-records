@@ -11,6 +11,10 @@ import { isFavoriteNote } from '../../utils/noteFavorites.js';
 import { isBookmarksNoteId } from '../../utils/bookmarksNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderButton } from '../Button/Button.js';
+import { open as openDialog } from '../Dialog/Dialog.js';
+import { showToast } from '../Toast/Toast.js';
+import { requireAuth } from '../../services/auth.js';
+import { trashNotionNote } from '../../services/createNote.js';
 import './NoteInfoPanel.css';
 
 /** 포커스 기준 한쪽 최대 슬롯 수 (전체 최대 1 + 2*N) */
@@ -107,11 +111,11 @@ function renderFavoriteButton(noteId, favorites, variant = 'desktop') {
 /**
  * @param {Object|null} note - 포커스된 노트. null이면 빈 상태
  * @param {'period'|'type'} filterMode
- * @param {{ index?: number, total?: number, actionsOpen?: boolean }} [opts]
+ * @param {{ index?: number, total?: number, actionsOpen?: boolean, canEdit?: boolean }} [opts]
  * @returns {string} HTML 문자열
  */
 export function render(note, filterMode, opts = {}) {
-  const { index = 0, total = 0, actionsOpen = false } = opts;
+  const { index = 0, total = 0, actionsOpen = false, canEdit = false } = opts;
   const noteIndicator = renderNoteIndicator(index, total);
 
   if (!note) {
@@ -119,14 +123,18 @@ export function render(note, filterMode, opts = {}) {
       <div class="jukebox-focus-info__desktop">
         <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
           <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-          <div class="jukebox-focus-info__actions">
+          ${
+            canEdit
+              ? `<div class="jukebox-focus-info__actions">
             <button
               type="button"
-              class="jukebox-focus-info__create"
+              class="jukebox-focus-info__create auth-only"
               aria-label="노트 추가"
               title="노트 추가"
             >${MINGCUTE.addFill}</button>
-          </div>
+          </div>`
+              : ''
+          }
         </div>
       </div>
       <div class="jukebox-focus-info__mobile">
@@ -150,23 +158,37 @@ export function render(note, filterMode, opts = {}) {
     ? ''
     : renderFavoriteButton(noteId, favorites, 'mobile');
   const metaParts = [category, pages, size].filter(Boolean);
-  const editActions = isBookmarks
-    ? ''
-    : `
+  const editActions =
+    !canEdit || isBookmarks
+      ? ''
+      : `
             <button
               type="button"
-              class="jukebox-focus-info__edit"
+              class="jukebox-focus-info__edit auth-only"
               data-note-id="${noteId}"
               aria-label="노트 정보 수정"
               title="노트 정보 수정"
             >${MINGCUTE.edit2Fill}</button>
             <button
               type="button"
-              class="jukebox-focus-info__add"
+              class="jukebox-focus-info__add auth-only"
               data-note-id="${noteId}"
               aria-label="페이지 추가"
               title="페이지 추가"
-            >${MINGCUTE.fileNewFill}</button>`;
+            >${MINGCUTE.fileNewFill}</button>
+            ${renderButton({
+              shape: 'circle',
+              size: 's',
+              role: 'toolbar',
+              ariaLabel: '노트 삭제',
+              title: '노트 삭제',
+              content: MINGCUTE.delete2Fill,
+              className: 'jukebox-focus-info__delete auth-only',
+              dataset: {
+                'note-id': noteId,
+                action: 'delete'
+              }
+            })}`;
 
   return `
     <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
@@ -176,12 +198,16 @@ export function render(note, filterMode, opts = {}) {
           <div class="jukebox-focus-info__actions">
             ${favoriteBtnDesktop}
             ${editActions}
-            <button
+            ${
+              canEdit
+                ? `<button
               type="button"
-              class="jukebox-focus-info__create"
+              class="jukebox-focus-info__create auth-only"
               aria-label="노트 추가"
               title="노트 추가"
-            >${MINGCUTE.addFill}</button>
+            >${MINGCUTE.addFill}</button>`
+                : ''
+            }
           </div>
         </div>
         ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
@@ -193,10 +219,10 @@ export function render(note, filterMode, opts = {}) {
           ${favoriteBtnMobile}
         </div>
         ${
-          actionsOpen && !isBookmarks
+          actionsOpen && !isBookmarks && canEdit
             ? `<button
           type="button"
-          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"
+          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit auth-only"
           data-note-id="${noteId}"
           aria-label="수정"
         >${MINGCUTE.edit2Fill}<span>수정</span></button>`
@@ -205,4 +231,77 @@ export function render(note, filterMode, opts = {}) {
       </div>
     </div>
   `;
+}
+
+/**
+ * 노트 삭제 확인 Dialog. 삭제 시 휴지통 DB로 이동한다.
+ * @param {{
+ *   note: { id?: string, title?: string },
+ *   onDeleted?: () => void
+ * }} options
+ */
+export async function openDeleteNoteDialog(options = {}) {
+  if (document.querySelector('.note-delete-dialog')) return;
+  if (!(await requireAuth())) return;
+
+  const note = options.note || {};
+  const noteId = String(note.id || '').trim();
+  if (!noteId) return;
+
+  const noteName = escapeHtml(note.title || '제목 없음');
+  let busy = false;
+
+  const dialog = openDialog({
+    titleId: 'note-delete-title',
+    className: 'note-delete-dialog',
+    panelClassName: 'note-delete-panel',
+    showClose: false,
+    canClose: () => !busy,
+    bodyHtml: `
+      <p class="note-delete-name">${noteName}</p>
+      <p class="note-delete-text" id="note-delete-title">이 노트를 정말 삭제할까요?</p>
+      <div class="note-delete-actions">
+        ${renderButton({
+          shape: 'text',
+          content: '취소',
+          className: 'note-delete-cancel',
+          dataset: { choice: 'cancel' }
+        })}
+        ${renderButton({
+          shape: 'solid',
+          content: '삭제',
+          className: 'note-delete-confirm',
+          dataset: { choice: 'confirm' }
+        })}
+      </div>`
+  });
+
+  const setBusy = (next) => {
+    busy = next;
+    dialog.overlay.querySelectorAll('button').forEach((btn) => {
+      btn.disabled = next;
+    });
+  };
+
+  dialog.overlay.addEventListener('click', async (e) => {
+    const btn = e.target?.closest?.('[data-choice]');
+    if (!btn || busy) return;
+    const choice = btn.getAttribute('data-choice');
+    if (choice !== 'confirm') {
+      dialog.close();
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await trashNotionNote({ id: noteId });
+      busy = false;
+      dialog.close();
+      showToast('노트를 휴지통으로 옮겼습니다');
+      options.onDeleted?.();
+    } catch (err) {
+      setBusy(false);
+      showToast(err?.message || '노트 삭제에 실패했습니다.');
+    }
+  });
 }

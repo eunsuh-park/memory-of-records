@@ -583,6 +583,20 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
+            '주크박스 포커스 액션 — 삭제 (수정·페이지 추가와 같은 primary 원형)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                ariaLabel: '노트 삭제',
+                title: '노트 삭제',
+                content: MINGCUTE.delete2Fill,
+                className: 'jukebox-focus-info__delete'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
             '노트 인디케이터 — focused 항상 중앙 · 거리 1 짧은 캡슐 · 2+ 원형 페이드 (시작/중간/끝)',
             [
               renderNoteIndicator(0, 12),
