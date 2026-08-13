@@ -4,7 +4,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 
 > 마지막 enrich: 260813  
 > Inbox 잔여: 0  
-> 소스: Notion 백로그(정리 기준일 2026-08-07) → capture 260812 → enrich 260812 → enrich 260813  
+> 소스: Notion 백로그(정리 기준일 2026-08-07) → capture 260812 → enrich 260812 → enrich 260813 → 후속 확인 260813 (PDF 표지 체크)  
 > 코드 반영 참고: main에 PR #19–22 · #26(Favorites) · #27(Favorites UI) · #29(Bookmark Note) · #30(구조 정리) · #31(휴지통 삭제) 머지됨. #23(모바일 인디케이터)은 #30에 흡수. 미머지 초안: PR #24(slug·JPG·비공개 업로드·2-page gap 등). #25·#28은 main에 흡수되어 폐기.
 
 - 수집: `backlog-capture` · 정리: `backlog-enrich` · 실행: `backlog-to-roadmap` → `Roadmap.md`
@@ -46,16 +46,17 @@ Memory of Records — 요청·아이디어 누적 목록.
 ### PDF 업로드 시 커버 페이지 선택 `(수집 260812)`
 - 상태: backlog
 - 우선순위: P1
-- 목적: PDF를 페이지로 넣을 때 앞표지로 쓸 페이지(1p vs 마지막)를 고르게 해, 표지를 따로 찍거나 순서를 뒤집는 수동 작업을 줄인다
-- 화면/진입: AddPageModal PDF 변환 후 / 또는 AddNoteFab 표지 업로드 플로우. 변환 미리보기 리스트(`FileUploadPreview`) 위에 Dialog
+- 목적: PDF를 페이지로 넣을 때, 그 PDF의 **1페이지 이미지를 해당 노트 표지 앞면**으로, **마지막 페이지 이미지를 표지 뒷면**으로 올릴지를 각각 고른다. 뷰어 Content 순서를 바꾸는 기능이 아니다.
+- 화면/진입: AddPageModal PDF 변환 후 미리보기(`FileUploadPreview`) 근처. 이미지 소스 모드가 아니라 **PDF 선택 시**에만 보임
 - 시나리오:
-  - 기본: 변환 완료 후 Dialog — 「첫 페이지 / 마지막 페이지」. 선택 페이지를 표지로 쓰거나 Content 맨 앞으로 보냄
-  - 예외: 페이지 1장뿐이면 Dialog 생략
-  - 빈 상태: PDF 미선택이면 해당 없음
-- 데이터/API: 선택 결과를 `coverFront` 업로드에 연결할지, Content 순서만 바꿀지 미정 — 확인 필요. 표지는 `POST /api/uploadCover`(Front 폴더, 파일명=노트명), 본문은 `POST /api/pages`
-- 디자인·UX: 미리보기 썸네일 2장이면 선택이 쉬움. Dialog + 공통 Button. 이미지 모드(이미 표지가 있는 노트에 장만 추가)에서는 이 Dialog가 필요 없을 수 있음
-- 열린 질문: “커버”가 Notion/Cloudinary **표지 이미지**인지, 뷰어 **1페이지 정렬**(Content 순서)인지. 새 노트 생성 때와 기존 노트에 PDF 추가할 때 같은 UX인지
+  - 기본: 체크박스 2개, **둘 다 default false**. 체크하지 않으면 본문 페이지만 업로드하고 표지는 건드리지 않음. 1p 체크 시 변환된 첫 장 JPEG를 `coverFront`로, 마지막 페이지 체크 시 마지막 장 JPEG를 `coverBack`으로 추가 업로드
+  - 예외: PDF 1장뿐이면 앞·뒤 체크가 같은 이미지를 가리킴. 이미 표지가 있는 노트에서 체크하면 기존 Front/Back을 덮어씀 — 확인됨(표지 업로드가 목적). 업로드 실패 시 본문 페이지와 표지 중 어느 쪽만 성공했는지 구분 필요
+  - 빈 상태: PDF 미선택·이미지 모드면 체크박스 숨김
+- 데이터/API: 표지 `POST /api/uploadCover` (Cloudinary Cover Front/Back 폴더, 파일명=노트명) · 본문은 기존 `POST /api/pages`. Content 페이지 목록/순서는 그대로 두고, 표지만 추가로 올림
+- 디자인·UX: **체크박스** 2개 (라디오/Dialog 택1이 아님). 노트 폼의 `form-check` 패턴과 맞춤. 카피 예: 「PDF 1페이지를 표지 앞면으로 업로드」·「PDF 마지막 페이지를 표지 뒷면으로 업로드」. 기본 해제(false)
+- 열린 질문: 체크해도 해당 장이 Content에도 그대로 들어가는지(표지만 복사 vs Content에서 제외) — 미정 — 확인 필요. 새 노트 생성 직후 PDF 추가와, 이미 표지가 있는 노트에 PDF 추가가 같은 체크인지(후자는 덮어쓰기)
 - 원문 메모: 「1페이지 vs 마지막 페이지 · ⭐⭐⭐」
+- (추가 260813) 사용자 확인: Notion 표지 이미지가 맞음(뷰어 1페이지 정렬 아님). PDF 1p → 표지 앞면 업로드 여부, PDF 마지막 페이지 → 표지 뒷면 업로드 여부. 체크박스, default false.
 
 ### JPG 이미지 자동 정규화 · PDF→JPEG 화질 `(수집 260812)`
 - 상태: backlog (초안 PR #24에 장변 3200·품질 0.95·scale 2.5 포함. main에는 미머지)
