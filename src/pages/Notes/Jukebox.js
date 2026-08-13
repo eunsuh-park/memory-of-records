@@ -19,7 +19,7 @@ import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
-import { render as renderNoteInfoPanel } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
+import { render as renderNoteInfoPanel, openDeleteNoteDialog } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
@@ -985,6 +985,21 @@ export function renderJukeboxWithFilter(options) {
         e.preventDefault();
         e.stopPropagation();
         openAddNoteModal({ onCreated: refreshAfterNoteEdit });
+        return;
+      }
+
+      const deleteBtn = e.target?.closest?.('.jukebox-focus-info__delete');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (deleteBtn.disabled) return;
+        const noteId = deleteBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note || isBookmarksNoteId(note.id)) return;
+        openDeleteNoteDialog({
+          note,
+          onDeleted: refreshAfterNoteEdit
+        });
         return;
       }
 
