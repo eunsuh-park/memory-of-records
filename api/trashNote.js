@@ -191,7 +191,7 @@ export default async function handler(req, res) {
       return res.status(503).json({
         error: 'Trash DB not configured',
         message:
-          '휴지통 DB가 아직 연결되지 않았습니다. Notion에 「노트 휴지통」 데이터베이스를 만든 뒤 NOTION_TRASH_DATABASE_ID를 설정해 주세요.'
+          '휴지통 DB가 아직 연결되지 않았습니다. Notion에 trash 데이터베이스를 만든 뒤 NOTION_TRASH_DATABASE_ID에 DB ID를 넣어 주세요.'
       });
     }
 

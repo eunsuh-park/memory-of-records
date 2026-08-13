@@ -243,16 +243,14 @@ export async function openDeleteNoteDialog(options = {}) {
   let busy = false;
 
   const dialog = openDialog({
-    title: '노트를 삭제할까요?',
     titleId: 'note-delete-title',
     className: 'note-delete-dialog',
     panelClassName: 'note-delete-panel',
     showClose: false,
     canClose: () => !busy,
     bodyHtml: `
-      <p class="note-delete-text">
-        「${noteName}」 노트를 휴지통으로 옮깁니다. 목록에서는 바로 사라집니다.
-      </p>
+      <p class="note-delete-name">${noteName}</p>
+      <p class="note-delete-text" id="note-delete-title">이 노트를 정말 삭제할까요?</p>
       <div class="note-delete-actions">
         ${renderButton({
           shape: 'text',

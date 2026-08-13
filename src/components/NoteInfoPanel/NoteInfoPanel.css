@@ -398,11 +398,21 @@ button.jukebox-focus-info__delete.btn:focus-visible {
   width: min(420px, 100%);
 }
 
+.note-delete-name {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+  color: var(--color-error-text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .note-delete-text {
-  margin: 0 0 var(--space-4);
+  margin: var(--space-2) 0 var(--space-4);
   font-size: var(--text-base);
   line-height: 1.45;
-  color: var(--color-text-muted);
+  color: var(--color-text);
 }
 
 .note-delete-actions {

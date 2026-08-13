@@ -97,7 +97,7 @@
 - 브라우저 기본 `alert`가 아니라 사이트 Dialog 컴포넌트를 씁니다. 옵션은 **삭제 / 취소**.
 - Notion에 노트북 DB와 **같은 속성**의 데이터베이스를 하나 더 만들고, 같은 Integration을 연결한 뒤 ID를 넣습니다.
 
-  **추천 DB 이름:** `노트 휴지통`
+  **추천 DB 이름:** `trash` (Notion에서 보이는 이름. ID 값과는 다름)
 
   ```
   NOTION_TRASH_DATABASE_ID=휴지통_데이터베이스_ID
