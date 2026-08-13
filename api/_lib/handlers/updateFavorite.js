@@ -1,5 +1,5 @@
 /**
- * POST /api/updateFavorite
+ * POST /api/writeNotebooks  op=favorite
  * Notion 노트북 페이지의 favorites(checkbox)만 갱신
  *
  * Body: { id: string, favorites: boolean }
@@ -8,7 +8,7 @@ import {
   NOTEBOOK_DB_ID,
   findSchemaProperty,
   notionFetch
-} from './_lib/notionDb.js';
+} from '../notionDb.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -21,7 +21,7 @@ function toBoolean(value) {
   return Boolean(value);
 }
 
-export default async function handler(req, res) {
+export async function handleUpdateFavorite(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

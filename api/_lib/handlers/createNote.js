@@ -1,11 +1,11 @@
 /**
- * POST /api/updateNote
- * Notion 노트북 페이지(row) 메타데이터만 수정 (표지/커버 이미지는 변경하지 않음)
+ * POST /api/writeNotebooks  op=create
+ * Notion 노트북 DB에 새 페이지(row) 생성
  *
  * Body:
  * {
- *   id, name, notebookType, periodStart,  // required
- *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?
+ *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
+ *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
  */
 import {
@@ -13,7 +13,7 @@ import {
   findSchemaProperty,
   findTitleProperty,
   notionFetch
-} from './_lib/notionDb.js';
+} from '../notionDb.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -22,26 +22,33 @@ function trimOrEmpty(value) {
 
 function buildRichText(content) {
   const text = String(content || '');
+  /* Notion rich_text 한 블록 2000자 제한 */
   const sliced = text.slice(0, 2000);
   return { rich_text: [{ type: 'text', text: { content: sliced } }] };
 }
 
-export default async function handler(req, res) {
+function assignIfPresent(properties, prop, payload) {
+  if (!prop || !payload) return;
+  properties[prop.key] = payload;
+}
+
+export async function handleCreateNote(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
-    const id = trimOrEmpty(body.id).replace(/-/g, '');
     const name = trimOrEmpty(body.name);
+    const coverFrontUrl = trimOrEmpty(body.coverFrontUrl);
+    const coverBackUrl = trimOrEmpty(body.coverBackUrl);
     const notebookType = trimOrEmpty(body.notebookType);
     const periodStart = trimOrEmpty(body.periodStart);
 
-    if (!id || !name || !notebookType || !periodStart) {
+    if (!name || !coverFrontUrl || !coverBackUrl || !notebookType || !periodStart) {
       return res.status(400).json({
         error: 'Validation failed',
-        message: 'id, 이름, 노트 종류, 사용 시작일은 필수입니다'
+        message: '이름, 앞·뒤 표지 URL, 노트 종류, 사용 시작일은 필수입니다'
       });
     }
 
@@ -62,6 +69,22 @@ export default async function handler(req, res) {
       }
     };
 
+    const frontProp = findSchemaProperty(
+      schema,
+      'cover_front_url',
+      'cover front url',
+      'Cover Front URL',
+      'cover_front',
+      '앞표지'
+    );
+    const backProp = findSchemaProperty(
+      schema,
+      'cover_back_url',
+      'cover back url',
+      'Cover Back URL',
+      'cover_back',
+      '뒷표지'
+    );
     const typeProp = findSchemaProperty(schema, 'notebook_type', 'Notebook Type', 'type', 'Type');
     const periodNameProp = findSchemaProperty(
       schema,
@@ -87,6 +110,36 @@ export default async function handler(req, res) {
     );
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
     const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
+    const favoritesProp = findSchemaProperty(
+      schema,
+      'favorites',
+      'Favorites',
+      'favorite',
+      'Favorite',
+      '즐겨찾기'
+    );
+
+    if (frontProp?.type === 'url') {
+      properties[frontProp.key] = { url: coverFrontUrl };
+    } else if (frontProp?.type === 'rich_text') {
+      properties[frontProp.key] = buildRichText(coverFrontUrl);
+    } else {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'cover_front_url(URL) 속성이 Notion DB에 없습니다'
+      });
+    }
+
+    if (backProp?.type === 'url') {
+      properties[backProp.key] = { url: coverBackUrl };
+    } else if (backProp?.type === 'rich_text') {
+      properties[backProp.key] = buildRichText(coverBackUrl);
+    } else {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'cover_back_url(URL) 속성이 Notion DB에 없습니다'
+      });
+    }
 
     if (typeProp?.type === 'select') {
       properties[typeProp.key] = { select: { name: notebookType } };
@@ -100,33 +153,29 @@ export default async function handler(req, res) {
     }
 
     const periodName = trimOrEmpty(body.periodName);
-    if (periodNameProp) {
+    if (periodName && periodNameProp) {
       if (periodNameProp.type === 'select') {
-        properties[periodNameProp.key] = periodName
-          ? { select: { name: periodName } }
-          : { select: null };
+        assignIfPresent(properties, periodNameProp, { select: { name: periodName } });
       } else if (periodNameProp.type === 'rich_text') {
-        properties[periodNameProp.key] = periodName
-          ? buildRichText(periodName)
-          : { rich_text: [] };
+        assignIfPresent(properties, periodNameProp, buildRichText(periodName));
       }
     }
 
     const color = trimOrEmpty(body.color);
-    if (colorProp) {
+    if (color && colorProp) {
       if (colorProp.type === 'select') {
-        properties[colorProp.key] = color ? { select: { name: color } } : { select: null };
+        assignIfPresent(properties, colorProp, { select: { name: color } });
       } else if (colorProp.type === 'rich_text') {
-        properties[colorProp.key] = color ? buildRichText(color) : { rich_text: [] };
+        assignIfPresent(properties, colorProp, buildRichText(color));
       }
     }
 
     const size = trimOrEmpty(body.size);
-    if (sizeProp) {
+    if (size && sizeProp) {
       if (sizeProp.type === 'select') {
-        properties[sizeProp.key] = size ? { select: { name: size } } : { select: null };
+        assignIfPresent(properties, sizeProp, { select: { name: size } });
       } else if (sizeProp.type === 'rich_text') {
-        properties[sizeProp.key] = size ? buildRichText(size) : { rich_text: [] };
+        assignIfPresent(properties, sizeProp, buildRichText(size));
       }
     }
 
@@ -140,12 +189,12 @@ export default async function handler(req, res) {
     }
 
     const periodEnd = trimOrEmpty(body.periodEnd);
-    if (endProp?.type === 'date') {
-      properties[endProp.key] = periodEnd ? { date: { start: periodEnd } } : { date: null };
+    if (periodEnd && endProp?.type === 'date') {
+      properties[endProp.key] = { date: { start: periodEnd } };
     }
 
-    if (body.notes !== undefined) {
-      const notes = trimOrEmpty(body.notes);
+    const notes = trimOrEmpty(body.notes);
+    if (notes) {
       if (!notesProp) {
         return res.status(500).json({
           error: 'Schema error',
@@ -154,7 +203,12 @@ export default async function handler(req, res) {
         });
       }
       if (notesProp.type === 'rich_text') {
-        properties[notesProp.key] = notes ? buildRichText(notes) : { rich_text: [] };
+        assignIfPresent(properties, notesProp, buildRichText(notes));
+      } else if (notesProp.type === 'title') {
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key})이 title이라 노트 이름과 겹칩니다. rich_text 속성을 추가해 주세요`
+        });
       } else {
         return res.status(500).json({
           error: 'Schema error',
@@ -168,21 +222,35 @@ export default async function handler(req, res) {
       properties[keptProp.key] = { checkbox: Boolean(isKept) };
     }
 
-    if (body.visible !== undefined) {
-      const visible = body.visible !== false && body.visible !== 'false';
-      if (visibleProp?.type === 'checkbox') {
-        properties[visibleProp.key] = { checkbox: Boolean(visible) };
-      } else if (visibleProp?.type === 'select') {
-        properties[visibleProp.key] = visible
-          ? { select: { name: 'true' } }
-          : { select: null };
-      }
+    /* visible 기본값 true */
+    const visible = body.visible !== false && body.visible !== 'false';
+    if (visibleProp?.type === 'checkbox') {
+      properties[visibleProp.key] = { checkbox: Boolean(visible) };
+    } else if (visibleProp?.type === 'select' && visible) {
+      properties[visibleProp.key] = { select: { name: 'true' } };
     }
 
-    /* 표지 URL·페이지 cover는 절대 변경하지 않음 */
-    const page = await notionFetch(`/pages/${id}`, {
-      method: 'PATCH',
-      body: { properties }
+    /* favorites 기본값 false */
+    const favorites =
+      body.favorites === true || body.favorites === 'true' || body.favorites === 1;
+    if (favoritesProp?.type === 'checkbox') {
+      properties[favoritesProp.key] = { checkbox: Boolean(favorites) };
+    } else if (favoritesProp?.type === 'select') {
+      properties[favoritesProp.key] = favorites
+        ? { select: { name: 'true' } }
+        : { select: null };
+    }
+
+    const page = await notionFetch('/pages', {
+      method: 'POST',
+      body: {
+        parent: { database_id: NOTEBOOK_DB_ID },
+        properties,
+        cover: {
+          type: 'external',
+          external: { url: coverFrontUrl }
+        }
+      }
     });
 
     return res.status(200).json({
@@ -192,7 +260,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     return res.status(error.status || 500).json({
-      error: 'Failed to update note',
+      error: 'Failed to create note',
       message: error.message,
       details: error.details
     });

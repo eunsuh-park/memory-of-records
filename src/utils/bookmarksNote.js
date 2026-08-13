@@ -1,20 +1,21 @@
 /**
  * 모든 유저에게 기본 제공되는 Bookmark Note
  *
- * Notion에 없는 synthetic note. Cloudinary `Bookmark Note` 폴더 표지를 쓰고,
+ * Notion에 없는 synthetic note. 로컬 PNG 표지를 쓰고,
  * 북마크된 페이지들을 한 앨범처럼 모아 본다.
  */
 
 import bookmarksCoverFrontFallback from '../assets/bookmarks-cover-front.png';
 import bookmarksCoverBackFallback from '../assets/bookmarks-cover-back.png';
-import { fetchBookmarkNoteMeta } from '../services/bookmarkNoteMeta.js';
-import { optimizeImageUrl } from './optimizeImageUrl.js';
 
 export const BOOKMARKS_NOTE_ID = 'virtual:bookmarks';
 export const BOOKMARKS_NOTE_TITLE = 'Bookmark Note';
 
-/** @type {{ coverFrontUrl: string, coverBackUrl: string, title: string } | null} */
-let remoteMeta = null;
+const localCovers = {
+  title: BOOKMARKS_NOTE_TITLE,
+  coverFrontUrl: bookmarksCoverFrontFallback,
+  coverBackUrl: bookmarksCoverBackFallback
+};
 
 /**
  * @returns {boolean}
@@ -24,30 +25,10 @@ export function isBookmarksNoteId(id) {
 }
 
 /**
- * Cloudinary 표지 메타를 미리 받아 둔다 (실패해도 로컬 폴백).
- * @param {{ force?: boolean }} [options]
+ * 로컬 PNG 표지를 준비한다 (호출부 호환용).
  */
-export async function ensureBookmarkNoteCovers({ force = false } = {}) {
-  try {
-    const meta = await fetchBookmarkNoteMeta({ force });
-    const front = optimizeImageUrl(meta.coverFrontUrl) || meta.coverFrontUrl;
-    const back = optimizeImageUrl(meta.coverBackUrl) || meta.coverBackUrl;
-    remoteMeta = {
-      title: meta.title || BOOKMARKS_NOTE_TITLE,
-      coverFrontUrl: front || bookmarksCoverFrontFallback,
-      coverBackUrl: back || bookmarksCoverBackFallback
-    };
-  } catch (err) {
-    console.warn('Bookmark Note 표지 로드 실패 — 로컬 폴백 사용', err);
-    if (!remoteMeta) {
-      remoteMeta = {
-        title: BOOKMARKS_NOTE_TITLE,
-        coverFrontUrl: bookmarksCoverFrontFallback,
-        coverBackUrl: bookmarksCoverBackFallback
-      };
-    }
-  }
-  return remoteMeta;
+export async function ensureBookmarkNoteCovers() {
+  return localCovers;
 }
 
 /**
@@ -62,17 +43,11 @@ export function createBookmarksNote(overrides = {}) {
         ? pages.length
         : null;
 
-  const covers = remoteMeta || {
-    title: BOOKMARKS_NOTE_TITLE,
-    coverFrontUrl: bookmarksCoverFrontFallback,
-    coverBackUrl: bookmarksCoverBackFallback
-  };
-
   return {
     id: BOOKMARKS_NOTE_ID,
-    title: covers.title || BOOKMARKS_NOTE_TITLE,
-    coverFrontUrl: covers.coverFrontUrl,
-    coverBackUrl: covers.coverBackUrl,
+    title: localCovers.title,
+    coverFrontUrl: localCovers.coverFrontUrl,
+    coverBackUrl: localCovers.coverBackUrl,
     pdfFolderUrl: null,
     pdfUrl: null,
     pageCount,

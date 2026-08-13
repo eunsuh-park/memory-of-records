@@ -1,7 +1,5 @@
 /**
- * Vercel Serverless Function: Cloudinary 북마크 페이지 목록
- *
- * GET /api/cloudinaryBookmarkedPages
+ * GET /api/readPages?op=bookmarked
  * Content 루트 아래에서 is_bookmarked=true 인 페이지 이미지를 모아 반환합니다.
  * 응답 예:
  * {
@@ -17,8 +15,8 @@
  *   ]
  * }
  */
-import { isCloudinaryResourceVisible } from './_lib/visibility.js';
-import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
+import { isCloudinaryResourceVisible } from '../visibility.js';
+import { getCloudinaryCredentials } from '../cloudinaryAuth.js';
 
 const CONTENT_ROOT = process.env.CLOUDINARY_CONTENT_FOLDER || 'Notebooks_v3/Content';
 
@@ -152,7 +150,7 @@ async function searchBookmarkedResources({ cloudName, contentRoot, authHeader })
  * @param {import('@vercel/node').VercelRequest} req
  * @param {import('@vercel/node').VercelResponse} res
  */
-export default async function handler(req, res) {
+export async function handleBookmarkedPages(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

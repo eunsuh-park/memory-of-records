@@ -75,7 +75,7 @@
 
 - Notion 노트북 DB에 `favorites` 컬럼(Checkbox, 기본값 false)을 둡니다.
 - Jukebox 포커스 정보 패널의 별(star-fill) 버튼이 이 값과 연결되며, 클릭 시
-  `POST /api/updateFavorite`로 토글합니다.
+  `POST /api/writeNotebooks` (`op: 'favorite'`)로 토글합니다.
 - 클라이언트 노트 객체에는 `favorites: boolean`이 포함됩니다.
 - 즐겨찾기만 모은 페이지(`/favorites`)는 `src/pages/Notes/Favorites.js`와
   `FAVORITES_PATH` · `filterFavoriteNotes()` · `getFavoriteNotes()`를 사용합니다.
@@ -84,11 +84,8 @@
 
 - 페이지 북마크는 Cloudinary `is_bookmarked` 메타데이터입니다.
 - Jukebox 맨 앞의 **Bookmark Note**(`virtual:bookmarks`)가 기본으로 제공되며,
-  `GET /api/cloudinaryBookmarkedPages`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
-- 표지: Cloudinary 폴더 **`Bookmark Note`** 의 `front` / `back` 이미지
-  - 조회: `GET /api/bookmarkNote` (폴더 우선, 없으면 Cover/Front|Back 폴백)
-  - 업로드 스크립트: `node scripts/upload-bookmark-covers.mjs` (CLOUDINARY_* 필요)
-  - 로드 실패 시 로컬 PNG 폴백
+  `GET /api/readPages?op=bookmarked`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
+- 표지는 로컬 PNG(`src/assets/bookmarks-cover-front.png` · `bookmarks-cover-back.png`)를 씁니다.
 - 페이지 정보(상세 설명) 모달에 **원본 노트** 링크를 표시합니다.
 
 ## 노트 삭제 · 휴지통

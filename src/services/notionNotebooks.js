@@ -267,8 +267,8 @@ export function convertNotionPageToNotebook(page) {
  */
 export async function fetchNotionNotebooks(options = {}) {
   const visibility = options.visibility || 'public';
-  const qs = `?visibility=${encodeURIComponent(visibility)}`;
-  const response = await fetch(`/api/notionByPeriod${qs}`, {
+  const qs = `?view=period&visibility=${encodeURIComponent(visibility)}`;
+  const response = await fetch(`/api/readNotebooks${qs}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });

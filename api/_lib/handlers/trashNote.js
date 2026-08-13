@@ -1,5 +1,5 @@
 /**
- * POST /api/trashNote
+ * POST /api/writeNotebooks  op=trash
  * 노트북 DB의 노트 페이지를 휴지통 DB로 옮긴다.
  *
  * Body: { id: string }
@@ -15,7 +15,7 @@ import {
   isSameNotionId,
   normalizeKey,
   notionFetch
-} from './_lib/notionDb.js';
+} from '../notionDb.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -171,7 +171,7 @@ async function copyThenArchive(page, trashDbId, trashSchema, deletedAtIso) {
   return created;
 }
 
-export default async function handler(req, res) {
+export async function handleTrashNote(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
