@@ -1,54 +1,43 @@
 /**
- * Vercel Serverless Function: Notion By Period DB Proxy
- *
- * GET /api/notionByPeriod
- * Notion DB에서 시기(period)별 노트북 목록을 가져옵니다.
+ * GET /api/readNotebooks?view=type
+ * Notion DB에서 타입별 이미지 목록을 가져옵니다.
  *
  * 필요 환경 변수:
  * - NOTION_API_KEY: Notion API 토큰
- * - NOTION_DATABASE_ID 또는 NOTION_DB_ID: 노션 데이터베이스 ID
+ * - NOTION_BY_TYPE_DB_ID: By type 데이터베이스 ID
  */
-import { isNotionPageVisible } from './_lib/visibility.js';
+import { isNotionPageVisible } from '../visibility.js';
 
-/** Notion DB ID: 환경 변수 우선, 없으면 기본값 사용 */
-const PERIOD_DB_ID = process.env.NOTION_DATABASE_ID || process.env.NOTION_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
+const BY_TYPE_DB_ID =
+  process.env.NOTION_DATABASE_ID || process.env.NOTION_BY_TYPE_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
 
 /**
- * Vercel Serverless 함수 핸들러
- * - GET만 허용, Notion DB 쿼리 후 페이지 목록 반환
- * - period_start 기준 오름차순 정렬
- * - 페이지네이션(100건 초과 시) 처리
  * @param {import('@vercel/node').VercelRequest} req
  * @param {import('@vercel/node').VercelResponse} res
  */
-export default async function handler(req, res) {
-  // 1) GET 이외 요청 거부
+export async function handleNotionByType(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // 2) Notion API 키 확인
   const notionApiKey = process.env.NOTION_API_KEY;
-  if (!notionApiKey) {
+
+  if (!notionApiKey || !BY_TYPE_DB_ID) {
     return res.status(500).json({
       error: 'Notion configuration missing',
-      message: 'NOTION_API_KEY environment variable is required'
+      message: 'NOTION_API_KEY and NOTION_BY_TYPE_DB_ID are required'
     });
   }
 
   try {
-    const queryUrl = `https://api.notion.com/v1/databases/${PERIOD_DB_ID}/query`;
+    const queryUrl = `https://api.notion.com/v1/databases/${BY_TYPE_DB_ID}/query`;
     const results = [];
     let hasMore = true;
     let nextCursor = null;
 
-    // 3) Notion API 페이지네이션 루프 (100건 제한 대응)
     while (hasMore) {
       const body = {
-        ...(nextCursor ? { start_cursor: nextCursor } : {}),
-        sorts: [
-          { property: 'period_start', direction: 'ascending' }
-        ]
+        ...(nextCursor ? { start_cursor: nextCursor } : {})
       };
 
       const response = await fetch(queryUrl, {
@@ -66,6 +55,7 @@ export default async function handler(req, res) {
       if (!response.ok) {
         return res.status(response.status).json({
           error: 'Notion API error',
+          message: data?.message || data?.error || 'Notion API error',
           details: data
         });
       }
@@ -76,7 +66,7 @@ export default async function handler(req, res) {
       nextCursor = data?.next_cursor || null;
     }
 
-    // 4) visibility 쿼리: public(기본) | private | all
+    /* visibility 쿼리: public(기본) | private | all */
     const visibility = String(req.query?.visibility || 'public').toLowerCase();
     let filtered = results;
     if (visibility === 'private') {
@@ -89,7 +79,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ results: filtered });
   } catch (error) {
-    console.error('Notion by period API error:', error);
+    console.error('Notion by type API error:', error);
     return res.status(500).json({
       error: 'Notion API error',
       message: error?.message || 'Unknown error'

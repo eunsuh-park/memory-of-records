@@ -1,7 +1,5 @@
 /**
- * Vercel Serverless Function: Cloudinary 숨김 페이지 조회
- *
- * GET /api/cloudinaryHiddenPages?folder={pdf_folder_url 또는 public_id prefix}
+ * GET /api/readPages?op=hidden&folder={pdf_folder_url 또는 public_id prefix}
  * Cloudinary Admin API로 해당 폴더의 리소스 metadata/context를 읽어
  * visible이 false로 표시된 페이지 번호 목록을 반환합니다.
  * 응답 예: { "hiddenPages": [3, 12] }  (page-000003.jpg, page-000012.jpg 숨김)
@@ -11,7 +9,7 @@
  * - CLOUDINARY_API_KEY + CLOUDINARY_API_SECRET (+ CLOUDINARY_CLOUD_NAME)
  *   folder 파라미터가 delivery URL이면 cloud_name은 URL에서 추출합니다.
  */
-import { isCloudinaryResourceVisible } from './_lib/visibility.js';
+import { isCloudinaryResourceVisible } from '../visibility.js';
 
 function getCloudinaryCredentials() {
   const fromUrl = String(process.env.CLOUDINARY_URL || '').match(
@@ -173,7 +171,7 @@ async function listFolderResources({ cloudName, folderPath, authHeader }) {
  * @param {import('@vercel/node').VercelRequest} req
  * @param {import('@vercel/node').VercelResponse} res
  */
-export default async function handler(req, res) {
+export async function handleHiddenPages(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

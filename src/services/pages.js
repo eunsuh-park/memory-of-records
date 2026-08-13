@@ -14,7 +14,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 
 const MAX_IMAGE_COUNT = 10;
-/* 서버(api/pages.js) 페이지 이미지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
+/* 서버(api/writePages.js) 페이지 이미지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 /* PDF 자체는 서버에 직접 업로드하지 않지만(페이지별로 변환 후 업로드),
  * 너무 큰 파일은 브라우저에서 변환이 오래 걸리거나 멈출 수 있어 권장 상한을 안내 */
@@ -220,7 +220,7 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
  * }} payload
  */
 export async function uploadPageImage(payload) {
-  const response = await fetch('/api/pages', {
+  const response = await fetch('/api/writePages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'upload', ...payload })
@@ -242,7 +242,7 @@ export async function uploadPageImage(payload) {
  * @param {{ id: string, pdfFolderUrl: string, pageCount: number }} payload
  */
 export async function updateNotionNotePages(payload) {
-  const response = await fetch('/api/pages', {
+  const response = await fetch('/api/writePages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'updateNote', ...payload })
@@ -266,7 +266,7 @@ export async function updateNotionNotePages(payload) {
  * }} payload
  */
 export async function shiftPagesAfter(payload) {
-  const response = await fetch('/api/pages', {
+  const response = await fetch('/api/writePages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'shiftPages', ...payload })
@@ -294,7 +294,7 @@ export async function shiftPagesAfter(payload) {
  * }} payload
  */
 export async function deletePage(payload) {
-  const response = await fetch('/api/pages', {
+  const response = await fetch('/api/writePages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'deletePage', ...payload })
@@ -320,7 +320,7 @@ export async function fetchPageMeta({ folder, page }) {
     folder: String(folder || ''),
     page: String(page || 1)
   });
-  const response = await fetch(`/api/pages?${qs.toString()}`, {
+  const response = await fetch(`/api/readPages?${qs.toString()}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -343,7 +343,7 @@ export async function fetchPageMeta({ folder, page }) {
  * }} payload
  */
 export async function updatePageMeta(payload) {
-  const response = await fetch('/api/pages', {
+  const response = await fetch('/api/writePages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'updateMeta', ...payload })
@@ -373,7 +373,7 @@ export async function updatePageMeta(payload) {
  * }} payload
  */
 export async function renameNoteContentFolder(payload) {
-  const response = await fetch('/api/pages', {
+  const response = await fetch('/api/writePages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ op: 'renameFolder', ...payload })

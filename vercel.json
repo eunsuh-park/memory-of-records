@@ -2,13 +2,13 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/pages.js": {
+    "api/writePages.js": {
       "maxDuration": 60
     },
-    "api/createNote.js": {
+    "api/writeNotebooks.js": {
       "maxDuration": 30
     },
-    "api/uploadCover.js": {
+    "api/writeCovers.js": {
       "maxDuration": 30
     }
   },

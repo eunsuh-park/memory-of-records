@@ -20,8 +20,8 @@ export async function getBookmarkedPages({ force = false } = {}) {
   if (!force && cache) return cache;
   if (!force && inflight) return inflight;
 
-  const qs = force ? `?_=${Date.now()}` : '';
-  inflight = fetch(`/api/cloudinaryBookmarkedPages${qs}`, {
+  const qs = force ? `?op=bookmarked&_=${Date.now()}` : '?op=bookmarked';
+  inflight = fetch(`/api/readPages${qs}`, {
     cache: force ? 'no-store' : 'default'
   })
     .then(async (response) => {

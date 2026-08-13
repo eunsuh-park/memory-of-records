@@ -1,6 +1,6 @@
 /**
- * POST /api/uploadCover
- * 표지 이미지를 Cloudinary에 업로드하고 secure_url 반환
+ * POST /api/writeCovers
+ * 표지 앞·뒤 이미지를 Cloudinary Cover 폴더에 업로드하고 secure_url 반환
  *
  * Body (JSON):
  * {

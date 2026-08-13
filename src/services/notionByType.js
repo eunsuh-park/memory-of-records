@@ -223,8 +223,8 @@ export function convertNotionPageToTypeItem(page) {
  */
 export async function fetchNotionTypeItems(options = {}) {
   const visibility = options.visibility || 'public';
-  const qs = `?visibility=${encodeURIComponent(visibility)}`;
-  const response = await fetch(`/api/notionByType${qs}`, {
+  const qs = `?view=type&visibility=${encodeURIComponent(visibility)}`;
+  const response = await fetch(`/api/readNotebooks${qs}`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });

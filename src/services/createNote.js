@@ -2,7 +2,7 @@
  * 새 노트 생성·표지 업로드·폼 메타 클라이언트 서비스
  */
 
-/* 서버(api/uploadCover.js) 표지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
+/* 서버(api/writeCovers.js) 표지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
 export const MAX_COVER_BYTES = 8 * 1024 * 1024;
 
 /**
@@ -37,7 +37,7 @@ export function validateCoverImageFile(file) {
  * }>}
  */
 export async function fetchNoteFormMeta() {
-  const response = await fetch('/api/noteFormMeta', {
+  const response = await fetch('/api/readNotebooks?view=formMeta', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -58,7 +58,7 @@ export async function fetchNoteFormMeta() {
  * @returns {Promise<{ url: string, width?: number, height?: number }>}
  */
 export async function uploadCoverImage(payload) {
-  const response = await fetch('/api/uploadCover', {
+  const response = await fetch('/api/writeCovers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -90,10 +90,10 @@ export async function uploadCoverImage(payload) {
  * }} payload
  */
 export async function createNotionNote(payload) {
-  const response = await fetch('/api/createNote', {
+  const response = await fetch('/api/writeNotebooks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'create', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -120,10 +120,10 @@ export async function createNotionNote(payload) {
  * }} payload
  */
 export async function updateNotionNote(payload) {
-  const response = await fetch('/api/updateNote', {
+  const response = await fetch('/api/writeNotebooks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'update', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -139,10 +139,10 @@ export async function updateNotionNote(payload) {
  * @param {{ id: string, favorites: boolean }} payload
  */
 export async function updateNoteFavorite(payload) {
-  const response = await fetch('/api/updateFavorite', {
+  const response = await fetch('/api/writeNotebooks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'favorite', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -158,11 +158,11 @@ export async function updateNoteFavorite(payload) {
  * @param {{ id: string }} payload
  */
 export async function trashNotionNote(payload) {
-  const response = await fetch('/api/trashNote', {
+  const response = await fetch('/api/writeNotebooks', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'trash', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {

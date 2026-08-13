@@ -17,7 +17,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 상태: done (코드 main · PR #22, 260810)
 - 우선순위: P0 (완료)
 - 목적: Cloudinary만 성공하고 Notion page_count/메모가 비는 “Load Failed”를 없앤다
-- 화면/진입: AddPageModal → `/api/pages` · Notion pdf_folder_url/page_count
+- 화면/진입: AddPageModal → `/api/writePages` · Notion pdf_folder_url/page_count
 - 시나리오:
   - 기본: 장마다 업로드 후 Notion을 점진 반영
   - 예외: 중간 실패 시 이미 올라간 장수만큼 Notion에 남기고 부분 성공 토스트
@@ -116,7 +116,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 상태: done (main · PR #19–20)
 - 우선순위: P0 (완료) — 확정 의사결정 1순위 중 토글分
 - 목적: 노트를 favorites로 표시/해제
-- 화면/진입: NoteInfoPanel · `/api/updateFavorite`
+- 화면/진입: NoteInfoPanel · `/api/writeNotebooks` (`op: favorite`)
 - 원문 메모: 「Notion favorites · 토글 UI · boolean」
 
 ### Favorites 모아보기 페이지 · 네비 진입 `(수집 260812)`
@@ -144,7 +144,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 우선순위: P1
 - 목적: 모든 유저 기본 **Bookmark Note**에 북마크 페이지를 모은다
 - 화면/진입: Jukebox 선두 카드 · `/note/virtual:bookmarks`
-- 데이터/API: `GET /api/cloudinaryBookmarkedPages` · `GET /api/bookmarkNote` 표지 · 페이지 정보에 원본 노트 링크
+- 데이터/API: `GET /api/readPages?op=bookmarked` · 로컬 PNG 표지 · 페이지 정보에 원본 노트 링크
 
 ### 제스처 네비게이션 `(수집 260812)`
 - 상태: done (Notion·코드상 스와이프/터치 스크롤 존재)
@@ -273,7 +273,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 시나리오:
   - 기본: 삭제 아이콘 → Dialog 「노트를 삭제할까요?」 → 삭제 시 휴지통 DB 이동, 목록에서 사라짐 / 취소 시 닫힘
   - 예외: 휴지통 DB 미설정 시 Dialog 확인 후 안내 토스트. Bookmark Note는 삭제 버튼 없음. 로그인이 필요함
-- 데이터/API: `POST /api/trashNote` · `NOTION_TRASH_DATABASE_ID`
+- 데이터/API: `POST /api/writeNotebooks` (`op: trash`) · `NOTION_TRASH_DATABASE_ID`
 - 디자인·UX: 수정·페이지 추가와 같은 primary 원형 아이콘 · 사이트 Dialog (브라우저 alert 아님) · 삭제/취소
 - 열린 질문: 휴지통 열람·복원 UI는 이번 범위 밖. 삭제 일시(Date) 속성 추가 권장
 - 원문 메모: 「빨간원 위치에 삭제 아이콘 · Dialog 삭제/취소 · 휴지통 DB로 이동 · DB 아직 없음」
