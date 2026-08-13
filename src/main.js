@@ -9,6 +9,7 @@ import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
 import { renderFooter } from './components/Footer/Footer.js';
 import { mountAddNoteFab } from './components/AddNoteFab/AddNoteFab.js';
 import { requestPdfFolderSync } from './services/pdfFolderSync.js';
+import { getSession } from './services/auth.js';
 import { initTheme } from './utils/theme.js';
 import 'pretendard/dist/web/variable/pretendardvariable.css';
 import './index.css';
@@ -19,6 +20,7 @@ async function initApp() {
   try {
     console.log('🚀 앱 초기화 시작...');
     initTheme();
+    void getSession();
     
     const app = document.getElementById('app');
     if (!app) {

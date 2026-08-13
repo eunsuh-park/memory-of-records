@@ -88,7 +88,7 @@ export function renderBottomSheet() {
         ariaLabel: '현재 페이지 다음에 페이지 추가',
         title: '페이지 추가',
         content: MINGCUTE.addFill,
-        className: 'niv-sheet-btn niv-add-page'
+        className: 'niv-sheet-btn niv-add-page auth-only'
       })}
       ${renderBookmarkButton(false, 'desktop')}
       <div class="niv-sheet-progress">

@@ -190,7 +190,7 @@ export function openPageMetaModal(options = {}) {
           <input type="checkbox" name="visible" checked disabled />
           <span>사이트에 표시 (visible)</span>
         </label>
-        <div class="page-meta-actions page-meta-actions--view">
+        <div class="page-meta-actions page-meta-actions--view auth-only">
           <button type="button" class="page-meta-edit-btn" data-action="edit" disabled>수정</button>
           <button type="button" class="page-meta-delete-btn" data-action="delete" disabled>삭제</button>
         </div>

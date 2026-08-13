@@ -111,11 +111,11 @@ function renderFavoriteButton(noteId, favorites, variant = 'desktop') {
 /**
  * @param {Object|null} note - 포커스된 노트. null이면 빈 상태
  * @param {'period'|'type'} filterMode
- * @param {{ index?: number, total?: number, actionsOpen?: boolean }} [opts]
+ * @param {{ index?: number, total?: number, actionsOpen?: boolean, canEdit?: boolean }} [opts]
  * @returns {string} HTML 문자열
  */
 export function render(note, filterMode, opts = {}) {
-  const { index = 0, total = 0, actionsOpen = false } = opts;
+  const { index = 0, total = 0, actionsOpen = false, canEdit = false } = opts;
   const noteIndicator = renderNoteIndicator(index, total);
 
   if (!note) {
@@ -123,14 +123,18 @@ export function render(note, filterMode, opts = {}) {
       <div class="jukebox-focus-info__desktop">
         <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
           <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-          <div class="jukebox-focus-info__actions">
+          ${
+            canEdit
+              ? `<div class="jukebox-focus-info__actions">
             <button
               type="button"
-              class="jukebox-focus-info__create"
+              class="jukebox-focus-info__create auth-only"
               aria-label="노트 추가"
               title="노트 추가"
             >${MINGCUTE.addFill}</button>
-          </div>
+          </div>`
+              : ''
+          }
         </div>
       </div>
       <div class="jukebox-focus-info__mobile">
@@ -154,19 +158,20 @@ export function render(note, filterMode, opts = {}) {
     ? ''
     : renderFavoriteButton(noteId, favorites, 'mobile');
   const metaParts = [category, pages, size].filter(Boolean);
-  const editActions = isBookmarks
-    ? ''
-    : `
+  const editActions =
+    !canEdit || isBookmarks
+      ? ''
+      : `
             <button
               type="button"
-              class="jukebox-focus-info__edit"
+              class="jukebox-focus-info__edit auth-only"
               data-note-id="${noteId}"
               aria-label="노트 정보 수정"
               title="노트 정보 수정"
             >${MINGCUTE.edit2Fill}</button>
             <button
               type="button"
-              class="jukebox-focus-info__add"
+              class="jukebox-focus-info__add auth-only"
               data-note-id="${noteId}"
               aria-label="페이지 추가"
               title="페이지 추가"
@@ -178,7 +183,7 @@ export function render(note, filterMode, opts = {}) {
               ariaLabel: '노트 삭제',
               title: '노트 삭제',
               content: MINGCUTE.delete2Fill,
-              className: 'jukebox-focus-info__delete',
+              className: 'jukebox-focus-info__delete auth-only',
               dataset: {
                 'note-id': noteId,
                 action: 'delete'
@@ -193,12 +198,16 @@ export function render(note, filterMode, opts = {}) {
           <div class="jukebox-focus-info__actions">
             ${favoriteBtnDesktop}
             ${editActions}
-            <button
+            ${
+              canEdit
+                ? `<button
               type="button"
-              class="jukebox-focus-info__create"
+              class="jukebox-focus-info__create auth-only"
               aria-label="노트 추가"
               title="노트 추가"
-            >${MINGCUTE.addFill}</button>
+            >${MINGCUTE.addFill}</button>`
+                : ''
+            }
           </div>
         </div>
         ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
@@ -210,10 +219,10 @@ export function render(note, filterMode, opts = {}) {
           ${favoriteBtnMobile}
         </div>
         ${
-          actionsOpen && !isBookmarks
+          actionsOpen && !isBookmarks && canEdit
             ? `<button
           type="button"
-          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"
+          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit auth-only"
           data-note-id="${noteId}"
           aria-label="수정"
         >${MINGCUTE.edit2Fill}<span>수정</span></button>`

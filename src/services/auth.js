@@ -9,6 +9,11 @@ let cachedSession = null;
 let cacheAt = 0;
 const CACHE_MS = 15_000;
 
+/** @type {Set<(authenticated: boolean) => void>} */
+const authListeners = new Set();
+/** @type {boolean|null} */
+let lastEmittedAuth = null;
+
 function hrefFor(path) {
   const base = import.meta.env.BASE_URL || '/';
   return base === '/' ? path : `${base.slice(0, -1)}${path}`;
@@ -37,6 +42,36 @@ function closeOpenOverlays() {
   });
 }
 
+function syncAuthUi(authenticated) {
+  const next = Boolean(authenticated);
+  document.body.classList.toggle('is-authenticated', next);
+  if (lastEmittedAuth === next) return;
+  lastEmittedAuth = next;
+  authListeners.forEach((fn) => {
+    try {
+      fn(next);
+    } catch (err) {
+      console.warn('auth listener', err);
+    }
+  });
+}
+
+/**
+ * 캐시된 로그인 여부. 세션을 아직 확인하지 않았으면 false.
+ */
+export function isAuthenticated() {
+  return Boolean(cachedSession?.authenticated);
+}
+
+/**
+ * @param {(authenticated: boolean) => void} fn
+ * @returns {() => void} unsubscribe
+ */
+export function onAuthChange(fn) {
+  authListeners.add(fn);
+  return () => authListeners.delete(fn);
+}
+
 /**
  * @param {{ force?: boolean }} [options]
  * @returns {Promise<{ ok: boolean, authenticated: boolean, exp?: number|null, message?: string }>}
@@ -44,6 +79,7 @@ function closeOpenOverlays() {
 export async function getSession(options = {}) {
   const force = Boolean(options.force);
   if (!force && cachedSession && Date.now() - cacheAt < CACHE_MS) {
+    syncAuthUi(cachedSession.authenticated);
     return { ok: true, ...cachedSession };
   }
 
@@ -57,6 +93,7 @@ export async function getSession(options = {}) {
     const authenticated = Boolean(data?.authenticated);
     cachedSession = { authenticated, exp: data?.exp ?? null };
     cacheAt = Date.now();
+    syncAuthUi(authenticated);
     return {
       ok: response.ok,
       authenticated,
@@ -66,6 +103,7 @@ export async function getSession(options = {}) {
   } catch (err) {
     cachedSession = { authenticated: false, exp: null };
     cacheAt = Date.now();
+    syncAuthUi(false);
     return {
       ok: false,
       authenticated: false,
@@ -96,6 +134,7 @@ export async function login(password) {
   }
   cachedSession = { authenticated: true, exp: data?.exp ?? null };
   cacheAt = Date.now();
+  syncAuthUi(true);
   return data;
 }
 
@@ -111,6 +150,7 @@ export async function logout() {
   if (!response.ok) {
     throw new Error(data?.message || data?.error || '로그아웃에 실패했습니다');
   }
+  syncAuthUi(false);
   return data;
 }
 
