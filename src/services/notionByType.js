@@ -195,9 +195,6 @@ export function convertNotionPageToTypeItem(page) {
     ) || null;
   const visible = isNotionPageVisible(page);
   const favorites = parseNotionFavorites(page);
-  const publicId =
-    parseNotionProperty(getProperty(properties, 'public_id', 'Public ID', 'public id', 'PublicId')) ||
-    '';
 
   return {
     id: page?.id || '',
@@ -217,8 +214,7 @@ export function convertNotionPageToTypeItem(page) {
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,
     visible,
-    favorites,
-    publicId: publicId ? String(publicId).trim() : ''
+    favorites
   };
 }
 

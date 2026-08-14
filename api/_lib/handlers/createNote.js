@@ -7,19 +7,13 @@
  *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
  *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
- * public_id 는 Notion rich_text 속성에 자동 부여한다.
  */
 import {
   NOTEBOOK_DB_ID,
-  buildPublicIdPayload,
-  findPublicIdProperty,
   findSchemaProperty,
   findTitleProperty,
-  notionFetch,
-  queryAllNotebookPages,
-  readPublicIdValue
+  notionFetch
 } from '../notionDb.js';
-import { publicIdForNote } from '../publicId.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -247,24 +241,6 @@ export async function handleCreateNote(req, res) {
         : { select: null };
     }
 
-    const publicIdProp = findPublicIdProperty(schema);
-    let assignedPublicId = '';
-    if (publicIdProp?.type === 'rich_text') {
-      const existingPages = await queryAllNotebookPages();
-      const existingIds = existingPages
-        .map((existing) => readPublicIdValue(existing?.properties?.[publicIdProp.key]))
-        .filter(Boolean);
-      assignedPublicId = publicIdForNote({
-        notebookType,
-        name,
-        periodStart,
-        periodEnd,
-        existingIds
-      });
-      const publicIdPayload = buildPublicIdPayload(publicIdProp, assignedPublicId);
-      if (publicIdPayload) properties[publicIdProp.key] = publicIdPayload;
-    }
-
     const page = await notionFetch('/pages', {
       method: 'POST',
       body: {
@@ -280,8 +256,7 @@ export async function handleCreateNote(req, res) {
     return res.status(200).json({
       ok: true,
       id: page.id,
-      url: page.url,
-      publicId: assignedPublicId || undefined
+      url: page.url
     });
   } catch (error) {
     return res.status(error.status || 500).json({
