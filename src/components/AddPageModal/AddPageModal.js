@@ -6,12 +6,20 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
+import {
+  openUploadResultDialog,
+  shortUploadError
+} from '../Dialog/uploadResultDialog.js';
 import { render as renderField } from '../FormField/FormField.js';
 import {
   renderPicker as renderFilePicker,
   renderList as renderUploadList
 } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
+import {
+  hideUploadingOverlay,
+  showUploadingOverlay
+} from '../AddNoteFab/uploadOverlay.js';
 import {
   convertImageDataUrlToJpeg,
   convertPdfFileToJpegDataUrls,
@@ -29,7 +37,6 @@ import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
 import { requireAuth } from '../../services/auth.js';
-import uploadingLottieUrl from '../../assets/uploading.json?url';
 import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
 
@@ -41,36 +48,60 @@ function escapeHtml(value) {
     .replace(/"/g, '&quot;');
 }
 
-function showUploadingOverlay(message = '페이지를 업로드하는 중…') {
-  hideUploadingOverlay();
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-upload-overlay';
-  overlay.setAttribute('role', 'status');
-  overlay.setAttribute('aria-live', 'polite');
-  overlay.innerHTML = `
-    <dotlottie-wc
-      class="add-note-upload-lottie"
-      src="${uploadingLottieUrl}"
-      style="width: 300px; height: 300px"
-      autoplay
-      loop
-    ></dotlottie-wc>
-    <p class="add-note-upload-text">${escapeHtml(message)}</p>
-  `;
-  document.body.appendChild(overlay);
-  document.body.classList.add('add-note-uploading');
-  return overlay;
-}
+/**
+ * @param {{
+ *   uploadedCount: number,
+ *   total: number,
+ *   stage: 'shift' | 'pages' | 'link',
+ *   failedPageIndex: number,
+ *   fromNewNote: boolean,
+ *   error: unknown
+ * }} info
+ */
+function describePageUploadFailure(info) {
+  const reason = shortUploadError(info.error);
+  const coverPrefix = info.fromNewNote ? '표지는 저장됐고, ' : '';
 
-function hideUploadingOverlay() {
-  document.querySelectorAll('.add-note-upload-overlay').forEach((el) => el.remove());
-  document.body.classList.remove('add-note-uploading');
+  if (info.stage === 'shift') {
+    return {
+      title: '페이지 추가 실패',
+      message: '기존 페이지 번호를 바꾸는 중 실패해서 새 장을 넣지 못했습니다.',
+      detail: reason
+    };
+  }
+
+  if (info.uploadedCount <= 0) {
+    return {
+      title: '페이지 업로드 실패',
+      message: info.fromNewNote
+        ? '표지는 저장됐지만 본문 페이지는 올리지 못했습니다.'
+        : '본문 페이지를 올리지 못했습니다.',
+      detail: reason
+    };
+  }
+
+  if (info.uploadedCount < info.total) {
+    const failedAt =
+      info.failedPageIndex >= 0 ? `${info.failedPageIndex + 1}장째부터 실패했습니다.` : '';
+    return {
+      title: '일부만 저장됨',
+      message: `${coverPrefix}${info.total}장 중 ${info.uploadedCount}장만 올렸습니다.`,
+      detail: [failedAt, reason].filter(Boolean).join(' ')
+    };
+  }
+
+  return {
+    title: '일부만 저장됨',
+    message: `${coverPrefix}이미지는 올렸지만 노트 장수 정보를 저장하지 못했습니다.`,
+    detail: reason
+  };
 }
 
 /**
  * @param {{
  *   note: { id?: string, title?: string, name?: string, pdfFolderUrl?: string, pageCount?: number },
  *   insertAfterPage?: number,
+ *   fromNewNote?: boolean,
  *   onDone?: (result?: object) => void
  * }} [options]
  */
@@ -83,6 +114,7 @@ export async function openAddPageModal(options = {}) {
   const noteName = String(note.title || note.name || '').trim();
   const existingFolder = String(note.pdfFolderUrl || '').trim();
   const existingCount = Math.max(0, Math.floor(Number(note.pageCount) || 0));
+  const fromNewNote = Boolean(options.fromNewNote);
   /* null이면 맨 뒤에 추가. 값이 있으면 해당 페이지 다음에 삽입 */
   const insertAfterRaw = options.insertAfterPage;
   const insertAfterPage =
@@ -378,8 +410,14 @@ export async function openAddPageModal(options = {}) {
     let uploadedCount = 0;
     let linkedCount = existingCount;
     let updated = null;
+    let stage = needsShift ? 'shift' : 'pages';
+    let failedPageIndex = -1;
 
-    showUploadingOverlay(`페이지 업로드 중… 0/${total}`);
+    showUploadingOverlay({
+      message: `페이지 업로드 중… 0/${total}`,
+      current: 0,
+      total
+    });
 
     try {
       if (needsShift) {
@@ -393,11 +431,18 @@ export async function openAddPageModal(options = {}) {
           shiftBy: total,
           pageCount: existingCount
         });
+        stage = 'pages';
       }
 
       for (let i = 0; i < pages.length; i += 1) {
         const pageNumber = startPage + i;
-        showUploadingOverlay(`페이지 업로드 중… ${i + 1}/${total}`);
+        stage = 'pages';
+        failedPageIndex = i;
+        showUploadingOverlay({
+          message: `페이지 업로드 중… ${i + 1}/${total}`,
+          current: i + 1,
+          total
+        });
         const result = await uploadPageImage({
           file: pages[i].dataUrl,
           noteName,
@@ -412,13 +457,23 @@ export async function openAddPageModal(options = {}) {
         if (folderUrl) {
           const runningCount = existingCount + uploadedCount;
           const isFirstLink = linkedCount === existingCount && existingCount === 0;
-          showUploadingOverlay(
-            isFirstLink || i === pages.length - 1
-              ? '노트 정보를 갱신하는 중…'
-              : `페이지 업로드 중… ${i + 1}/${total}`
-          );
+          const linking = isFirstLink || i === pages.length - 1;
+          if (linking) {
+            stage = 'link';
+            showUploadingOverlay({
+              message: '노트 정보를 갱신하는 중…',
+              current: i + 1,
+              total
+            });
+          } else {
+            showUploadingOverlay({
+              message: `페이지 업로드 중… ${i + 1}/${total}`,
+              current: i + 1,
+              total
+            });
+          }
           const linkResult = await linkNotePages(folderUrl, runningCount, {
-            required: isFirstLink || i === pages.length - 1
+            required: linking
           });
           if (linkResult) {
             updated = linkResult;
@@ -433,7 +488,12 @@ export async function openAddPageModal(options = {}) {
 
       const newPageCount = existingCount + uploadedCount;
       if (linkedCount !== newPageCount) {
-        showUploadingOverlay('노트 정보를 갱신하는 중…');
+        stage = 'link';
+        showUploadingOverlay({
+          message: '노트 정보를 갱신하는 중…',
+          current: total,
+          total
+        });
         updated = await linkNotePages(folderUrl, newPageCount, { required: true });
         linkedCount = newPageCount;
       }
@@ -442,11 +502,12 @@ export async function openAddPageModal(options = {}) {
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
       hideUploadingOverlay();
-      showToast(
-        needsShift
-          ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다`
-          : `${uploadedCount}페이지가 추가되었습니다`
-      );
+      openUploadResultDialog({
+        title: '업로드 완료',
+        message: needsShift
+          ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다.`
+          : `${uploadedCount}페이지가 추가되었습니다.`
+      });
       options.onDone?.({
         ...(updated || {}),
         id: noteId,
@@ -469,13 +530,19 @@ export async function openAddPageModal(options = {}) {
         }
       }
       hideUploadingOverlay();
-      if (folderUrl && uploadedCount > 0 && linkedCount > existingCount) {
+      const result = describePageUploadFailure({
+        uploadedCount,
+        total,
+        stage,
+        failedPageIndex,
+        fromNewNote,
+        error: err
+      });
+      const savedSome = folderUrl && uploadedCount > 0 && linkedCount > existingCount;
+      if (savedSome) {
         if (noteId) markNoteUnseen(noteId);
         clearNotionNotebooksCache();
         clearNotionTypeItemsCache();
-        showToast(
-          `${uploadedCount}/${total}페이지만 저장됐습니다. ${err?.message || '나머지 업로드에 실패했습니다.'}`
-        );
         options.onDone?.({
           ...(updated || {}),
           id: noteId,
@@ -485,9 +552,8 @@ export async function openAddPageModal(options = {}) {
           insertedCount: linkedCount - existingCount,
           partial: true
         });
-      } else {
-        showToast(err?.message || '페이지 추가에 실패했습니다.');
       }
+      openUploadResultDialog(result);
     } finally {
       busy = false;
     }

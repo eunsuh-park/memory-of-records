@@ -83,3 +83,32 @@ body.dialog-open {
     padding: var(--space-4);
   }
 }
+
+/* 업로드 완료 · 부분실패 · 실패 확인 */
+.upload-result-panel {
+  width: min(420px, 100%);
+}
+
+.upload-result-text {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.upload-result-detail {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.upload-result-actions {
+  display: grid;
+  margin-top: var(--space-2);
+}
+
+.upload-result-actions .btn--solid {
+  margin-top: 0;
+  width: 100%;
+}

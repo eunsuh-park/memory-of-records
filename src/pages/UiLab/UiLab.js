@@ -6,6 +6,7 @@
 import { render as renderButton } from '../../components/Button/Button.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
+import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
@@ -767,6 +768,29 @@ export function renderUiLab() {
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
+          ${renderVariantRow(
+            '업로드 결과 Dialog — 성공 / 일부만 저장 / 실패(표지만 됨)',
+            [
+              renderButton({
+                shape: 'solid',
+                content: '성공',
+                className: 'ui-lab-demo-solid',
+                dataset: { lab: 'upload-ok' }
+              }),
+              renderButton({
+                shape: 'solid',
+                content: '일부만 저장',
+                className: 'ui-lab-demo-solid',
+                dataset: { lab: 'upload-partial' }
+              }),
+              renderButton({
+                shape: 'solid',
+                content: '실패',
+                className: 'ui-lab-demo-solid',
+                dataset: { lab: 'upload-fail' }
+              })
+            ].join('')
+          )}
         </section>
 
         <section class="ui-lab__section" id="viewers">
@@ -817,6 +841,27 @@ export function renderUiLab() {
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
+  });
+
+  root.querySelector('[data-lab="upload-ok"]')?.addEventListener('click', () => {
+    openUploadResultDialog({
+      title: '업로드 완료',
+      message: '5페이지가 추가되었습니다.'
+    });
+  });
+  root.querySelector('[data-lab="upload-partial"]')?.addEventListener('click', () => {
+    openUploadResultDialog({
+      title: '일부만 저장됨',
+      message: '5장 중 3장만 올렸습니다.',
+      detail: '4장째부터 실패했습니다.'
+    });
+  });
+  root.querySelector('[data-lab="upload-fail"]')?.addEventListener('click', () => {
+    openUploadResultDialog({
+      title: '페이지 업로드 실패',
+      message: '표지는 저장됐지만 본문 페이지는 올리지 못했습니다.',
+      detail: '이미지 저장에 실패했습니다.'
+    });
   });
 
   /* 정적 데모라 실제 페이지 수가 없으니 표시용 값만 채운다 */

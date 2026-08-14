@@ -81,6 +81,22 @@ body.add-note-uploading {
   color: var(--color-chrome-on);
 }
 
+.add-note-upload-progress {
+  width: min(16rem, 70vw);
+  height: 0.4rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.add-note-upload-progress__fill {
+  width: var(--upload-progress, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transition: width 0.2s ease;
+}
+
 @media (max-width: 640px) {
   .add-note-covers {
     grid-template-columns: 1fr;

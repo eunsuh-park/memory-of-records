@@ -9,6 +9,10 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
+import {
+  openUploadResultDialog,
+  shortUploadError
+} from '../Dialog/uploadResultDialog.js';
 import { render as renderField, renderColorSwatches } from '../FormField/FormField.js';
 import { renderOptions as renderSelectOptions } from '../Select/Select.js';
 import { renderPicker as renderFilePicker } from '../FileUploadPreview/FileUploadPreview.js';
@@ -37,7 +41,7 @@ import {
 import { requireAuth } from '../../services/auth.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { NOTE_COLOR_PAINT, LIGHT_NOTE_COLORS, NOTE_COLOR_NAMES } from '../../utils/noteColorMap.js';
-import uploadingLottieUrl from '../../assets/uploading.json?url';
+import { hideUploadingOverlay, showUploadingOverlay } from './uploadOverlay.js';
 import './AddNoteFab.css';
 
 const PLUS_ICON = MINGCUTE.addFill;
@@ -55,32 +59,6 @@ const LIGHT_COLOR_NAMES = [...LIGHT_NOTE_COLORS];
 
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
-
-function showUploadingOverlay(message = '표지를 업로드하는 중…') {
-  hideUploadingOverlay();
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-upload-overlay';
-  overlay.setAttribute('role', 'status');
-  overlay.setAttribute('aria-live', 'polite');
-  overlay.innerHTML = `
-    <dotlottie-wc
-      class="add-note-upload-lottie"
-      src="${uploadingLottieUrl}"
-      style="width: 300px; height: 300px"
-      autoplay
-      loop
-    ></dotlottie-wc>
-    <p class="add-note-upload-text">${escapeHtml(message)}</p>
-  `;
-  document.body.appendChild(overlay);
-  document.body.classList.add('add-note-uploading');
-  return overlay;
-}
-
-function hideUploadingOverlay() {
-  document.querySelectorAll('.add-note-upload-overlay').forEach((el) => el.remove());
-  document.body.classList.remove('add-note-uploading');
-}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -522,6 +500,7 @@ export async function openAddNoteModal(options = {}) {
 
     showUploadingOverlay('표지를 업로드하는 중…');
 
+    let coversUploaded = false;
     try {
       const [frontDataUrl, backDataUrlRaw] = await Promise.all([
         readFileAsDataUrl(frontFile),
@@ -549,7 +528,9 @@ export async function openAddNoteModal(options = {}) {
           noteName: metaPayload.name
         })
       ]);
+      coversUploaded = true;
 
+      showUploadingOverlay('노트를 만드는 중…');
       const created = await createNotionNote({
         name: metaPayload.name,
         coverFrontUrl: frontUpload.url,
@@ -570,7 +551,6 @@ export async function openAddNoteModal(options = {}) {
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
       hideUploadingOverlay();
-      showToast('노트가 추가되었습니다');
       options.onCreated?.(created);
 
       const createdNote = {
@@ -586,6 +566,7 @@ export async function openAddNoteModal(options = {}) {
           onConfirm: () => {
             openAddPageModal({
               note: createdNote,
+              fromNewNote: true,
               onDone: (result) => {
                 /* 페이지 업로드 결과(pdfFolderUrl·pageCount)를 넘기고 목록을 다시 불러온다 */
                 options.onCreated?.({
@@ -603,7 +584,13 @@ export async function openAddNoteModal(options = {}) {
     } catch (err) {
       console.error('[AddNote]', err);
       hideUploadingOverlay();
-      showToast(err?.message || '노트 추가에 실패했습니다.');
+      openUploadResultDialog({
+        title: '노트 추가 실패',
+        message: coversUploaded
+          ? '표지 파일은 올렸지만 노트 정보를 만들지 못했습니다.'
+          : '표지 업로드에 실패했습니다.',
+        detail: shortUploadError(err)
+      });
     }
   });
 
