@@ -33,3 +33,7 @@ dist-ssr
 *&&*
 *else*
 .vercel
+
+# Cloudinary 마이그레이션 실행 산출물
+scripts/data/cloudinary-rename-plan.json
+scripts/data/cloudinary-rename-log.json
