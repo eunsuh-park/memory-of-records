@@ -215,17 +215,19 @@ function publicIdFolder(asset) {
 
 function parseAlreadyRenamed(publicId) {
   const match = String(publicId || '').match(
-    /^notebooks\/([A-Z]{4}-\d{4}-\d{4})\/(cover_front|cover_back|pages\/page-(\d{6}))$/
+    /^notebooks\/([A-Z]{4}-\d{4}-\d{4})\/(cover_front|cover_back|pdf|pages\/page-(\d{6}))$/
   );
   if (!match) return null;
   if (match[2] === 'cover_front') return { notePublicId: match[1], role: 'cover_front' };
   if (match[2] === 'cover_back') return { notePublicId: match[1], role: 'cover_back' };
+  if (match[2] === 'pdf') return { notePublicId: match[1], role: 'pdf' };
   return { notePublicId: match[1], role: 'page', pageNumber: Number(match[3]) };
 }
 
 function detectRole(asset) {
   const already = parseAlreadyRenamed(asset.public_id);
   if (already) return already.role;
+  if (String(asset.format || '').toLowerCase() === 'pdf') return 'pdf';
   const haystack = [asset.asset_folder, asset.folder, asset.public_id].filter(Boolean).join('/');
   if (/cover\/front/i.test(haystack) || /\/front\//i.test(`/${haystack}/`)) return 'cover_front';
   if (/cover\/back/i.test(haystack) || /\/back\//i.test(`/${haystack}/`)) return 'cover_back';
@@ -269,6 +271,7 @@ function pageStem(pageNumber) {
 function targetPublicId(notePublicId, role, pageNumber) {
   if (role === 'cover_front') return `notebooks/${notePublicId}/cover_front`;
   if (role === 'cover_back') return `notebooks/${notePublicId}/cover_back`;
+  if (role === 'pdf') return `notebooks/${notePublicId}/pdf`;
   return `notebooks/${notePublicId}/pages/${pageStem(pageNumber)}`;
 }
 
@@ -504,6 +507,7 @@ function buildPlan(notes, assets, previousLog) {
         : [],
       coverFront: null,
       coverBack: null,
+      pdf: null,
       pages: [],
       unmatchedAssets: [],
       errors: [],
@@ -698,6 +702,11 @@ function assignAsset(plan, asset, role, pageNumber, status) {
     else plan.coverBack = record;
     return;
   }
+  if (role === 'pdf') {
+    if (plan.pdf) plan.errors.push(`pdf 가 둘 이상: ${plan.pdf.asset.public_id}, ${asset.public_id}`);
+    else plan.pdf = record;
+    return;
+  }
   plan.pages.push(record);
 }
 
@@ -705,6 +714,7 @@ function collectPlanItems(plan) {
   const items = [];
   if (plan.coverFront) items.push(plan.coverFront);
   if (plan.coverBack) items.push(plan.coverBack);
+  if (plan.pdf) items.push(plan.pdf);
   const pages = [...plan.pages].sort((a, b) => (a.pageNumber || 0) - (b.pageNumber || 0));
   items.push(...pages);
   return items;
@@ -725,6 +735,7 @@ function printPlan(plan, assetCount) {
     const rows = [
       ['COVER_FRONT', notePlan.coverFront],
       ['COVER_BACK', notePlan.coverBack],
+      ['PDF', notePlan.pdf],
       ...[...notePlan.pages]
         .sort((a, b) => (a.pageNumber || 0) - (b.pageNumber || 0))
         .map((item) => [`PAGE ${item.pageNumber}`, item])
