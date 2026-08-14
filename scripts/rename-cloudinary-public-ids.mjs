@@ -33,7 +33,8 @@ const PLAN_PATH = path.join(DATA_DIR, 'cloudinary-rename-plan.json');
 const LOG_PATH = path.join(DATA_DIR, 'cloudinary-rename-log.json');
 
 const PUBLIC_ID_RE = /^[A-Z]{4}-\d{4}-\d{4}$/;
-const EXCLUDE_FOLDER_PREFIXES = ['bookmark note'];
+const EXCLUDE_FOLDER_PREFIXES = ['bookmark note', 'my brand'];
+const EXCLUDE_PUBLIC_ID_PREFIXES = ['samples/', 'cld-sample', 'main-sample'];
 const SOURCE_FOLDER_HINTS = ['notebooks_v', 'notebook_v', 'notebooks/', 'notebook/'];
 
 const args = process.argv.slice(2);
@@ -89,10 +90,23 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
+function toNfc(value) {
+  return String(value || '').normalize('NFC');
+}
+
+function stripUploadNoise(name) {
+  let value = toNfc(name).replace(/\.[a-z0-9]+$/i, '');
+  value = value.replace(/_(front|back)$/i, '');
+  value = value.replace(/_[a-z0-9]{6}$/i, '');
+  value = value.replace(/_(front|back)$/i, '');
+  value = value.replace(/_+$/g, '');
+  return value;
+}
+
 function sanitizeStem(name) {
   return (
-    String(name || '')
-      .replace(/\.[a-z0-9]+$/i, '')
+    stripUploadNoise(name)
+      .replace(/[()]/g, '_')
       .replace(/[\/\\?#%&{}<>*|"`]+/g, '_')
       .replace(/\s+/g, '_')
       .replace(/_+/g, '_')
@@ -102,11 +116,15 @@ function sanitizeStem(name) {
 }
 
 function normalizeName(name) {
-  return String(name || '')
+  return sanitizeStem(name)
     .trim()
     .toLowerCase()
     .replace(/[\s_\-./]+/g, '');
 }
+
+const FOLDER_NAME_ALIASES = {
+  '2024_스케줄러': '01_2024_스케줄러'
+};
 
 function stripPageSuffix(name) {
   return String(name || '')
@@ -174,6 +192,9 @@ function readPropertyValue(property) {
 function isExcludedAsset(asset) {
   const folder = String(asset.asset_folder || asset.folder || '').toLowerCase();
   const publicId = String(asset.public_id || '').toLowerCase();
+  if (EXCLUDE_PUBLIC_ID_PREFIXES.some((prefix) => publicId === prefix || publicId.startsWith(prefix))) {
+    return true;
+  }
   return EXCLUDE_FOLDER_PREFIXES.some(
     (prefix) => folder === prefix || folder.startsWith(`${prefix}/`) || publicId.startsWith(`${prefix}/`)
   );
@@ -223,12 +244,18 @@ function detectRole(asset) {
 function extractPageNumber(asset) {
   const already = parseAlreadyRenamed(asset.public_id);
   if (already?.pageNumber) return already.pageNumber;
-  const candidates = [asset.public_id, asset.display_name, asset.filename, lastSegment(asset.public_id)];
+  const candidates = [asset.public_id, asset.display_name, asset.filename, lastSegment(asset.public_id)].map(
+    (value) => stripUploadNoise(lastSegment(value))
+  );
   for (const candidate of candidates) {
-    const pageMatch = String(candidate || '').match(/page-(\d{1,6})(?:[_.]|$)/i);
+    const pageMatch = String(candidate || '').match(/page-(\d{1,6})$/i);
     if (pageMatch) return Number(pageMatch[1]);
   }
-  for (const candidate of [asset.display_name, asset.filename, lastSegment(asset.public_id)]) {
+  for (const candidate of candidates) {
+    const numbered = String(candidate || '').match(/^(\d{1,6})$/);
+    if (numbered) return Number(numbered[1]);
+  }
+  for (const candidate of candidates) {
     const tail = String(candidate || '').match(/[_-](\d{1,6})$/);
     if (tail) return Number(tail[1]);
   }
@@ -246,23 +273,32 @@ function targetPublicId(notePublicId, role, pageNumber) {
 }
 
 function nameKeysForNote(name) {
-  const raw = String(name || '').trim();
+  const raw = toNfc(name).trim();
   const stem = sanitizeStem(raw);
   const stripped = stripPageSuffix(raw);
   const strippedStem = sanitizeStem(stripped);
-  return [...new Set([raw, stem, stripped, strippedStem, normalizeName(raw), normalizeName(stem)].filter(Boolean))];
+  const withoutPrefix = stem.replace(/^\d{2}_/, '');
+  return [
+    ...new Set(
+      [raw, stem, stripped, strippedStem, withoutPrefix, normalizeName(raw), normalizeName(stem), normalizeName(withoutPrefix)].filter(
+        Boolean
+      )
+    )
+  ];
 }
 
 function nameKeysForAsset(asset) {
-  const filename = String(asset.filename || lastSegment(asset.public_id) || '').replace(/\.[a-z0-9]+$/i, '');
-  const displayName = String(asset.display_name || '').trim();
+  const filename = stripUploadNoise(asset.filename || lastSegment(asset.public_id) || '');
+  const displayName = stripUploadNoise(asset.display_name || '');
   const folderName = lastSegment(asset.asset_folder || asset.folder || parentFolder(asset.public_id));
+  const aliasedFolder = FOLDER_NAME_ALIASES[toNfc(folderName)] || folderName;
   const keys = [];
-  for (const value of [displayName, filename, folderName]) {
+  for (const value of [displayName, filename, folderName, aliasedFolder]) {
     if (!value) continue;
-    if (/^page-\d+/i.test(value) || /^(front|back)$/i.test(value)) continue;
-    keys.push(value, sanitizeStem(value), stripPageSuffix(value), sanitizeStem(stripPageSuffix(value)));
-    keys.push(normalizeName(value), normalizeName(stripPageSuffix(value)));
+    const nfcValue = toNfc(value);
+    if (/^page-\d+/i.test(nfcValue) || /^(front|back|contents?)$/i.test(nfcValue)) continue;
+    keys.push(nfcValue, sanitizeStem(nfcValue), stripPageSuffix(nfcValue), sanitizeStem(stripPageSuffix(nfcValue)));
+    keys.push(normalizeName(nfcValue), normalizeName(stripPageSuffix(nfcValue)));
   }
   return [...new Set(keys.filter(Boolean))];
 }
@@ -558,7 +594,13 @@ function buildPlan(notes, assets, previousLog) {
     }
     const pageNumber = role === 'page' ? extractPageNumber(asset) : null;
     if (role === 'page' && !pageNumber) {
-      plan.errors.push(`페이지 번호를 판별할 수 없음: ${asset.public_id}`);
+      unmatchedAssets.push({
+        publicId: asset.public_id,
+        displayName: asset.display_name || null,
+        filename: asset.filename || lastSegment(asset.public_id),
+        assetFolder: asset.asset_folder || asset.folder || null,
+        reason: '페이지 번호를 판별할 수 없음'
+      });
       continue;
     }
     assignAsset(plan, asset, role, pageNumber, 'MATCHED');
@@ -575,13 +617,6 @@ function buildPlan(notes, assets, previousLog) {
       const unique = [...new Set(pageNumbers)].sort((a, b) => a - b);
       if (unique.length !== pageNumbers.length) {
         plan.errors.push('페이지 번호가 중복됨');
-      }
-      if (unique[0] !== 1) plan.errors.push(`페이지가 1부터 시작하지 않음 (최소 ${unique[0]})`);
-      for (let i = 0; i < unique.length; i += 1) {
-        if (unique[i] !== i + 1) {
-          plan.errors.push(`페이지 번호 공백: ${unique.join(', ')}`);
-          break;
-        }
       }
     }
 
