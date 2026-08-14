@@ -27,7 +27,7 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 원문 메모: 「Load Failed · 페이지 미생성 · 메모 비움 · Cloudinary 정상」
 
 ### 업로드 진행률 표시 + 완료 Dialog `(수집 260812)`
-- 상태: roadmap (doing 260814)
+- 상태: done (260814)
 - 우선순위: P1 — 부분실패 수정 다음으로 피드백 공백이 큼
 - 목적: 긴 업로드 동안 진행을 보여주고, 끝나면 Dialog로 성공/부분실패/실패를 확인받게 한다
 - 화면/진입: AddPageModal 업로드 오버레이 → 완료 시 Dialog. 새 노트 표지 업로드 실패에도 동일 Dialog
