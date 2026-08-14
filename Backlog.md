@@ -3,7 +3,7 @@
 Memory of Records — 요청·아이디어 누적 목록.
 
 > 마지막 enrich: 260812  
-> Inbox 잔여: 0  
+> Inbox 잔여: 1  
 > 소스: Notion 백로그(정리 기준일 2026-08-07) → capture 260812 → enrich 260812  
 > 코드 반영 참고: main에 PR #19–22 · #26(Favorites) · #27(Favorites UI) · #29(Bookmark Note) 머지됨. 이번 정리에서 #23(모바일 인디케이터) 합침. 미머지 초안: PR #24(slug·JPG·비공개 업로드·2-page gap 등). #25·#28은 main에 흡수되어 폐기.
 
@@ -294,4 +294,10 @@ Memory of Records — 요청·아이디어 누적 목록.
 
 ## Inbox
 
-<!-- enrich 후 미분류 없음 -->
+- [ ] **설정 페이지에서 period 구분 직접 입력** `(수집 260814)`
+  - 요청 요지: period 값을 사용자가 설정 페이지에서 직접 구분해서 입력할 수 있게 한다. 기본값은 현재 쓰는 구분에 work를 하나 더한 목록.
+  - 맥락/화면: 설정 페이지(아직 라우트 없음). Timeline 필터·노트 폼 period는 지금 `src/data/periodOptions.js`에 하드코딩.
+  - 기본값(현재 구분 + work): Elementary School, Middle & High School, University, After School, Work
+  - 원문 메모: 「period 값을 사용자가 설정 페이지에서 직접 구분해서 입력할 수 있으면 좋겠음. 기본값은 현재 내가 사용하는 구분으로 하되 거기서 work를 하나 추가해줘.」
+
+<!-- enrich 후 미분류는 Inbox에만 둠 -->
