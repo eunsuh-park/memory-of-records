@@ -74,6 +74,49 @@ export function findSchemaProperty(schema, ...names) {
   return null;
 }
 
+/** public_id 텍스트 속성 */
+export function findPublicIdProperty(schema) {
+  return findSchemaProperty(schema, 'public_id', 'Public ID', 'public id', 'PublicId');
+}
+
+export async function queryAllNotebookPages(databaseId = NOTEBOOK_DB_ID) {
+  const results = [];
+  let cursor = null;
+  do {
+    const data = await notionFetch(`/databases/${databaseId}/query`, {
+      method: 'POST',
+      body: {
+        page_size: 100,
+        ...(cursor ? { start_cursor: cursor } : {})
+      }
+    });
+    results.push(...(Array.isArray(data?.results) ? data.results : []));
+    cursor = data?.has_more ? data.next_cursor : null;
+  } while (cursor);
+  return results;
+}
+
+export function readPublicIdValue(property) {
+  if (!property) return '';
+  if (property.type === 'rich_text') {
+    return String(property.rich_text?.[0]?.plain_text || '').trim();
+  }
+  if (property.type === 'title') {
+    return String(property.title?.[0]?.plain_text || '').trim();
+  }
+  if (typeof property.plain_text === 'string') return property.plain_text.trim();
+  return '';
+}
+
+export function buildPublicIdPayload(prop, value) {
+  if (!prop || !value) return null;
+  const text = String(value).slice(0, 2000);
+  if (prop.type === 'rich_text') {
+    return { rich_text: [{ type: 'text', text: { content: text } }] };
+  }
+  return null;
+}
+
 /** title 타입 속성 (이름/Name 등) */
 export function findTitleProperty(schema) {
   const preferred = findSchemaProperty(schema, '이름', 'Name', 'title', 'Title', '제목');

@@ -239,6 +239,9 @@ export function convertNotionPageToNotebook(page) {
     ) || null;
   const visible = isNotionPageVisible(page);
   const favorites = parseNotionFavorites(page);
+  const publicId =
+    parseNotionProperty(getProperty(properties, 'public_id', 'Public ID', 'public id', 'PublicId')) ||
+    '';
 
   return {
     id: page?.id || '',
@@ -258,7 +261,8 @@ export function convertNotionPageToNotebook(page) {
     size: size != null && String(size).trim() ? String(size).trim() : null,
     description: description != null && String(description).trim() ? String(description).trim() : null,
     visible,
-    favorites
+    favorites,
+    publicId: publicId ? String(publicId).trim() : ''
   };
 }
 
