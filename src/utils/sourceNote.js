@@ -21,9 +21,15 @@ function folderStemFromUrl(folderUrl) {
   try {
     const path = trimmed.includes('://') ? new URL(trimmed).pathname : trimmed;
     const parts = path.split('/').filter(Boolean);
+    if (parts.length >= 2 && parts[parts.length - 1].toLowerCase() === 'pages') {
+      return parts[parts.length - 2] || '';
+    }
     return parts[parts.length - 1] || '';
   } catch {
     const parts = trimmed.split('/').filter(Boolean);
+    if (parts.length >= 2 && parts[parts.length - 1].toLowerCase() === 'pages') {
+      return parts[parts.length - 2] || '';
+    }
     return parts[parts.length - 1] || '';
   }
 }
@@ -49,6 +55,14 @@ export function matchSourceNote(notes, page = {}) {
   }
 
   if (!stem) return null;
+
+  const byPublicId = list.find((n) => normalizeStem(n?.publicId) === stem);
+  if (byPublicId) {
+    return {
+      id: byPublicId.id,
+      title: byPublicId.title || byPublicId.name || noteFolder || '원본 노트'
+    };
+  }
 
   const byStem = list.find((n) => {
     const urlStem = normalizeStem(folderStemFromUrl(n?.pdfFolderUrl));

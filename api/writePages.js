@@ -12,8 +12,7 @@ import {
   notionFetch
 } from './_lib/notionDb.js';
 
-const CONTENT_ROOT = process.env.CLOUDINARY_CONTENT_FOLDER || 'Notebooks_v3/Content';
-const COVER_ROOT = process.env.CLOUDINARY_COVER_FOLDER || 'Notebooks_v3/Cover';
+const NOTEBOOKS_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
 const MAX_BYTES = 10 * 1024 * 1024;
 
 function trimOrEmpty(value) {
@@ -87,6 +86,12 @@ function parseFolderParam(folder) {
   };
 }
 
+function pagesFolderForNote(body) {
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  const stem = sanitizePublicIdStem(body.publicId || body.noteName || body.filename || 'untitled');
+  return `${root}/${stem}/pages`;
+}
+
 function resolveUploadFolder(body) {
   const explicit = String(body.folder || '').trim().replace(/\/+$/, '');
   if (explicit) {
@@ -95,8 +100,7 @@ function resolveUploadFolder(body) {
     }
     return explicit;
   }
-  const root = String(CONTENT_ROOT || 'Notebooks_v3/Content').replace(/\/+$/, '');
-  return `${root}/${sanitizePublicIdStem(body.noteName || body.filename || 'untitled')}`;
+  return pagesFolderForNote(body);
 }
 
 function buildFolderBaseUrl(secureUrl) {
@@ -181,14 +185,14 @@ function buildContextString({ entry_date, ocr_text, visible, is_bookmarked }) {
 }
 
 function contentFolderForNoteName(noteName) {
-  const root = String(CONTENT_ROOT || 'Notebooks_v3/Content').replace(/\/+$/, '');
-  return `${root}/${sanitizePublicIdStem(noteName)}`;
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  return `${root}/${sanitizePublicIdStem(noteName)}/pages`;
 }
 
 function coverPublicId(kind, noteName) {
-  const root = String(COVER_ROOT || 'Notebooks_v3/Cover').replace(/\/+$/, '');
-  const folder = kind === 'back' ? `${root}/Back` : `${root}/Front`;
-  return `${folder}/${sanitizePublicIdStem(noteName)}`;
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  const file = kind === 'back' ? 'cover_back' : 'cover_front';
+  return `${root}/${sanitizePublicIdStem(noteName)}/${file}`;
 }
 
 function rewriteFolderBaseUrl(folderUrl, fromPath, toPath) {

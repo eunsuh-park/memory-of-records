@@ -18,7 +18,7 @@
 import { isCloudinaryResourceVisible } from '../visibility.js';
 import { getCloudinaryCredentials } from '../cloudinaryAuth.js';
 
-const CONTENT_ROOT = process.env.CLOUDINARY_CONTENT_FOLDER || 'Notebooks_v3/Content';
+const CONTENT_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
 
 function normalizeBookmarked(value) {
   if (value === true || value === 1) return true;
@@ -70,6 +70,25 @@ function folderPathFromPublicId(publicId) {
   const id = String(publicId || '').replace(/^\/+|\/+$/g, '');
   const idx = id.lastIndexOf('/');
   return idx > 0 ? id.slice(0, idx) : '';
+}
+
+/** notebooks/{NOTE_ID}/pages → NOTE_ID */
+function noteIdFromPagesPath(folderPath) {
+  const parts = String(folderPath || '')
+    .replace(/^\/+|\/+$/g, '')
+    .split('/')
+    .filter(Boolean);
+  if (
+    parts.length >= 3 &&
+    parts[0].toLowerCase() === 'notebooks' &&
+    parts[parts.length - 1].toLowerCase() === 'pages'
+  ) {
+    return parts[1];
+  }
+  if (parts.length >= 2 && parts[0].toLowerCase() === 'notebooks') {
+    return parts[1];
+  }
+  return '';
 }
 
 function folderUrlFromResource(resource, cloudName) {
@@ -182,7 +201,7 @@ export async function handleBookmarkedPages(req, res) {
       const pageNumber = extractPageNumber(resource?.public_id);
       if (!pageNumber) continue;
       const folderPath = folderPathFromPublicId(resource?.public_id);
-      const noteFolder = folderPath.split('/').filter(Boolean).pop() || '';
+      const noteFolder = noteIdFromPagesPath(folderPath) || folderPath.split('/').filter(Boolean).pop() || '';
       const folderUrl = folderUrlFromResource(resource, credentials.cloudName);
       const url = String(resource?.secure_url || resource?.url || '').trim();
       if (!url || !folderUrl) continue;

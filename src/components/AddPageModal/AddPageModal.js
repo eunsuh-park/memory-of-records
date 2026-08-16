@@ -37,6 +37,7 @@ import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
 import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
 import { requireAuth } from '../../services/auth.js';
+import { notePagesFolder } from '../../services/notePages.js';
 import '../AddNoteFab/AddNoteFab.css';
 import './AddPageModal.css';
 
@@ -99,7 +100,7 @@ function describePageUploadFailure(info) {
 
 /**
  * @param {{
- *   note: { id?: string, title?: string, name?: string, pdfFolderUrl?: string, pageCount?: number },
+ *   note: { id?: string, title?: string, name?: string, publicId?: string, pdfFolderUrl?: string, pageCount?: number },
  *   insertAfterPage?: number,
  *   fromNewNote?: boolean,
  *   onDone?: (result?: object) => void
@@ -112,7 +113,9 @@ export async function openAddPageModal(options = {}) {
   const note = options.note || {};
   const noteId = String(note.id || '').trim();
   const noteName = String(note.title || note.name || '').trim();
-  const existingFolder = String(note.pdfFolderUrl || '').trim();
+  const notePublicId = String(note.publicId || '').trim();
+  const canonicalFolder = notePublicId ? notePagesFolder(notePublicId) : '';
+  const existingFolder = canonicalFolder || String(note.pdfFolderUrl || '').trim();
   const existingCount = Math.max(0, Math.floor(Number(note.pageCount) || 0));
   const fromNewNote = Boolean(options.fromNewNote);
   /* null이면 맨 뒤에 추가. 값이 있으면 해당 페이지 다음에 삽입 */
@@ -447,7 +450,8 @@ export async function openAddPageModal(options = {}) {
           file: pages[i].dataUrl,
           noteName,
           pageNumber,
-          folder: folderPath || undefined
+          folder: folderPath || canonicalFolder || undefined,
+          publicId: notePublicId || undefined
         });
         if (!folderUrl && result.folderUrl) folderUrl = result.folderUrl;
         if (result.folder) folderPath = result.folder;

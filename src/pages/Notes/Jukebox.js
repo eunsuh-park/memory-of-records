@@ -15,7 +15,6 @@ import {
   collapseFilterSubMenu,
   renderFilterSubMenu
 } from '../../components/FilterSubMenu/FilterSubMenu.js';
-import { renderPdfViewer } from '../../components/PdfModal/PdfModal.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
@@ -680,9 +679,7 @@ function openNoteModal(note) {
   }
 
   const noteId = note?.id || '';
-  const pdfFolderUrl = note?.pdfFolderUrl ? String(note.pdfFolderUrl).trim() : '';
-  const pdfUrl = note?.pdfUrl ? String(note.pdfUrl).trim() : '';
-  if (!pdfFolderUrl && !pdfUrl) {
+  if (!noteId) {
     showToast('노트 상세 이미지가 없습니다.');
     return;
   }
@@ -702,17 +699,14 @@ function openNoteModal(note) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
-  /* pdf_folder_url이 있으면 새 이미지 뷰어, 없으면 기존 PDF 뷰어로 폴백 */
-  const cleanupViewer = pdfFolderUrl
-    ? renderNoteImageViewer(content, noteId, {
-        mode: 'modal',
-        pdfFolderUrl,
-        pageCount: note?.pageCount,
-        size: note?.size,
-        title: note?.title || note?.name || '',
-        note
-      })
-    : renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl, size: note?.size });
+  const cleanupViewer = renderNoteImageViewer(content, noteId, {
+    mode: 'modal',
+    pdfFolderUrl: note?.pdfFolderUrl,
+    pageCount: note?.pageCount,
+    size: note?.size,
+    title: note?.title || note?.name || '',
+    note
+  });
 
   const closeModal = () => {
     cleanupViewer?.();

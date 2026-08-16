@@ -216,7 +216,8 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
  *   file: string,
  *   noteName: string,
  *   pageNumber: number,
- *   folder?: string
+ *   folder?: string,
+ *   publicId?: string
  * }} payload
  */
 export async function uploadPageImage(payload) {

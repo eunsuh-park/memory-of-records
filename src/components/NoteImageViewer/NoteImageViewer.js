@@ -1,17 +1,14 @@
 /**
  * NoteImageViewer
  * Cloudinary에 페이지별 이미지로 업로드된 노트 뷰어.
- * pdf_folder_url(폴더 base URL) + page_count로 페이지 이미지 URL을 조립해
+ * notebooks/{public_id}/pages 아래 page-000001 … 을 API로 읽어
  * 한 번에 한 페이지(또는 양면)씩 표시합니다.
  * - 모달: Jukebox에서 노트 클릭 시
  * - 전체 페이지: /note/:id 경로
- *
- * pdf_folder_url이 비어 있는 노트는 기존 PDF 뷰어(PdfModal)로 폴백합니다.
  */
 
 import { getNotionNotebooks } from '../../services/notionNotebooks.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
-import { renderPdfViewer } from '../PdfModal/PdfModal.js';
 import { renderViewerChrome } from './ViewerChrome.js';
 import {
   render as wrapInNoteDetailPage,
@@ -24,6 +21,7 @@ import {
   isLandscapeSpread
 } from '../../utils/noteSize.js';
 import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
+import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
 import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bookmarkedPages.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
@@ -169,6 +167,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
   let folderUrl = String(options.pdfFolderUrl || '').trim();
+  /** Cloudinary Search가 준 pageNumber → delivery URL */
+  const pageUrlByNumber = new Map();
   /** 가상 앨범(북마크): 1-based index → 원본 페이지 엔트리 */
   let albumPages = Array.isArray(options.pages)
     ? options.pages.filter((p) => p && (p.url || (p.folderUrl && p.pageNumber)))
@@ -180,7 +180,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     : Number.isFinite(Number(options.pageCount)) && Number(options.pageCount) > 0
       ? Math.floor(Number(options.pageCount))
       : null;
-  const hasKnownPageCount = totalPages !== null || isBookmarksAlbum;
+  let hasKnownPageCount = totalPages !== null || isBookmarksAlbum;
   let noteSize = options.size || null;
   let noteTitle = String(
     options.title || options.noteTitle || (isBookmarksAlbum ? BOOKMARKS_NOTE_TITLE : '')
@@ -226,6 +226,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       const base = buildPageImageUrl(entry.folderUrl, entry.pageNumber);
       return mediaVersion ? `${base}?v=${mediaVersion}` : base;
     }
+    const mapped = pageUrlByNumber.get(num);
+    if (mapped) {
+      return mediaVersion ? `${mapped}${mapped.includes('?') ? '&' : '?'}v=${mediaVersion}` : mapped;
+    }
+    if (!folderUrl) return '';
     const base = buildPageImageUrl(folderUrl, num);
     return mediaVersion ? `${base}?v=${mediaVersion}` : base;
   }
@@ -731,7 +736,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           return;
         }
       }
-      showOverlay('페이지 이미지를 불러올 수 없습니다. pdf_folder_url을 확인해주세요.');
+      showOverlay('페이지 이미지를 불러올 수 없습니다.');
       console.error('Note page image load error:', pageImageSrc(num));
     }
   }
@@ -816,6 +821,23 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const nextCount = Math.max(0, Math.floor(Number(result?.pageCount) || 0));
     if (nextFolder) folderUrl = nextFolder;
     if (nextCount > 0) totalPages = nextCount;
+    const publicId = String(shareNote?.publicId || options.note?.publicId || '').trim();
+    if (publicId) {
+      try {
+        const listed = await fetchNotePages(publicId);
+        pageUrlByNumber.clear();
+        for (const page of listed.pages) {
+          pageUrlByNumber.set(page.pageNumber, page.url);
+        }
+        if (listed.folder) folderUrl = listed.folder;
+        if (listed.pageCount > 0) {
+          totalPages = listed.pageCount;
+          hasKnownPageCount = true;
+        }
+      } catch (err) {
+        console.warn('NoteImageViewer: 페이지 목록 새로고침 실패', err);
+      }
+    }
     mediaVersion = Date.now();
     preloadedImages.clear();
     bookmarkedByPage.clear();
@@ -844,6 +866,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       if (note) {
         title = String(note.title || note.name || title || '').trim();
         noteTitle = title;
+        if (!shareNote) shareNote = note;
+        if (!folderUrl && note.publicId) folderUrl = notePagesFolder(note.publicId);
         if (!folderUrl && note.pdfFolderUrl) folderUrl = String(note.pdfFolderUrl).trim();
         if (totalPages == null && note.pageCount) totalPages = Math.floor(Number(note.pageCount));
       }
@@ -856,6 +880,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       note: {
         id: noteId,
         title,
+        publicId: shareNote?.publicId || '',
         pdfFolderUrl: folderUrl,
         pageCount: totalPages ?? 0
       },
@@ -927,7 +952,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     shareNote = note;
     noteId = note.id || noteId;
     if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
-    if (!folderUrl && note.pdfFolderUrl) folderUrl = String(note.pdfFolderUrl).trim();
+    if (note.publicId && !folderUrl) folderUrl = notePagesFolder(note.publicId);
     if (totalPages === null && note.pageCount) {
       totalPages = Math.floor(Number(note.pageCount));
     }
@@ -981,28 +1006,37 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
 
     const note = await resolveShareNote();
-    if (!folderUrl) {
-      /* /note/:slug 직접 진입: 노트 조회 후 뷰어 선택 */
-      if (note?.pdfFolderUrl) {
-        folderUrl = String(note.pdfFolderUrl).trim();
-      } else if (!note && !isModal) {
-        showOverlay('노트를 찾을 수 없습니다.');
-        return;
-      } else if (note?.pdfUrl || !isModal) {
-        /* 아직 마이그레이션 전(pdf_folder_url 없음): 기존 PDF 뷰어로 폴백 */
-        cleanup();
-        renderPdfViewer(targetEl, noteId, {
-          mode: isModal ? 'modal' : 'page',
-          pdfUrl: note?.pdfUrl,
-          size: note?.size || noteSize,
-          note
-        });
-        return;
-      } else {
-        showOverlay('노트 페이지 이미지를 찾을 수 없습니다. Notion의 pdf_folder_url을 확인해주세요.');
-        return;
+    if (!note && !isModal) {
+      showOverlay('노트를 찾을 수 없습니다.');
+      return;
+    }
+
+    const publicId = String(note?.publicId || options.note?.publicId || '').trim();
+    if (publicId) {
+      try {
+        showOverlay('페이지 불러오는 중...');
+        const listed = await fetchNotePages(publicId);
+        pageUrlByNumber.clear();
+        for (const page of listed.pages) {
+          pageUrlByNumber.set(page.pageNumber, page.url);
+        }
+        if (listed.folder) folderUrl = listed.folder;
+        if (listed.pageCount > 0) {
+          totalPages = listed.pageCount;
+          hasKnownPageCount = true;
+        }
+      } catch (err) {
+        console.warn('NoteImageViewer: 페이지 목록 로드 실패', err);
       }
     }
+
+    if (!folderUrl && publicId) folderUrl = notePagesFolder(publicId);
+
+    if (!pageUrlByNumber.size && !folderUrl) {
+      showOverlay('노트 페이지 이미지를 찾을 수 없습니다.');
+      return;
+    }
+
     syncShareButton();
     /* Cloudinary metadata visible=false 페이지 목록 조회 후 시작 (실패 시 전체 노출) */
     hiddenPages = await fetchHiddenPages(folderUrl);
@@ -1155,7 +1189,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
 /**
  * /note/:id 라우트용: main-content에 전체 페이지로 렌더링
- * pdf_folder_url이 있으면 이미지 뷰어, 없으면 기존 PDF 뷰어로 폴백합니다.
  */
 export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');
