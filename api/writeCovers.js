@@ -7,17 +7,18 @@
  *   "file": "data:image/...;base64,...." | raw base64,
  *   "filename": "노트명",
  *   "kind": "front" | "back",
- *   "noteName": "노트명"  // public_id로 사용 (우선)
+ *   "noteName": "노트명",
+ *   "publicId": "DIRY-2024-0001"  // 있으면 폴더명으로 사용
  * }
  *
  * 업로드 위치:
- *   Notebooks_v3/Cover/Front/{노트명}
- *   Notebooks_v3/Cover/Back/{노트명}
+ *   notebooks/{publicId 또는 노트명}/cover_front
+ *   notebooks/{publicId 또는 노트명}/cover_back
  */
 import crypto from 'crypto';
 import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
 
-const COVER_ROOT = process.env.CLOUDINARY_COVER_FOLDER || 'Notebooks_v3/Cover';
+const NOTEBOOKS_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
 const MAX_BYTES = 8 * 1024 * 1024; /* ~8MB raw (base64는 더 큼) */
 
 function parseDataUrl(input) {
@@ -52,9 +53,15 @@ function sanitizePublicIdStem(name) {
   );
 }
 
-function coverFolderForKind(kind) {
-  const root = String(COVER_ROOT || 'Notebooks_v3/Cover').replace(/\/+$/, '');
-  return kind === 'back' ? `${root}/Back` : `${root}/Front`;
+function coverUploadTarget(kind, body) {
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  const stem = sanitizePublicIdStem(body.publicId || body.noteName || body.filename || `cover-${kind}`);
+  const fileId = kind === 'back' ? 'cover_back' : 'cover_front';
+  return {
+    folder: `${root}/${stem}`,
+    publicId: fileId,
+    displayName: fileId
+  };
 }
 
 export default async function handler(req, res) {
@@ -87,13 +94,11 @@ export default async function handler(req, res) {
 
     const kind = body.kind === 'back' ? 'back' : 'front';
     const ext = extensionFromMime(parsed.mime);
-    const folder = coverFolderForKind(kind);
-    const stem = sanitizePublicIdStem(body.noteName || body.filename || `cover-${kind}`);
+    const { folder, publicId, displayName } = coverUploadTarget(kind, body);
     const timestamp = Math.floor(Date.now() / 1000);
-    /* folder 파라미터와 별도로, public_id에는 폴더 prefix를 넣지 않음 — 노트명 그대로 */
-    const publicId = stem;
 
     const paramsToSign = {
+      display_name: displayName,
       folder,
       invalidate: 'true',
       overwrite: 'true',
@@ -116,6 +121,7 @@ export default async function handler(req, res) {
     form.append('signature', signature);
     form.append('folder', folder);
     form.append('public_id', publicId);
+    form.append('display_name', displayName);
     form.append('overwrite', 'true');
     form.append('invalidate', 'true');
 

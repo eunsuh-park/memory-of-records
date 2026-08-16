@@ -5,6 +5,7 @@ import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
 import { parseNotionFavorites } from '../utils/noteFavorites.js';
+import { attachNoteCovers, clearNoteCoversCache, fetchNoteCovers } from './noteCovers.js';
 
 const NOTEBOOK_DB_ID = '18dfb9c7066e4df99962c5fed616b3db';
 
@@ -197,6 +198,11 @@ export function convertNotionPageToNotebook(page) {
     );
   }
 
+  const rawPublicId = parseNotionProperty(
+    getProperty(properties, 'public_id', 'Public ID', 'publicId', 'Public id')
+  );
+  const publicId =
+    rawPublicId != null && String(rawPublicId).trim() ? String(rawPublicId).trim() : null;
   const rawFront =
     normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
   const rawBack = normalizeUrlValue(rawCoverBack);
@@ -242,6 +248,7 @@ export function convertNotionPageToNotebook(page) {
 
   return {
     id: page?.id || '',
+    publicId,
     title,
     type,
     notebookType,
@@ -296,11 +303,15 @@ export async function getNotionNotebooks(options = {}) {
   if (cached.data) return cached.data;
   if (cached.promise) return cached.promise;
 
-  cached.promise = fetchNotionNotebooks({ visibility })
-    .then((notebooks) => {
-      cached.data = notebooks;
+  cached.promise = Promise.all([
+    fetchNotionNotebooks({ visibility }),
+    fetchNoteCovers()
+  ])
+    .then(([notebooks, covers]) => {
+      const attached = attachNoteCovers(notebooks, covers);
+      cached.data = attached;
       cachedNotionNotebooks.set(visibility, cached);
-      return notebooks;
+      return attached;
     })
     .catch((error) => {
       cached.data = null;
@@ -320,6 +331,7 @@ export function getCachedNotionNotebooks(visibility = 'public') {
 /** 새 노트 추가 후 목록을 다시 불러오도록 캐시 비우기 */
 export function clearNotionNotebooksCache() {
   cachedNotionNotebooks.clear();
+  clearNoteCoversCache();
 }
 
 export function getNotebookDbId() {

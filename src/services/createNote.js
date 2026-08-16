@@ -53,7 +53,8 @@ export async function fetchNoteFormMeta() {
  *   file: string,
  *   filename?: string,
  *   kind: 'front'|'back',
- *   noteName?: string
+ *   noteName?: string,
+ *   publicId?: string
  * }} payload
  * @returns {Promise<{ url: string, width?: number, height?: number }>}
  */

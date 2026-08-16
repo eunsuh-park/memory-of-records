@@ -519,13 +519,15 @@ export async function openAddNoteModal(options = {}) {
           file: frontDataUrl,
           filename: metaPayload.name,
           kind: 'front',
-          noteName: metaPayload.name
+          noteName: metaPayload.name,
+          publicId: seed?.publicId
         }),
         uploadCoverImage({
           file: backDataUrl,
           filename: metaPayload.name,
           kind: 'back',
-          noteName: metaPayload.name
+          noteName: metaPayload.name,
+          publicId: seed?.publicId
         })
       ]);
       coversUploaded = true;

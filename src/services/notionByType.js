@@ -5,6 +5,7 @@ import { parseNotionProperty } from './notion.js';
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
 import { parseNotionFavorites } from '../utils/noteFavorites.js';
+import { attachNoteCovers, clearNoteCoversCache, fetchNoteCovers } from './noteCovers.js';
 
 /** visibility → { data, promise } */
 const cachedNotionTypeItems = new Map();
@@ -171,6 +172,11 @@ export function convertNotionPageToTypeItem(page) {
   );
   const rawCoverFront = parseNotionProperty(coverFrontProperty);
   const rawCoverBack = parseNotionProperty(coverBackProperty);
+  const rawPublicId = parseNotionProperty(
+    getProperty(properties, 'public_id', 'Public ID', 'publicId', 'Public id')
+  );
+  const publicId =
+    rawPublicId != null && String(rawPublicId).trim() ? String(rawPublicId).trim() : null;
   const rawFront = normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
   const rawBack = normalizeUrlValue(rawCoverBack);
   const coverFrontUrl = rawFront ? optimizeImageUrl(rawFront) || rawFront : null;
@@ -198,6 +204,7 @@ export function convertNotionPageToTypeItem(page) {
 
   return {
     id: page?.id || '',
+    publicId,
     title,
     type,
     notebookType: type,
@@ -254,11 +261,15 @@ export async function getNotionTypeItems(options = {}) {
   if (cached.data) return cached.data;
   if (cached.promise) return cached.promise;
 
-  cached.promise = fetchNotionTypeItems({ visibility })
-    .then((items) => {
-      cached.data = items;
+  cached.promise = Promise.all([
+    fetchNotionTypeItems({ visibility }),
+    fetchNoteCovers()
+  ])
+    .then(([items, covers]) => {
+      const attached = attachNoteCovers(items, covers);
+      cached.data = attached;
       cachedNotionTypeItems.set(visibility, cached);
-      return items;
+      return attached;
     })
     .catch((error) => {
       cached.data = null;
@@ -278,5 +289,6 @@ export function getCachedNotionTypeItems(visibility = 'public') {
 /** 새 노트 추가 후 목록을 다시 불러오도록 캐시 비우기 */
 export function clearNotionTypeItemsCache() {
   cachedNotionTypeItems.clear();
+  clearNoteCoversCache();
 }
 

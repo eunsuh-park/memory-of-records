@@ -36,8 +36,12 @@ export function parseNotionProperty(property) {
         property.files?.[0]?.file?.url || property.files?.[0]?.external?.url || null;
       return raw ? optimizeImageUrl(raw) || raw : null;
     }
-    default:
+    default: {
+      if (Array.isArray(property.rich_text)) {
+        return property.rich_text[0]?.plain_text || '';
+      }
       return null;
+    }
   }
 }
 
