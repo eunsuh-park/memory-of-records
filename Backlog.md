@@ -5,7 +5,8 @@ Memory of Records — 요청·아이디어 누적 목록.
 > 마지막 enrich: 260812  
 > Inbox 잔여: 0  
 > 소스: Notion 백로그(정리 기준일 2026-08-07) → capture 260812 → enrich 260812  
-> 코드 반영 참고: main에 PR #19–22 · #26(Favorites) · #27(Favorites UI) · #29(Bookmark Note) 머지됨. 이번 정리에서 #23(모바일 인디케이터) 합침. 미머지 초안: PR #24(slug·JPG·비공개 업로드·2-page gap 등). #25·#28은 main에 흡수되어 폐기.
+> 코드 반영 참고: main에 PR #19–22 · #26(Favorites) · #27(Favorites UI) · #29(Bookmark Note) 머지됨. 이번 정리에서 #23(모바일 인디케이터) 합침. 미머지 초안: PR #24(slug·JPG·비공개 업로드·2-page gap 등). #25·#28은 main에 흡수되어 폐기.  
+> 버전 메모 (260816): 현재 목표 릴리즈 **0.4.5**. OCR(영역 감지·날짜 인식)은 **v1.0.0**에서 진행.
 
 - 수집: `backlog-capture` · 정리: `backlog-enrich` · 실행: `backlog-to-roadmap` → `Roadmap.md`
 
@@ -221,11 +222,13 @@ Memory of Records — 요청·아이디어 누적 목록.
 - 화면/진입: AddPageModal / PageMetaModal OCR
 - 열린 질문: 감지 알고리즘(클라이언트 vs 서버) · 영역 저장 포맷
 - 원문 메모: 「사전 스캔 영역 · 수정 UI · OCR 재생성」
+- (추가 260816) 사용자: 현재 버전을 0.4.5로 볼 때 **v1.0.0에서 진행**. 0.4.x / 0.5.x 스프린트에 넣지 않음
 
 ### OCR로 날짜 자동 인식 → 제목/메타 `(수집 260812)`
 - 상태: backlog
 - 우선순위: P2 — OCR 영역 감지에 의존
 - 원문 메모: 「날짜 자동 인식」
+- (추가 260816) 사용자: **v1.0.0** (영역 감지와 같이)
 
 ### 「사용 중인 노트」Chip `(수집 260812)`
 - 상태: backlog
@@ -283,7 +286,24 @@ Memory of Records — 요청·아이디어 누적 목록.
 
 ---
 
+### Notion URL을 새 Cloudinary public_id에 맞추기 `(수집 260816)`
+- 상태: backlog
+- 우선순위: P1 — 0.4.5 폴더 정리 직후 남은 일. 앱이 예전 URL을 보고 있음
+- 목적: `cover_*_url` / `pdf_url` / `pdf_folder_url`을 `notebooks/{public_id}/...`로 맞춤
+- 화면/진입: Notion `all_notebooks` · 이미지 뷰어 / PdfModal 폴백
+- 시나리오: 복원한 `2008_일기장_2`(DIRY-2008-0003)만 이미 갱신됨. 나머지 69권은 예전 public_id
+- 열린 질문: 일괄 갱신할지, 앱이 `public_id`만으로 경로를 조립하게 바꿀지
+- 원문 메모: 「Cloudinary rename 후 Notion URL은 읽기만 함」
+
+---
+
 ## 그룹: 완료 기록 (Phase 1 등)
+
+### Cloudinary 폴더 마이그레이션 `notebooks/{public_id}` `(수집 260816)`
+- 상태: done (260814–260816 · PR #38)
+- 우선순위: —
+- 목적: v1/v2/v3에 흩어진 표지·페이지·PDF를 Notion public_id 폴더로 rename
+- 원문 메모: 「표지 70 · 페이지 388 · PDF 18 · trash에서 2008_일기장_2 복원 · 2026 두 권은 trash에 유지」
 
 ### Phase 1 버그·UX 묶음 · 스토리 개편 `(수집 260812)`
 - 상태: done (Notion·다수 PR)
