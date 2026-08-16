@@ -18,6 +18,7 @@ import {
   mount as mountNoteDetailPage
 } from '../NoteDetailPage/NoteDetailPage.js';
 import { showToast } from '../Toast/Toast.js';
+import { findNoteByRouteParam } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 import './PdfModal.css';
@@ -58,9 +59,10 @@ async function findNoteMetaById(noteId) {
   ]);
   const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
   const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
+  const notes = [...(notebooks || []), ...(typeItems || [])];
   return (
-    (notebooks || []).find((note) => note.id === noteId) ||
-    (typeItems || []).find((note) => note.id === noteId) ||
+    findNoteByRouteParam(notes, noteId) ||
+    notes.find((note) => note.id === noteId) ||
     null
   );
 }

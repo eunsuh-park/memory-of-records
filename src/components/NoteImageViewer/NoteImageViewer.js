@@ -34,6 +34,11 @@ import {
   ensureBookmarkNoteCovers
 } from '../../utils/bookmarksNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
+import {
+  buildNoteSlug,
+  copyNoteShareUrl,
+  findNoteByRouteParam
+} from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -80,18 +85,28 @@ function fetchHiddenPages(folderUrl, { force = false } = {}) {
   return promise;
 }
 
-async function findNoteById(noteId) {
+async function loadAllNotes() {
   const [notebookResult, typeResult] = await Promise.allSettled([
     getNotionNotebooks(),
     getNotionTypeItems()
   ]);
   const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
   const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
-  return (
-    (notebooks || []).find((note) => note.id === noteId) ||
-    (typeItems || []).find((note) => note.id === noteId) ||
-    null
-  );
+  const byId = new Map();
+  for (const note of [...(notebooks || []), ...(typeItems || [])]) {
+    if (note?.id && !byId.has(note.id)) byId.set(note.id, note);
+  }
+  return Array.from(byId.values());
+}
+
+/** UUID 또는 slug로 노트 조회 */
+async function findNoteByRouteParamAsync(param) {
+  return findNoteByRouteParam(await loadAllNotes(), param);
+}
+
+async function findNoteById(noteId) {
+  const notes = await loadAllNotes();
+  return notes.find((note) => note.id === noteId) || null;
 }
 
 /**
@@ -105,7 +120,9 @@ async function findNoteById(noteId) {
 export function renderNoteImageViewer(targetEl, id, options = {}) {
   if (!targetEl) return null;
 
-  const noteId = decodeURIComponent(String(id || '')).trim();
+  const routeParam = decodeURIComponent(String(id || '')).trim();
+  let noteId = routeParam;
+  let shareNote = options.note || null;
   const isModal = options.mode === 'modal';
   const isBookmarksAlbum = isBookmarksNoteId(noteId);
 
@@ -145,6 +162,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
   const addPageBtn = targetEl.querySelector('.niv-add-page');
+  const shareNoteBtn = targetEl.querySelector('.niv-share-note');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
   const bookmarkBtns = [...targetEl.querySelectorAll('.niv-bookmark')];
   const currentPageEl = targetEl.querySelector('.niv-current-page');
@@ -861,7 +879,65 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     showPage(firstVisible);
   }
 
+  function syncShareButton() {
+    if (!shareNoteBtn) return;
+    const hide = isBookmarksAlbum || isAlbumMode || !noteId;
+    shareNoteBtn.hidden = hide;
+    shareNoteBtn.setAttribute('aria-hidden', hide ? 'true' : 'false');
+  }
+
+  async function copyShareLink() {
+    if (isBookmarksAlbum || isAlbumMode) {
+      showToast('이 모아보기는 공유할 수 없습니다.');
+      return;
+    }
+    const note =
+      shareNote ||
+      (noteId
+        ? { id: noteId, title: noteTitle, slug: buildNoteSlug({ id: noteId, title: noteTitle }) }
+        : null);
+    try {
+      await copyNoteShareUrl(note);
+      showToast('노트 링크를 복사했습니다');
+    } catch (err) {
+      console.warn('NoteImageViewer: share copy failed', err);
+      showToast(err?.message || '링크 복사에 실패했습니다');
+    }
+  }
+
+  function applyCanonicalNoteUrl(note) {
+    if (isModal || !note?.id) return;
+    const slugPath = `/note/${encodeURIComponent(buildNoteSlug(note))}`;
+    const base = import.meta.env.BASE_URL || '/';
+    const full = base === '/' ? slugPath : `${base.replace(/\/$/, '')}${slugPath}`;
+    if (window.location.pathname !== full) {
+      window.history.replaceState({}, '', full);
+    }
+  }
+
+  async function resolveShareNote() {
+    if (shareNote && folderUrl) {
+      noteId = shareNote.id || noteId;
+      applyCanonicalNoteUrl(shareNote);
+      return shareNote;
+    }
+    showOverlay('노트 불러오는 중...');
+    const note = shareNote || (await findNoteByRouteParamAsync(routeParam));
+    if (!note) return null;
+    shareNote = note;
+    noteId = note.id || noteId;
+    if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
+    if (!folderUrl && note.pdfFolderUrl) folderUrl = String(note.pdfFolderUrl).trim();
+    if (totalPages === null && note.pageCount) {
+      totalPages = Math.floor(Number(note.pageCount));
+    }
+    if (!noteSize && note.size) noteSize = note.size;
+    applyCanonicalNoteUrl(note);
+    return note;
+  }
+
   async function initViewer() {
+    syncShareButton();
     if (isBookmarksAlbum) {
       showOverlay('북마크 불러오는 중...');
       try {
@@ -891,6 +967,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
 
     if (isAlbumMode) {
+      syncShareButton();
       totalPages = albumPages.length;
       hiddenPages = new Set();
       if (!albumPages.length) {
@@ -903,24 +980,22 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       return;
     }
 
+    const note = await resolveShareNote();
     if (!folderUrl) {
-      /* /note/:id 직접 진입: 노트 조회 후 뷰어 선택 */
-      showOverlay('노트 불러오는 중...');
-      const note = await findNoteById(noteId);
+      /* /note/:slug 직접 진입: 노트 조회 후 뷰어 선택 */
       if (note?.pdfFolderUrl) {
         folderUrl = String(note.pdfFolderUrl).trim();
-        if (totalPages === null && note.pageCount) {
-          totalPages = note.pageCount;
-        }
-        if (!noteSize && note.size) noteSize = note.size;
-        if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
+      } else if (!note && !isModal) {
+        showOverlay('노트를 찾을 수 없습니다.');
+        return;
       } else if (note?.pdfUrl || !isModal) {
         /* 아직 마이그레이션 전(pdf_folder_url 없음): 기존 PDF 뷰어로 폴백 */
         cleanup();
         renderPdfViewer(targetEl, noteId, {
           mode: isModal ? 'modal' : 'page',
           pdfUrl: note?.pdfUrl,
-          size: note?.size || noteSize
+          size: note?.size || noteSize,
+          note
         });
         return;
       } else {
@@ -928,6 +1003,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         return;
       }
     }
+    syncShareButton();
     /* Cloudinary metadata visible=false 페이지 목록 조회 후 시작 (실패 시 전체 노출) */
     hiddenPages = await fetchHiddenPages(folderUrl);
     startViewer();
@@ -949,6 +1025,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   pageInfoBtn?.addEventListener('click', () => openCurrentPageMeta());
   addPageBtn?.addEventListener('click', () => {
     void openInsertPageModal();
+  });
+  shareNoteBtn?.addEventListener('click', () => {
+    void copyShareLink();
   });
   bookmarkBtns.forEach((btn) => {
     btn.addEventListener('click', () => {

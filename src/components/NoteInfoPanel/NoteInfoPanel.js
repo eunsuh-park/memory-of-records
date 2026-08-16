@@ -86,6 +86,33 @@ export function renderNoteIndicator(index, total) {
  * @param {boolean} favorites
  * @param {'desktop'|'mobile'} variant
  */
+/**
+ * @param {string} noteId
+ * @param {'desktop'|'mobile'} variant
+ */
+function renderShareButton(noteId, variant = 'desktop') {
+  return renderButton({
+    shape: 'circle',
+    size: 's',
+    role: 'toolbar',
+    tone: 'ghost',
+    ariaLabel: '공유 링크 복사',
+    title: '공유 링크 복사',
+    content: MINGCUTE.share2Line,
+    className: `jukebox-focus-info__share jukebox-focus-info__share--${variant}`,
+    dataset: {
+      'note-id': noteId,
+      action: 'share',
+      variant
+    }
+  });
+}
+
+/**
+ * @param {string} noteId
+ * @param {boolean} favorites
+ * @param {'desktop'|'mobile'} variant
+ */
 function renderFavoriteButton(noteId, favorites, variant = 'desktop') {
   const pressed = Boolean(favorites);
   /* 모바일 off만 star-line, 그 외(데스크톱·on)는 star-fill */
@@ -151,6 +178,8 @@ export function render(note, filterMode, opts = {}) {
   const noteId = escapeHtml(note.id || '');
   const isBookmarks = isBookmarksNoteId(note.id);
   const favorites = isFavoriteNote(note);
+  const shareBtnDesktop = isBookmarks ? '' : renderShareButton(noteId, 'desktop');
+  const shareBtnMobile = isBookmarks ? '' : renderShareButton(noteId, 'mobile');
   const favoriteBtnDesktop = isBookmarks
     ? ''
     : renderFavoriteButton(noteId, favorites, 'desktop');
@@ -196,6 +225,7 @@ export function render(note, filterMode, opts = {}) {
         <div class="jukebox-focus-info__header">
           <h2 class="jukebox-focus-info__title">${title}</h2>
           <div class="jukebox-focus-info__actions">
+            ${shareBtnDesktop}
             ${favoriteBtnDesktop}
             ${editActions}
             ${
@@ -216,6 +246,7 @@ export function render(note, filterMode, opts = {}) {
       <div class="jukebox-focus-info__mobile">
         <div class="jukebox-focus-info__mobile-row">
           <p class="jukebox-focus-info__note-title">${title}</p>
+          ${shareBtnMobile}
           ${favoriteBtnMobile}
         </div>
         ${

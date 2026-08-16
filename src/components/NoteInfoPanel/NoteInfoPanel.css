@@ -38,7 +38,8 @@
   flex-shrink: 0;
 }
 
-/* 즐겨찾기: ghost toolbar — false=회색, true=primary */
+/* 공유 · 즐겨찾기: ghost toolbar — 기본 회색, 호버 primary */
+button.jukebox-focus-info__share.btn,
 button.jukebox-focus-info__favorite.btn {
   color: var(--color-text-muted);
   background: transparent;
@@ -51,6 +52,7 @@ button.jukebox-focus-info__favorite.btn[aria-pressed='true'] {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  button.jukebox-focus-info__share.btn:hover,
   button.jukebox-focus-info__favorite.btn:hover {
     color: var(--color-primary);
     background: transparent;
@@ -58,6 +60,7 @@ button.jukebox-focus-info__favorite.btn[aria-pressed='true'] {
   }
 }
 
+button.jukebox-focus-info__share.btn:focus-visible,
 button.jukebox-focus-info__favorite.btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -74,6 +77,7 @@ button.jukebox-focus-info__delete.btn:disabled {
 }
 
 /* 모바일 변형: off=white 50% (전용 0.5 토큰 없음 → --white color-mix), on=primary */
+button.jukebox-focus-info__share--mobile.btn,
 button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']) {
   color: color-mix(in srgb, var(--white) 50%, transparent);
 }
@@ -84,6 +88,7 @@ button.jukebox-focus-info__favorite--mobile.btn[aria-pressed='true'] {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  button.jukebox-focus-info__share--mobile.btn:hover,
   button.jukebox-focus-info__favorite--mobile.btn:not(.is-favorite):not([aria-pressed='true']):hover {
     color: color-mix(in srgb, var(--white) 70%, transparent);
   }

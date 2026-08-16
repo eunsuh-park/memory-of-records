@@ -104,5 +104,9 @@ export const MINGCUTE = {
 
   /** 노트 삭제 (휴지통) · mingcute:delete-2-fill */
   delete2Fill:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M7.823 3.368A2 2 0 0 1 9.721 2h4.558a2 2 0 0 1 1.898 1.368L16.72 5H20a1 1 0 1 1 0 2h-.064l-.814 12.2A3 3 0 0 1 16.13 22H7.87a3 3 0 0 1-2.993-2.8L4.064 7H4a1 1 0 0 1 0-2h3.28zM14.613 5H9.387l.334-1h4.558zM9 10a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1m6 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1' clip-rule='evenodd'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M7.823 3.368A2 2 0 0 1 9.721 2h4.558a2 2 0 0 1 1.898 1.368L16.72 5H20a1 1 0 1 1 0 2h-.064l-.814 12.2A3 3 0 0 1 16.13 22H7.87a3 3 0 0 1-2.993-2.8L4.064 7H4a1 1 0 0 1 0-2h3.28zM14.613 5H9.387l.334-1h4.558zM9 10a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1m6 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1' clip-rule='evenodd'/></svg>",
+
+  /** 노트 공유 링크 복사 · mingcute:share-2-line */
+  share2Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='m16.407 6.81l-6 3.145m0 4.089l6 3.145M11 12a4 4 0 1 1-8 0a4 4 0 0 1 8 0Zm10-6.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0Zm0 13a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0Z'/></svg>"
 };
