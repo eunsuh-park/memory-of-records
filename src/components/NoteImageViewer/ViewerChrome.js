@@ -91,6 +91,16 @@ export function renderBottomSheet() {
         className: 'niv-sheet-btn niv-add-page auth-only'
       })}
       ${renderBookmarkButton(false, 'desktop')}
+      ${renderButton({
+        shape: 'circle',
+        size: 's',
+        role: 'toolbar',
+        tone: 'ghost',
+        ariaLabel: '노트 링크 복사',
+        title: '공유 링크 복사',
+        content: MINGCUTE.share2Line,
+        className: 'niv-sheet-btn niv-share-note'
+      })}
       <div class="niv-sheet-progress">
         ${renderButton({
           shape: 'circle',

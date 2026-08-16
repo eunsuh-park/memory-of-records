@@ -584,6 +584,21 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
+            '노트 공유 — ghost toolbar · share-2-line (주크박스 포커스 · 뷰어 시트)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '공유 링크 복사',
+                title: '공유 링크 복사',
+                content: MINGCUTE.share2Line,
+                className: 'jukebox-focus-info__share jukebox-focus-info__share--desktop'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
             '주크박스 포커스 액션 — 삭제 (수정·페이지 추가와 같은 primary 원형)',
             [
               renderButton({

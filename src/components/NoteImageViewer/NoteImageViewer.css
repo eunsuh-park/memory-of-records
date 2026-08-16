@@ -111,6 +111,10 @@
   min-height: 2.35rem;
 }
 
+.note-image-viewer .btn.niv-share-note[hidden] {
+  display: none;
+}
+
 .note-image-viewer .btn.niv-sheet-btn:focus-visible,
 .note-image-viewer .btn.niv-sheet-nav:focus-visible {
   background: var(--color-chrome-on-hover);

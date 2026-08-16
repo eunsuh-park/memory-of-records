@@ -34,6 +34,7 @@ import {
   isBookmarksNoteId
 } from '../../utils/bookmarksNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
+import { copyNoteShareUrl } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -708,7 +709,8 @@ function openNoteModal(note) {
         pdfFolderUrl,
         pageCount: note?.pageCount,
         size: note?.size,
-        title: note?.title || note?.name || ''
+        title: note?.title || note?.name || '',
+        note
       })
     : renderPdfViewer(content, noteId, { mode: 'modal', pdfUrl, size: note?.size });
 
@@ -932,6 +934,24 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
+      const shareBtn = e.target?.closest?.('.jukebox-focus-info__share');
+      if (shareBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const noteId = shareBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note || isBookmarksNoteId(note.id)) return;
+        void copyNoteShareUrl(note)
+          .then(() => {
+            showToast('노트 링크를 복사했습니다');
+          })
+          .catch((err) => {
+            console.warn('Jukebox: share copy failed', err);
+            showToast(err?.message || '링크 복사에 실패했습니다');
+          });
+        return;
+      }
+
       const favoriteBtn = e.target?.closest?.('.jukebox-focus-info__favorite');
       if (favoriteBtn) {
         e.preventDefault();
