@@ -16,9 +16,8 @@ const UUID_RE =
  * @returns {string}
  */
 export function slugifyTitle(title) {
+  /* NFKD는 한글 음절을 자모로 분해해서 가-힣 필터에 걸러진다. 쓰지 않는다. */
   const raw = String(title || '')
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
   const ascii = raw
