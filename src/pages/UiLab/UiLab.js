@@ -713,7 +713,7 @@ export function renderUiLab() {
             <li>하단 시트 5칸: 페이지 정보 · 페이지 추가 · 북마크 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구</li>
             <li>모바일 북마크는 양면 토글 위 FAB로 표시되고, 시트 안 북마크는 숨깁니다</li>
             <li>북마크는 Cloudinary <code>is_bookmarked</code>와 연결되며, 변경 시 토스트를 띄웁니다</li>
-            <li>양면 토글은 <code>aria-pressed</code>로 켜짐을 표시하고, 켜지면 배경이 진해집니다</li>
+            <li>양면 토글은 3D 책장(BookFlip3D)과 2D 페이지 보기를 바꿉니다. 3D가 꺼져 있을 때만 기존 2D 양면 붙이기를 씁니다</li>
             <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
             <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구</li>
           </ul>
@@ -819,6 +819,7 @@ export function renderUiLab() {
             <code>src/components/NoteImageViewer/NoteImageViewer.js</code>,
             <code>src/components/NoteImageViewer/ViewerChrome.js</code>,
             <code>src/components/NoteImageViewer/NoteImageViewer.css</code>,
+            <code>src/lib/BookFlip3D.js</code>,
             <code>src/components/PdfModal/PdfModal.js</code>,
             <code>src/components/PdfModal/PdfModal.css</code>
           </p>
