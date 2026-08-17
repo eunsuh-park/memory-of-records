@@ -37,6 +37,7 @@ import { attachSourceNotes } from '../../utils/sourceNote.js';
 import {
   buildNoteSlug,
   copyNoteShareUrl,
+  decodeRouteParam,
   findNoteByRouteParam,
   noteHref,
   normalizeSharePage,
@@ -158,7 +159,7 @@ async function findNoteById(noteId) {
 export function renderNoteImageViewer(targetEl, id, options = {}) {
   if (!targetEl) return null;
 
-  const routeParam = decodeURIComponent(String(id || '')).trim();
+  const routeParam = decodeRouteParam(id);
   let noteId = routeParam;
   let shareNote = options.note || null;
   const isModal = options.mode === 'modal';
@@ -1242,7 +1243,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function applyCanonicalNoteUrl(note, page) {
-    if (isModal || isAlbumMode || isBookmarksAlbum || !note?.id) return;
+    if (isAlbumMode || isBookmarksAlbum || !note?.id) return;
     const href = noteHref(note, page);
     if (!href || href.endsWith('/note')) return;
     const current = `${window.location.pathname}${window.location.search}`;
@@ -1252,7 +1253,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function syncShareUrl() {
-    if (isModal || isAlbumMode || isBookmarksAlbum || !shareNote?.id || !ready) return;
+    if (isAlbumMode || isBookmarksAlbum || !shareNote?.id || !ready) return;
     const page = sharePageNumber();
     const href = noteHref(shareNote, page);
     if (!href || href === lastSyncedShareHref) return;

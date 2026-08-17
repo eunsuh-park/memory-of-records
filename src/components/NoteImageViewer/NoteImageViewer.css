@@ -108,7 +108,7 @@
   transform: translateX(-50%);
   z-index: 5;
   display: grid;
-  grid-template-columns: auto auto auto 1fr auto;
+  grid-template-columns: auto auto auto auto 1fr auto;
   align-items: center;
   gap: var(--space-1);
   width: min(420px, calc(100% - var(--space-6)));

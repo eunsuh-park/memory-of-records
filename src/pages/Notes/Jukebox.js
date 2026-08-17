@@ -43,6 +43,16 @@ const JUKEBOX_LOADING_LOTTIE = 'https://lottie.host/1ff458b1-27f6-4957-92d6-f3d5
 const TRANSPARENT_PIXEL =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
+function currentLocationHref() {
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function restoreLocationHref(href) {
+  const next = String(href || '');
+  if (!next || currentLocationHref() === next) return;
+  window.history.replaceState({}, '', next);
+}
+
 /** 화면 왼쪽 이 비율(0~1) 안에 마우스가 있으면 왼쪽 스크롤 (가장자리만 반응하도록 작게) */
 const EDGE_ZONE_LEFT = 0.12;
 /** 화면 오른쪽 이 비율(0~1) 안에 마우스가 있으면 오른쪽 스크롤 */
@@ -639,11 +649,13 @@ async function openBookmarksNoteModal(note) {
   content.innerHTML = `<div class="jukebox-empty" style="padding:2rem;text-align:center">북마크 불러오는 중…</div>`;
 
   let cleanupViewer = null;
+  const returnUrl = currentLocationHref();
   const closeModal = () => {
     cleanupViewer?.();
     overlay.remove();
     document.body.classList.remove('pdf-modal-open');
     document.removeEventListener('keydown', handleEscape);
+    restoreLocationHref(returnUrl);
   };
   const handleEscape = (e) => {
     if (e.key === 'Escape') closeModal();
@@ -699,6 +711,7 @@ function openNoteModal(note) {
   document.body.classList.add('pdf-modal-open');
 
   const content = overlay.querySelector('.pdf-modal-content');
+  const returnUrl = currentLocationHref();
   const cleanupViewer = renderNoteImageViewer(content, noteId, {
     mode: 'modal',
     pdfFolderUrl: note?.pdfFolderUrl,
@@ -713,6 +726,7 @@ function openNoteModal(note) {
     overlay.remove();
     document.body.classList.remove('pdf-modal-open');
     document.removeEventListener('keydown', handleEscape);
+    restoreLocationHref(returnUrl);
   };
 
   const handleEscape = (e) => {
