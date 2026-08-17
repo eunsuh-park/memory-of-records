@@ -711,12 +711,20 @@ export function createBookFlip3D(THREE, options) {
     buildOpenSpread();
   }
 
-  async function start({ initialClosedFace = null } = {}) {
+  async function start({ initialClosedFace = null, initialPageNumber = null } = {}) {
     await preloadEssential();
     resize();
     if (initialClosedFace === 'front' || initialClosedFace === 'back') {
       buildClosedCover(initialClosedFace);
     } else {
+      const pageNumber = Number(initialPageNumber);
+      if (Number.isFinite(pageNumber) && pageNumber >= 1) {
+        const index = pages.findIndex((page) => page.pageNumber === pageNumber);
+        if (index >= 0) {
+          const leftIndex = index % 2 === 0 ? index : Math.max(0, index - 1);
+          currentLeftIndex = Math.max(0, Math.min(LAST_LEFT_INDEX, leftIndex));
+        }
+      }
       buildOpenSpread();
     }
     tick();
