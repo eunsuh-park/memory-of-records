@@ -96,8 +96,8 @@ export function renderBottomSheet() {
         size: 's',
         role: 'toolbar',
         tone: 'ghost',
-        ariaLabel: '노트 링크 복사',
-        title: '공유 링크 복사',
+        ariaLabel: '현재 페이지 링크 복사',
+        title: '현재 페이지 링크 복사',
         content: MINGCUTE.share2Line,
         className: 'niv-sheet-btn niv-share-note'
       })}

@@ -37,7 +37,10 @@ import { attachSourceNotes } from '../../utils/sourceNote.js';
 import {
   buildNoteSlug,
   copyNoteShareUrl,
-  findNoteByRouteParam
+  findNoteByRouteParam,
+  noteHref,
+  normalizeSharePage,
+  parseSharePageParam
 } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
@@ -147,8 +150,9 @@ async function findNoteById(noteId) {
  * 페이지 이미지 뷰어를 targetEl에 렌더링합니다.
  * @param {HTMLElement} targetEl - 렌더 대상
  * @param {string} id - 노트 ID
- * @param {Object} options - { mode, pdfFolderUrl?, pageCount?, size?, pages? }
+ * @param {Object} options - { mode, pdfFolderUrl?, pageCount?, size?, pages?, initialPage? }
  *   pages가 있으면 폴더 순회 대신 해당 URL 목록을 가상 앨범으로 표시 (북마크 노트)
+ *   initialPage가 있으면 해당 장부터 연다. 전체 페이지 모드에서는 주소 `?p=`도 읽는다.
  * @returns {Function} cleanup 함수
  */
 export function renderNoteImageViewer(targetEl, id, options = {}) {
@@ -280,6 +284,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   let pageNum = 1;
+  /** 공유 링크로 연 시작 페이지. startViewer에서 한 번 쓰고 비운다. */
+  let requestedPage =
+    normalizeSharePage(options.initialPage) ||
+    (isModal ? null : parseSharePageParam());
+  let lastSyncedShareHref = '';
   let ready = false;
   let isSpreadMode = false;
   let renderToken = 0;
@@ -528,6 +537,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       bookmarkBtns.forEach((btn) => {
         btn.disabled = !ready;
       });
+      syncShareUrl();
       return;
     }
 
@@ -581,6 +591,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     bookmarkBtns.forEach((btn) => {
       btn.disabled = !ready;
     });
+    syncShareUrl();
   }
 
   /**
@@ -966,7 +977,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     updateControls();
     if (useBookFlip || bookFlipCapable) {
       const stayOn = pageNum;
-      const ok = await startBookFlip();
+      const ok = await startBookFlip(stayOn);
       if (ok) {
         if (stayOn) bookFlip?.goToPageNumber(stayOn);
         return;
@@ -1104,7 +1115,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     };
   }
 
-  async function startBookFlip() {
+  async function startBookFlip(startAtPage) {
     destroyBookFlip();
     flipPages = collectFlipPages();
     if (!flipCanvas || !canUseWebGL() || flipPages.length < 1) return false;
@@ -1136,7 +1147,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         onStateChange: handleFlipState
       });
       useBookFlip = true;
-      await bookFlip.start();
+      const startOpts = {};
+      const initialPage = normalizeSharePage(startAtPage);
+      if (initialPage) startOpts.initialPageNumber = initialPage;
+      await bookFlip.start(startOpts);
       requestAnimationFrame(() => bookFlip?.resize());
       bookFlipCapable = true;
       ready = true;
@@ -1157,7 +1171,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   function refreshCurrentView(num) {
     if (useBookFlip || bookFlipCapable) {
-      void startBookFlip().then((ok) => {
+      void startBookFlip(num).then((ok) => {
         if (ok && num) bookFlip?.goToPageNumber(num);
         else if (!ok && num) showPage(num);
       });
@@ -1166,18 +1180,27 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (num != null) showPage(num);
   }
 
+  function consumeStartPage() {
+    const requested = requestedPage;
+    requestedPage = null;
+    if (requested == null) return findVisiblePage(1, 1);
+    const from = totalPages !== null ? Math.min(requested, totalPages) : requested;
+    return findVisiblePage(from, 1) ?? findVisiblePage(from, -1) ?? findVisiblePage(1, 1);
+  }
+
   function startViewer() {
-    const firstVisible = findVisiblePage(1, 1);
-    if (firstVisible === null) {
+    const target = consumeStartPage();
+    if (target === null) {
       ready = false;
       updateControls();
       showOverlay('표시할 수 있는 페이지가 없습니다.');
       return;
     }
+    pageNum = target;
     ready = true;
     updateControls();
-    void startBookFlip().then((ok) => {
-      if (!ok) showPage(firstVisible);
+    void startBookFlip(target).then((ok) => {
+      if (!ok) showPage(target);
     });
   }
 
@@ -1186,6 +1209,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const hide = isBookmarksAlbum || isAlbumMode || !noteId;
     shareNoteBtn.hidden = hide;
     shareNoteBtn.setAttribute('aria-hidden', hide ? 'true' : 'false');
+  }
+
+  function sharePageNumber() {
+    if (useBookFlip && bookFlip) {
+      const st = bookFlip.getState();
+      if (st.bookState === 'closed' && st.closedFace === 'front') return null;
+      return normalizeSharePage(st.leftPageNumber || pageNum);
+    }
+    return normalizeSharePage(pageNum);
   }
 
   async function copyShareLink() {
@@ -1198,29 +1230,38 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       (noteId
         ? { id: noteId, title: noteTitle, slug: buildNoteSlug({ id: noteId, title: noteTitle }) }
         : null);
+    const page = sharePageNumber();
     try {
-      await copyNoteShareUrl(note);
-      showToast('노트 링크를 복사했습니다');
+      await copyNoteShareUrl(note, page);
+      showToast(page ? '페이지 링크를 복사했습니다' : '노트 링크를 복사했습니다');
     } catch (err) {
       console.warn('NoteImageViewer: share copy failed', err);
       showToast(err?.message || '링크 복사에 실패했습니다');
     }
   }
 
-  function applyCanonicalNoteUrl(note) {
-    if (isModal || !note?.id) return;
-    const slugPath = `/note/${encodeURIComponent(buildNoteSlug(note))}`;
-    const base = import.meta.env.BASE_URL || '/';
-    const full = base === '/' ? slugPath : `${base.replace(/\/$/, '')}${slugPath}`;
-    if (window.location.pathname !== full) {
-      window.history.replaceState({}, '', full);
-    }
+  function applyCanonicalNoteUrl(note, page) {
+    if (isModal || isAlbumMode || isBookmarksAlbum || !note?.id) return;
+    const href = noteHref(note, page);
+    if (!href || href.endsWith('/note')) return;
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (current === href) return;
+    window.history.replaceState({}, '', href);
+    lastSyncedShareHref = href;
+  }
+
+  function syncShareUrl() {
+    if (isModal || isAlbumMode || isBookmarksAlbum || !shareNote?.id || !ready) return;
+    const page = sharePageNumber();
+    const href = noteHref(shareNote, page);
+    if (!href || href === lastSyncedShareHref) return;
+    applyCanonicalNoteUrl(shareNote, page);
   }
 
   async function resolveShareNote() {
     if (shareNote && folderUrl) {
       noteId = shareNote.id || noteId;
-      applyCanonicalNoteUrl(shareNote);
+      applyCanonicalNoteUrl(shareNote, requestedPage);
       return shareNote;
     }
     showOverlay('노트 불러오는 중...');
@@ -1236,7 +1277,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (!noteSize && note.size) noteSize = note.size;
     if (!coverFrontUrl && note.coverFrontUrl) coverFrontUrl = String(note.coverFrontUrl).trim();
     if (!coverBackUrl && note.coverBackUrl) coverBackUrl = String(note.coverBackUrl).trim();
-    applyCanonicalNoteUrl(note);
+    applyCanonicalNoteUrl(note, requestedPage);
     return note;
   }
 

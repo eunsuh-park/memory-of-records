@@ -1,8 +1,9 @@
 /**
- * 노트 공유용 slug URL
+ * 노트·페이지 공유용 slug URL
  *
  * 형식: `{slugified-title}-{id앞8자}`
  * 예: 2024-일기장-a1b2c3d4
+ * 특정 장: `/note/{slug}?p=12`
  *
  * Notion UUID(`/note/<uuid>`)도 그대로 열 수 있고,
  * slug로 들어오면 id suffix로 노트를 찾는다.
@@ -10,6 +11,39 @@
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** 특정 페이지 공유 쿼리 키 */
+export const SHARE_PAGE_QUERY = 'p';
+
+/**
+ * @param {unknown} page
+ * @returns {number|null} 1 이상 정수, 아니면 null
+ */
+export function normalizeSharePage(page) {
+  const n = Math.floor(Number(page));
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n;
+}
+
+/**
+ * 주소의 `?p=` 값을 페이지 번호로 읽는다.
+ * @param {string} [search] location.search. 생략 시 window.location.search
+ * @returns {number|null}
+ */
+export function parseSharePageParam(search) {
+  const raw =
+    search == null
+      ? typeof window !== 'undefined'
+        ? window.location.search
+        : ''
+      : String(search);
+  const qs = raw.startsWith('?') ? raw.slice(1) : raw;
+  try {
+    return normalizeSharePage(new URLSearchParams(qs).get(SHARE_PAGE_QUERY));
+  } catch {
+    return null;
+  }
+}
 
 /**
  * @param {string} title
@@ -54,24 +88,40 @@ export function buildNoteSlug(note) {
 
 /**
  * @param {{ id?: string, title?: string, name?: string, slug?: string }|null|undefined} note
- * @returns {string} `/note/...` 경로
+ * @param {unknown} [page] 1-based 페이지 번호. 없거나 잘못되면 노트만
+ * @returns {string} `/note/...` 경로 (+ `?p=` )
  */
-export function notePath(note) {
+export function notePath(note, page) {
   const slug = buildNoteSlug(note);
-  return slug ? `/note/${encodeURIComponent(slug)}` : '/note';
+  if (!slug) return '/note';
+  const path = `/note/${encodeURIComponent(slug)}`;
+  const pageNum = normalizeSharePage(page);
+  return pageNum ? `${path}?${SHARE_PAGE_QUERY}=${pageNum}` : path;
+}
+
+/**
+ * BASE_URL을 포함한 사이트 내부 경로 (origin 없음)
+ * @param {{ id?: string, title?: string, name?: string, slug?: string }|null|undefined} note
+ * @param {unknown} [page]
+ * @returns {string}
+ */
+export function noteHref(note, page) {
+  const path = notePath(note, page);
+  const base = import.meta.env.BASE_URL || '/';
+  const prefix = base === '/' ? '' : base.replace(/\/$/, '');
+  return `${prefix}${path}`;
 }
 
 /**
  * 절대 URL (공유용)
  * @param {{ id?: string, title?: string, name?: string, slug?: string }|null|undefined} note
+ * @param {unknown} [page]
  * @returns {string}
  */
-export function noteShareUrl(note) {
-  const path = notePath(note);
-  const base = import.meta.env.BASE_URL || '/';
-  const prefix = base === '/' ? '' : base.replace(/\/$/, '');
-  if (typeof window === 'undefined') return `${prefix}${path}`;
-  return `${window.location.origin}${prefix}${path}`;
+export function noteShareUrl(note, page) {
+  const href = noteHref(note, page);
+  if (typeof window === 'undefined') return href;
+  return `${window.location.origin}${href}`;
 }
 
 export function isNotionUuid(value) {
@@ -107,25 +157,16 @@ export function findNoteByRouteParam(notes, param) {
   return null;
 }
 
-/**
- * 노트 공유 URL을 클립보드에 복사한다.
- * @param {{ id?: string, title?: string, name?: string, slug?: string }|null|undefined} note
- * @returns {Promise<string>} 복사한 절대 URL
- */
-export async function copyNoteShareUrl(note) {
-  const url = noteShareUrl(note);
-  if (!note?.id || !url || url.endsWith('/note')) {
-    throw new Error('공유할 노트 정보가 없습니다.');
-  }
+async function writeClipboard(text) {
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(url);
-    return url;
+    await navigator.clipboard.writeText(text);
+    return;
   }
   if (typeof document === 'undefined') {
     throw new Error('링크 복사에 실패했습니다');
   }
   const input = document.createElement('input');
-  input.value = url;
+  input.value = text;
   input.setAttribute('readonly', '');
   input.style.position = 'fixed';
   input.style.opacity = '0';
@@ -133,5 +174,20 @@ export async function copyNoteShareUrl(note) {
   input.select();
   document.execCommand('copy');
   input.remove();
+}
+
+/**
+ * 노트(또는 특정 페이지) 공유 URL을 클립보드에 복사한다.
+ * @param {{ id?: string, title?: string, name?: string, slug?: string }|null|undefined} note
+ * @param {unknown} [page]
+ * @returns {Promise<string>} 복사한 절대 URL
+ */
+export async function copyNoteShareUrl(note, page) {
+  const url = noteShareUrl(note, page);
+  const pathOnly = notePath(note).split('?')[0];
+  if (!note?.id || !url || pathOnly.endsWith('/note')) {
+    throw new Error('공유할 노트 정보가 없습니다.');
+  }
+  await writeClipboard(url);
   return url;
 }
