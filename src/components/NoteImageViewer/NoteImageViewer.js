@@ -2,7 +2,7 @@
  * NoteImageViewer
  * Cloudinary에 페이지별 이미지로 업로드된 노트 뷰어.
  * notebooks/{public_id}/pages 아래 page-000001 … 을 API로 읽어
- * 한 번에 한 페이지(또는 양면)씩 표시합니다.
+ * 기본은 한 페이지씩 표시하고, 2페이지로 보기 토글 시 BookFlip3D 양면을 씁니다.
  * - 모달: Jukebox에서 노트 클릭 시
  * - 전체 페이지: /note/:id 경로
  */
@@ -306,10 +306,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const preloadedImages = new Map();
   /** 실제로 단페이지 두 장을 나란히 보여주는 중일 때만 true */
   let isPairing = false;
-  /** BookFlip3D 인스턴스 (WebGL 책장) */
+  /** BookFlip3D 인스턴스 (WebGL 책장). 2페이지 보기일 때만 켠다. */
   let bookFlip = null;
   let useBookFlip = false;
-  let bookFlipCapable = false;
   /** 3D 엔진에 넘긴 표시 페이지 목록 */
   let flipPages = [];
 
@@ -530,8 +529,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       if (toggleSpreadBtn) {
         toggleSpreadBtn.style.opacity = '1';
         toggleSpreadBtn.setAttribute('aria-pressed', 'true');
-        toggleSpreadBtn.setAttribute('aria-label', '2D 페이지 보기');
-        toggleSpreadBtn.setAttribute('title', '2D 페이지 보기');
+        toggleSpreadBtn.setAttribute('aria-label', '1페이지로 보기');
+        toggleSpreadBtn.setAttribute('title', '1페이지로 보기');
       }
       viewerEl?.classList.toggle('spread-mode', false);
       bookmarkBtns.forEach((btn) => {
@@ -576,15 +575,16 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     totalPagesEl.textContent = total !== null ? String(total) : '?';
 
     if (toggleSpreadBtn) {
-      if (bookFlipCapable) {
-        toggleSpreadBtn.style.opacity = '0.6';
-        toggleSpreadBtn.setAttribute('aria-pressed', 'false');
-        toggleSpreadBtn.setAttribute('aria-label', '3D 책장 보기');
-        toggleSpreadBtn.setAttribute('title', '3D 책장 보기');
-      } else {
-        toggleSpreadBtn.style.opacity = isSpreadMode ? '1' : '0.6';
-        toggleSpreadBtn.setAttribute('aria-pressed', isSpreadMode ? 'true' : 'false');
-      }
+      toggleSpreadBtn.style.opacity = isSpreadMode ? '1' : '0.6';
+      toggleSpreadBtn.setAttribute('aria-pressed', isSpreadMode ? 'true' : 'false');
+      toggleSpreadBtn.setAttribute(
+        'aria-label',
+        isSpreadMode ? '1페이지로 보기' : '2페이지로 보기'
+      );
+      toggleSpreadBtn.setAttribute(
+        'title',
+        isSpreadMode ? '1페이지로 보기' : '2페이지로 보기'
+      );
     }
     /* 실제로 두 장을 붙일 때만 양면 레이아웃 */
     viewerEl?.classList.toggle('spread-mode', isPairing);
@@ -879,22 +879,26 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function toggleSpreadMode() {
-    if (bookFlipCapable || useBookFlip) {
-      resetViewScale();
-      if (useBookFlip) {
-        destroyBookFlip();
-        isSpreadMode = false;
-        isPairing = false;
-        showPage(pageNum);
-        updateControls();
-        return;
-      }
-      void startBookFlip();
+    resetViewScale();
+    if (useBookFlip) {
+      destroyBookFlip();
+      isSpreadMode = false;
+      isPairing = false;
+      showPage(pageNum);
+      updateControls();
       return;
     }
-    isSpreadMode = !isSpreadMode;
-    resetViewScale();
-    showPage(pageNum);
+    if (isSpreadMode) {
+      isSpreadMode = false;
+      isPairing = false;
+      showPage(pageNum);
+      return;
+    }
+    void startBookFlip(pageNum).then((ok) => {
+      if (ok) return;
+      isSpreadMode = true;
+      showPage(pageNum);
+    });
   }
 
   async function openCurrentPageMeta() {
@@ -975,7 +979,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       hiddenPages = await fetchHiddenPages(folderUrl, { force: true });
     }
     updateControls();
-    if (useBookFlip || bookFlipCapable) {
+    if (useBookFlip) {
       const stayOn = pageNum;
       const ok = await startBookFlip(stayOn);
       if (ok) {
@@ -1152,7 +1156,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       if (initialPage) startOpts.initialPageNumber = initialPage;
       await bookFlip.start(startOpts);
       requestAnimationFrame(() => bookFlip?.resize());
-      bookFlipCapable = true;
       ready = true;
       hideOverlay();
       updateControls();
@@ -1170,7 +1173,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function refreshCurrentView(num) {
-    if (useBookFlip || bookFlipCapable) {
+    if (useBookFlip) {
       void startBookFlip(num).then((ok) => {
         if (ok && num) bookFlip?.goToPageNumber(num);
         else if (!ok && num) showPage(num);
@@ -1199,9 +1202,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     pageNum = target;
     ready = true;
     updateControls();
-    void startBookFlip(target).then((ok) => {
-      if (!ok) showPage(target);
-    });
+    showPage(target);
   }
 
   function syncShareButton() {
