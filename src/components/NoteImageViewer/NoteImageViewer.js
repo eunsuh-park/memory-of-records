@@ -186,7 +186,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   targetEl.innerHTML = isModal ? viewerMarkup : wrapInNoteDetailPage(viewerMarkup);
 
-  if (!isModal) mountNoteDetailPage(targetEl);
+  const unmountDetailPage = !isModal ? mountNoteDetailPage(targetEl) : null;
 
   const viewerEl = targetEl.querySelector('.note-image-viewer');
   const canvasWrap = targetEl.querySelector('.pdf-canvas-wrap');
@@ -1538,6 +1538,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   window.addEventListener('resize', handleResize);
 
   function cleanup() {
+    unmountDetailPage?.();
     document.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     clearTimeout(resizeTimer);
@@ -1564,7 +1565,7 @@ export function renderNoteDetailPage(id) {
       .catch(() => null)
       .then(() => {
         const note = createBookmarksNote();
-        renderNoteImageViewer(mainContent, id, {
+        mainContent._routeCleanup = renderNoteImageViewer(mainContent, id, {
           mode: 'page',
           title: note.title || BOOKMARKS_NOTE_TITLE,
           note
@@ -1572,5 +1573,5 @@ export function renderNoteDetailPage(id) {
       });
     return;
   }
-  renderNoteImageViewer(mainContent, id);
+  mainContent._routeCleanup = renderNoteImageViewer(mainContent, id);
 }

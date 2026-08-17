@@ -716,7 +716,8 @@ export function renderUiLab() {
             <li>양면 토글(2페이지로 보기)을 누르면 3D 책장(BookFlip3D)으로 바뀝니다. 기본은 1페이지 보기이고, WebGL을 쓸 수 없으면 기존 2D 양면 붙이기를 씁니다</li>
             <li>공유 버튼은 보고 있는 장의 <code>/note/{slug}?p=N</code> 링크를 복사합니다. 주크박스 포커스 공유는 노트 전체 링크입니다</li>
             <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
-            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구</li>
+            <li>공유 링크로 연 전체 페이지 뷰어는 오른쪽 위 닫기(X)·ESC·여백 클릭으로 주크박스에 돌아갑니다</li>
+            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구 · Esc 닫기</li>
           </ul>
         </section>
 
@@ -820,7 +821,7 @@ export function renderUiLab() {
             <code>src/components/NoteImageViewer/NoteImageViewer.js</code>,
             <code>src/components/NoteImageViewer/ViewerChrome.js</code>,
             <code>src/components/NoteImageViewer/NoteImageViewer.css</code>,
-            <code>src/lib/BookFlip3D.js</code>,
+            <code>src/components/NoteDetailPage/NoteDetailPage.js</code>,
             <code>src/components/PdfModal/PdfModal.js</code>,
             <code>src/components/PdfModal/PdfModal.css</code>
           </p>
