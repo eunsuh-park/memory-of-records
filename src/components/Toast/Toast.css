@@ -14,7 +14,8 @@
   font-weight: var(--font-medium);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-md);
-  z-index: 2000;
+  /* 노트 뷰어(2500)·모달(3000)·Dialog(3100)·업로드 오버레이(3200)보다 위 */
+  z-index: 5000;
   opacity: 0;
   transition: opacity 0.25s ease, transform 0.25s ease;
   pointer-events: none;

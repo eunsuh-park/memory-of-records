@@ -135,7 +135,7 @@ export function isNotionUuid(value) {
  * @returns {Object|null}
  */
 export function findNoteByRouteParam(notes, param) {
-  const raw = decodeURIComponent(String(param || '').trim());
+  const raw = decodeRouteParam(param);
   if (!raw || !Array.isArray(notes)) return null;
 
   if (isNotionUuid(raw)) {
@@ -157,23 +157,45 @@ export function findNoteByRouteParam(notes, param) {
   return null;
 }
 
+export function decodeRouteParam(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 async function writeClipboard(text) {
+  const value = String(text || '');
+  if (!value) throw new Error('링크 복사에 실패했습니다');
+
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      /* iOS·권한 거부 시 아래 폴백 */
+    }
   }
   if (typeof document === 'undefined') {
     throw new Error('링크 복사에 실패했습니다');
   }
-  const input = document.createElement('input');
-  input.value = text;
+  const input = document.createElement('textarea');
+  input.value = value;
   input.setAttribute('readonly', '');
   input.style.position = 'fixed';
+  input.style.top = '0';
+  input.style.left = '0';
   input.style.opacity = '0';
   document.body.appendChild(input);
+  input.focus();
   input.select();
-  document.execCommand('copy');
+  input.setSelectionRange(0, value.length);
+  const ok = document.execCommand('copy');
   input.remove();
+  if (!ok) throw new Error('링크 복사에 실패했습니다');
 }
 
 /**

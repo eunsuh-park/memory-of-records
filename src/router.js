@@ -70,11 +70,12 @@ class Router {
   }
 
   navigate(path) {
-    // base 경로를 포함한 전체 경로 생성
+    // base 경로를 포함한 전체 경로 생성 (`?p=` 같은 쿼리 포함)
     const fullPath = BASE_URL === '/' ? path : BASE_URL.slice(0, -1) + path;
-    
-    // 같은 경로로 이동하는 경우 아무것도 하지 않음
-    if (window.location.pathname === fullPath) {
+    const current = `${window.location.pathname}${window.location.search}`;
+
+    // 같은 경로+쿼리면 다시 렌더하지 않음
+    if (current === fullPath) {
       return;
     }
     window.history.pushState({}, '', fullPath);
