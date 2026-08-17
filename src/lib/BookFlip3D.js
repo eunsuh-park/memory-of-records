@@ -19,6 +19,14 @@
  * - bookState 'closed' → cover_front | cover_back (중앙 정렬)
  */
 
+function applyTextureColorSpace(THREE, texture) {
+  if (THREE.SRGBColorSpace) {
+    texture.colorSpace = THREE.SRGBColorSpace;
+  } else if (THREE.sRGBEncoding != null) {
+    texture.encoding = THREE.sRGBEncoding;
+  }
+}
+
 export function createBookFlip3D(THREE, options) {
   const {
     canvas,
@@ -26,6 +34,7 @@ export function createBookFlip3D(THREE, options) {
     onStateChange,
     pageWidth = 0.5,
     pageHeight = 1.4,
+    backgroundColor = null,
   } = options;
 
   if (!canvas) throw new Error('canvas is required');
@@ -46,12 +55,13 @@ export function createBookFlip3D(THREE, options) {
     : LAST_PAGE_INDEX - 1;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xe8e4dc);
+  scene.background = backgroundColor != null ? new THREE.Color(backgroundColor) : null;
 
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
   camera.position.set(0, 0, 3);
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.85));
@@ -62,6 +72,7 @@ export function createBookFlip3D(THREE, options) {
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   const textureLoader = new THREE.TextureLoader();
+  textureLoader.setCrossOrigin('anonymous');
   const pageRoot = new THREE.Group();
   scene.add(pageRoot);
 
@@ -93,17 +104,22 @@ export function createBookFlip3D(THREE, options) {
       .sort((a, b) => a.pageNumber - b.pageNumber);
   }
 
-  function emitState() {
-    onStateChange?.({
+  function snapshotState() {
+    return {
       bookState,
       closedFace,
       currentLeftIndex,
       leftPageNumber: pages[currentLeftIndex]?.pageNumber ?? null,
       rightPageNumber: pages[currentLeftIndex + 1]?.pageNumber ?? null,
+      pageCount: pages.length,
       isAnimating,
       canGoPrev: canGoPrev(),
       canGoNext: canGoNext(),
-    });
+    };
+  }
+
+  function emitState() {
+    onStateChange?.(snapshotState());
   }
 
   function closedCenterX(face) {
@@ -141,7 +157,7 @@ export function createBookFlip3D(THREE, options) {
       textureLoader.load(
         key,
         (texture) => {
-          texture.encoding = THREE.sRGBEncoding;
+          applyTextureColorSpace(THREE, texture);
           texture.minFilter = THREE.LinearFilter;
           texture.magFilter = THREE.LinearFilter;
           textureMap.set(key, texture);
@@ -590,6 +606,7 @@ export function createBookFlip3D(THREE, options) {
 
   function handleCanvasClick(event) {
     if (isAnimating) return;
+    if (canvas.dataset.skipClick === '1') return;
     getPointerNdc(event);
     raycaster.setFromCamera(pointer, camera);
 
@@ -626,17 +643,76 @@ export function createBookFlip3D(THREE, options) {
     renderer.render(scene, camera);
   }
 
-  async function preloadAssets() {
+  function currentFaceUrls() {
+    const urls = [];
+    const add = (faceKey) => {
+      const url = resolveFaceUrl(faceKey);
+      if (url) urls.push(url);
+    };
+    if (bookState === 'closed') {
+      add(closedFace);
+      add(closedFace === 'front' ? 0 : LAST_PAGE_INDEX);
+      return urls;
+    }
+    add(currentLeftIndex);
+    add(backFaceForLeft(currentLeftIndex));
+    if (currentLeftIndex + 1 <= LAST_PAGE_INDEX) {
+      add(currentLeftIndex + 1);
+      add(backFaceForRight(currentLeftIndex + 1));
+    }
+    return urls;
+  }
+
+  function refreshIfUrlVisible(url) {
+    if (disposed || isAnimating) return;
+    if (!currentFaceUrls().includes(url)) return;
+    if (bookState === 'closed' && closedFace) {
+      buildClosedCover(closedFace);
+      return;
+    }
+    if (bookState === 'open') buildOpenSpread();
+  }
+
+  async function preloadEssential() {
     const urls = [
       assets.cover_front,
       assets.cover_back,
-      ...pages.map((page) => page.url),
-    ];
-    await Promise.all(urls.map((url) => loadTexture(url)));
+      pages[0]?.url,
+      pages[1]?.url,
+      pages[2]?.url,
+      pages[3]?.url,
+    ].filter(Boolean);
+    await Promise.all(urls.map((url) => loadTexture(url).catch(() => null)));
+  }
+
+  function preloadRest() {
+    pages.forEach((page, index) => {
+      if (index < 4) return;
+      loadTexture(page.url)
+        .then(() => refreshIfUrlVisible(page.url))
+        .catch(() => {});
+    });
+  }
+
+  function goToCover(face) {
+    if (isAnimating || disposed) return;
+    if (face !== 'front' && face !== 'back') return;
+    if (bookState === 'closed' && closedFace === face) return;
+    currentLeftIndex = face === 'front' ? 0 : Math.max(0, LAST_LEFT_INDEX);
+    buildClosedCover(face);
+  }
+
+  function goToPageNumber(pageNumber) {
+    if (isAnimating || disposed) return;
+    const index = pages.findIndex((page) => page.pageNumber === pageNumber);
+    if (index < 0) return;
+    const leftIndex = index % 2 === 0 ? index : Math.max(0, index - 1);
+    currentLeftIndex = Math.max(0, Math.min(LAST_LEFT_INDEX, leftIndex));
+    buildOpenSpread();
   }
 
   async function start({ initialClosedFace = null } = {}) {
-    await preloadAssets();
+    await preloadEssential();
     resize();
     if (initialClosedFace === 'front' || initialClosedFace === 'back') {
       buildClosedCover(initialClosedFace);
@@ -644,6 +720,7 @@ export function createBookFlip3D(THREE, options) {
       buildOpenSpread();
     }
     tick();
+    preloadRest();
   }
 
   function destroy() {
@@ -663,15 +740,11 @@ export function createBookFlip3D(THREE, options) {
   return {
     start,
     destroy,
+    resize,
     next: () => startNav(1),
     prev: () => startNav(-1),
-    getState: () => ({
-      bookState,
-      closedFace,
-      currentLeftIndex,
-      pageCount: pages.length,
-      canGoPrev: canGoPrev(),
-      canGoNext: canGoNext(),
-    }),
+    goToCover,
+    goToPageNumber,
+    getState: () => snapshotState(),
   };
 }

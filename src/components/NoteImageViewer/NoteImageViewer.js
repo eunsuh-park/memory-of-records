@@ -18,8 +18,10 @@ import { showToast } from '../Toast/Toast.js';
 import {
   computeNoteDisplayBoxes,
   fitAspectBox,
-  isLandscapeSpread
+  isLandscapeSpread,
+  parseNoteSize
 } from '../../utils/noteSize.js';
+import { fetchNoteCovers } from '../../services/noteCovers.js';
 import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
 import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
 import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bookmarkedPages.js';
@@ -50,6 +52,40 @@ const LOADING_LOTTIE =
 
 /** 현재 페이지 기준 앞뒤로 미리 로드할 페이지 수 */
 const PRELOAD_RADIUS = 2;
+
+function canUseWebGL() {
+  try {
+    const el = document.createElement('canvas');
+    return Boolean(el.getContext('webgl2') || el.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 카메라 FOV 60 · z=3 기준으로 양면이 화면에 들어가게 잎 크기를 잡는다.
+ */
+function leafDimensions(noteSize, fallbackAspect, canvas) {
+  const parsed = parseNoteSize(noteSize);
+  const aspect =
+    (parsed?.width > 0 && parsed?.height > 0 ? parsed.width / parsed.height : null) ||
+    (fallbackAspect?.width > 0 && fallbackAspect?.height > 0
+      ? fallbackAspect.width / fallbackAspect.height
+      : null) ||
+    0.72;
+  const viewW = canvas?.clientWidth || 1;
+  const viewH = canvas?.clientHeight || 1;
+  const viewAspect = viewW / viewH;
+  const visibleH = 3.05;
+  const visibleW = visibleH * viewAspect;
+  let pageHeight = visibleH * 0.78;
+  let pageWidth = pageHeight * aspect;
+  if (pageWidth * 2 > visibleW * 0.9) {
+    pageWidth = (visibleW * 0.9) / 2;
+    pageHeight = pageWidth / aspect;
+  }
+  return { pageWidth, pageHeight };
+}
 
 /** folderUrl → Promise<Set<number>> (숨김 페이지 조회 캐시) */
 const hiddenPagesCache = new Map();
@@ -130,6 +166,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         ${renderViewerChrome()}
         <div class="niv-image-container">
           <div class="niv-zoom-stage">
+            <canvas class="niv-bookflip-canvas" hidden aria-label="3D 노트 책장"></canvas>
             <img class="niv-page-image niv-page-image--left" alt="" draggable="false" referrerpolicy="no-referrer" />
             <img class="niv-page-image niv-page-image--right" alt="" draggable="false" referrerpolicy="no-referrer" />
           </div>
@@ -149,6 +186,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const viewerEl = targetEl.querySelector('.note-image-viewer');
   const canvasWrap = targetEl.querySelector('.pdf-canvas-wrap');
   const zoomStage = targetEl.querySelector('.niv-zoom-stage');
+  const flipCanvas = targetEl.querySelector('.niv-bookflip-canvas');
   const overlay = targetEl.querySelector('.niv-overlay');
   const overlayText = targetEl.querySelector('.niv-overlay-text');
   const imageLeft = targetEl.querySelector('.niv-page-image--left');
@@ -184,6 +222,12 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let noteSize = options.size || null;
   let noteTitle = String(
     options.title || options.noteTitle || (isBookmarksAlbum ? BOOKMARKS_NOTE_TITLE : '')
+  ).trim();
+  let coverFrontUrl = String(
+    options.coverFrontUrl || options.note?.coverFrontUrl || ''
+  ).trim();
+  let coverBackUrl = String(
+    options.coverBackUrl || options.note?.coverBackUrl || ''
   ).trim();
   /** 중간 삽입 후 Cloudinary/브라우저 캐시 무효화용 */
   let mediaVersion = 0;
@@ -253,6 +297,12 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const preloadedImages = new Map();
   /** 실제로 단페이지 두 장을 나란히 보여주는 중일 때만 true */
   let isPairing = false;
+  /** BookFlip3D 인스턴스 (WebGL 책장) */
+  let bookFlip = null;
+  let useBookFlip = false;
+  let bookFlipCapable = false;
+  /** 3D 엔진에 넘긴 표시 페이지 목록 */
+  let flipPages = [];
 
   function isSpreadAssetImage(sourceImg) {
     const nw = sourceImg?.naturalWidth || 0;
@@ -358,6 +408,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   function applyViewTransform() {
     if (!zoomStage) return;
     zoomStage.style.transform = `translate3d(${viewTx}px, ${viewTy}px, 0) scale(${viewScale})`;
+    if (flipCanvas) {
+      flipCanvas.style.pointerEvents = useBookFlip && viewScale > 1.02 ? 'none' : '';
+    }
   }
 
   function setViewScale(next) {
@@ -444,6 +497,40 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function updateControls() {
+    if (useBookFlip && bookFlip) {
+      const st = bookFlip.getState();
+      const atLast = ready && !st.canGoNext;
+      prevBtn.disabled = !ready || !st.canGoPrev;
+      nextBtn.disabled = !ready;
+      nextBtn.classList.toggle('is-at-end', atLast);
+      nextBtn.setAttribute('aria-disabled', atLast ? 'true' : 'false');
+      firstBtn.disabled = !ready || (st.bookState === 'closed' && st.closedFace === 'front');
+      lastBtn.disabled = !ready || (st.bookState === 'closed' && st.closedFace === 'back');
+
+      if (st.bookState === 'closed') {
+        currentPageEl.textContent = st.closedFace === 'front' ? '표지' : '뒤표지';
+      } else if (st.rightPageNumber != null && st.leftPageNumber != null) {
+        currentPageEl.textContent = `${visibleOrdinal(st.leftPageNumber)}-${visibleOrdinal(st.rightPageNumber)}`;
+      } else {
+        currentPageEl.textContent = String(visibleOrdinal(st.leftPageNumber || pageNum));
+      }
+      const total = visibleTotal();
+      totalPagesEl.textContent =
+        total !== null ? String(total) : String(flipPages.length || '?');
+
+      if (toggleSpreadBtn) {
+        toggleSpreadBtn.style.opacity = '1';
+        toggleSpreadBtn.setAttribute('aria-pressed', 'true');
+        toggleSpreadBtn.setAttribute('aria-label', '2D 페이지 보기');
+        toggleSpreadBtn.setAttribute('title', '2D 페이지 보기');
+      }
+      viewerEl?.classList.toggle('spread-mode', false);
+      bookmarkBtns.forEach((btn) => {
+        btn.disabled = !ready;
+      });
+      return;
+    }
+
     const step = navigationStep();
     const atFirst = findVisiblePage(pageNum - 1, -1) === null;
     const nextTarget = (() => {
@@ -479,8 +566,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     totalPagesEl.textContent = total !== null ? String(total) : '?';
 
     if (toggleSpreadBtn) {
-      toggleSpreadBtn.style.opacity = isSpreadMode ? '1' : '0.6';
-      toggleSpreadBtn.setAttribute('aria-pressed', isSpreadMode ? 'true' : 'false');
+      if (bookFlipCapable) {
+        toggleSpreadBtn.style.opacity = '0.6';
+        toggleSpreadBtn.setAttribute('aria-pressed', 'false');
+        toggleSpreadBtn.setAttribute('aria-label', '3D 책장 보기');
+        toggleSpreadBtn.setAttribute('title', '3D 책장 보기');
+      } else {
+        toggleSpreadBtn.style.opacity = isSpreadMode ? '1' : '0.6';
+        toggleSpreadBtn.setAttribute('aria-pressed', isSpreadMode ? 'true' : 'false');
+      }
     }
     /* 실제로 두 장을 붙일 때만 양면 레이아웃 */
     viewerEl?.classList.toggle('spread-mode', isPairing);
@@ -554,7 +648,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       return;
     }
     const next = Math.min(index1Based, totalPages);
-    showPage(next);
+    refreshCurrentView(next);
   }
 
   async function toggleBookmark() {
@@ -744,12 +838,22 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   function goToPage(num) {
     if (!ready || num === null || num < 1) return;
     if (totalPages !== null && num > totalPages) return;
+    if (useBookFlip && bookFlip) {
+      resetViewScale();
+      bookFlip.goToPageNumber(num);
+      return;
+    }
     if (num === pageNum && !isSpreadMode) return;
     resetViewScale();
     showPage(num);
   }
 
   function stepPages(direction) {
+    if (useBookFlip && bookFlip) {
+      if (direction > 0) bookFlip.next();
+      else bookFlip.prev();
+      return;
+    }
     const step = navigationStep();
     let next = pageNum;
     for (let i = 0; i < step; i += 1) {
@@ -764,6 +868,19 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function toggleSpreadMode() {
+    if (bookFlipCapable || useBookFlip) {
+      resetViewScale();
+      if (useBookFlip) {
+        destroyBookFlip();
+        isSpreadMode = false;
+        isPairing = false;
+        showPage(pageNum);
+        updateControls();
+        return;
+      }
+      void startBookFlip();
+      return;
+    }
     isSpreadMode = !isSpreadMode;
     resetViewScale();
     showPage(pageNum);
@@ -795,7 +912,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
             await removeAlbumPageAt(pageNum);
             return;
           }
-          showPage(pageNum);
+          refreshCurrentView(pageNum);
           return;
         }
         hiddenPagesCache.delete(String(ref.folder || '').trim());
@@ -804,14 +921,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           const next = findVisiblePage(pageNum + 1, 1) ?? findVisiblePage(pageNum - 1, -1);
           if (next == null) {
             ready = false;
+            destroyBookFlip();
             updateControls();
             showOverlay('표시할 수 있는 페이지가 없습니다.');
             return;
           }
-          showPage(next);
+          refreshCurrentView(next);
           return;
         }
-        showPage(pageNum);
+        refreshCurrentView(pageNum);
       }
     });
   }
@@ -846,6 +964,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       hiddenPages = await fetchHiddenPages(folderUrl, { force: true });
     }
     updateControls();
+    if (useBookFlip || bookFlipCapable) {
+      const stayOn = pageNum;
+      const ok = await startBookFlip();
+      if (ok) {
+        if (stayOn) bookFlip?.goToPageNumber(stayOn);
+        return;
+      }
+    }
     const stayOn = findVisiblePage(pageNum, 1) ?? findVisiblePage(pageNum, -1);
     if (stayOn != null) showPage(stayOn);
     else startViewer();
@@ -891,6 +1017,155 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     });
   }
 
+  function collectFlipPages() {
+    const list = [];
+    if (isAlbumMode) {
+      albumPages.forEach((_, index) => {
+        const num = index + 1;
+        if (hiddenPages.has(num)) return;
+        const url = pageImageSrc(num);
+        if (url) list.push({ pageNumber: num, url });
+      });
+      return list;
+    }
+    const numbers = pageUrlByNumber.size
+      ? [...pageUrlByNumber.keys()].sort((a, b) => a - b)
+      : totalPages
+        ? Array.from({ length: totalPages }, (_, index) => index + 1)
+        : [];
+    for (const num of numbers) {
+      if (hiddenPages.has(num)) continue;
+      const url = pageImageSrc(num);
+      if (url) list.push({ pageNumber: num, url });
+    }
+    return list;
+  }
+
+  function destroyBookFlip() {
+    if (bookFlip) {
+      bookFlip.destroy();
+      bookFlip = null;
+    }
+    useBookFlip = false;
+    viewerEl?.classList.remove('bookflip-mode');
+    if (flipCanvas) {
+      flipCanvas.hidden = true;
+      flipCanvas.style.pointerEvents = '';
+    }
+  }
+
+  function handleFlipState(state) {
+    if (!state) return;
+    if (state.bookState === 'closed') {
+      isPairing = false;
+      pageNum =
+        state.closedFace === 'front'
+          ? flipPages[0]?.pageNumber || 1
+          : flipPages[flipPages.length - 1]?.pageNumber || pageNum;
+    } else {
+      pageNum = state.leftPageNumber || pageNum;
+      isPairing = state.rightPageNumber != null;
+    }
+    updateControls();
+    void refreshBookmarkState(pageNum);
+  }
+
+  async function resolveCoverUrls(pageList) {
+    let front = coverFrontUrl;
+    let back = coverBackUrl;
+    if (isAlbumMode || isBookmarksAlbum) {
+      const covers = await ensureBookmarkNoteCovers().catch(() => null);
+      front = front || covers?.coverFrontUrl || '';
+      back = back || covers?.coverBackUrl || '';
+    }
+    if (shareNote) {
+      front = front || String(shareNote.coverFrontUrl || '').trim();
+      back = back || String(shareNote.coverBackUrl || '').trim();
+    }
+    if ((!front || !back) && shareNote && (shareNote.publicId || shareNote.title || shareNote.name)) {
+      const result = await fetchNoteCovers();
+      if (result?.loaded) {
+        const keys = [shareNote.publicId, shareNote.title, shareNote.name]
+          .map((value) => String(value || '').trim().toLowerCase())
+          .filter(Boolean);
+        for (const key of keys) {
+          const hit = result.covers?.[key];
+          if (!hit) continue;
+          front = front || hit.front || '';
+          back = back || hit.back || '';
+        }
+      }
+    }
+    const firstUrl = pageList[0]?.url || '';
+    const lastUrl = pageList[pageList.length - 1]?.url || firstUrl;
+    return {
+      front: String(front || firstUrl || '').trim(),
+      back: String(back || lastUrl || '').trim()
+    };
+  }
+
+  async function startBookFlip() {
+    destroyBookFlip();
+    flipPages = collectFlipPages();
+    if (!flipCanvas || !canUseWebGL() || flipPages.length < 1) return false;
+
+    const covers = await resolveCoverUrls(flipPages);
+    if (!covers.front || !covers.back) return false;
+
+    showOverlay('책장 불러오는 중...');
+    flipCanvas.hidden = false;
+    viewerEl?.classList.add('bookflip-mode');
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const size = leafDimensions(noteSize, fallbackSingleAspect, flipCanvas);
+
+    try {
+      const [{ createBookFlip3D }, THREE] = await Promise.all([
+        import('../../lib/BookFlip3D.js'),
+        import('three')
+      ]);
+
+      bookFlip = createBookFlip3D(THREE, {
+        canvas: flipCanvas,
+        assets: {
+          cover_front: covers.front,
+          cover_back: covers.back,
+          pages: flipPages
+        },
+        pageWidth: size.pageWidth,
+        pageHeight: size.pageHeight,
+        onStateChange: handleFlipState
+      });
+      useBookFlip = true;
+      await bookFlip.start();
+      requestAnimationFrame(() => bookFlip?.resize());
+      bookFlipCapable = true;
+      ready = true;
+      hideOverlay();
+      updateControls();
+      const st = bookFlip.getState();
+      if (st.leftPageNumber) {
+        pageNum = st.leftPageNumber;
+        void refreshBookmarkState(pageNum);
+      }
+      return true;
+    } catch (err) {
+      console.warn('NoteImageViewer: BookFlip3D 시작 실패', err);
+      destroyBookFlip();
+      return false;
+    }
+  }
+
+  function refreshCurrentView(num) {
+    if (useBookFlip || bookFlipCapable) {
+      void startBookFlip().then((ok) => {
+        if (ok && num) bookFlip?.goToPageNumber(num);
+        else if (!ok && num) showPage(num);
+      });
+      return;
+    }
+    if (num != null) showPage(num);
+  }
+
   function startViewer() {
     const firstVisible = findVisiblePage(1, 1);
     if (firstVisible === null) {
@@ -901,7 +1176,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
     ready = true;
     updateControls();
-    showPage(firstVisible);
+    void startBookFlip().then((ok) => {
+      if (!ok) showPage(firstVisible);
+    });
   }
 
   function syncShareButton() {
@@ -957,6 +1234,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       totalPages = Math.floor(Number(note.pageCount));
     }
     if (!noteSize && note.size) noteSize = note.size;
+    if (!coverFrontUrl && note.coverFrontUrl) coverFrontUrl = String(note.coverFrontUrl).trim();
+    if (!coverBackUrl && note.coverBackUrl) coverBackUrl = String(note.coverBackUrl).trim();
     applyCanonicalNoteUrl(note);
     return note;
   }
@@ -1051,8 +1330,20 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
     stepPages(1);
   });
-  firstBtn.addEventListener('click', () => goToPage(findVisiblePage(1, 1)));
+  firstBtn.addEventListener('click', () => {
+    if (useBookFlip && bookFlip) {
+      resetViewScale();
+      bookFlip.goToCover('front');
+      return;
+    }
+    goToPage(findVisiblePage(1, 1));
+  });
   lastBtn.addEventListener('click', () => {
+    if (useBookFlip && bookFlip) {
+      resetViewScale();
+      bookFlip.goToCover('back');
+      return;
+    }
     if (totalPages !== null) goToPage(findVisiblePage(totalPages, -1));
   });
   toggleSpreadBtn?.addEventListener('click', toggleSpreadMode);
@@ -1102,10 +1393,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let panOriginTx = 0;
   let panOriginTy = 0;
   let isPanning = false;
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+  let swipeTracking = false;
 
   const handleTouchStart = (event) => {
     if (event.touches.length === 2) {
       isPanning = false;
+      swipeTracking = false;
       pinchStartDist = touchDistance(event.touches);
       pinchStartScale = viewScale;
       pinchStartTx = viewTx;
@@ -1113,12 +1408,19 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       pinchStartMid = touchMidpoint(event.touches);
     } else if (event.touches.length === 1 && viewScale > 1.02) {
       isPanning = true;
+      swipeTracking = false;
       panStartX = event.touches[0].clientX;
       panStartY = event.touches[0].clientY;
       panOriginTx = viewTx;
       panOriginTy = viewTy;
+    } else if (event.touches.length === 1 && useBookFlip && viewScale <= 1.02) {
+      isPanning = false;
+      swipeTracking = true;
+      swipeStartX = event.touches[0].clientX;
+      swipeStartY = event.touches[0].clientY;
     } else {
       isPanning = false;
+      swipeTracking = false;
     }
   };
   const handleTouchMove = (event) => {
@@ -1157,7 +1459,24 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       pinchStartMid = null;
     }
     if (event.touches.length === 0) {
+      if (swipeTracking && useBookFlip && viewScale <= 1.02) {
+        const touch = event.changedTouches[0];
+        if (touch) {
+          const dx = touch.clientX - swipeStartX;
+          const dy = touch.clientY - swipeStartY;
+          if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) {
+            if (flipCanvas) {
+              flipCanvas.dataset.skipClick = '1';
+              window.setTimeout(() => {
+                if (flipCanvas) delete flipCanvas.dataset.skipClick;
+              }, 400);
+            }
+            stepPages(dx < 0 ? 1 : -1);
+          }
+        }
+      }
       isPanning = false;
+      swipeTracking = false;
     }
   };
   canvasWrap?.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -1168,7 +1487,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let resizeTimer = null;
   const handleResize = () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => refreshImageFrames(), 80);
+    resizeTimer = setTimeout(() => {
+      refreshImageFrames();
+      bookFlip?.resize();
+    }, 80);
   };
   window.addEventListener('resize', handleResize);
 
@@ -1176,6 +1498,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     document.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     clearTimeout(resizeTimer);
+    destroyBookFlip();
     canvasWrap?.removeEventListener('wheel', handleWheel);
     canvasWrap?.removeEventListener('touchstart', handleTouchStart);
     canvasWrap?.removeEventListener('touchmove', handleTouchMove);
