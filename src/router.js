@@ -9,6 +9,7 @@ import { renderLanding } from './pages/Landing/Landing.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 import { renderUiLab } from './pages/UiLab/UiLab.js';
 import { renderLogin } from './pages/Login/Login.js';
+import { dismissTransientOverlays } from './utils/dismissOverlays.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -87,6 +88,9 @@ class Router {
       console.error('Main content container not found');
       return;
     }
+
+    /* body 오버레이는 main-content 교체로 안 사라짐 — 라우트마다 정리 */
+    dismissTransientOverlays();
 
     /* Story가 아닐 때 story-page-active 제거 (Top Nav 복원) */
     if (!path.startsWith('/story')) {

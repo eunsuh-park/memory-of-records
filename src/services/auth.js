@@ -3,6 +3,7 @@
  */
 
 import { showToast } from '../components/Toast/Toast.js';
+import { dismissTransientOverlays } from '../utils/dismissOverlays.js';
 
 /** @type {{ authenticated: boolean, exp?: number|null } | null} */
 let cachedSession = null;
@@ -118,6 +119,8 @@ export async function requireAuth(options = {}) {
   if (!options.silent) {
     showToast('편집하려면 로그인해 주세요');
   }
+  /* PDF 뷰어·다이얼로그가 body에 남으면 로그인 페이지를 가린다 */
+  dismissTransientOverlays();
   const qs = new URLSearchParams({ next });
   navigateTo(`/login?${qs.toString()}`);
   return false;
