@@ -147,7 +147,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   targetEl.innerHTML = isModal ? viewerMarkup : wrapInNoteDetailPage(viewerMarkup);
 
-  if (!isModal) mountNoteDetailPage(targetEl);
+  const unmountDetailPage = !isModal ? mountNoteDetailPage(targetEl) : null;
 
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
@@ -489,6 +489,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   initPdfViewer();
   return () => {
+    unmountDetailPage?.();
     document.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     clearTimeout(resizeTimer);
@@ -501,5 +502,5 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
-  renderPdfViewer(mainContent, id);
+  mainContent._routeCleanup = renderPdfViewer(mainContent, id);
 }

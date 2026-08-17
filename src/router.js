@@ -92,6 +92,15 @@ class Router {
       return;
     }
 
+    if (typeof mainContent._routeCleanup === 'function') {
+      try {
+        mainContent._routeCleanup();
+      } catch (error) {
+        console.warn('Router: previous route cleanup failed', error);
+      }
+      mainContent._routeCleanup = null;
+    }
+
     if (path.startsWith('/note/')) {
       document.body.classList.add('note-detail-active');
     } else {
