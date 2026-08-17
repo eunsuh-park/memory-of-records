@@ -5,7 +5,7 @@
  * 아이콘은 공용 MingCute 세트(src/assets/mingcuteIcons.js)에서만 가져온다.
  *  - 좌우 페이지 이동: circle M · role navPrev/navNext
  *  - 하단 시트 버튼  : circle S · role toolbar · tone ghost (유리 시트 위라 배경 없음)
- *  - 양면 토글       : circle S · role toolbar (배경 있는 FAB)
+ *  - 2페이지 토글    : circle S · role toolbar (배경 있는 FAB). 켜면 BookFlip3D
  *
  * 뷰어와 /ui-lab 예시가 같은 마크업을 쓰도록 여기로 분리했다.
  */
@@ -142,14 +142,14 @@ export function renderBottomSheet() {
   `;
 }
 
-/** 하단 시트 위 우측에 뜨는 양면 보기 토글 */
+/** 하단 시트 위 우측에 뜨는 2페이지 보기 토글 (BookFlip3D) */
 export function renderSpreadToggle() {
   return renderButton({
     shape: 'circle',
     size: 's',
     role: 'toolbar',
-    ariaLabel: '양면 보기 전환',
-    title: '양면 보기',
+    ariaLabel: '2페이지로 보기',
+    title: '2페이지로 보기',
     ariaPressed: false,
     content: MINGCUTE.bookOpenLine,
     className: 'niv-toggle-spread niv-spread-fab'
