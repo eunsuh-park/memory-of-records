@@ -40,9 +40,8 @@
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+  /* 배경은 즉시 전환 — fade-out이 클릭·라우트 전환 시 깜빡임을 만든다 */
+  transition: color 0.2s ease;
 }
 
 .tab__label {

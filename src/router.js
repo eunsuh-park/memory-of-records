@@ -14,6 +14,15 @@ import { FAVORITES_PATH } from './utils/noteFavorites.js';
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
 
+function isNotesRoute(path) {
+  return (
+    path === '/' ||
+    path.startsWith('/timeline') ||
+    path.startsWith('/by-type') ||
+    path.startsWith(FAVORITES_PATH)
+  );
+}
+
 class Router {
   constructor() {
     this.routes = [
@@ -109,11 +118,9 @@ class Router {
     }
 
     // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type/Favorites)
-    const isNotesPage =
-      path === '/' ||
-      path.startsWith('/timeline') ||
-      path.startsWith('/by-type') ||
-      path.startsWith(FAVORITES_PATH);
+    const isNotesPage = isNotesRoute(path);
+    const wasNotesPage = this._wasNotesPage === true;
+    this._wasNotesPage = isNotesPage;
     if (!isNotesPage) {
       document.body.classList.remove('jukebox-active', 'filter-nav-collapsed', 'filter-nav-open');
       mainContent?.classList.remove('jukebox-active');
@@ -126,9 +133,11 @@ class Router {
       if (subMenu) subMenu.innerHTML = '';
     }
 
-    // PageHeader 업데이트
-    const { renderPageHeader } = await import('./widgets/PageHeader/PageHeader.js');
-    renderPageHeader();
+    // Notes ↔ Notes 전환 시 헤더를 통째로 다시 그리면 #sub-menu가 잠깐 비어 탭이 깜빡인다
+    if (!isNotesPage || !wasNotesPage) {
+      const { renderPageHeader } = await import('./widgets/PageHeader/PageHeader.js');
+      renderPageHeader();
+    }
 
     // 경로 매칭
     for (const route of this.routes) {
