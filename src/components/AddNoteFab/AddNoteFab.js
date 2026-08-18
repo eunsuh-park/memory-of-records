@@ -9,6 +9,10 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
+import {
+  openUploadResultDialog,
+  shortUploadError
+} from '../Dialog/uploadResultDialog.js';
 import { render as renderField, renderColorSwatches } from '../FormField/FormField.js';
 import { renderOptions as renderSelectOptions } from '../Select/Select.js';
 import { renderPicker as renderFilePicker } from '../FileUploadPreview/FileUploadPreview.js';
@@ -20,9 +24,11 @@ import {
   cropImageDataUrlToSize,
   fetchNoteFormMeta,
   getImageSizeFromDataUrl,
+  MAX_COVER_BYTES,
   readFileAsDataUrl,
   updateNotionNote,
-  uploadCoverImage
+  uploadCoverImage,
+  validateCoverImageFile
 } from '../../services/createNote.js';
 import { renameNoteContentFolder } from '../../services/pages.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
@@ -34,61 +40,25 @@ import {
 } from '../AddPageModal/AddPageModal.js';
 import { requireAuth } from '../../services/auth.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import uploadingLottieUrl from '../../assets/uploading.json?url';
+import { NOTE_COLOR_PAINT, LIGHT_NOTE_COLORS, NOTE_COLOR_NAMES } from '../../utils/noteColorMap.js';
+import { hideUploadingOverlay, showUploadingOverlay } from './uploadOverlay.js';
 import './AddNoteFab.css';
 
 const PLUS_ICON = MINGCUTE.addFill;
 
 const FALLBACK_TYPES = typeOptions.map((t) => t.labelKr);
 const FALLBACK_PERIODS = periodOptions.map((p) => p.label);
-const FALLBACK_COLORS = ['파랑', '빨강', '검정', '초록', '노랑', '보라', '회색', '갈색', '분홍', '흰색'];
+const FALLBACK_COLORS = NOTE_COLOR_NAMES;
 const FALLBACK_SIZES = ['A4', 'A5', 'A6', 'B5', 'B6', '16절', '8절', '4절'];
 
 /* 노트 표지 색상 이름 → 스와치 색. 실제 노트 색을 흉내내는 값이라 테마 토큰이 아니다 */
-const COLOR_CHIP_HEX = {
-  파랑: '#4a7fcb',
-  빨강: '#c94c4c',
-  검정: '#1a1a1a',
-  초록: '#4a9b6e',
-  노랑: '#e6c84a',
-  보라: '#8b6bb8',
-  회색: '#8a8a8a',
-  갈색: '#8b5a3c',
-  분홍: '#e89bb5',
-  흰색: '#f5f5f5'
-};
+const COLOR_CHIP_HEX = NOTE_COLOR_PAINT;
 
 /** 스와치가 배경에 묻히는 밝은 색 (테두리 보정) */
-const LIGHT_COLOR_NAMES = ['흰색', '노랑'];
+const LIGHT_COLOR_NAMES = [...LIGHT_NOTE_COLORS];
 
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
-
-function showUploadingOverlay(message = '표지를 업로드하는 중…') {
-  hideUploadingOverlay();
-  const overlay = document.createElement('div');
-  overlay.className = 'add-note-upload-overlay';
-  overlay.setAttribute('role', 'status');
-  overlay.setAttribute('aria-live', 'polite');
-  overlay.innerHTML = `
-    <dotlottie-wc
-      class="add-note-upload-lottie"
-      src="${uploadingLottieUrl}"
-      style="width: 300px; height: 300px"
-      autoplay
-      loop
-    ></dotlottie-wc>
-    <p class="add-note-upload-text">${escapeHtml(message)}</p>
-  `;
-  document.body.appendChild(overlay);
-  document.body.classList.add('add-note-uploading');
-  return overlay;
-}
-
-function hideUploadingOverlay() {
-  document.querySelectorAll('.add-note-upload-overlay').forEach((el) => el.remove());
-  document.body.classList.remove('add-note-uploading');
-}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -129,6 +99,7 @@ function noteToFormSeed(note) {
     stillInUse: !periodEnd,
     notes: note?.description || '',
     isKept: note?.isKept !== false,
+    visible: note?.visible !== false,
     coverFrontUrl: note?.coverFrontUrl || '',
     coverBackUrl: note?.coverBackUrl || ''
   };
@@ -148,7 +119,7 @@ export function mountAddNoteFab(options = {}) {
       role: 'fab',
       ariaLabel: '새 노트 추가',
       content: PLUS_ICON,
-      className: 'add-note-fab'
+      className: 'add-note-fab auth-only'
     })
   );
 
@@ -200,6 +171,7 @@ export async function openAddNoteModal(options = {}) {
       label,
       required: required && !isEdit,
       className: 'add-note-cover-field',
+      hint: isEdit ? '' : `${Math.floor(MAX_COVER_BYTES / (1024 * 1024))}MB 이하 이미지`,
       children: `
         ${picker}
         <div class="add-note-preview" data-preview="${kind}" aria-hidden="true">
@@ -298,6 +270,11 @@ export async function openAddNoteModal(options = {}) {
         <label class="form-check">
           <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
           <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
+        </label>
+
+        <label class="form-check">
+          <input type="checkbox" name="visible" ${!seed || seed.visible ? 'checked' : ''} />
+          <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
         </label>
 
         <p class="form-status add-note-status" hidden></p>
@@ -402,11 +379,20 @@ export async function openAddNoteModal(options = {}) {
         const field = input.closest('.add-note-cover-field');
         const nameEl = field?.querySelector('.upload-pick__status');
         const preview = field?.querySelector('.add-note-preview');
+        const kind = preview?.dataset.preview === 'back' ? 'back' : 'front';
         const file = input.files?.[0];
         if (!file) {
-          const kind = preview?.dataset.preview === 'back' ? 'back' : 'front';
           if (nameEl) nameEl.textContent = '선택된 파일 없음';
           if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
+          return;
+        }
+        const validated = validateCoverImageFile(file);
+        if (!validated.ok) {
+          input.value = '';
+          if (nameEl) nameEl.textContent = '선택된 파일 없음';
+          if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
+          setStatus(validated.message, true);
+          showToast(validated.message);
           return;
         }
         if (nameEl) nameEl.textContent = file.name;
@@ -433,6 +419,7 @@ export async function openAddNoteModal(options = {}) {
     const periodEnd = stillInUse ? '' : String(fd.get('periodEnd') || '').trim();
     const notes = String(fd.get('notes') || '').trim();
     const isKept = Boolean(fd.get('isKept'));
+    const visible = Boolean(fd.get('visible'));
     const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
     const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
 
@@ -462,7 +449,7 @@ export async function openAddNoteModal(options = {}) {
       periodEnd: periodEnd || undefined,
       notes: notes || undefined,
       isKept,
-      visible: true
+      visible
     };
     closeModal();
 
@@ -513,6 +500,7 @@ export async function openAddNoteModal(options = {}) {
 
     showUploadingOverlay('표지를 업로드하는 중…');
 
+    let coversUploaded = false;
     try {
       const [frontDataUrl, backDataUrlRaw] = await Promise.all([
         readFileAsDataUrl(frontFile),
@@ -531,16 +519,20 @@ export async function openAddNoteModal(options = {}) {
           file: frontDataUrl,
           filename: metaPayload.name,
           kind: 'front',
-          noteName: metaPayload.name
+          noteName: metaPayload.name,
+          publicId: seed?.publicId
         }),
         uploadCoverImage({
           file: backDataUrl,
           filename: metaPayload.name,
           kind: 'back',
-          noteName: metaPayload.name
+          noteName: metaPayload.name,
+          publicId: seed?.publicId
         })
       ]);
+      coversUploaded = true;
 
+      showUploadingOverlay('노트를 만드는 중…');
       const created = await createNotionNote({
         name: metaPayload.name,
         coverFrontUrl: frontUpload.url,
@@ -553,7 +545,7 @@ export async function openAddNoteModal(options = {}) {
         periodEnd: metaPayload.periodEnd,
         notes: metaPayload.notes,
         isKept: metaPayload.isKept,
-        visible: true
+        visible: metaPayload.visible
       });
 
       if (created?.id) markNoteUnseen(created.id);
@@ -561,7 +553,6 @@ export async function openAddNoteModal(options = {}) {
       clearNotionNotebooksCache();
       clearNotionTypeItemsCache();
       hideUploadingOverlay();
-      showToast('노트가 추가되었습니다');
       options.onCreated?.(created);
 
       const createdNote = {
@@ -577,7 +568,17 @@ export async function openAddNoteModal(options = {}) {
           onConfirm: () => {
             openAddPageModal({
               note: createdNote,
-              onDone: () => options.onCreated?.(created)
+              fromNewNote: true,
+              onDone: (result) => {
+                /* 페이지 업로드 결과(pdfFolderUrl·pageCount)를 넘기고 목록을 다시 불러온다 */
+                options.onCreated?.({
+                  ...created,
+                  ...(result || {}),
+                  id: created?.id || result?.id,
+                  pdfFolderUrl: result?.pdfFolderUrl || '',
+                  pageCount: result?.pageCount || 0
+                });
+              }
             });
           }
         });
@@ -585,7 +586,13 @@ export async function openAddNoteModal(options = {}) {
     } catch (err) {
       console.error('[AddNote]', err);
       hideUploadingOverlay();
-      showToast(err?.message || '노트 추가에 실패했습니다.');
+      openUploadResultDialog({
+        title: '노트 추가 실패',
+        message: coversUploaded
+          ? '표지 파일은 올렸지만 노트 정보를 만들지 못했습니다.'
+          : '표지 업로드에 실패했습니다.',
+        detail: shortUploadError(err)
+      });
     }
   });
 

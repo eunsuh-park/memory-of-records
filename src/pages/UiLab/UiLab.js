@@ -7,7 +7,11 @@ import { render as renderButton, renderIconButton } from '../../components/Butto
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { render as renderNoteInfoPanel } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import { showToast } from '../../components/Toast/Toast.js';
+import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
+import '../../components/NoteInfoPanel/NoteInfoPanel.css';
+import '../../components/NoteImageViewer/NoteImageViewer.css';
 import './UiLab.css';
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -28,7 +32,7 @@ const ATOMIC_RAMPS = [
   },
   {
     title: 'Primary · yellow',
-    desc: '브랜드 6단계. 다크는 3단계, 라이트는 5단계를 --color-primary로 쓴다.',
+    desc: '브랜드 6단계. 다크는 2단계, 라이트는 4단계를 --color-primary로 쓴다.',
     names: STEPS_6.map((n) => `--primary-${n}`),
     labels: STEPS_6
   },
@@ -129,9 +133,13 @@ const RESPONSIVE_MATRIX = [
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '바닥 반사 off, 모바일 포커스 정보(노트명 · 아이콘 버튼 · 메모)로 동일 레이아웃',
       '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
-      'FAB는 필터가 열렸을 때만 노출 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
+      'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
-    tablet: ['.notes-container padding-top 90px', '갤러리·카드·포커스 UI는 데스크톱과 동일'],
+    tablet: [
+      '.notes-container padding-top 90px',
+      '필터 칩 수평 스크롤 · 짧은 라벨(labelMobile) 사용',
+      'FAB 항상 표시(Primary)'
+    ],
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
@@ -545,6 +553,140 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
+            '즐겨찾기 토글 — desktop star-fill(회색/primary) · mobile off=star-line(white 50%) / on=star-fill(primary)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 추가',
+                title: '즐겨찾기 추가',
+                ariaPressed: false,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--desktop'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 해제',
+                title: '즐겨찾기 해제',
+                ariaPressed: true,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--desktop is-favorite'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 추가',
+                title: '즐겨찾기 추가 (모바일 off)',
+                ariaPressed: false,
+                content: MINGCUTE.starLine,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '즐겨찾기 해제',
+                title: '즐겨찾기 해제 (모바일 on)',
+                ariaPressed: true,
+                content: MINGCUTE.starFill,
+                className: 'jukebox-focus-info__favorite jukebox-focus-info__favorite--mobile is-favorite'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            '노트 공유 — ghost toolbar · share-2-line (주크박스: 노트 링크 · 뷰어: 현재 페이지 링크)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '공유 링크 복사',
+                title: '공유 링크 복사',
+                content: MINGCUTE.share2Line,
+                className: 'jukebox-focus-info__share jukebox-focus-info__share--desktop'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            '주크박스 포커스 액션 — 삭제 (수정·페이지 추가와 같은 primary 원형)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                ariaLabel: '노트 삭제',
+                title: '노트 삭제',
+                content: MINGCUTE.delete2Fill,
+                className: 'jukebox-focus-info__delete'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
+            '노트 인디케이터 — focused 항상 중앙 · 거리 1 짧은 캡슐 · 2+ 원형 페이드 (시작/중간/끝)',
+            [
+              renderNoteIndicator(0, 12),
+              renderNoteIndicator(5, 12),
+              renderNoteIndicator(11, 12)
+            ].join(''),
+            { flow: false, stageClass: 'ui-lab__demo-stage--note-indicator' }
+          )}
+          ${renderVariantRow(
+            '페이지 북마크 토글 — desktop bookmark-fill · mobile off=bookmark-line / on=bookmark-fill (is_bookmarked)',
+            [
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '북마크 추가',
+                title: '북마크 추가',
+                ariaPressed: false,
+                content: MINGCUTE.bookmarkFill,
+                className: 'niv-bookmark niv-bookmark--desktop niv-sheet-btn'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                tone: 'ghost',
+                ariaLabel: '북마크 해제',
+                title: '북마크 해제',
+                ariaPressed: true,
+                content: MINGCUTE.bookmarkFill,
+                className: 'niv-bookmark niv-bookmark--desktop niv-sheet-btn is-bookmarked'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                ariaLabel: '북마크 추가',
+                title: '북마크 추가 (모바일 off)',
+                ariaPressed: false,
+                content: MINGCUTE.bookmarkLine,
+                className: 'niv-bookmark niv-bookmark--mobile is-lab-static'
+              }),
+              renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'toolbar',
+                ariaLabel: '북마크 해제',
+                title: '북마크 해제 (모바일 on)',
+                ariaPressed: true,
+                content: MINGCUTE.bookmarkFill,
+                className: 'niv-bookmark niv-bookmark--mobile is-bookmarked is-lab-static'
+              })
+            ].join('')
+          )}
+          ${renderVariantRow(
             'shape — solid / text',
             [
               renderButton({ shape: 'solid', content: 'solid 버튼', className: 'ui-lab-demo-solid' }),
@@ -606,10 +748,14 @@ export function renderUiLab() {
             ${renderViewerChrome()}
           </div>
           <ul class="ui-lab__list">
-            <li>하단 시트 4칸: 페이지 정보 · 페이지 추가 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구</li>
-            <li>양면 토글은 <code>aria-pressed</code>로 켜짐을 표시하고, 켜지면 배경이 진해집니다</li>
+            <li>하단 시트: 페이지 정보 · 페이지 추가 · 북마크 · 현재 페이지 링크 복사 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구</li>
+            <li>모바일 북마크는 양면 토글 위 FAB로 표시되고, 시트 안 북마크는 숨깁니다</li>
+            <li>북마크는 Cloudinary <code>is_bookmarked</code>와 연결되며, 변경 시 토스트를 띄웁니다</li>
+            <li>양면 토글(2페이지로 보기)을 누르면 3D 책장(BookFlip3D)으로 바뀝니다. 기본은 1페이지 보기이고, WebGL을 쓸 수 없으면 기존 2D 양면 붙이기를 씁니다</li>
+            <li>공유 버튼은 보고 있는 장의 <code>/note/{slug}?p=N</code> 링크를 복사합니다. 주크박스 포커스 공유는 노트 전체 링크입니다</li>
             <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
-            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구</li>
+            <li>공유 링크로 연 전체 페이지 뷰어는 오른쪽 위 닫기(X)·ESC·여백 클릭으로 주크박스에 돌아갑니다</li>
+            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구 · Esc 닫기</li>
           </ul>
         </section>
 
@@ -677,6 +823,29 @@ export function renderUiLab() {
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
+          ${renderVariantRow(
+            '업로드 결과 Dialog — 성공 / 일부만 저장 / 실패(표지만 됨)',
+            [
+              renderButton({
+                shape: 'solid',
+                content: '성공',
+                className: 'ui-lab-demo-solid',
+                dataset: { lab: 'upload-ok' }
+              }),
+              renderButton({
+                shape: 'solid',
+                content: '일부만 저장',
+                className: 'ui-lab-demo-solid',
+                dataset: { lab: 'upload-partial' }
+              }),
+              renderButton({
+                shape: 'solid',
+                content: '실패',
+                className: 'ui-lab-demo-solid',
+                dataset: { lab: 'upload-fail' }
+              })
+            ].join('')
+          )}
         </section>
 
         <section class="ui-lab__section" id="viewers">
@@ -690,6 +859,7 @@ export function renderUiLab() {
             <code>src/components/NoteImageViewer/NoteImageViewer.js</code>,
             <code>src/components/NoteImageViewer/ViewerChrome.js</code>,
             <code>src/components/NoteImageViewer/NoteImageViewer.css</code>,
+            <code>src/components/NoteDetailPage/NoteDetailPage.js</code>,
             <code>src/components/PdfModal/PdfModal.js</code>,
             <code>src/components/PdfModal/PdfModal.css</code>
           </p>
@@ -701,7 +871,7 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="pages">
           <h2 class="ui-lab__section-title">Pages · composition</h2>
           <p class="ui-lab__section-desc">
-            라우트 단위 페이지는 위 컴포넌트를 조합합니다. Jukebox는 Timeline/By type의 갤러리 본체이고, Story는 별도 풀스크린 서사 페이지입니다.
+            라우트 단위 페이지는 위 컴포넌트를 조합합니다. Jukebox는 Timeline/By type의 갤러리 본체이고, Story는 카드 레이아웃 정적 페이지입니다.
           </p>
           <p class="ui-lab__files">
             참조:
@@ -727,6 +897,27 @@ export function renderUiLab() {
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
+  });
+
+  root.querySelector('[data-lab="upload-ok"]')?.addEventListener('click', () => {
+    openUploadResultDialog({
+      title: '업로드 완료',
+      message: '5페이지가 추가되었습니다.'
+    });
+  });
+  root.querySelector('[data-lab="upload-partial"]')?.addEventListener('click', () => {
+    openUploadResultDialog({
+      title: '일부만 저장됨',
+      message: '5장 중 3장만 올렸습니다.',
+      detail: '4장째부터 실패했습니다.'
+    });
+  });
+  root.querySelector('[data-lab="upload-fail"]')?.addEventListener('click', () => {
+    openUploadResultDialog({
+      title: '페이지 업로드 실패',
+      message: '표지는 저장됐지만 본문 페이지는 올리지 못했습니다.',
+      detail: '이미지 저장에 실패했습니다.'
+    });
   });
 
   /* 정적 데모라 실제 페이지 수가 없으니 표시용 값만 채운다 */

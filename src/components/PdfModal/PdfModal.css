@@ -108,18 +108,19 @@
   background: var(--color-overlay);
   z-index: 3000;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--space-4);
+  justify-content: stretch;
+  align-items: stretch;
+  padding: 0;
   cursor: pointer;
 }
 
 .pdf-modal {
   position: relative;
-  width: min(1400px, 98vw);
-  max-height: 95vh;
+  width: 100%;
+  height: 100%;
+  max-height: none;
   background: transparent;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-none);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -133,6 +134,7 @@
   flex: 1;
   display: flex;
   min-height: 0;
+  height: 100%;
 }
 
 body.pdf-modal-open {
@@ -145,12 +147,16 @@ body.pdf-modal-open {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  flex: 1;
+  min-height: 0;
   height: 100%;
 }
 
 .pdf-viewer--modal {
   margin-top: 0;
   flex: 1;
+  min-height: 0;
+  height: 100%;
 }
 
 /* PDF 캔버스 래퍼 */
@@ -158,10 +164,13 @@ body.pdf-modal-open {
   position: relative;
   background: transparent;
   border: none;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2);
+  border-radius: var(--radius-none);
+  padding: max(var(--space-2), env(safe-area-inset-top))
+    max(var(--space-2), env(safe-area-inset-right))
+    max(var(--space-2), env(safe-area-inset-bottom))
+    max(var(--space-2), env(safe-area-inset-left));
   margin: 0;
-  min-height: 70vh;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -212,27 +221,32 @@ body.pdf-modal-open {
   -webkit-backdrop-filter: blur(10px);
 }
 
-.pdf-canvas-wrap .btn--nav:hover {
-  background: var(--white);
-  color: var(--color-chrome-strong);
+@media (hover: hover) and (pointer: fine) {
+  .pdf-canvas-wrap .btn--nav:hover {
+    background: var(--white);
+    color: var(--color-chrome-strong);
+  }
 }
 
-.pdf-canvas-wrap .btn--nav:disabled:hover,
 .pdf-canvas-wrap .btn--nav:disabled:active,
-.pdf-canvas-wrap .btn--nav.is-at-end:hover,
 .pdf-canvas-wrap .btn--nav.is-at-end:active,
-.pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover,
 .pdf-canvas-wrap .btn--nav[aria-disabled='true']:active {
   background: var(--color-chrome);
   color: var(--color-chrome-on);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .pdf-canvas-wrap .btn--nav:disabled:hover,
+  .pdf-canvas-wrap .btn--nav.is-at-end:hover,
+  .pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover {
+    background: var(--color-chrome);
+    color: var(--color-chrome-on);
+  }
+}
+
 @media (max-width: 640px) {
-  /* 네비 버튼이 이미지를 가리지 않도록 좌우 여백 확보 */
-  .pdf-canvas-wrap {
-    padding-left: var(--space-12);
-    padding-right: var(--space-12);
-    min-height: 50vh;
+  .pdf-canvas-wrap .btn--nav {
+    opacity: 0.85;
   }
 }
 
@@ -255,9 +269,11 @@ body.pdf-modal-open {
   font-size: var(--text-lg);
 }
 
-.pdf-modal-close:hover {
-  background: var(--color-on-light-bg);
-  color: var(--color-chrome-strong);
+@media (hover: hover) and (pointer: fine) {
+  .pdf-modal-close:hover {
+    background: var(--color-on-light-bg);
+    color: var(--color-chrome-strong);
+  }
 }
 
 .pdf-modal-close svg {

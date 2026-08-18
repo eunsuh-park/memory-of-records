@@ -46,6 +46,8 @@
   text-underline-offset: 2px;
 }
 
-.login-back:hover {
-  color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .login-back:hover {
+    color: var(--color-primary);
+  }
 }

@@ -4,7 +4,8 @@
  * 초기 표시: 컨테이너에 이미지 전체가 들어가도록 contain
  * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
  * 확대/축소·패닝: .niv-zoom-stage transform
- * 하단 시트: 정보 | 페이지 추가 | 프로그레스 | 원상복구
+ * 하단 시트: 정보 | 페이지 추가 | 북마크 | 프로그레스 | 원상복구
+ * 모바일 북마크: 양면 토글 위 떠 있는 FAB
  *
  * 버튼은 모두 공통 Button 컴포넌트(circle)로 만들고,
  * 여기서는 시트 안에서 쓸 크기·상태만 덮는다.
@@ -21,7 +22,10 @@
   justify-content: center;
   overflow: hidden;
   touch-action: none;
-  padding: var(--space-2) var(--space-2) 72px;
+  padding: max(var(--space-2), env(safe-area-inset-top))
+    max(var(--space-2), env(safe-area-inset-right))
+    calc(4.5rem + env(safe-area-inset-bottom))
+    max(var(--space-2), env(safe-area-inset-left));
   box-sizing: border-box;
 }
 
@@ -68,6 +72,30 @@
   display: none !important;
 }
 
+.niv-bookflip-canvas {
+  display: none;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+  user-select: none;
+}
+
+.note-image-viewer.bookflip-mode .niv-zoom-stage {
+  width: 100%;
+  height: 100%;
+  gap: 0;
+}
+
+.note-image-viewer.bookflip-mode .niv-bookflip-canvas {
+  display: block;
+}
+
+.note-image-viewer.bookflip-mode .niv-page-image {
+  display: none !important;
+}
+
 .niv-current-page {
   font-weight: var(--font-bold);
 }
@@ -80,7 +108,7 @@
   transform: translateX(-50%);
   z-index: 5;
   display: grid;
-  grid-template-columns: auto auto 1fr auto;
+  grid-template-columns: auto auto auto auto 1fr auto;
   align-items: center;
   gap: var(--space-1);
   width: min(420px, calc(100% - var(--space-6)));
@@ -107,13 +135,24 @@
   min-height: 2.35rem;
 }
 
-.note-image-viewer .btn.niv-sheet-btn:hover,
+.note-image-viewer .btn.niv-share-note[hidden] {
+  display: none;
+}
+
 .note-image-viewer .btn.niv-sheet-btn:focus-visible,
-.note-image-viewer .btn.niv-sheet-nav:hover,
 .note-image-viewer .btn.niv-sheet-nav:focus-visible {
   background: var(--color-chrome-on-hover);
   background-color: var(--color-chrome-on-hover);
   outline: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-image-viewer .btn.niv-sheet-btn:hover,
+  .note-image-viewer .btn.niv-sheet-nav:hover {
+    background: var(--color-chrome-on-hover);
+    background-color: var(--color-chrome-on-hover);
+    outline: none;
+  }
 }
 
 .note-image-viewer .btn.niv-sheet-btn:disabled,
@@ -195,10 +234,71 @@
   background-color: var(--color-chrome-strong);
 }
 
+/* 북마크: favorites와 동일 — off=muted/chrome-on, on=primary */
+button.niv-bookmark.btn {
+  color: var(--color-chrome-on);
+}
+
+button.niv-bookmark.btn.is-bookmarked,
+button.niv-bookmark.btn[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.niv-bookmark.btn:hover {
+    color: var(--color-primary);
+  }
+}
+
+button.niv-bookmark.btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+button.niv-bookmark--mobile.btn:not(.is-bookmarked):not([aria-pressed='true']) {
+  color: color-mix(in srgb, var(--white) 50%, transparent);
+}
+
+button.niv-bookmark--mobile.btn.is-bookmarked,
+button.niv-bookmark--mobile.btn[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+
+/* 모바일 FAB: 양면 토글 바로 위. 데스크톱 시트 버튼은 모바일에서 숨김 */
+.note-image-viewer .btn.niv-bookmark-fab {
+  display: none;
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem + 2.55rem);
+  z-index: 4;
+  width: 2.2rem;
+  height: 2.2rem;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: var(--color-chrome-soft);
+  background-color: var(--color-chrome-soft);
+}
+
+.note-image-viewer .btn.niv-bookmark-fab svg {
+  width: 1rem;
+  height: 1rem;
+  display: block;
+}
+
+.note-image-viewer .btn.niv-bookmark-fab.is-bookmarked,
+.note-image-viewer .btn.niv-bookmark-fab[aria-pressed='true'] {
+  background: var(--color-chrome-strong);
+  background-color: var(--color-chrome-strong);
+}
+
 @media (max-width: 768px) {
-  /* 노트 기본 맞춤 시 하단 시트와 안 겹치게 여백 확보 */
   .niv-image-container {
-    padding: var(--space-1) 52px calc(4.75rem + env(safe-area-inset-bottom));
+    padding: max(var(--space-1), env(safe-area-inset-top))
+      max(var(--space-1), env(safe-area-inset-right))
+      calc(4.25rem + env(safe-area-inset-bottom))
+      max(var(--space-1), env(safe-area-inset-left));
   }
 
   .niv-bottom-sheet {
@@ -231,6 +331,16 @@
 
   .note-image-viewer .btn.niv-spread-fab {
     bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem);
+  }
+
+  /* 모바일: 시트 안 북마크 숨기고, 양면 토글 위 FAB만 표시 */
+  .note-image-viewer .btn.niv-bookmark--desktop {
+    display: none;
+  }
+
+  .note-image-viewer .btn.niv-bookmark-fab {
+    display: inline-flex;
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem + 2.55rem);
   }
 }
 

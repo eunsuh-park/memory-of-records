@@ -71,6 +71,42 @@
   환경 변수가 없거나 조회에 실패하면 안전하게 전체 페이지를 노출합니다(fail-open).
   참고: CDN 캐시가 있어 메타데이터 변경 후 최대 약 5분 뒤에 반영될 수 있습니다.
 
+## 즐겨찾기 (favorites)
+
+- Notion 노트북 DB에 `favorites` 컬럼(Checkbox, 기본값 false)을 둡니다.
+- Jukebox 포커스 정보 패널의 별(star-fill) 버튼이 이 값과 연결되며, 클릭 시
+  `POST /api/writeNotebooks` (`op: 'favorite'`)로 토글합니다.
+- 클라이언트 노트 객체에는 `favorites: boolean`이 포함됩니다.
+- 즐겨찾기만 모은 페이지(`/favorites`)는 `src/pages/Notes/Favorites.js`와
+  `FAVORITES_PATH` · `filterFavoriteNotes()` · `getFavoriteNotes()`를 사용합니다.
+
+## 기본 Bookmark Note (모든 유저)
+
+- 페이지 북마크는 Cloudinary `is_bookmarked` 메타데이터입니다.
+- Jukebox 맨 앞의 **Bookmark Note**(`virtual:bookmarks`)가 기본으로 제공되며,
+  `GET /api/readPages?op=bookmarked`로 북마크된 페이지를 모아 한 앨범처럼 엽니다.
+- 표지는 로컬 PNG(`src/assets/bookmarks-cover-front.png` · `bookmarks-cover-back.png`)를 씁니다.
+- 페이지 정보(상세 설명) 모달에 **원본 노트** 링크를 표시합니다.
+
+## 노트 삭제 · 휴지통
+
+- 주크박스 포커스 패널의 삭제 아이콘 → Dialog 확인 → 해당 Notion 페이지를 **휴지통 DB**로 옮깁니다.
+- 브라우저 기본 `alert`가 아니라 사이트 Dialog 컴포넌트를 씁니다. 옵션은 **삭제 / 취소**.
+- Notion에 노트북 DB와 **같은 속성**의 데이터베이스를 하나 더 만들고, 같은 Integration을 연결한 뒤 ID를 넣습니다.
+
+  **추천 DB 이름:** `trash` (Notion 화면에 보이는 이름)
+
+  환경 변수 **이름**은 `NOTION_TRASH_DATABASE_ID`이고, **값**은 단어 `trash`가 아니라
+  DB URL에 있는 32자리 ID입니다.
+
+  ```
+  NOTION_TRASH_DATABASE_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  ```
+
+- **삭제 일시** 속성(Date, 이름 예: `삭제 일시` 또는 `deleted_at`)을 추가하는 것을 권장합니다.
+  휴지통으로 옮긴 시각이 기록되어 나중에 비우기·복원 순서를 잡을 때 쓰입니다. 속성이 없으면 이동만 하고 시각은 생략합니다.
+- 휴지통 목록·복원 UI는 아직 없습니다. DB만 있으면 삭제 이동은 동작합니다.
+
 ## 사용 방법
 
 `src/pages/Story.js`에서 노션 데이터를 사용하도록 수정하면 됩니다.

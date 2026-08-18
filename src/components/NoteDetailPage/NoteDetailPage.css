@@ -1,22 +1,25 @@
 /**
  * NoteDetailPage 스타일
- * /note/:id 전체 페이지 껍데기 + 등장 애니메이션.
- * (모달 모드에서는 쓰이지 않는다)
+ * /note/:id 전체 페이지 껍데기 — 뷰어가 화면 전체를 채운다.
  */
 
 .note-detail {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: var(--space-8);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 .note-detail-page {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   padding: 0;
-  background: var(--color-overlay-scrim);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--color-overlay);
   opacity: 0;
   transform: scale(0.98);
   transition: none;
@@ -42,14 +45,20 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  background: var(--color-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: transparent;
   border-radius: var(--radius-none);
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
 }
 
 .note-detail-page .pdf-viewer {
   margin-top: 0;
   flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.note-detail-page .pdf-canvas-wrap {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
 }

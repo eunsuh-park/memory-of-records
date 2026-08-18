@@ -50,9 +50,19 @@ body,
   background-color: unset;
 }
 
-/* Story 페이지(/story): padding-top 제거, Top Nav 숨김, 전체 화면 사용 */
-body.story-page-active .app-main {
+/* /note/:id 뷰어 — 헤더 여백 없이 전체 화면 */
+body.note-detail-active .main-wrapper {
+  height: 100vh;
+  height: 100dvh;
+}
+
+body.note-detail-active .app-main {
   padding-top: 0;
+  height: 100%;
+}
+
+body.note-detail-active #main-content {
+  height: 100%;
 }
 
 /* 전역 스타일 - 기본 설정 */
@@ -86,5 +96,15 @@ button {
 .app-error-reload-btn {
   width: auto;
   margin-top: 0;
+}
+
+/* 로그인 전: 편집 전용 컨트롤 숨김 (노트 추가·수정·페이지 추가·삭제) */
+body:not(.is-authenticated) .auth-only {
+  display: none !important;
+}
+
+/* /ui-lab 정적 데모는 로그인과 무관하게 보여 준다 */
+body:not(.is-authenticated) .ui-lab .auth-only {
+  display: inline-flex !important;
 }
 

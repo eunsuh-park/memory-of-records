@@ -18,6 +18,7 @@ import {
   mount as mountNoteDetailPage
 } from '../NoteDetailPage/NoteDetailPage.js';
 import { showToast } from '../Toast/Toast.js';
+import { findNoteByRouteParam } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import '../Button/Button.css';
 import './PdfModal.css';
@@ -58,9 +59,10 @@ async function findNoteMetaById(noteId) {
   ]);
   const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
   const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
+  const notes = [...(notebooks || []), ...(typeItems || [])];
   return (
-    (notebooks || []).find((note) => note.id === noteId) ||
-    (typeItems || []).find((note) => note.id === noteId) ||
+    findNoteByRouteParam(notes, noteId) ||
+    notes.find((note) => note.id === noteId) ||
     null
   );
 }
@@ -145,7 +147,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   targetEl.innerHTML = isModal ? viewerMarkup : wrapInNoteDetailPage(viewerMarkup);
 
-  if (!isModal) mountNoteDetailPage(targetEl);
+  const unmountDetailPage = !isModal ? mountNoteDetailPage(targetEl) : null;
 
   const overlay = targetEl.querySelector('#pdf-overlay');
   const overlayText = targetEl.querySelector('#pdf-overlay-text');
@@ -487,6 +489,7 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 
   initPdfViewer();
   return () => {
+    unmountDetailPage?.();
     document.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     clearTimeout(resizeTimer);
@@ -499,5 +502,5 @@ export function renderPdfViewer(targetEl, id, options = {}) {
 export function renderNoteDetailPage(id) {
   const mainContent = document.getElementById('main-content');
   if (!mainContent) return;
-  renderPdfViewer(mainContent, id);
+  mainContent._routeCleanup = renderPdfViewer(mainContent, id);
 }

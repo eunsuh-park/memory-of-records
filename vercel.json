@@ -1,6 +1,17 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/writePages.js": {
+      "maxDuration": 60
+    },
+    "api/writeNotebooks.js": {
+      "maxDuration": 30
+    },
+    "api/writeCovers.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -49,4 +60,3 @@
     }
   ]
 }
-

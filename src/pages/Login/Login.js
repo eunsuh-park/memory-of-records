@@ -34,7 +34,7 @@ export async function renderLogin() {
     <div class="login-page">
       <div class="login-panel">
         <h1 class="login-title">로그인</h1>
-        <p class="login-lede">노트·페이지를 추가하거나 수정하려면 관리자 비밀번호가 필요합니다. 둘러보기는 로그인 없이 가능합니다.</p>
+        <p class="login-lede">추가 및 수정은 로그인이 필요합니다.</p>
         <form class="form login-form" novalidate>
           ${renderField({
             type: 'password',

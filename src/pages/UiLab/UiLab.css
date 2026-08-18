@@ -128,6 +128,14 @@
   padding: var(--space-6) var(--space-4);
 }
 
+.ui-lab__demo-stage--note-indicator {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  background: var(--color-bg);
+}
+}
+
 /* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */
 .ui-lab__demo-stage--flow .btn--fab,
 .ui-lab__demo-stage--flow .btn--back,

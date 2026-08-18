@@ -32,9 +32,11 @@
   transition: color 0.2s, background-color 0.2s;
 }
 
-.view-mode-link:hover {
-  color: var(--color-text);
-  background-color: var(--color-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .view-mode-link:hover {
+    color: var(--color-text);
+    background-color: var(--color-surface-hover);
+  }
 }
 
 .view-mode-link.active {
@@ -102,7 +104,12 @@
 
 /* 정렬 드롭다운 스타일은 Select 컴포넌트(.select--pill)에 있음 */
 
-/* ========== 타블렛 (1024px 이하): 스케일 축소, 전부 표시 ========== */
+/*
+ * ========== 타블렛 (1024px 이하): 스케일 축소, 전부 표시 ==========
+ * 터치 환경이므로 마우스 기준 데스크톱 값보다 높이를 줄이지 않고
+ * 탭하기 편한 최소 터치 타겟(2.5rem/40px)을 보장한다.
+ * 칩이 넘치면 수평 스크롤로 잘림을 막는다.
+ */
 @media (max-width: 1024px) {
   .view-mode-toggle {
     gap: var(--space-1);
@@ -111,17 +118,42 @@
   }
 
   .view-mode-link {
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-2) var(--space-3);
     font-size: var(--text-sm);
+    min-height: 2.5rem;
+  }
+
+  .sub-menu {
+    max-width: min(96vw, 920px);
+    width: max-content;
+  }
+
+  .sub-nav {
+    max-width: 100%;
   }
 
   .filter-list {
     gap: var(--space-1);
+    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: var(--space-1);
   }
 
   .filter-list .chip {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--text-xs);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-sm);
+    min-height: 2.5rem;
+    flex-shrink: 0;
+    max-width: 11rem;
+  }
+
+  .filter-list .chip .chip__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -246,11 +278,6 @@
     font-weight: var(--font-bold);
   }
 
-  body.jukebox-active .view-mode-link:not(.active):hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-hover);
-  }
-
   body.jukebox-active .filter-list {
     display: flex;
     flex: 1 1 auto;
@@ -291,15 +318,6 @@
     white-space: normal;
     overflow: hidden;
     transition: color 0.15s ease;
-  }
-
-  body.jukebox-active .filter-list .chip:hover:not(.is-active) {
-    background-color: transparent;
-  }
-
-  body.jukebox-active .filter-list .chip:hover:not(.is-active) .chip__label {
-    color: var(--color-text);
-    font-weight: var(--font-bold);
   }
 
   /* 선택: 라벨 강조, 개수는 primary */
@@ -343,6 +361,22 @@
     padding-top: 0;
     padding-bottom: 0;
     pointer-events: none;
+  }
+}
+
+@media (max-width: 768px) and (hover: hover) and (pointer: fine) {
+  body.jukebox-active .view-mode-link:not(.active):hover {
+    color: var(--color-text);
+    background-color: var(--color-surface-hover);
+  }
+
+  body.jukebox-active .filter-list .chip:hover:not(.is-active) {
+    background-color: transparent;
+  }
+
+  body.jukebox-active .filter-list .chip:hover:not(.is-active) .chip__label {
+    color: var(--color-text);
+    font-weight: var(--font-bold);
   }
 }
 

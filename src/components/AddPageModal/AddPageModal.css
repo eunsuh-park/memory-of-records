@@ -51,9 +51,11 @@
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.add-page-source-btn:hover {
-  border-color: var(--color-primary);
-  background: var(--color-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .add-page-source-btn:hover {
+    border-color: var(--color-primary);
+    background: var(--color-surface-hover);
+  }
 }
 
 .add-page-source-title {
@@ -87,8 +89,10 @@
   background: transparent;
 }
 
-.add-page-secondary:hover {
-  background: var(--color-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .add-page-secondary:hover {
+    background: var(--color-surface-hover);
+  }
 }
 
 .add-page-submit,
@@ -132,6 +136,29 @@
   color-scheme: light;
 }
 
+.page-meta-source {
+  gap: var(--space-1);
+}
+
+.page-meta-source-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  word-break: break-word;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page-meta-source-link:hover {
+    color: var(--color-text);
+  }
+}
+
 .page-meta-date-hint {
   margin: 0;
   font-size: var(--text-xs);
@@ -145,7 +172,12 @@
   gap: var(--space-3);
 }
 
-.page-meta-ocr-actions {
+/*
+ * [hidden] 속성은 브라우저 기본 스타일(display: none)로 숨겨지지만,
+ * 이 클래스가 display를 직접 지정하면 author 규칙이 그 기본값을 덮어써
+ * hidden이 무시된다. :not([hidden])로 감싸 hidden일 때는 기본 동작을 살린다.
+ */
+.page-meta-ocr-actions:not([hidden]) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -175,13 +207,15 @@
   color: var(--color-text-muted);
 }
 
-.page-meta-ocr-btn:hover:not(:disabled),
-.page-meta-ocr-reset-btn:hover:not(:disabled) {
-  filter: brightness(1.05);
-}
+@media (hover: hover) and (pointer: fine) {
+  .page-meta-ocr-btn:hover:not(:disabled),
+  .page-meta-ocr-reset-btn:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
 
-.page-meta-ocr-reset-btn:hover:not(:disabled) {
-  background: var(--color-surface-hover);
+  .page-meta-ocr-reset-btn:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+  }
 }
 
 .page-meta-ocr-btn:disabled,
@@ -190,7 +224,8 @@
   cursor: not-allowed;
 }
 
-.page-meta-actions {
+/* [hidden] 무력화 방지: 위 .page-meta-ocr-actions와 동일한 이유 */
+.page-meta-actions:not([hidden]) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
@@ -220,8 +255,10 @@
   color: var(--color-primary-on);
 }
 
-.page-meta-edit-btn:hover:not(:disabled) {
-  filter: brightness(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .page-meta-edit-btn:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
 }
 
 .page-meta-delete-btn {
@@ -230,8 +267,10 @@
   border-color: var(--color-error);
 }
 
-.page-meta-delete-btn:hover:not(:disabled) {
-  background: var(--color-error-bg);
+@media (hover: hover) and (pointer: fine) {
+  .page-meta-delete-btn:hover:not(:disabled) {
+    background: var(--color-error-bg);
+  }
 }
 
 .page-meta-edit-btn:disabled,

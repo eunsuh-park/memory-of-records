@@ -4,12 +4,14 @@
 
 import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
+import { renderFavorites } from './pages/Notes/Favorites.js';
 import { renderStory } from './pages/Story/Story.js';
 import { renderLanding } from './pages/Landing/Landing.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 import { renderUiLab } from './pages/UiLab/UiLab.js';
 import { renderLogin } from './pages/Login/Login.js';
 import { dismissTransientOverlays } from './utils/dismissOverlays.js';
+import { FAVORITES_PATH } from './utils/noteFavorites.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
 const BASE_URL = import.meta.env.BASE_URL || '/';
@@ -22,6 +24,8 @@ class Router {
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/by-type', handler: () => renderByType(null) },
       { path: '/by-type/:type', handler: (params) => renderByType(params.type) },
+      { path: FAVORITES_PATH, handler: () => renderFavorites() },
+      { path: `${FAVORITES_PATH}/:filter`, handler: () => renderFavorites() },
       { path: '/story', handler: renderStory },
       { path: '/note/:id', handler: (params) => renderNoteDetailPage(params.id) },
       { path: '/login', handler: () => { void renderLogin(); } },
@@ -68,11 +72,12 @@ class Router {
   }
 
   navigate(path) {
-    // base 경로를 포함한 전체 경로 생성
+    // base 경로를 포함한 전체 경로 생성 (`?p=` 같은 쿼리 포함)
     const fullPath = BASE_URL === '/' ? path : BASE_URL.slice(0, -1) + path;
-    
-    // 같은 경로로 이동하는 경우 아무것도 하지 않음
-    if (window.location.pathname === fullPath) {
+    const current = `${window.location.pathname}${window.location.search}`;
+
+    // 같은 경로+쿼리면 다시 렌더하지 않음
+    if (current === fullPath) {
       return;
     }
     window.history.pushState({}, '', fullPath);
@@ -92,6 +97,15 @@ class Router {
     /* body 오버레이는 main-content 교체로 안 사라짐 — 라우트마다 정리 */
     dismissTransientOverlays();
 
+    if (typeof mainContent._routeCleanup === 'function') {
+      try {
+        mainContent._routeCleanup();
+      } catch (error) {
+        console.warn('Router: previous route cleanup failed', error);
+      }
+      mainContent._routeCleanup = null;
+    }
+
     /* Story가 아닐 때 story-page-active 제거 (Top Nav 복원) */
     if (!path.startsWith('/story')) {
       document.documentElement.classList.remove('story-page-active');
@@ -105,19 +119,25 @@ class Router {
       document.documentElement.classList.remove('landing-page-active');
       document.body.classList.remove('landing-page-active');
     }
-    if (!path.startsWith('/note/')) {
+    if (path.startsWith('/note/')) {
+      document.body.classList.add('note-detail-active');
+    } else {
+      document.body.classList.remove('note-detail-active');
       document.body.classList.remove('note-detail-modal');
     }
 
-    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type 통합 페이지에서 사용)
-    const isNotesPage = path.startsWith('/timeline') || path.startsWith('/by-type');
+    // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type/Favorites)
+    const isNotesPage =
+      path.startsWith('/timeline') ||
+      path.startsWith('/by-type') ||
+      path.startsWith(FAVORITES_PATH);
     if (!isNotesPage) {
       document.body.classList.remove('jukebox-active', 'filter-nav-collapsed', 'filter-nav-open');
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
 
-    // Timeline/By type 페이지가 아닐 때 서브 메뉴 내용만 비움 (노드는 유지)
+    // Timeline/By type/Favorites 페이지가 아닐 때 서브 메뉴 내용만 비움 (노드는 유지)
     if (!isNotesPage) {
       const subMenu = document.getElementById('sub-menu');
       if (subMenu) subMenu.innerHTML = '';

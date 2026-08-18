@@ -2,6 +2,28 @@
  * 새 노트 생성·표지 업로드·폼 메타 클라이언트 서비스
  */
 
+/* 서버(api/writeCovers.js) 표지 업로드 제한과 동일 — 선택 단계에서 미리 안내 */
+export const MAX_COVER_BYTES = 8 * 1024 * 1024;
+
+/**
+ * @param {File} file
+ * @returns {{ ok: true } | { ok: false, message: string }}
+ */
+export function validateCoverImageFile(file) {
+  if (!file) return { ok: false, message: '이미지를 선택해주세요' };
+  if (!String(file.type || '').startsWith('image/')) {
+    return { ok: false, message: '이미지 파일만 선택할 수 있습니다' };
+  }
+  if (file.size > MAX_COVER_BYTES) {
+    const limitMb = Math.floor(MAX_COVER_BYTES / (1024 * 1024));
+    return {
+      ok: false,
+      message: `표지 이미지는 ${limitMb}MB 이하 파일만 업로드할 수 있습니다`
+    };
+  }
+  return { ok: true };
+}
+
 /**
  * @returns {Promise<{
  *   ok: boolean,
@@ -15,7 +37,7 @@
  * }>}
  */
 export async function fetchNoteFormMeta() {
-  const response = await fetch('/api/noteFormMeta', {
+  const response = await fetch('/api/readNotebooks?view=formMeta', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
@@ -31,12 +53,13 @@ export async function fetchNoteFormMeta() {
  *   file: string,
  *   filename?: string,
  *   kind: 'front'|'back',
- *   noteName?: string
+ *   noteName?: string,
+ *   publicId?: string
  * }} payload
  * @returns {Promise<{ url: string, width?: number, height?: number }>}
  */
 export async function uploadCoverImage(payload) {
-  const response = await fetch('/api/uploadCover', {
+  const response = await fetch('/api/writeCovers', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -68,10 +91,10 @@ export async function uploadCoverImage(payload) {
  * }} payload
  */
 export async function createNotionNote(payload) {
-  const response = await fetch('/api/createNote', {
+  const response = await fetch('/api/writeNotebooks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'create', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -98,15 +121,54 @@ export async function createNotionNote(payload) {
  * }} payload
  */
 export async function updateNotionNote(payload) {
-  const response = await fetch('/api/updateNote', {
+  const response = await fetch('/api/writeNotebooks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ op: 'update', ...payload })
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(
       data?.message || data?.details?.message || data?.error || '노트 수정에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
+ * Notion favorites 토글
+ * @param {{ id: string, favorites: boolean }} payload
+ */
+export async function updateNoteFavorite(payload) {
+  const response = await fetch('/api/writeNotebooks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'favorite', ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.details?.message || data?.error || '즐겨찾기 변경에 실패했습니다'
+    );
+  }
+  return data;
+}
+
+/**
+ * 노트를 휴지통 DB로 이동
+ * @param {{ id: string }} payload
+ */
+export async function trashNotionNote(payload) {
+  const response = await fetch('/api/writeNotebooks', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'trash', ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.details?.message || data?.error || '노트 삭제에 실패했습니다'
     );
   }
   return data;

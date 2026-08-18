@@ -42,6 +42,13 @@ export function render(options = {}) {
       `<span class="chip__label chip__label--mobile">${labelMobile}</span>`
     : `<span class="chip__label">${label}</span>`;
   const countHtml = count > 0 ? `<span class="chip__count">${count}</span>` : '';
+  /* 잘린 라벨용 네이티브 툴팁 — HTML 태그 제거한 평문 */
+  const titleText = String(label || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/"/g, '&quot;');
+  const titleAttr = titleText ? ` title="${titleText}"` : '';
   const dataAttrs = Object.entries(dataset || {})
     .map(([key, value]) => ` data-${key}="${value}"`)
     .join('');
@@ -49,8 +56,8 @@ export function render(options = {}) {
   if (href) {
     return `<a href="${href}" class="${classes.join(' ')}" data-link${
       active ? ' aria-current="page"' : ''
-    }${dataAttrs}>${labelHtml}${countHtml}</a>`;
+    }${titleAttr}${dataAttrs}>${labelHtml}${countHtml}</a>`;
   }
 
-  return `<button type="button" class="${classes.join(' ')}" aria-pressed="${active}"${dataAttrs}>${labelHtml}${countHtml}</button>`;
+  return `<button type="button" class="${classes.join(' ')}" aria-pressed="${active}"${titleAttr}${dataAttrs}>${labelHtml}${countHtml}</button>`;
 }

@@ -52,7 +52,10 @@ const ICONS = [
   { key: 'pdfLine', name: 'pdf-line', desc: 'PDF · 갤러리 보기' },
   { key: 'scanLine', name: 'scan-line', desc: '스캔 단계' },
   { key: 'classify2Line', name: 'classify-2-line', desc: '정리 단계' },
-  { key: 'book5Line', name: 'book-5-line', desc: '다시 읽기 단계' }
+  { key: 'book5Line', name: 'book-5-line', desc: '다시 읽기 단계' },
+  { key: 'bookmarkFill', name: 'bookmark-fill', desc: '페이지 북마크 on (채운 북마크)' },
+  { key: 'bookmarkLine', name: 'bookmark-line', desc: '페이지 북마크 off · 모바일 (라인 북마크)' },
+  { key: 'delete2Fill', name: 'delete-2-fill', desc: '노트 삭제 (휴지통, fill)' }
 ];
 
 const res = await fetch(`${API}?icons=${ICONS.map((icon) => icon.name).join(',')}`);

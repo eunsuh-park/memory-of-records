@@ -1,5 +1,5 @@
 /**
- * GET /api/noteFormMeta
+ * GET /api/readNotebooks?view=formMeta
  * 새 노트 폼용 Notion DB select 옵션·속성 존재 여부 반환
  */
 import {
@@ -8,18 +8,18 @@ import {
   findTitleProperty,
   notionFetch,
   selectOptionsFromProp
-} from './_lib/notionDb.js';
+} from '../notionDb.js';
 
 const FALLBACK_COLORS = ['파랑', '빨강', '검정', '초록', '노랑', '보라', '회색', '갈색', '분홍', '흰색'];
 const FALLBACK_SIZES = ['A4', 'A5', 'A6', 'B5', 'B6', '16절', '8절', '4절'];
 const FALLBACK_PERIODS = [
   'Elementary School',
-  'University',
   'Middle & High School',
+  'University',
   'After School'
 ];
 
-export default async function handler(req, res) {
+export async function handleNoteFormMeta(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

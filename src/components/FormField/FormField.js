@@ -12,6 +12,15 @@
 import { render as renderSelect } from '../Select/Select.js';
 import './FormField.css';
 
+/*
+ * date/time류 네이티브 입력은 <label>로 감싸면 안 된다: 일부 브라우저(Chromium 계열)는
+ * 네이티브 캘린더/타임 피커 내부 클릭을 레이블이 컨트롤에 전달하는 합성 클릭으로 오인해
+ * 피커를 곧바로 다시 닫는다 — 월을 고르면 일을 고르기 전에 닫혀 다시 열어야 하는 원인.
+ * 그래서 이 타입들은 <label for>로 연결한 형제 요소 구조를 쓴다.
+ */
+const NATIVE_PICKER_TYPES = new Set(['date', 'time', 'month', 'week', 'datetime-local']);
+let pickerFieldSeq = 0;
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -41,13 +50,21 @@ export function renderColorSwatches(colors = [], config = {}) {
 
   return list
     .map((colorName) => {
-      const hex = colorMap[colorName] || fallbackColor(colorName);
+      const paint = colorMap[colorName] || fallbackColor(colorName);
       const checked = colorName === selected ? 'checked' : '';
       const isLight = lightNames.includes(colorName);
+      const isGradient = String(paint).includes('gradient');
+      const classes = [
+        'field__swatch',
+        isLight ? 'field__swatch--light' : '',
+        isGradient ? 'field__swatch--gradient' : ''
+      ]
+        .filter(Boolean)
+        .join(' ');
       return `
-        <label class="field__swatch${isLight ? ' field__swatch--light' : ''}" title="${escapeHtml(colorName)}">
+        <label class="${classes}" title="${escapeHtml(colorName)}">
           <input type="radio" name="${escapeHtml(name)}" value="${escapeHtml(colorName)}" ${checked} />
-          <span class="field__swatch-dot" style="--swatch-color:${escapeHtml(hex)}"></span>
+          <span class="field__swatch-dot" style="--swatch-color:${escapeHtml(paint)}"></span>
           <span class="field__swatch-name">${escapeHtml(colorName)}</span>
         </label>`;
     })
@@ -128,6 +145,9 @@ export function render(config = {}) {
       </div>`;
   }
 
+  const isNativePicker = NATIVE_PICKER_TYPES.has(type);
+  const fieldId = isNativePicker ? `field-${name || 'input'}-${++pickerFieldSeq}` : '';
+
   let control = '';
   if (type === 'select') {
     control = renderSelect({
@@ -149,13 +169,31 @@ export function render(config = {}) {
     control = `<input class="${['field__input', inputClassName]
       .filter(Boolean)
       .join(' ')}" type="${type}" name="${escapeHtml(name)}"${
-      placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ''
-    }${list ? ` list="${escapeHtml(list)}"` : ''} value="${escapeHtml(value)}"${
-      required ? ' required' : ''
-    }${disabled ? ' disabled' : ''} autocomplete="${escapeHtml(autocomplete)}" />`;
+      fieldId ? ` id="${fieldId}"` : ''
+    }${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ''}${
+      list ? ` list="${escapeHtml(list)}"` : ''
+    } value="${escapeHtml(value)}"${required ? ' required' : ''}${
+      disabled ? ' disabled' : ''
+    } autocomplete="${escapeHtml(autocomplete)}" />`;
   }
 
-  /* select/textarea/input 모두 label로 감싸 클릭 시 포커스가 옮겨가게 한다 */
+  /* date/time류: <label for>로 연결한 형제 구조 (캘린더 재오픈 버그 방지) */
+  if (isNativePicker) {
+    const nativeLabelHtml = label
+      ? `<label class="field__label" for="${fieldId}">${escapeHtml(label)}${
+          required ? ' <em class="field__req">*</em>' : ''
+        }</label>`
+      : '';
+    return `
+      <div class="${wrapperClass}">
+        ${nativeLabelHtml}
+        ${control}
+        ${extra}
+        ${hintHtml}
+      </div>`;
+  }
+
+  /* select/textarea/그 외 input은 label로 감싸 클릭 시 포커스가 옮겨가게 한다 */
   return `
     <label class="${wrapperClass}">
       ${labelHtml}

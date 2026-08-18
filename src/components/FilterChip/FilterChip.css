@@ -36,9 +36,11 @@
   font-size: var(--text-xs);
 }
 
-.chip:hover:not(.is-active) {
-  color: var(--color-text);
-  background-color: var(--color-surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover:not(.is-active) {
+    color: var(--color-text);
+    background-color: var(--color-surface-hover);
+  }
 }
 
 .chip.is-active {
@@ -64,12 +66,12 @@
   transition: font-weight 0.3s ease;
 }
 
-/* 짧은 라벨은 좁은 화면에서만 */
+/* 짧은 라벨은 태블릿·좁은 화면에서 전환 (칩 오버플로우 완화) */
 .chip__label--mobile {
   display: none;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   .chip__label--desktop {
     display: none;
   }

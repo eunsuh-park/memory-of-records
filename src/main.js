@@ -8,7 +8,7 @@ import { render as renderButton } from './components/Button/Button.js';
 import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
 import { renderFooter } from './components/Footer/Footer.js';
 import { mountAddNoteFab } from './components/AddNoteFab/AddNoteFab.js';
-import { requestPdfFolderSync } from './services/pdfFolderSync.js';
+import { getSession } from './services/auth.js';
 import { initTheme } from './utils/theme.js';
 import 'pretendard/dist/web/variable/pretendardvariable.css';
 import './index.css';
@@ -19,6 +19,7 @@ async function initApp() {
   try {
     console.log('🚀 앱 초기화 시작...');
     initTheme();
+    void getSession();
     
     const app = document.getElementById('app');
     if (!app) {
@@ -71,9 +72,6 @@ async function initApp() {
     });
     
     console.log('✅ 앱 초기화 완료');
-
-    /* Cloudinary → Notion pdf_folder_url 자동 채움 (백그라운드, 세션당 1회) */
-    requestPdfFolderSync();
   } catch (error) {
     console.error('❌ 앱 초기화 중 치명적 오류:', error);
     const app = document.getElementById('app');

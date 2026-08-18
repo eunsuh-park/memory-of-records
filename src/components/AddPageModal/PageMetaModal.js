@@ -18,6 +18,7 @@ import './AddPageModal.css';
  *   folder: string,
  *   pageNumber: number,
  *   imageUrl?: string,
+ *   sourceNote?: { id: string, title: string }|null,
  *   onSaved?: (meta: { entry_date: string, ocr_text: string, visible: boolean, pageNumber: number }) => void
  * }} options
  */
@@ -26,6 +27,13 @@ export function openPageMetaModal(options = {}) {
 
   const folder = String(options.folder || '').trim();
   const pageNumber = Math.max(1, Math.floor(Number(options.pageNumber) || 1));
+  const sourceNote =
+    options.sourceNote?.id
+      ? {
+          id: String(options.sourceNote.id),
+          title: String(options.sourceNote.title || '원본 노트').trim() || '원본 노트'
+        }
+      : null;
 
   if (!folder) {
     showToast('페이지 폴더 정보가 없습니다');
@@ -34,6 +42,27 @@ export function openPageMetaModal(options = {}) {
 
   const imageUrl =
     String(options.imageUrl || '').trim() || buildPageImageUrl(folder, pageNumber);
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  const sourceNoteHtml = sourceNote
+    ? `
+        <div class="field page-meta-source">
+          <span class="field__label">원본 노트</span>
+          <a
+            class="page-meta-source-link"
+            href="/note/${encodeURIComponent(sourceNote.id)}"
+            data-link
+          >${escapeHtml(sourceNote.title)}</a>
+          <span class="page-meta-date-hint">이 페이지가 속한 원래 노트입니다</span>
+        </div>`
+    : '';
 
   let saving = false;
   let ocrRunning = false;
@@ -138,6 +167,7 @@ export function openPageMetaModal(options = {}) {
     bodyHtml: `
       <form class="form page-meta-form" novalidate>
         <p class="form-status page-meta-status" role="status">불러오는 중…</p>
+        ${sourceNoteHtml}
         ${renderField({
           type: 'custom',
           label: '날짜',
@@ -147,7 +177,7 @@ export function openPageMetaModal(options = {}) {
         })}
         <div class="field">
           <div class="page-meta-ocr-label-row">
-            <span class="field__label">OCR</span>
+            <span class="field__label">상세 설명 (OCR)</span>
             <div class="page-meta-ocr-actions" hidden>
               <button type="button" class="page-meta-ocr-reset-btn" disabled>리셋</button>
               <button type="button" class="page-meta-ocr-btn" disabled>이미지에서 인식</button>
@@ -160,7 +190,7 @@ export function openPageMetaModal(options = {}) {
           <input type="checkbox" name="visible" checked disabled />
           <span>사이트에 표시 (visible)</span>
         </label>
-        <div class="page-meta-actions page-meta-actions--view">
+        <div class="page-meta-actions page-meta-actions--view auth-only">
           <button type="button" class="page-meta-edit-btn" data-action="edit" disabled>수정</button>
           <button type="button" class="page-meta-delete-btn" data-action="delete" disabled>삭제</button>
         </div>
@@ -177,6 +207,11 @@ export function openPageMetaModal(options = {}) {
       </form>`
   });
   const overlay = dialog.overlay;
+
+  overlay.querySelector('.page-meta-source-link')?.addEventListener('click', () => {
+    /* SPA 이동 전에 모달을 닫아 뷰어와 겹치지 않게 한다 */
+    dialog.close?.();
+  });
 
   const form = overlay.querySelector('.page-meta-form');
   const dateInput = form?.querySelector('input[name="entry_date"]');

@@ -1,11 +1,11 @@
 /**
- * POST /api/createNote
+ * POST /api/writeNotebooks  op=create
  * Notion 노트북 DB에 새 페이지(row) 생성
  *
  * Body:
  * {
  *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
- *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?
+ *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
  */
 import {
@@ -13,7 +13,7 @@ import {
   findSchemaProperty,
   findTitleProperty,
   notionFetch
-} from './_lib/notionDb.js';
+} from '../notionDb.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -32,7 +32,7 @@ function assignIfPresent(properties, prop, payload) {
   properties[prop.key] = payload;
 }
 
-export default async function handler(req, res) {
+export async function handleCreateNote(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -110,6 +110,14 @@ export default async function handler(req, res) {
     );
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
     const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
+    const favoritesProp = findSchemaProperty(
+      schema,
+      'favorites',
+      'Favorites',
+      'favorite',
+      'Favorite',
+      '즐겨찾기'
+    );
 
     if (frontProp?.type === 'url') {
       properties[frontProp.key] = { url: coverFrontUrl };
@@ -186,11 +194,26 @@ export default async function handler(req, res) {
     }
 
     const notes = trimOrEmpty(body.notes);
-    if (notes && notesProp) {
+    if (notes) {
+      if (!notesProp) {
+        return res.status(500).json({
+          error: 'Schema error',
+          message:
+            '메모(notes)를 저장할 Notion 속성(notes/메모/description 등 rich_text)이 없습니다'
+        });
+      }
       if (notesProp.type === 'rich_text') {
         assignIfPresent(properties, notesProp, buildRichText(notes));
       } else if (notesProp.type === 'title') {
-        /* skip — title은 name에 사용 */
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key})이 title이라 노트 이름과 겹칩니다. rich_text 속성을 추가해 주세요`
+        });
+      } else {
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key}) 타입이 ${notesProp.type}입니다. rich_text여야 합니다`
+        });
       }
     }
 
@@ -205,6 +228,17 @@ export default async function handler(req, res) {
       properties[visibleProp.key] = { checkbox: Boolean(visible) };
     } else if (visibleProp?.type === 'select' && visible) {
       properties[visibleProp.key] = { select: { name: 'true' } };
+    }
+
+    /* favorites 기본값 false */
+    const favorites =
+      body.favorites === true || body.favorites === 'true' || body.favorites === 1;
+    if (favoritesProp?.type === 'checkbox') {
+      properties[favoritesProp.key] = { checkbox: Boolean(favorites) };
+    } else if (favoritesProp?.type === 'select') {
+      properties[favoritesProp.key] = favorites
+        ? { select: { name: 'true' } }
+        : { select: null };
     }
 
     const page = await notionFetch('/pages', {

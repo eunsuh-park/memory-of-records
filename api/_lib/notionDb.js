@@ -5,7 +5,14 @@
 export const NOTEBOOK_DB_ID =
   process.env.NOTION_DATABASE_ID || process.env.NOTION_DB_ID || '18dfb9c7066e4df99962c5fed616b3db';
 
+/** 삭제된 노트 휴지통 DB. 없으면 비어 있고, 삭제 API가 설정 안내를 반환한다. */
+export const TRASH_DB_ID = String(
+  process.env.NOTION_TRASH_DATABASE_ID || process.env.NOTION_TRASH_DB_ID || ''
+).trim();
+
 export const NOTION_VERSION = '2022-06-28';
+/** 페이지 이동(POST /pages/{id}/move)에 필요한 최신 버전 */
+export const NOTION_MOVE_VERSION = '2025-09-03';
 
 export function normalizeKey(name) {
   return String(name || '')
@@ -14,7 +21,20 @@ export function normalizeKey(name) {
     .replace(/[\s_-]+/g, '');
 }
 
-export async function notionFetch(path, { method = 'GET', body } = {}) {
+export function normalizeNotionId(value) {
+  return String(value || '')
+    .replace(/-/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+export function isSameNotionId(a, b) {
+  const left = normalizeNotionId(a);
+  const right = normalizeNotionId(b);
+  return Boolean(left) && left === right;
+}
+
+export async function notionFetch(path, { method = 'GET', body, notionVersion } = {}) {
   const apiKey = process.env.NOTION_API_KEY;
   if (!apiKey) {
     const err = new Error('NOTION_API_KEY environment variable is required');
@@ -26,7 +46,7 @@ export async function notionFetch(path, { method = 'GET', body } = {}) {
     method,
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      'Notion-Version': NOTION_VERSION,
+      'Notion-Version': notionVersion || NOTION_VERSION,
       'Content-Type': 'application/json'
     },
     ...(body ? { body: JSON.stringify(body) } : {})

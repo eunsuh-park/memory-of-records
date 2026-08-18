@@ -1,8 +1,7 @@
 /**
- * /api/pages — 페이지 업로드·Notion 갱신·메타 조회/수정·폴더 이름 변경
- * (Hobby 플랜 함수 수 제한으로 통합)
+ * POST /api/writePages
+ * 장(Content) 쓰기: 업로드 · Notion 장수 · 메타 · 폴더 이름 · 번호 이동 · 삭제
  *
- * GET  ?op=meta&folder=...&page=n
  * POST { op: 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage', ... }
  */
 import crypto from 'crypto';
@@ -13,8 +12,7 @@ import {
   notionFetch
 } from './_lib/notionDb.js';
 
-const CONTENT_ROOT = process.env.CLOUDINARY_CONTENT_FOLDER || 'Notebooks_v3/Content';
-const COVER_ROOT = process.env.CLOUDINARY_COVER_FOLDER || 'Notebooks_v3/Cover';
+const NOTEBOOKS_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
 const MAX_BYTES = 10 * 1024 * 1024;
 
 function trimOrEmpty(value) {
@@ -88,6 +86,12 @@ function parseFolderParam(folder) {
   };
 }
 
+function pagesFolderForNote(body) {
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  const stem = sanitizePublicIdStem(body.publicId || body.noteName || body.filename || 'untitled');
+  return `${root}/${stem}/pages`;
+}
+
 function resolveUploadFolder(body) {
   const explicit = String(body.folder || '').trim().replace(/\/+$/, '');
   if (explicit) {
@@ -96,8 +100,7 @@ function resolveUploadFolder(body) {
     }
     return explicit;
   }
-  const root = String(CONTENT_ROOT || 'Notebooks_v3/Content').replace(/\/+$/, '');
-  return `${root}/${sanitizePublicIdStem(body.noteName || body.filename || 'untitled')}`;
+  return pagesFolderForNote(body);
 }
 
 function buildFolderBaseUrl(secureUrl) {
@@ -111,39 +114,8 @@ function pageStem(pageNumber) {
   return `page-${String(n).padStart(6, '0')}`;
 }
 
-function readMetaValue(source, ...keys) {
-  if (!source || typeof source !== 'object') return undefined;
-  const normalized = new Map(
-    Object.entries(source).map(([k, v]) => [
-      String(k).trim().toLowerCase().replace(/[\s_-]+/g, ''),
-      v
-    ])
-  );
-  for (const key of keys) {
-    const hit = normalized.get(String(key).trim().toLowerCase().replace(/[\s_-]+/g, ''));
-    if (hit !== undefined && hit !== null && hit !== '') return hit;
-  }
-  return undefined;
-}
-
-function normalizeDate(value) {
-  if (value == null || value === '') return '';
-  const s = String(value).trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-  const n = Number(s);
-  if (Number.isFinite(n) && n > 0) {
-    const d = new Date(n > 1e12 ? n : n * 1000);
-    if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
-  }
-  return s;
-}
-
-function normalizeVisible(value) {
-  if (value === false || value === 0) return false;
-  if (value === true || value === 1) return true;
-  const s = String(value ?? '').trim().toLowerCase();
-  if (!s) return true;
-  return !['false', 'no', '0', 'off', 'hidden', '숨김'].includes(s);
+function toMetaBoolFlag(value) {
+  return value !== false && value !== 'false' && value !== 0 && value !== '0';
 }
 
 function buildNotionPropertyPayload(prop, value) {
@@ -170,7 +142,7 @@ function resolvePublicId(body) {
   return `${folder}/${pageStem(body.pageNumber)}`;
 }
 
-function buildMetadataString({ entry_date, ocr_text, visible }) {
+function buildMetadataString({ entry_date, ocr_text, visible, is_bookmarked }) {
   const parts = [];
   if (entry_date !== undefined) {
     const d = trimOrEmpty(entry_date);
@@ -185,13 +157,15 @@ function buildMetadataString({ entry_date, ocr_text, visible }) {
     parts.push(`ocr_text=${text}`);
   }
   if (visible !== undefined) {
-    const v = visible !== false && visible !== 'false' && visible !== 0 && visible !== '0';
-    parts.push(`visible=${v ? 'true' : 'false'}`);
+    parts.push(`visible=${toMetaBoolFlag(visible) ? 'true' : 'false'}`);
+  }
+  if (is_bookmarked !== undefined) {
+    parts.push(`is_bookmarked=${toMetaBoolFlag(is_bookmarked) ? 'true' : 'false'}`);
   }
   return parts.join('|');
 }
 
-function buildContextString({ entry_date, ocr_text, visible }) {
+function buildContextString({ entry_date, ocr_text, visible, is_bookmarked }) {
   const parts = [];
   if (entry_date !== undefined) parts.push(`entry_date=${trimOrEmpty(entry_date).slice(0, 10)}`);
   if (ocr_text !== undefined) {
@@ -202,21 +176,23 @@ function buildContextString({ entry_date, ocr_text, visible }) {
     parts.push(`ocr_text=${text}`);
   }
   if (visible !== undefined) {
-    const v = visible !== false && visible !== 'false' && visible !== 0 && visible !== '0';
-    parts.push(`visible=${v ? 'true' : 'false'}`);
+    parts.push(`visible=${toMetaBoolFlag(visible) ? 'true' : 'false'}`);
+  }
+  if (is_bookmarked !== undefined) {
+    parts.push(`is_bookmarked=${toMetaBoolFlag(is_bookmarked) ? 'true' : 'false'}`);
   }
   return parts.join('|');
 }
 
 function contentFolderForNoteName(noteName) {
-  const root = String(CONTENT_ROOT || 'Notebooks_v3/Content').replace(/\/+$/, '');
-  return `${root}/${sanitizePublicIdStem(noteName)}`;
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  return `${root}/${sanitizePublicIdStem(noteName)}/pages`;
 }
 
 function coverPublicId(kind, noteName) {
-  const root = String(COVER_ROOT || 'Notebooks_v3/Cover').replace(/\/+$/, '');
-  const folder = kind === 'back' ? `${root}/Back` : `${root}/Front`;
-  return `${folder}/${sanitizePublicIdStem(noteName)}`;
+  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
+  const file = kind === 'back' ? 'cover_back' : 'cover_front';
+  return `${root}/${sanitizePublicIdStem(noteName)}/${file}`;
 }
 
 function rewriteFolderBaseUrl(folderUrl, fromPath, toPath) {
@@ -477,64 +453,6 @@ async function handleUpdateNote(req, res, body) {
   });
 }
 
-async function handleGetMeta(req, res) {
-  const { cloudName: urlCloudName, folderPath } = parseFolderParam(req.query?.folder);
-  const pageNumber = Math.max(1, Math.floor(Number(req.query?.page) || 1));
-  if (!folderPath) {
-    return res.status(400).json({
-      error: 'Invalid folder',
-      message: 'folder query parameter is required'
-    });
-  }
-
-  const credentials = getCloudinaryCredentials();
-  const cloudName = credentials?.cloudName || urlCloudName;
-  if (!credentials?.apiKey || !credentials?.apiSecret || !cloudName) {
-    return res.status(500).json({
-      error: 'Cloudinary configuration missing',
-      message: 'CLOUDINARY_URL 또는 CLOUDINARY_* 환경 변수가 필요합니다'
-    });
-  }
-
-  const publicId = `${folderPath}/${pageStem(pageNumber)}`;
-  const authHeader = `Basic ${Buffer.from(
-    `${credentials.apiKey}:${credentials.apiSecret}`
-  ).toString('base64')}`;
-
-  const endpoint =
-    `https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload/` +
-    `${encodeURIComponent(publicId)}?context=true&metadata=true`;
-  const response = await fetch(endpoint, { headers: { Authorization: authHeader } });
-  const data = await response.json();
-  if (!response.ok) {
-    return res.status(response.status).json({
-      error: 'Cloudinary API error',
-      details: data,
-      message: data?.error?.message || '페이지 메타를 불러오지 못했습니다'
-    });
-  }
-
-  const meta = data.metadata || {};
-  const context = data.context?.custom || data.context || {};
-  const entryDate =
-    readMetaValue(meta, 'entry_date', 'entrydate', 'date') ??
-    readMetaValue(context, 'entry_date', 'entrydate', 'date');
-  const ocrText =
-    readMetaValue(meta, 'ocr_text', 'ocrtext', 'ocr') ??
-    readMetaValue(context, 'ocr_text', 'ocrtext', 'ocr');
-  const visibleRaw = readMetaValue(meta, 'visible') ?? readMetaValue(context, 'visible');
-
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(200).json({
-    ok: true,
-    publicId: data.public_id || publicId,
-    pageNumber,
-    entry_date: normalizeDate(entryDate),
-    ocr_text: ocrText == null ? '' : String(ocrText),
-    visible: normalizeVisible(visibleRaw)
-  });
-}
-
 async function handleUpdateMeta(req, res, body) {
   const credentials = getCloudinaryCredentials();
   if (!credentials) {
@@ -555,23 +473,26 @@ async function handleUpdateMeta(req, res, body) {
   if (
     body.entry_date === undefined &&
     body.ocr_text === undefined &&
-    body.visible === undefined
+    body.visible === undefined &&
+    body.is_bookmarked === undefined
   ) {
     return res.status(400).json({
       error: 'Validation failed',
-      message: '수정할 필드(entry_date, ocr_text, visible)가 없습니다'
+      message: '수정할 필드(entry_date, ocr_text, visible, is_bookmarked)가 없습니다'
     });
   }
 
   const metadata = buildMetadataString({
     entry_date: body.entry_date,
     ocr_text: body.ocr_text,
-    visible: body.visible
+    visible: body.visible,
+    is_bookmarked: body.is_bookmarked
   });
   const context = buildContextString({
     entry_date: body.entry_date,
     ocr_text: body.ocr_text,
-    visible: body.visible
+    visible: body.visible,
+    is_bookmarked: body.is_bookmarked
   });
   if (!metadata && !context) {
     return res.status(400).json({
@@ -1009,14 +930,6 @@ async function handleShiftPages(req, res, body) {
 
 export default async function handler(req, res) {
   try {
-    if (req.method === 'GET') {
-      const op = String(req.query?.op || 'meta').trim();
-      if (op !== 'meta') {
-        return res.status(400).json({ error: 'Unknown op', message: 'GET op=meta 만 지원합니다' });
-      }
-      return await handleGetMeta(req, res);
-    }
-
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -1038,7 +951,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     return res.status(error.status || 500).json({
-      error: 'pages API failed',
+      error: 'writePages API failed',
       message: error.message,
       details: error.details
     });

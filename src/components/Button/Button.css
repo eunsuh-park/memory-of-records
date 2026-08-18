@@ -84,10 +84,13 @@
   flex-shrink: 0;
 }
 
-.btn--fab:hover {
-  transform: scale(1.06);
-  filter: brightness(1.05);
-  color: var(--white);
+/* PC(마우스)에서만 hover 효과 적용 — 터치에서는 hover가 고정(sticky)되는 문제를 막는다 */
+@media (hover: hover) and (pointer: fine) {
+  .btn--fab:hover {
+    transform: scale(1.06);
+    filter: brightness(1.05);
+    color: var(--white);
+  }
 }
 
 .btn--fab:focus-visible {
@@ -114,11 +117,13 @@
   transition: all 0.3s ease;
 }
 
-.btn--back:hover {
-  background-color: var(--color-on-light);
-  color: var(--white);
-  border-color: var(--color-on-light);
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .btn--back:hover {
+    background-color: var(--color-on-light);
+    color: var(--white);
+    border-color: var(--color-on-light);
+    transform: scale(1.05);
+  }
 }
 
 .btn--back svg {
@@ -155,11 +160,13 @@
   margin-bottom: var(--space-4);
 }
 
-.btn--back-inline:hover {
-  background-color: var(--color-on-light);
-  color: var(--white);
-  border-color: var(--color-on-light);
-  transform: scale(1.1);
+@media (hover: hover) and (pointer: fine) {
+  .btn--back-inline:hover {
+    background-color: var(--color-on-light);
+    color: var(--white);
+    border-color: var(--color-on-light);
+    transform: scale(1.1);
+  }
 }
 
 .btn--back-inline svg {
@@ -179,9 +186,11 @@
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.btn--nav:hover {
-  background: var(--white);
-  color: var(--color-chrome-strong);
+@media (hover: hover) and (pointer: fine) {
+  .btn--nav:hover {
+    background: var(--white);
+    color: var(--color-chrome-strong);
+  }
 }
 
 .btn--nav:active {
@@ -195,14 +204,20 @@
   cursor: not-allowed;
 }
 
-.btn--nav:disabled:hover,
 .btn--nav:disabled:active,
-.btn--nav.is-at-end:hover,
 .btn--nav.is-at-end:active,
-.btn--nav[aria-disabled='true']:hover,
 .btn--nav[aria-disabled='true']:active {
   background: var(--color-chrome);
   color: var(--color-chrome-on);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--nav:disabled:hover,
+  .btn--nav.is-at-end:hover,
+  .btn--nav[aria-disabled='true']:hover {
+    background: var(--color-chrome);
+    color: var(--color-chrome-on);
+  }
 }
 
 .btn--nav-prev {
@@ -238,9 +253,11 @@
   font-size: var(--text-xs);
 }
 
-.btn--toolbar:hover {
-  background: var(--color-chrome-strong);
-  color: var(--color-chrome-on);
+@media (hover: hover) and (pointer: fine) {
+  .btn--toolbar:hover {
+    background: var(--color-chrome-strong);
+    color: var(--color-chrome-on);
+  }
 }
 
 .btn--toolbar:disabled {
@@ -248,10 +265,16 @@
   cursor: not-allowed;
 }
 
-.btn--toolbar:disabled:hover,
 .btn--toolbar:disabled:active {
   background: var(--color-chrome);
   color: var(--color-chrome-on);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--toolbar:disabled:hover {
+    background: var(--color-chrome);
+    color: var(--color-chrome-on);
+  }
 }
 
 .btn--toolbar svg {
@@ -305,8 +328,10 @@
   background: var(--color-primary);
 }
 
-.btn--solid:hover:not(:disabled) {
-  filter: brightness(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .btn--solid:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
 }
 
 .btn--solid:disabled {
@@ -324,8 +349,10 @@
   font-size: var(--text-sm);
 }
 
-.btn--text:hover:not(:disabled) {
-  color: var(--color-text);
+@media (hover: hover) and (pointer: fine) {
+  .btn--text:hover:not(:disabled) {
+    color: var(--color-text);
+  }
 }
 
 .btn--text:disabled {

@@ -1,5 +1,5 @@
 /**
- * POST /api/updateNote
+ * POST /api/writeNotebooks  op=update
  * Notion 노트북 페이지(row) 메타데이터만 수정 (표지/커버 이미지는 변경하지 않음)
  *
  * Body:
@@ -13,7 +13,7 @@ import {
   findSchemaProperty,
   findTitleProperty,
   notionFetch
-} from './_lib/notionDb.js';
+} from '../notionDb.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -26,7 +26,7 @@ function buildRichText(content) {
   return { rich_text: [{ type: 'text', text: { content: sliced } }] };
 }
 
-export default async function handler(req, res) {
+export async function handleUpdateNote(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -144,10 +144,22 @@ export default async function handler(req, res) {
       properties[endProp.key] = periodEnd ? { date: { start: periodEnd } } : { date: null };
     }
 
-    if (notesProp) {
+    if (body.notes !== undefined) {
       const notes = trimOrEmpty(body.notes);
+      if (!notesProp) {
+        return res.status(500).json({
+          error: 'Schema error',
+          message:
+            '메모(notes)를 저장할 Notion 속성(notes/메모/description 등 rich_text)이 없습니다'
+        });
+      }
       if (notesProp.type === 'rich_text') {
         properties[notesProp.key] = notes ? buildRichText(notes) : { rich_text: [] };
+      } else {
+        return res.status(500).json({
+          error: 'Schema error',
+          message: `메모 속성(${notesProp.key}) 타입이 ${notesProp.type}입니다. rich_text여야 합니다`
+        });
       }
     }
 

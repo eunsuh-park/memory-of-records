@@ -90,7 +90,7 @@
   --color-surface-active: rgba(255, 255, 255, 0.15);
   --color-surface-selected: rgba(255, 255, 255, 0.2);
 
-  --color-primary: var(--primary-3);
+  --color-primary: var(--primary-2);
   --color-primary-hover: var(--grey-dark-9);
   --color-primary-on: var(--grey-dark-3);
 
@@ -185,7 +185,7 @@
   --color-surface-active: rgba(28, 36, 44, 0.1);
   --color-surface-selected: rgba(28, 36, 44, 0.14);
 
-  --color-primary: var(--primary-5);
+  --color-primary: var(--primary-4);
   --color-primary-hover: var(--grey-light-12);
   --color-primary-on: var(--grey-dark-3);
 
