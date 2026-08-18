@@ -20,7 +20,7 @@
   background-color: transparent;
   color: var(--color-text-muted);
   font-family: inherit;
-  font-size: var(--text-xs);
+  font-size: 12px;
   font-weight: var(--font-regular);
   line-height: 24px;
   text-align: left;
