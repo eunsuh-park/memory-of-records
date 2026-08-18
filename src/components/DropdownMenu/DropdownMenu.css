@@ -91,7 +91,7 @@
     color: var(--color-text);
   }
 
-  .dropdown-menu__item.is-selected:hover:not(:disabled) {
+  .dropdown-menu__item.is-selected[aria-selected='true']:hover:not(:disabled) {
     background-color: var(--color-surface-hover);
     cursor: pointer;
   }
@@ -103,14 +103,14 @@
   color: var(--color-text);
 }
 
-.dropdown-menu__item.is-selected {
+.dropdown-menu__item.is-selected[aria-selected='true'] {
   background-color: transparent;
   color: var(--color-primary);
   font-weight: var(--font-semibold);
   cursor: default;
 }
 
-.dropdown-menu__item.is-selected.is-hover {
+.dropdown-menu__item.is-selected.is-hover[aria-selected='true'] {
   background-color: var(--color-surface-hover);
   cursor: pointer;
 }
