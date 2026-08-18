@@ -1,0 +1,128 @@
+/**
+ * ThemeSwitch — 라이트/다크 pill 토글
+ *
+ * 크기: 64×32, 썸 24, 인셋 4 — spacing 토큰(--space-8 / --space-1)
+ * 색: 스위치 data-theme에 atomic grey·primary를 연결. 페이지 semantic은 쓰지 않는다.
+ *
+ * 선택자는 index.css의 `button:not(.btn)`(이 파일보다 늦게 로드됨)보다
+ * 특이도가 높아야 해서 [role='switch']를 함께 쓴다.
+ */
+
+button.theme-switch[role='switch'] {
+  --theme-switch-size: var(--space-8);
+  --theme-switch-inset: var(--space-1);
+  --theme-switch-thumb: calc(var(--theme-switch-size) - 2 * var(--theme-switch-inset));
+
+  position: relative;
+  box-sizing: border-box;
+  display: inline-block;
+  width: calc(var(--theme-switch-size) * 2);
+  height: var(--theme-switch-size);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background-color: var(--grey-dark-2);
+  color: inherit;
+  font: inherit;
+  font-weight: var(--font-medium);
+  line-height: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.35s ease;
+}
+
+button.theme-switch[role='switch'][data-theme='light'] {
+  background-color: var(--grey-light-7);
+}
+
+button.theme-switch[role='switch']:focus,
+button.theme-switch[role='switch']:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.theme-switch__thumb {
+  position: absolute;
+  top: var(--theme-switch-inset);
+  left: var(--theme-switch-inset);
+  width: var(--theme-switch-thumb);
+  height: var(--theme-switch-thumb);
+  border-radius: var(--radius-circle);
+  background-color: var(--grey-dark-4);
+  transform: translateX(var(--theme-switch-size));
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.35s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+button.theme-switch[role='switch'][data-theme='light'] .theme-switch__thumb {
+  background-color: var(--grey-light-2);
+  transform: translateX(0);
+}
+
+.theme-switch__icon {
+  position: absolute;
+  top: var(--theme-switch-inset);
+  z-index: 1;
+  width: var(--theme-switch-thumb);
+  height: var(--theme-switch-thumb);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--grey-dark-8);
+  opacity: 0.55;
+  pointer-events: none;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.theme-switch__icon--sun {
+  left: var(--theme-switch-inset);
+}
+
+.theme-switch__icon--moon {
+  right: var(--theme-switch-inset);
+}
+
+button.theme-switch[role='switch'][data-theme='light'] .theme-switch__icon {
+  color: var(--grey-light-9);
+}
+
+button.theme-switch[role='switch'][data-theme='dark'] .theme-switch__icon--moon {
+  color: var(--primary-2);
+  opacity: 1;
+}
+
+button.theme-switch[role='switch'][data-theme='light'] .theme-switch__icon--sun {
+  color: var(--primary-3);
+  opacity: 1;
+}
+
+.theme-switch__icon svg {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.theme-switch[role='switch'][data-theme='dark']:hover {
+    background-color: var(--grey-dark-3);
+  }
+
+  button.theme-switch[role='switch'][data-theme='dark']:hover .theme-switch__icon--moon {
+    color: var(--primary-3);
+  }
+
+  button.theme-switch[role='switch'][data-theme='light']:hover {
+    background-color: var(--grey-light-8);
+  }
+
+  button.theme-switch[role='switch'][data-theme='light']:hover .theme-switch__icon--sun {
+    color: var(--primary-4);
+  }
+}

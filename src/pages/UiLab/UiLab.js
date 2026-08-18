@@ -4,6 +4,7 @@
  */
 
 import { render as renderButton } from '../../components/Button/Button.js';
+import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
@@ -693,6 +694,29 @@ export function renderUiLab() {
           )}
         </section>
 
+        <section class="ui-lab__section" id="theme-switch">
+          <h2 class="ui-lab__section-title">ThemeSwitch</h2>
+          <p class="ui-lab__section-desc">
+            헤더·드로어의 라이트/다크 pill 토글입니다. Button 세 갈래와 목적이 달라 별도 컴포넌트이고,
+            트랙·썸·아이콘은 스위치 자신의 <code>data-theme</code>에 atomic grey·primary를 연결합니다.
+            썸이 좌(태양)·우(달)로 미끄러지고, 트랙 배경과 아이콘 색·투명도가 함께 교차 페이드됩니다.
+            아래 데모는 앱 테마를 바꾸지 않고 스위치만 뒤집습니다. 실제 전환은 헤더 토글을 쓰면 됩니다.
+          </p>
+          <p class="ui-lab__files">
+            참조:
+            <code>src/components/ThemeSwitch/ThemeSwitch.js</code>,
+            <code>src/components/ThemeSwitch/ThemeSwitch.css</code>
+          </p>
+          ${renderVariantRow(
+            '다크 (달 활성)',
+            renderThemeSwitch({ theme: 'dark' })
+          )}
+          ${renderVariantRow(
+            '라이트 (태양 활성)',
+            renderThemeSwitch({ theme: 'light' })
+          )}
+        </section>
+
         <section class="ui-lab__section" id="viewer-chrome">
           <h2 class="ui-lab__section-title">NoteImageViewer · 뷰어 크롬</h2>
           <p class="ui-lab__section-desc">
@@ -856,6 +880,7 @@ export function renderUiLab() {
   fillTokenValues(root);
   watchThemeChange(root);
   attachViewportReadout(root);
+  bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
