@@ -3,12 +3,12 @@
  * 네비게이션에 노출하지 않는 내부 컴포넌트 리뷰 페이지 (/ui-lab)
  */
 
-import { render as renderButton } from '../../components/Button/Button.js';
+import { render as renderButton, renderIconButton } from '../../components/Button/Button.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import { renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
+import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
 import './UiLab.css';
@@ -130,7 +130,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일 포커스 정보(제목 + 노트 인디케이터)로 교체',
+      '바닥 반사 off, 모바일 포커스 정보(노트명 · 아이콘 버튼 · 메모)로 동일 레이아웃',
       '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
       'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -142,7 +142,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
-      '데스크톱 포커스 정보 블록 표시, 카드 액션 오버레이 숨김',
+      '데스크톱 포커스 정보 블록 표시(260px · 노트명 · Icon Button 5 · 메모), 카드 액션 오버레이 숨김',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]
   },
@@ -491,8 +491,9 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">Button</h2>
           <p class="ui-lab__section-desc">
             공통 버튼 팩토리입니다. 형태(shape)로 <code>circle</code> · <code>solid</code> · <code>text</code> 세 갈래를 두고,
-            circle은 size(L·M·S)와 role(fab·back·navPrev·navNext·toolbar·close)로 조합합니다.
+            circle은 size(L·M·S)와 role(fab·back·navPrev·navNext·toolbar·close·icon)로 조합합니다.
             아이콘 버튼의 내용은 항상 <code>MINGCUTE</code> 세트에서 가져오고, 컴포넌트 파일에 SVG를 직접 적지 않습니다.
+            정보 패널의 32px 투명 버튼은 <code>renderIconButton()</code> (role <code>icon</code>)입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/Button/Button.js</code>, <code>src/components/Button/Button.css</code></p>
           ${renderVariantRow(
@@ -518,6 +519,17 @@ export function renderUiLab() {
                 className: 'ui-lab-demo-icon'
               })
             ].join('')
+          )}
+          ${renderVariantRow(
+            'circle · role icon (Icon Button) — 32px 투명 · 아이콘 16px, 노트 정보 패널 액션',
+            [
+              renderIconButton({ ariaLabel: '공유 데모', content: MINGCUTE.share2Line }),
+              renderIconButton({ ariaLabel: '즐겨찾기 데모', content: MINGCUTE.starLine }),
+              renderIconButton({ ariaLabel: '노트 정보 수정 데모', content: MINGCUTE.edit2Fill }),
+              renderIconButton({ ariaLabel: '페이지 추가 데모', content: MINGCUTE.fileNewFill }),
+              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Line })
+            ].join(''),
+            { stageClass: 'ui-lab__demo-stage--icons' }
           )}
           ${renderVariantRow(
             'circle · role navPrev / navNext — 부모 기준 absolute 좌우 중앙 (next는 CSS로 좌우 반전)',
@@ -691,6 +703,27 @@ export function renderUiLab() {
               })
             ].join('')
           )}
+        </section>
+
+        <section class="ui-lab__section" id="note-info">
+          <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
+          <p class="ui-lab__section-desc">
+            주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
+            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
+          <div class="ui-lab__demo-stage ui-lab__demo-stage--info">
+            ${renderNoteInfoPanel(
+              {
+                id: 'ui-lab-demo-note',
+                title: '03_2024-25_카툰연습장',
+                description:
+                  '여기에는 노트에 대한 메모가 들어갑니다.\n들여쓰기를 허용하며, 최대 세 줄이 들어가고\n글자수로는 공백포함 70자까지.'
+              },
+              'period',
+              { canEdit: true }
+            )}
+          </div>
         </section>
 
         <section class="ui-lab__section" id="viewer-chrome">
