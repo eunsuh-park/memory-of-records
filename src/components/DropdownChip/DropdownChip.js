@@ -1,7 +1,7 @@
 /**
  * DropdownChip
  *
- * 커스텀 드롭다운의 트리거 칩. 라벨 + 아래 화살표.
+ * 커스텀 드롭다운의 트리거 칩. 라벨 + up-small-fill 화살표.
  * Button 세 갈래(circle·solid·text)와 목적이 달라 FilterChip처럼 별도 컴포넌트로 둔다.
  * 아이콘은 MingCute 세트만 쓴다.
  *
@@ -67,5 +67,5 @@ export function render(options = {}) {
     )
   ].filter(Boolean);
 
-  return `<button ${attrs.join(' ')}><span class="dropdown-chip__label">${safeLabel}</span><span class="dropdown-chip__icon" aria-hidden="true">${MINGCUTE.downLine}</span></button>`;
+  return `<button ${attrs.join(' ')}><span class="dropdown-chip__label">${safeLabel}</span><span class="dropdown-chip__icon" aria-hidden="true">${MINGCUTE.upSmallFill}</span></button>`;
 }

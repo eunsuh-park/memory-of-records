@@ -26,6 +26,10 @@ export const MINGCUTE = {
   downLine:
     "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17.657 9.343L12 15L6.343 9.343'/></svg>",
 
+  /** 드롭다운 칩 화살표 · mingcute:up-small-fill */
+  upSmallFill:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M11.293 9.464a1 1 0 0 1 1.414 0l2.829 2.829A1 1 0 0 1 14.828 14H9.172a1 1 0 0 1-.708-1.707z' clip-rule='evenodd'/></svg>",
+
   /** 보기 (눈, line) · mingcute:eye-2-line */
   eye2Line:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M21 12c0 1.5-4.03 6-9 6s-9-4.5-9-6s4.03-6 9-6s9 4.5 9 6Z'/><path fill='none' stroke='currentColor' stroke-width='2' d='M14 12a2 2 0 1 1-4 0a2 2 0 0 1 4 0Z'/></svg>",
