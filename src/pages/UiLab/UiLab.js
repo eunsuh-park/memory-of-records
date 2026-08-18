@@ -698,8 +698,8 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">ThemeSwitch</h2>
           <p class="ui-lab__section-desc">
             헤더·드로어의 라이트/다크 pill 토글입니다. Button 세 갈래와 목적이 달라 별도 컴포넌트이고,
-            트랙·썸·아이콘은 스위치 자신의 <code>data-theme</code>에 atomic grey·primary를 연결합니다.
-            썸이 좌(태양)·우(달)로 미끄러지고, 트랙 배경과 아이콘 색·투명도가 함께 교차 페이드됩니다.
+            트랙(surface)은 각 모드 <code>--color-bg</code>와 같은 grey 단계, 아이콘은 primary입니다.
+            전환 시 썸이 좌(태양)·우(달)로 미끄러지고 트랙·아이콘이 교차 페이드됩니다. hover는 핸들만 밝아집니다.
             아래 데모는 앱 테마를 바꾸지 않고 스위치만 뒤집습니다. 실제 전환은 헤더 토글을 쓰면 됩니다.
           </p>
           <p class="ui-lab__files">
