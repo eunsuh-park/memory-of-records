@@ -706,8 +706,9 @@ export function renderUiLab() {
             같은 계층의 뷰를 고르는 텍스트 탭입니다. Button(액션)이나 FilterChip(필터+개수)과 달리
             선택 상태만 가집니다. 시안 상태는 default · hover · pressed(클릭 순간, Figma에서 이름 없던 variant) · selected
             네 가지이고, selected는 다크에서 노란 글자(<code>--color-primary</code>)·라이트에서 본문 글자(<code>--color-text</code>)입니다.
-            hover·pressed 배경은 selected·inactive 모두 각각
-            <code>--color-surface-hover</code> · <code>--color-surface-active</code>입니다.
+            hover·selected 배경/글자는 selected·inactive 모두 각각
+            <code>--color-surface-hover</code> · 시맨틱 텍스트 토큰입니다.
+            pressed(<code>--color-surface-active</code>)는 UiLab 미리보기 전용이며, 실제 클릭 시 배경 전환은 하지 않습니다(깜빡임 방지).
           </p>
           <p class="ui-lab__files">참조: <code>src/components/Tab/Tab.js</code>, <code>src/components/Tab/Tab.css</code></p>
           ${renderVariantRow(

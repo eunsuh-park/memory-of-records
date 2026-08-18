@@ -45,13 +45,6 @@
     background-color 0.2s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .tab:active:not(.tab--preview) {
-    /* pressed는 짧게 스냅 — hover와 같은 0.2s면 클릭감이 느슨해짐 */
-    transition-duration: 0.08s;
-  }
-}
-
 .tab__label {
   display: block;
   width: auto;
@@ -87,19 +80,7 @@
   font-weight: var(--font-semibold);
 }
 
-/* pressed — 클릭 순간. hover/pressed 모두 surface 토큰 */
-.tab:active:not(.tab--preview) {
-  background-color: var(--color-surface-active);
-}
-
-.tab:active:not(.is-selected):not(.tab--preview) {
-  color: var(--color-text-dim);
-}
-
-.tab:active:not(.tab--preview) .tab__label {
-  font-weight: var(--font-semibold);
-}
-
+/* pressed — UiLab 고정 미리보기 전용. :active 배경은 hover→active→해제로 깜빡여서 쓰지 않는다 */
 .tab.is-pressed {
   background-color: var(--color-surface-active);
 }
