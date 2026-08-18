@@ -105,6 +105,8 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip).
 
+**Tab**은 `src/components/Tab/Tab.js` · `Tab.css`로, Timeline / By type / Favorites처럼 같은 계층의 뷰를 고르는 텍스트 탭입니다. 상태는 default · hover · pressed(클릭 순간) · selected 네 가지이고, selected는 노란 글자·배경 없음입니다. hover/pressed 오버레이는 `--color-tab-hover` · `--color-tab-pressed`입니다. `render()`는 한 칸, `renderList()`는 가로 묶음입니다. FilterSubMenu의 보기 전환이 이걸 씁니다.
+
 **FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, 라벨 + 개수 + 선택 상태(`.is-active`)를 가진 탭형 칩입니다. `--m`/`--s` 두 사이즈가 있고 좁은 화면용 짧은 라벨(`labelMobile`)을 함께 받습니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
 
 **Select**는 `src/components/Select/Select.js` · `Select.css`로 `<select>` 마크업을 통합했습니다. `render()`는 필드 하나를, `renderOptions()`는 옵션 문자열만 돌려주어 FormField가 자기 컨트롤 안에 끼워 쓸 수 있게 합니다. `tone: 'pill'`은 FilterSubMenu의 정렬 드롭다운용입니다.
@@ -127,7 +129,7 @@ Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보�
 
 **PageHeader**(위젯)는 `src/widgets/PageHeader/PageHeader.js` · `PageHeader.css`입니다. 데스크톱에서는 로고·FilterSubMenu 자리·테마·Login/Logout·Story를 한 줄로 두고, 모바일에서는 중앙 로고·햄버거·접이식 필터·우측 드로어로 바뀝니다. 드로어 백드롭은 Dim(blur)이고, 드로어 자체는 Dialog 구조가 아니라 Dim만 재사용합니다. 아이콘은 테마별로 SVG를 두 벌 두지 않고 `currentColor`로 색을 받습니다.
 
-**FilterSubMenu**는 `src/components/FilterSubMenu/FilterSubMenu.js` · `FilterSubMenu.css`로 Timeline/By type의 시기·타입 탭과 정렬 UI를 그립니다. 헤더 중앙 `#sub-menu`에 주입되며, 모바일에서는 접힌 채로 캐러셀을 방해하지 않도록 동작합니다.
+**FilterSubMenu**는 `src/components/FilterSubMenu/FilterSubMenu.js` · `FilterSubMenu.css`로 Timeline/By type의 시기·타입 탭과 정렬 UI를 그립니다. 보기 전환(Timeline | By type | Favorites)은 Tab 컴포넌트입니다. 헤더 중앙 `#sub-menu`에 주입되며, 모바일에서는 접힌 채로 캐러셀을 방해하지 않도록 동작합니다.
 
 **AddNoteFab**은 `src/components/AddNoteFab/AddNoteFab.js` · `AddNoteFab.css`에 노트 추가 FAB와 생성·수정 모달이 함께 있습니다. 열기 전에 로그인 가드를 탑니다. FAB는 Button circle L / fab, 제출은 Button solid, 모달은 Dialog, 필드는 FormField를 쓰므로 `AddNoteFab.css`에는 표지 미리보기와 업로드 중 오버레이만 남았습니다.
 

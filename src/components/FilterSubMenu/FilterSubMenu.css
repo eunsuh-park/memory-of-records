@@ -6,43 +6,17 @@
  *
  * - .sub-menu: 메뉴 컨테이너 (고정 위치, 상단 중앙)
  * - .sub-nav: 내부 네비 래퍼
- * - .filter-list / .filter-item: 탭 목록·항목
+ * - .filter-list / .filter-item: 시기·타입 칩 목록
+ * - .view-mode-toggle: Timeline / By type / Favorites (Tab 컴포넌트)
  * - .filter-controls: 정렬 드롭다운 (Select 컴포넌트)
  */
 
-/* 뷰 모드 토글 (Timeline | By type) - 통합 노트 페이지에서 사용 */
+/* 뷰 모드 토글 — Tab 리스트. 상태 스타일은 Tab.css */
 .view-mode-toggle {
-  display: flex;
-  gap: var(--space-1);
   margin-bottom: var(--space-3);
-  padding: var(--space-1);
+  padding: 0;
   background: transparent;
   border: none;
-  border-radius: var(--radius-pill);
-}
-
-.view-mode-link {
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-dim);
-  background: transparent;
-  border-radius: var(--radius-pill);
-  text-decoration: none;
-  transition: color 0.2s, background-color 0.2s;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .view-mode-link:hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-hover);
-  }
-}
-
-.view-mode-link.active {
-  color: var(--color-primary-on);
-  background-color: var(--color-primary);
-  font-weight: var(--font-bold);
 }
 
 /* 서브 메뉴 컨테이너: PageHeader 하단에 고정, 가로 중앙 정렬 */
@@ -112,15 +86,14 @@
  */
 @media (max-width: 1024px) {
   .view-mode-toggle {
-    gap: var(--space-1);
+    gap: var(--space-3);
     margin-bottom: var(--space-2);
-    padding-bottom: var(--space-1);
   }
 
-  .view-mode-link {
-    padding: var(--space-2) var(--space-3);
+  .view-mode-toggle .tab {
+    min-width: 6.5rem;
+    height: 2.25rem;
     font-size: var(--text-sm);
-    min-height: 2.5rem;
   }
 
   .sub-menu {
@@ -165,12 +138,13 @@
 /* ========== 모바일 (768px 이하) ========== */
 @media (max-width: 768px) {
   .view-mode-toggle {
-    gap: var(--space-1);
+    gap: var(--space-2);
     margin-bottom: var(--space-1);
-    padding-bottom: var(--space-1);
   }
 
-  .view-mode-link {
+  .view-mode-toggle .tab {
+    min-width: 5.5rem;
+    height: 2rem;
     padding: var(--space-1) var(--space-2);
     font-size: var(--text-xs);
   }
@@ -253,29 +227,17 @@
     flex-shrink: 0;
   }
 
-  body.jukebox-active .view-mode-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
+  body.jukebox-active .view-mode-toggle .tab {
     min-width: 72px;
     height: 22px;
     padding: 0 var(--space-3);
     font-size: var(--text-xs);
-    font-weight: var(--font-regular);
     line-height: 1;
-    text-align: center;
-    white-space: nowrap;
-    border-radius: var(--radius-pill);
-    background-color: transparent;
-    color: var(--color-text-dim);
-    transition: color 0.2s ease, background-color 0.2s ease;
   }
 
-  body.jukebox-active .view-mode-link.active {
-    color: var(--color-primary-on);
-    background-color: var(--color-primary);
-    font-weight: var(--font-bold);
+  body.jukebox-active .view-mode-toggle .tab .tab__label {
+    height: auto;
+    line-height: 1;
   }
 
   body.jukebox-active .filter-list {
@@ -365,11 +327,6 @@
 }
 
 @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
-  body.jukebox-active .view-mode-link:not(.active):hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-hover);
-  }
-
   body.jukebox-active .filter-list .chip:hover:not(.is-active) {
     background-color: transparent;
   }
@@ -385,15 +342,15 @@
   .view-mode-toggle {
     gap: var(--space-1);
     margin-bottom: var(--space-1);
-    padding-bottom: var(--space-1);
   }
 
-  .view-mode-link {
+  .view-mode-toggle .tab {
+    min-width: 4.5rem;
     padding: var(--space-1) var(--space-1);
     font-size: var(--text-xs);
   }
 
-  body.jukebox-active .view-mode-link {
+  body.jukebox-active .view-mode-toggle .tab {
     min-width: 72px;
     height: 22px;
     padding: 0 var(--space-2);

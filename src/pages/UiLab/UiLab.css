@@ -125,6 +125,12 @@
   background: var(--color-bg);
 }
 
+/* Tab 시안은 어두운 면 위에서 오버레이가 보이도록 본문 배경을 쓴다 */
+.ui-lab__demo-stage--tabs {
+  background: var(--color-bg);
+  gap: var(--space-5);
+}
+
 /* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */
 .ui-lab__demo-stage--flow .btn--fab,
 .ui-lab__demo-stage--flow .btn--back,

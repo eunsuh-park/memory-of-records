@@ -4,6 +4,7 @@
  */
 
 import { render as renderButton } from '../../components/Button/Button.js';
+import { render as renderTab, renderList as renderTabList } from '../../components/Tab/Tab.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
@@ -46,7 +47,15 @@ const ATOMIC_RAMPS = [
 const SEMANTIC_GROUPS = [
   {
     title: 'Surface',
-    names: ['--color-bg', '--color-bg-alt', '--color-surface-hover', '--color-surface-active', '--color-surface-selected']
+    names: [
+      '--color-bg',
+      '--color-bg-alt',
+      '--color-surface-hover',
+      '--color-surface-active',
+      '--color-surface-selected',
+      '--color-tab-hover',
+      '--color-tab-pressed'
+    ]
   },
   {
     title: 'Text',
@@ -105,11 +114,11 @@ const RESPONSIVE_MATRIX = [
   },
   {
     name: 'FilterSubMenu',
-    files: 'src/components/FilterSubMenu/FilterSubMenu.js · FilterSubMenu.css',
+    files: 'src/components/FilterSubMenu/FilterSubMenu.js · FilterSubMenu.css · Tab/Tab.css',
     points: '1024 · 768 · 600 · 480px',
     mobile: [
       'top 7rem, 탭 목록 nowrap + 가로 스크롤, font 0.75rem',
-      '주크박스에서는 2줄 고정 그리드(탭 80×28px, 라벨 0.55rem)로 바뀌고 정렬 select 숨김',
+      '보기 전환은 Tab 컴포넌트(노란 글자 selected). 주크박스에서는 세로 스택으로 줄이고 정렬 select 숨김',
       '캐러셀 스크롤 시 자동 접힘(max-height 0 · opacity 0)',
       '≤600px 축약 라벨로 교체, ≤480px 추가 축소'
     ],
@@ -693,6 +702,38 @@ export function renderUiLab() {
           )}
         </section>
 
+        <section class="ui-lab__section" id="tab">
+          <h2 class="ui-lab__section-title">Tab</h2>
+          <p class="ui-lab__section-desc">
+            같은 계층의 뷰를 고르는 텍스트 탭입니다. Button(액션)이나 FilterChip(필터+개수)과 달리
+            선택 상태만 가집니다. 시안 상태는 default · hover · pressed(클릭 순간, Figma에서 이름 없던 variant) · selected
+            네 가지이고, selected는 노란 글자·배경 없음입니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/Tab/Tab.js</code>, <code>src/components/Tab/Tab.css</code></p>
+          ${renderVariantRow(
+            '상태 — default / hover / pressed / selected (고정 미리보기)',
+            [
+              renderTab({ label: 'Tab Name', previewState: 'default' }),
+              renderTab({ label: 'Tab Name', previewState: 'hover' }),
+              renderTab({ label: 'Tab Name', previewState: 'pressed' }),
+              renderTab({ label: 'Tab Name', selected: true, previewState: 'default' })
+            ].join(''),
+            { stageClass: 'ui-lab__demo-stage--tabs' }
+          )}
+          ${renderVariantRow(
+            '리스트 — Timeline / By type / Favorites (눌러서 선택)',
+            renderTabList(
+              [
+                { label: 'Timeline', selected: true, dataset: { lab: 'tab-item' } },
+                { label: 'By type', dataset: { lab: 'tab-item' } },
+                { label: 'Favorites', dataset: { lab: 'tab-item' } }
+              ],
+              { ariaLabel: '보기 전환 데모' }
+            ),
+            { stageClass: 'ui-lab__demo-stage--tabs' }
+          )}
+        </section>
+
         <section class="ui-lab__section" id="viewer-chrome">
           <h2 class="ui-lab__section-title">NoteImageViewer · 뷰어 크롬</h2>
           <p class="ui-lab__section-desc">
@@ -756,10 +797,11 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="filter">
           <h2 class="ui-lab__section-title">FilterSubMenu</h2>
           <p class="ui-lab__section-desc">
-            Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만 헤더 중앙에 주입되며,
+            Timeline / By type 필터 칩과 정렬 UI입니다. 보기 전환(Timeline · By type · Favorites)은
+            Tab 컴포넌트를 씁니다. Notes 갤러리 페이지에서만 헤더 중앙에 주입되며,
             모바일에서는 접이식 상단 네비로 동작합니다. 실데이터 연동 데모는 Timeline·By type에서 확인하세요.
           </p>
-          <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code></p>
+          <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code>, <code>src/components/Tab/Tab.js</code></p>
           <ul class="ui-lab__list">
             <li><a href="/timeline" data-link>Timeline에서 필터 확인</a></li>
             <li><a href="/by-type" data-link>By type에서 필터 확인</a></li>
@@ -888,4 +930,14 @@ export function renderUiLab() {
     const totalEl = chromeDemo.querySelector('.niv-total-pages');
     if (totalEl) totalEl.textContent = '12';
   }
+
+  root.querySelectorAll('[data-lab="tab-item"]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      root.querySelectorAll('[data-lab="tab-item"]').forEach((el) => {
+        const on = el === tab;
+        el.classList.toggle('is-selected', on);
+        el.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+  });
 }

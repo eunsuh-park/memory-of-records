@@ -1,18 +1,19 @@
 /**
  * FilterSubMenu
  *
- * Timeline / By Type 페이지의 사이드 필터 메뉴를 렌더링합니다.
+ * Timeline / By Type 페이지의 필터 메뉴를 렌더링합니다.
  * 옵션·경로·카운트를 인자로 받아 공통 UI로 그립니다.
  *
  * - Timeline: filterOptions = periodOptions (시기별)
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
- * - viewModeToggle: Timeline|By Type|Favorites 뷰 모드 토글
+ * - viewModeToggle: Timeline|By Type|Favorites 보기 전환 (Tab 컴포넌트)
  * - controls: 정렬
  * - 모바일: 상단 접이식 네비 (캐러셀 스크롤 시 자동 접힘)
  */
 
 import { render as renderChip } from '../FilterChip/FilterChip.js';
 import { render as renderSelect } from '../Select/Select.js';
+import { renderList as renderTabList } from '../Tab/Tab.js';
 import { FAVORITES_PATH } from '../../utils/noteFavorites.js';
 import './FilterSubMenu.css';
 
@@ -100,13 +101,26 @@ export function renderFilterSubMenu(
     viewModeToggle?.current === 'type' && selectedValue ? `/by-type/${selectedValue}` : '/by-type';
   const favoritesHref = FAVORITES_PATH;
   const viewToggleHtml = viewModeToggle
-    ? `
-    <div class="view-mode-toggle">
-      <a href="${timelineHref}" class="view-mode-link ${viewModeToggle.current === 'timeline' ? 'active' : ''}" data-link>Timeline</a>
-      <a href="${byTypeHref}" class="view-mode-link ${viewModeToggle.current === 'type' ? 'active' : ''}" data-link>By type</a>
-      <a href="${favoritesHref}" class="view-mode-link ${viewModeToggle.current === 'favorites' ? 'active' : ''}" data-link>Favorites</a>
-    </div>
-  `
+    ? renderTabList(
+        [
+          {
+            label: 'Timeline',
+            href: timelineHref,
+            selected: viewModeToggle.current === 'timeline'
+          },
+          {
+            label: 'By type',
+            href: byTypeHref,
+            selected: viewModeToggle.current === 'type'
+          },
+          {
+            label: 'Favorites',
+            href: favoritesHref,
+            selected: viewModeToggle.current === 'favorites'
+          }
+        ],
+        { className: 'view-mode-toggle', ariaLabel: '보기 전환' }
+      )
     : '';
 
   const sortKey = controls?.sortKey || 'default';
