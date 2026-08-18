@@ -67,6 +67,19 @@
   transition: background-color 0.2s ease, color 0.2s ease, font-weight 0.2s ease;
 }
 
+/* aria-selected 값이 시각 기준. (클래스 토글로 인한 일시적 불일치가 있어도 기본색이 안정적으로 유지됨) */
+.dropdown-menu__item[aria-selected='false'] {
+  color: var(--color-text-dim);
+  font-weight: var(--font-regular);
+  cursor: pointer;
+}
+
+.dropdown-menu__item[aria-selected='true'] {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+  cursor: default;
+}
+
 .dropdown-menu__item:focus {
   outline: none;
 }
