@@ -3,7 +3,6 @@
  */
 
 import { showToast } from '../components/Toast/Toast.js';
-import { dismissTransientOverlays } from '../utils/dismissOverlays.js';
 
 /** @type {{ authenticated: boolean, exp?: number|null } | null} */
 let cachedSession = null;
@@ -171,7 +170,6 @@ export async function requireAuth(options = {}) {
   if (!options.silent) {
     showToast('편집하려면 로그인해 주세요');
   }
-  dismissTransientOverlays();
   closeOpenOverlays();
   const qs = new URLSearchParams({ next });
   navigateTo(`/login?${qs.toString()}`);

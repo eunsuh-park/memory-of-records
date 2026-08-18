@@ -6,11 +6,9 @@ import { renderTimeline } from './pages/Notes/Timeline.js';
 import { renderByType } from './pages/Notes/ByType.js';
 import { renderFavorites } from './pages/Notes/Favorites.js';
 import { renderStory } from './pages/Story/Story.js';
-import { renderLanding } from './pages/Landing/Landing.js';
 import { renderNoteDetailPage } from './components/NoteImageViewer/NoteImageViewer.js';
 import { renderUiLab } from './pages/UiLab/UiLab.js';
 import { renderLogin } from './pages/Login/Login.js';
-import { dismissTransientOverlays } from './utils/dismissOverlays.js';
 import { FAVORITES_PATH } from './utils/noteFavorites.js';
 
 // base 경로 가져오기 (Vite의 import.meta.env.BASE_URL 사용)
@@ -19,7 +17,7 @@ const BASE_URL = import.meta.env.BASE_URL || '/';
 class Router {
   constructor() {
     this.routes = [
-      { path: '/', handler: () => renderLanding() },
+      { path: '/', handler: () => renderTimeline(null) },
       { path: '/timeline', handler: () => renderTimeline(null) },
       { path: '/timeline/:period', handler: (params) => renderTimeline(params.period) },
       { path: '/by-type', handler: () => renderByType(null) },
@@ -94,9 +92,6 @@ class Router {
       return;
     }
 
-    /* body 오버레이는 main-content 교체로 안 사라짐 — 라우트마다 정리 */
-    dismissTransientOverlays();
-
     if (typeof mainContent._routeCleanup === 'function') {
       try {
         mainContent._routeCleanup();
@@ -106,19 +101,6 @@ class Router {
       mainContent._routeCleanup = null;
     }
 
-    /* Story가 아닐 때 story-page-active 제거 (Top Nav 복원) */
-    if (!path.startsWith('/story')) {
-      document.documentElement.classList.remove('story-page-active');
-      document.body.classList.remove('story-page-active');
-    }
-    if (path !== '/') {
-      if (typeof mainContent.__landingCleanup === 'function') {
-        mainContent.__landingCleanup();
-        mainContent.__landingCleanup = null;
-      }
-      document.documentElement.classList.remove('landing-page-active');
-      document.body.classList.remove('landing-page-active');
-    }
     if (path.startsWith('/note/')) {
       document.body.classList.add('note-detail-active');
     } else {
@@ -128,6 +110,7 @@ class Router {
 
     // Jukebox(갤러리)가 아닐 때 jukebox-active 제거 (Timeline/By Type/Favorites)
     const isNotesPage =
+      path === '/' ||
       path.startsWith('/timeline') ||
       path.startsWith('/by-type') ||
       path.startsWith(FAVORITES_PATH);

@@ -2,7 +2,7 @@
  * 공통 버튼 컴포넌트 — 형태(shape) 기준
  *
  * shape
- *  - 'circle': 원형 버튼. size('l'|'m'|'s') + role('fab'|'back'|'navPrev'|'navNext'|'toolbar'|'close'|'icon')
+ *  - 'circle': 원형 버튼. size('l'|'m'|'s') + role('fab'|'back'|'navPrev'|'navNext'|'toolbar'|'close')
  *              + tone('filled'|'ghost')
  *  - 'solid' : 배경이 채워진 일반 버튼 (제출 버튼 등)
  *  - 'text'  : 배경 없는 회색 텍스트 버튼
@@ -24,8 +24,7 @@ const CIRCLE_ROLE_CLASS = {
   navPrev: 'btn--nav btn--nav-prev',
   navNext: 'btn--nav btn--nav-next',
   toolbar: 'btn--toolbar',
-  close: 'btn--close',
-  icon: 'btn--icon'
+  close: 'btn--close'
 };
 
 /** circle role → 기본 size (호출 시 size를 주면 그 값이 우선) */
@@ -35,15 +34,14 @@ const CIRCLE_ROLE_SIZE = {
   navPrev: 'm',
   navNext: 'm',
   toolbar: 's',
-  close: 's',
-  icon: 's'
+  close: 's'
 };
 
 /**
  * @param {Object} options
  * @param {'circle'|'solid'|'text'} [options.shape='solid']
  * @param {'l'|'m'|'s'} [options.size] - circle 전용. 생략 시 role의 기본 사이즈
- * @param {'fab'|'back'|'navPrev'|'navNext'|'toolbar'|'close'|'icon'} [options.role] - circle 전용. icon은 32px 투명 Icon Button
+ * @param {'fab'|'back'|'navPrev'|'navNext'|'toolbar'|'close'} [options.role] - circle 전용
  * @param {'filled'|'ghost'} [options.tone='filled'] - circle 전용. ghost는 배경 없음
  * @param {boolean} [options.inline=false] - role='back'의 인라인(고정 위치 없는) 버전
  * @param {string} [options.ariaLabel]
@@ -107,15 +105,4 @@ export function render(options = {}) {
   ].filter(Boolean);
 
   return `<button ${attrs.join(' ')}>${inner}</button>`;
-}
-
-/**
- * Icon Button — 노트 정보 패널 등에서 쓰는 32px 투명 원형 아이콘 버튼.
- * 내부는 공통 render()이며, shape/role은 circle · icon으로 고정한다.
- *
- * @param {Object} [options] - render()와 동일한 옵션. shape·role은 덮어쓴다.
- * @returns {string} HTML 문자열
- */
-export function renderIconButton(options = {}) {
-  return render({ ...options, shape: 'circle', role: 'icon', size: options.size || 's' });
 }
