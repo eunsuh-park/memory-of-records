@@ -59,6 +59,8 @@ const LIGHT_COLOR_NAMES = [...LIGHT_NOTE_COLORS];
 
 const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
+/** 노션 description 속성 · 정보 패널과 동일 (공백 포함) */
+const NOTES_MAX_CHARS = 70;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -97,7 +99,7 @@ function noteToFormSeed(note) {
     periodStart: note?.periodStart || '',
     periodEnd,
     stillInUse: !periodEnd,
-    notes: note?.description || '',
+    notes: String(note?.description || '').slice(0, NOTES_MAX_CHARS),
     isKept: note?.isKept !== false,
     visible: note?.visible !== false,
     coverFrontUrl: note?.coverFrontUrl || '',
@@ -263,8 +265,10 @@ export async function openAddNoteModal(options = {}) {
           label: '메모',
           name: 'notes',
           rows: 4,
+          maxLength: NOTES_MAX_CHARS,
           placeholder: NOTES_PLACEHOLDER,
-          value: seed?.notes || ''
+          value: (seed?.notes || '').slice(0, NOTES_MAX_CHARS),
+          extra: `<span class="add-note-notes-count" data-notes-count>0/${NOTES_MAX_CHARS}</span>`
         })}
 
         <label class="form-check">
@@ -318,6 +322,20 @@ export async function openAddNoteModal(options = {}) {
   };
   stillInUseInput?.addEventListener('change', syncStillInUse);
   syncStillInUse();
+
+  const notesInput = form?.querySelector('textarea[name="notes"]');
+  const notesCount = form?.querySelector('[data-notes-count]');
+  const syncNotesCount = () => {
+    if (!notesInput) return;
+    if (notesInput.value.length > NOTES_MAX_CHARS) {
+      notesInput.value = notesInput.value.slice(0, NOTES_MAX_CHARS);
+    }
+    if (notesCount) {
+      notesCount.textContent = `${notesInput.value.length}/${NOTES_MAX_CHARS}`;
+    }
+  };
+  notesInput?.addEventListener('input', syncNotesCount);
+  syncNotesCount();
 
   /* Notion DB select 옵션으로 드롭다운·칩 갱신 */
   fetchNoteFormMeta()
@@ -417,7 +435,7 @@ export async function openAddNoteModal(options = {}) {
     const periodStart = String(fd.get('periodStart') || '').trim();
     const stillInUse = Boolean(fd.get('stillInUse'));
     const periodEnd = stillInUse ? '' : String(fd.get('periodEnd') || '').trim();
-    const notes = String(fd.get('notes') || '').trim();
+    const notes = String(fd.get('notes') || '').trim().slice(0, NOTES_MAX_CHARS);
     const isKept = Boolean(fd.get('isKept'));
     const visible = Boolean(fd.get('visible'));
     const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
@@ -447,7 +465,7 @@ export async function openAddNoteModal(options = {}) {
       size: size || undefined,
       periodStart,
       periodEnd: periodEnd || undefined,
-      notes: notes || undefined,
+      notes,
       isKept,
       visible
     };

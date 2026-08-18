@@ -61,6 +61,40 @@ export async function notionFetch(path, { method = 'GET', body, notionVersion } 
   return data;
 }
 
+/** 노트 메모(description) 공백 포함 최대 글자 수 */
+export const NOTE_DESCRIPTION_MAX_CHARS = 70;
+
+const NOTE_DESCRIPTION_PROP_NAMES = [
+  'description',
+  'Description',
+  'notes',
+  'Notes',
+  '메모',
+  'desc',
+  '설명',
+  'memo',
+  'Memo',
+  'note',
+  'Note'
+];
+
+export function findNoteDescriptionProperty(schema) {
+  return findSchemaProperty(schema, ...NOTE_DESCRIPTION_PROP_NAMES);
+}
+
+function isRichTextLike(prop) {
+  return prop?.type === 'rich_text' || prop?.type === 'text';
+}
+
+/** description/rich_text 속성에 쓸 Notion payload (최대 NOTE_DESCRIPTION_MAX_CHARS) */
+export function buildDescriptionPropertyPayload(prop, value) {
+  if (!isRichTextLike(prop)) return null;
+  const text = String(value || '').slice(0, NOTE_DESCRIPTION_MAX_CHARS);
+  return text
+    ? { rich_text: [{ type: 'text', text: { content: text } }] }
+    : { rich_text: [] };
+}
+
 /** 스키마에서 속성 찾기 (정규화 키 + 후보명) */
 export function findSchemaProperty(schema, ...names) {
   if (!schema) return null;

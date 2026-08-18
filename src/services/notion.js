@@ -19,6 +19,13 @@ export function parseNotionProperty(property) {
       return property.title?.[0]?.plain_text || '';
     case 'rich_text':
       return property.rich_text?.[0]?.plain_text || '';
+    case 'text': {
+      if (typeof property.text === 'string') return property.text;
+      if (Array.isArray(property.text)) {
+        return property.text[0]?.plain_text || property.text[0]?.text?.content || '';
+      }
+      return property.rich_text?.[0]?.plain_text || '';
+    }
     case 'date':
       return property.date?.start || null;
     case 'number':

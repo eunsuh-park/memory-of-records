@@ -41,6 +41,13 @@
   font-family: var(--font-mono);
 }
 
+.add-note-notes-count {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
 /* 표지 업로드 중 — 노트 뷰어 로딩과 같은 딤 + lottie */
 body.add-note-uploading {
   overflow: hidden;
