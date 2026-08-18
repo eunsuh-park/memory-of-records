@@ -69,23 +69,33 @@
   font-weight: var(--font-semibold);
 }
 
-/* pressed — Figma에서 이름 없던 variant. 클릭한 순간의 상태 */
-.tab:active:not(.is-selected):not(.tab--preview) {
-  background-color: var(--color-tab-pressed);
-  color: var(--color-text-dim);
+/* pressed — 클릭 순간. hover/pressed 모두 surface 토큰 */
+.tab:active:not(.tab--preview) {
+  background-color: var(--color-surface-active);
   font-weight: var(--font-semibold);
+}
+
+.tab:active:not(.is-selected):not(.tab--preview) {
+  color: var(--color-text-dim);
 }
 
 .tab.is-pressed {
-  background-color: var(--color-tab-pressed);
-  color: var(--color-text-dim);
+  background-color: var(--color-surface-active);
   font-weight: var(--font-semibold);
 }
 
-/* selected — 노란 글자. hover 배경은 위 surface-hover가 덮는다 */
+.tab.is-pressed:not(.is-selected) {
+  color: var(--color-text-dim);
+}
+
+/* selected — 다크: primary 글자. hover 배경은 위 surface-hover가 덮는다 */
 .tab.is-selected {
   color: var(--color-primary);
   font-weight: var(--font-semibold);
+}
+
+[data-theme='light'] .tab.is-selected {
+  color: var(--color-text);
 }
 
 .tab--preview {

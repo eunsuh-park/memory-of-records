@@ -90,9 +90,6 @@
   --color-surface-active: rgba(255, 255, 255, 0.15);
   --color-surface-selected: rgba(255, 255, 255, 0.2);
 
-  /* Tab pressed 오버레이 — 시안 알파값 */
-  --color-tab-pressed: rgba(0, 0, 0, 0.25);
-
   --color-primary: var(--primary-2);
   --color-primary-hover: var(--grey-dark-9);
   --color-primary-on: var(--grey-dark-3);
@@ -187,8 +184,6 @@
   --color-surface-hover: rgba(28, 36, 44, 0.06);
   --color-surface-active: rgba(28, 36, 44, 0.1);
   --color-surface-selected: rgba(28, 36, 44, 0.14);
-
-  --color-tab-pressed: rgba(0, 0, 0, 0.12);
 
   --color-primary: var(--primary-4);
   --color-primary-hover: var(--grey-light-12);

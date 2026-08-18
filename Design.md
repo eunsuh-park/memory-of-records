@@ -105,7 +105,7 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip).
 
-**Tab**은 `src/components/Tab/Tab.js` · `Tab.css`로, Timeline / By type / Favorites처럼 같은 계층의 뷰를 고르는 텍스트 탭입니다. 상태는 default · hover · pressed(클릭 순간) · selected 네 가지이고, selected는 노란 글자입니다. hover 배경은 selected·inactive 모두 `--color-surface-hover`이고, pressed는 `--color-tab-pressed`입니다. `render()`는 한 칸, `renderList()`는 가로 묶음입니다. FilterSubMenu의 보기 전환이 이걸 씁니다.
+**Tab**은 `src/components/Tab/Tab.js` · `Tab.css`로, Timeline / By type / Favorites처럼 같은 계층의 뷰를 고르는 텍스트 탭입니다. 상태는 default · hover · pressed(클릭 순간) · selected 네 가지입니다. hover·pressed 배경은 selected·inactive 모두 `--color-surface-hover` · `--color-surface-active`이고, selected 글자는 다크에서 `--color-primary`·라이트에서 `--color-text`입니다. `render()`는 한 칸, `renderList()`는 가로 묶음입니다. FilterSubMenu의 보기 전환이 이걸 씁니다.
 
 **FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, 라벨 + 개수 + 선택 상태(`.is-active`)를 가진 탭형 칩입니다. `--m`/`--s` 두 사이즈가 있고 좁은 화면용 짧은 라벨(`labelMobile`)을 함께 받습니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
 

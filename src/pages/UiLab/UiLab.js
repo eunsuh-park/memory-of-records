@@ -52,8 +52,7 @@ const SEMANTIC_GROUPS = [
       '--color-bg-alt',
       '--color-surface-hover',
       '--color-surface-active',
-      '--color-surface-selected',
-      '--color-tab-pressed'
+      '--color-surface-selected'
     ]
   },
   {
@@ -706,8 +705,9 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             같은 계층의 뷰를 고르는 텍스트 탭입니다. Button(액션)이나 FilterChip(필터+개수)과 달리
             선택 상태만 가집니다. 시안 상태는 default · hover · pressed(클릭 순간, Figma에서 이름 없던 variant) · selected
-            네 가지이고, selected는 노란 글자입니다. hover 배경은 selected·inactive 모두
-            <code>--color-surface-hover</code>입니다.
+            네 가지이고, selected는 다크에서 노란 글자(<code>--color-primary</code>)·라이트에서 본문 글자(<code>--color-text</code>)입니다.
+            hover·pressed 배경은 selected·inactive 모두 각각
+            <code>--color-surface-hover</code> · <code>--color-surface-active</code>입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/Tab/Tab.js</code>, <code>src/components/Tab/Tab.css</code></p>
           ${renderVariantRow(
