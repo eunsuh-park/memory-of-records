@@ -4,6 +4,7 @@
  */
 
 import { render as renderButton, renderIconButton } from '../../components/Button/Button.js';
+import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
@@ -232,6 +233,14 @@ const RESPONSIVE_MATRIX = [
     ],
     tablet: ['데스크톱과 동일'],
     desktop: ['back 48×48px fixed · 아이콘 24px', 'nav padding 12px 원형', 'toolbar 32×32px · 아이콘 16px']
+  },
+  {
+    name: 'ThemeSwitch',
+    files: 'src/components/ThemeSwitch/ThemeSwitch.js · ThemeSwitch.css',
+    points: '없음',
+    mobile: ['모든 폭에서 동일 (헤더 대신 드로어)'],
+    tablet: ['모든 폭에서 동일'],
+    desktop: ['64×32 pill · 썸 24 · 트랙은 모드 bg와 같은 grey · hover는 핸들만']
   },
   {
     name: 'Toast',
@@ -697,6 +706,29 @@ export function renderUiLab() {
           )}
         </section>
 
+        <section class="ui-lab__section" id="theme-switch">
+          <h2 class="ui-lab__section-title">ThemeSwitch</h2>
+          <p class="ui-lab__section-desc">
+            헤더·드로어의 라이트/다크 pill 토글입니다. Button 세 갈래와 목적이 달라 별도 컴포넌트이고,
+            트랙(surface)은 각 모드 <code>--color-bg</code>와 같은 grey 단계, 아이콘은 primary입니다.
+            전환 시 썸이 좌(태양)·우(달)로 미끄러지고 트랙·아이콘이 교차 페이드됩니다. hover는 핸들만 밝아집니다.
+            아래 데모는 앱 테마를 바꾸지 않고 스위치만 뒤집습니다. 실제 전환은 헤더 토글을 쓰면 됩니다.
+          </p>
+          <p class="ui-lab__files">
+            참조:
+            <code>src/components/ThemeSwitch/ThemeSwitch.js</code>,
+            <code>src/components/ThemeSwitch/ThemeSwitch.css</code>
+          </p>
+          ${renderVariantRow(
+            '다크 (달 활성)',
+            renderThemeSwitch({ theme: 'dark' })
+          )}
+          ${renderVariantRow(
+            '라이트 (태양 활성)',
+            renderThemeSwitch({ theme: 'light' })
+          )}
+        </section>
+
         <section class="ui-lab__section" id="note-info">
           <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
           <p class="ui-lab__section-desc">
@@ -879,6 +911,7 @@ export function renderUiLab() {
   fillTokenValues(root);
   watchThemeChange(root);
   attachViewportReadout(root);
+  bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');

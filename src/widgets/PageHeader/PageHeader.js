@@ -6,8 +6,9 @@
 
 import './PageHeader.css';
 import logo from '../../assets/logo.png';
-import { getStoredTheme, toggleTheme } from '../../utils/theme.js';
+import { getStoredTheme } from '../../utils/theme.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
 import {
   setFilterSubMenuCollapsed,
   isFilterSubMenuCollapsed
@@ -28,10 +29,6 @@ function getActualPath(pathname) {
     return pathname.slice(basePathWithoutTrailingSlash.length) || '/';
   }
   return pathname;
-}
-
-function themeToggleLabel(theme) {
-  return theme === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환';
 }
 
 function isNotesPath(path) {
@@ -74,36 +71,6 @@ function openDrawer() {
   setDrawerOpen(true);
 }
 
-function renderThemeSwitch(theme, className = 'theme-switch') {
-  return `
-    <button
-      type="button"
-      class="${className}"
-      data-theme="${theme}"
-      aria-label="${themeToggleLabel(theme)}"
-      title="${themeToggleLabel(theme)}"
-      data-theme-toggle
-    >
-      <span class="theme-switch__thumb" aria-hidden="true"></span>
-      <span class="theme-switch__icon theme-switch__icon--sun">${MINGCUTE.sunFill}</span>
-      <span class="theme-switch__icon theme-switch__icon--moon">${MINGCUTE.moonFill}</span>
-    </button>
-  `;
-}
-
-function bindThemeToggles(root) {
-  root.querySelectorAll('[data-theme-toggle]').forEach((themeBtn) => {
-    themeBtn.addEventListener('click', () => {
-      const next = toggleTheme();
-      root.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
-        btn.setAttribute('data-theme', next);
-        btn.setAttribute('aria-label', themeToggleLabel(next));
-        btn.setAttribute('title', themeToggleLabel(next));
-      });
-    });
-  });
-}
-
 export function renderPageHeader() {
   const container = document.getElementById('page-header');
   if (!container) return;
@@ -137,7 +104,7 @@ export function renderPageHeader() {
           >${MINGCUTE.menuLine}</button>
         </div>
         <div class="page-header__right page-header__right--desktop">
-          ${renderThemeSwitch(theme)}
+          ${renderThemeSwitch({ theme })}
           <span class="page-header__auth" data-auth-slot></span>
           <a
             href="/story"
@@ -182,7 +149,7 @@ export function renderPageHeader() {
           aria-label="메뉴 닫기"
           data-drawer-close
         >${MINGCUTE.arrowToRightLine}</button>
-        ${renderThemeSwitch(theme, 'theme-switch nav-drawer__theme')}
+        ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
       </div>
       <nav class="nav-drawer__nav">
         <a
@@ -208,7 +175,7 @@ export function renderPageHeader() {
     </aside>
   `;
 
-  bindThemeToggles(container);
+  bindThemeSwitches(container);
 
   async function fillAuthSlots() {
     const session = await getSession();
