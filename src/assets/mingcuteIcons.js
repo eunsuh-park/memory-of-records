@@ -22,6 +22,22 @@ export const MINGCUTE = {
   fileNewFill:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M12 8.5a1.5 1.5 0 0 0 1.5 1.5H20v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h6zm0 4a1 1 0 0 0-1 1V15H9.5a1 1 0 1 0 0 2H11v1.5a1 1 0 1 0 2 0V17h1.5a1 1 0 1 0 0-2H13v-1.5a1 1 0 0 0-1-1m2-10.456a2 2 0 0 1 1 .542L19.414 7a2 2 0 0 1 .541 1H14z'/></svg>",
 
+  /** 노트 공유 · mingcute:share-2-line */
+  share2Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='m16.407 6.81l-6 3.145m0 4.089l6 3.145M11 12a4 4 0 1 1-8 0a4 4 0 0 1 8 0Zm10-6.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0Zm0 13a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0Z'/></svg>",
+
+  /** 즐겨찾기 (꺼짐) · mingcute:star-line */
+  starLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M11.784 2.87a.25.25 0 0 1 .432 0l2.961 5.085a.25.25 0 0 0 .164.119l5.75 1.245a.25.25 0 0 1 .134.41l-3.92 4.388a.25.25 0 0 0-.063.192l.593 5.854a.25.25 0 0 1-.35.254l-5.384-2.373a.25.25 0 0 0-.202 0l-5.384 2.373a.25.25 0 0 1-.35-.254l.593-5.854a.25.25 0 0 0-.062-.192L2.776 9.73a.25.25 0 0 1 .133-.411l5.75-1.245a.25.25 0 0 0 .164-.119z'/></svg>",
+
+  /** 즐겨찾기 (켜짐) · mingcute:star-fill */
+  starFill:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M10.92 2.37a1.25 1.25 0 0 1 2.16 0l2.795 4.8l5.428 1.175a1.25 1.25 0 0 1 .667 2.054l-3.7 4.142l.56 5.525a1.25 1.25 0 0 1-1.748 1.27L12 19.096l-5.082 2.24a1.25 1.25 0 0 1-1.747-1.27l.559-5.525l-3.7-4.142a1.25 1.25 0 0 1 .667-2.054L8.125 7.17z'/></svg>",
+
+  /** 노트 삭제 · mingcute:delete-2-line */
+  delete2Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-width='2' d='m5 6l.876 13.133A2 2 0 0 0 7.87 21h8.258a2 2 0 0 0 1.995-1.867L19 6M8 6l.772-2.316A1 1 0 0 1 9.721 3h4.558a1 1 0 0 1 .949.684L16 6m-6 5v5m4-5v5M4 6h16'/></svg>",
+
   /** 아래 화살표 (접힌 필터 네비 열기) · mingcute:down-line */
   downLine:
     "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17.657 9.343L12 15L6.343 9.343'/></svg>",
@@ -86,13 +102,37 @@ export const MINGCUTE = {
   pic2Fill:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm18 8.686l-4.172-4.171a1 1 0 0 0-1.414 0L4.93 19H4V5h16zM6 8.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0' clip-rule='evenodd'/></svg>",
 
-  /** 즐겨찾기 on (채운 별) · mingcute:star-fill */
-  starFill:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M10.92 2.37a1.25 1.25 0 0 1 2.16 0l2.795 4.8l5.428 1.175a1.25 1.25 0 0 1 .667 2.054l-3.7 4.142l.56 5.525a1.25 1.25 0 0 1-1.748 1.27L12 19.096l-5.082 2.24a1.25 1.25 0 0 1-1.747-1.27l.559-5.525l-3.7-4.142a1.25 1.25 0 0 1 .667-2.054L8.125 7.17z'/></svg>",
+  /** 오른쪽 화살표 (CTA · 다음) · mingcute:right-line */
+  rightLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9.343 6.343L15 12l-5.657 5.657'/></svg>",
 
-  /** 즐겨찾기 off · 모바일 (라인 별) · mingcute:star-line */
-  starLine:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M11.784 2.87a.25.25 0 0 1 .432 0l2.961 5.085a.25.25 0 0 0 .164.119l5.75 1.245a.25.25 0 0 1 .134.41l-3.92 4.388a.25.25 0 0 0-.063.192l.593 5.854a.25.25 0 0 1-.35.254l-5.384-2.373a.25.25 0 0 0-.202 0l-5.384 2.373a.25.25 0 0 1-.35-.254l.593-5.854a.25.25 0 0 0-.062-.192L2.776 9.73a.25.25 0 0 1 .133-.411l5.75-1.245a.25.25 0 0 0 .164-.119z'/></svg>",
+  /** 대기열 · 메일 보내기 · mingcute:mail-send-line */
+  mailSendLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-width='2' d='m3 6.5l8.68 7.233a.5.5 0 0 0 .64 0L21 6.5M2 11h2m-3 3h5M3 7V6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1'/></svg>",
+
+  /** 시기별 보기 · mingcute:calendar-line */
+  calendarLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M17 4a1 1 0 1 0-2 0zm-2 2a1 1 0 1 0 2 0zM9 4a1 1 0 0 0-2 0zM7 6a1 1 0 0 0 2 0zM5 6v1h14V5H5zm15 1h-1v12h2V7zm-1 13v-1H5v2h14zM4 19h1V7H3v12zm0-8v1h16v-2H4zm12-7h-1v2h2V4zM8 4H7v2h2V4zM5 20v-1H3a2 2 0 0 0 2 2zm15-1h-1v2a2 2 0 0 0 2-2zM19 6v1h2a2 2 0 0 0-2-2zM5 6V5a2 2 0 0 0-2 2h2z'/></svg>",
+
+  /** 유형별 보기 · mingcute:folders-line */
+  foldersLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M17 16h3a1 1 0 0 0 1-1V7.5a1 1 0 0 0-1-1h-4.52a1 1 0 0 1-.78-.375l-1.4-1.75A1 1 0 0 0 12.52 4H8a1 1 0 0 0-1 1v3m1.52 0H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7.5a1 1 0 0 0-1-1h-4.52a1 1 0 0 1-.78-.375l-1.4-1.75A1 1 0 0 0 8.52 8Z'/></svg>",
+
+  /** PDF · 갤러리 보기 · mingcute:pdf-line */
+  pdfLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linejoin='round' stroke-width='2' d='M13 3v5.5a.5.5 0 0 0 .5.5H19m-7 3l-.074.468a6 6 0 0 1-2.156 3.734l-.368.298l.442-.17a6 6 0 0 1 4.31 0l.444.17l-.37-.299a6 6 0 0 1-2.155-3.732zm1.586-9H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.414a1 1 0 0 0-.293-.707l-4.414-4.414A1 1 0 0 0 13.586 3Z'/></svg>",
+
+  /** 스캔 단계 · mingcute:scan-line */
+  scanLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-width='2' d='M4 8V5a1 1 0 0 1 1-1h4M4 16v3a1 1 0 0 0 1 1h4M20 8V5a1 1 0 0 0-1-1h-4m5 12v3a1 1 0 0 1-1 1h-4M4 12h16'/></svg>",
+
+  /** 정리 단계 · mingcute:classify-2-line */
+  classify2Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M17.707 3.465a1 1 0 0 0-1.414 0l-2.828 2.828a1 1 0 0 0 0 1.415l2.828 2.828a1 1 0 0 0 1.414 0l2.828-2.828a1 1 0 0 0 0-1.415zM10 5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1zm10 10a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1zm-10 0a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1z'/></svg>",
+
+  /** 다시 읽기 단계 · mingcute:book-5-line */
+  book5Line:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M4 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zm4.01 0a1 1 0 0 1 1-1H11a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9.01a1 1 0 0 1-1-1zm4.988.79a1 1 0 0 1 .707-1.224l1.931-.518a1 1 0 0 1 1.225.707l4.141 15.455a1 1 0 0 1-.707 1.224l-1.932.518a1 1 0 0 1-1.224-.707z'/></svg>",
 
   /** 페이지 북마크 on (채운 북마크) · mingcute:bookmark-fill */
   bookmarkFill:
@@ -102,11 +142,7 @@ export const MINGCUTE = {
   bookmarkLine:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M6 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v14.066a.5.5 0 0 1-.777.416l-4.946-3.297a.5.5 0 0 0-.554 0l-4.946 3.297A.5.5 0 0 1 6 20.066z'/></svg>",
 
-  /** 노트 삭제 (휴지통) · mingcute:delete-2-fill */
+  /** 노트 삭제 (휴지통, fill) · mingcute:delete-2-fill */
   delete2Fill:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M7.823 3.368A2 2 0 0 1 9.721 2h4.558a2 2 0 0 1 1.898 1.368L16.72 5H20a1 1 0 1 1 0 2h-.064l-.814 12.2A3 3 0 0 1 16.13 22H7.87a3 3 0 0 1-2.993-2.8L4.064 7H4a1 1 0 0 1 0-2h3.28zM14.613 5H9.387l.334-1h4.558zM9 10a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1m6 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1' clip-rule='evenodd'/></svg>",
-
-  /** 노트 공유 링크 복사 · mingcute:share-2-line */
-  share2Line:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='m16.407 6.81l-6 3.145m0 4.089l6 3.145M11 12a4 4 0 1 1-8 0a4 4 0 0 1 8 0Zm10-6.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0Zm0 13a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0Z'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M7.823 3.368A2 2 0 0 1 9.721 2h4.558a2 2 0 0 1 1.898 1.368L16.72 5H20a1 1 0 1 1 0 2h-.064l-.814 12.2A3 3 0 0 1 16.13 22H7.87a3 3 0 0 1-2.993-2.8L4.064 7H4a1 1 0 0 1 0-2h3.28zM14.613 5H9.387l.334-1h4.558zM9 10a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1m6 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1' clip-rule='evenodd'/></svg>"
 };

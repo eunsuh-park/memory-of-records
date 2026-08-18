@@ -6,6 +6,12 @@
 
 const TESSERACT_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 
+/** 한글 일기/노트용 — kor을 앞에 둬 한글 우선 디코딩 */
+const OCR_LANGS = ['kor', 'eng'];
+
+/** PSM.AUTO — 전체 페이지(여백·여러 블록)에 SINGLE_BLOCK(기본 6)보다 적합 */
+const PSM_AUTO = '3';
+
 /** @type {Promise<any> | null} */
 let workerPromise = null;
 /** @type {((info: { status: string, progress: number }) => void) | null} */
@@ -51,16 +57,24 @@ async function ensureTesseract() {
 async function getWorker() {
   const Tesseract = await ensureTesseract();
   if (!workerPromise) {
-    workerPromise = Tesseract.createWorker('kor+eng', 1, {
-      logger: (m) => {
-        if (!progressHandler || !m) return;
-        const progress = typeof m.progress === 'number' ? m.progress : 0;
-        progressHandler({
-          status: String(m.status || ''),
-          progress
-        });
-      }
-    }).catch((err) => {
+    workerPromise = (async () => {
+      const worker = await Tesseract.createWorker(OCR_LANGS, 1, {
+        logger: (m) => {
+          if (!progressHandler || !m) return;
+          const progress = typeof m.progress === 'number' ? m.progress : 0;
+          progressHandler({
+            status: String(m.status || ''),
+            progress
+          });
+        }
+      });
+      await worker.setParameters({
+        tessedit_pageseg_mode: PSM_AUTO,
+        preserve_interword_spaces: '1',
+        user_defined_dpi: '300'
+      });
+      return worker;
+    })().catch((err) => {
       workerPromise = null;
       throw err;
     });
@@ -83,6 +97,71 @@ async function fetchImageAsObjectUrl(imageUrl) {
     throw new Error(`이미지를 불러오지 못했습니다 (${response.status})`);
   }
   const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
+/**
+ * @param {string} src
+ * @returns {Promise<HTMLImageElement>}
+ */
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.decoding = 'async';
+    if (!src.startsWith('blob:') && !src.startsWith('data:')) {
+      img.crossOrigin = 'anonymous';
+    }
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('OCR용 이미지를 디코딩하지 못했습니다'));
+    img.src = src;
+  });
+}
+
+/**
+ * 그레이스케일·대비·해상도 보정. 저해상도/흐린 스캔에서 한글 인식률을 올린다.
+ * @param {string} sourceUrl - blob/data/http URL
+ * @returns {Promise<string>} 전처리된 PNG blob URL
+ */
+async function preprocessForOcr(sourceUrl) {
+  const img = await loadImageElement(sourceUrl);
+  const naturalW = img.naturalWidth || img.width;
+  const naturalH = img.naturalHeight || img.height;
+  if (!naturalW || !naturalH) {
+    throw new Error('이미지 크기를 확인할 수 없습니다');
+  }
+
+  const maxSide = Math.max(naturalW, naturalH);
+  let scale = 1;
+  /* Tesseract는 ~300dpi 상당(긴 변 1600~2400)에서 안정적 */
+  if (maxSide < 1400) scale = Math.min(2.5, 1800 / maxSide);
+  else if (maxSide > 3200) scale = 3200 / maxSide;
+
+  const w = Math.max(1, Math.round(naturalW * scale));
+  const h = Math.max(1, Math.round(naturalH * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('Canvas를 사용할 수 없습니다');
+
+  ctx.drawImage(img, 0, 0, w, h);
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  const contrast = 1.35;
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    const boosted = (gray - 128) * contrast + 128;
+    const v = boosted < 0 ? 0 : boosted > 255 ? 255 : boosted;
+    data[i] = data[i + 1] = data[i + 2] = v;
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error('전처리 이미지를 만들지 못했습니다'))),
+      'image/png'
+    );
+  });
   return URL.createObjectURL(blob);
 }
 
@@ -159,19 +238,28 @@ export function extractEntryDateFromOcr(text) {
 export async function recognizePageImage(imageUrl, options = {}) {
   progressHandler = typeof options.onProgress === 'function' ? options.onProgress : null;
 
-  let objectUrl = '';
-  let shouldRevoke = false;
+  /** @type {string[]} */
+  const toRevoke = [];
   try {
+    let sourceUrl = '';
     try {
-      objectUrl = await fetchImageAsObjectUrl(imageUrl);
-      shouldRevoke = objectUrl.startsWith('blob:');
+      sourceUrl = await fetchImageAsObjectUrl(imageUrl);
+      if (sourceUrl.startsWith('blob:')) toRevoke.push(sourceUrl);
     } catch (err) {
       console.warn('[OCR] blob fetch failed, trying direct URL', err);
-      objectUrl = String(imageUrl || '').trim();
+      sourceUrl = String(imageUrl || '').trim();
+    }
+
+    let recognizeUrl = sourceUrl;
+    try {
+      recognizeUrl = await preprocessForOcr(sourceUrl);
+      toRevoke.push(recognizeUrl);
+    } catch (err) {
+      console.warn('[OCR] preprocess failed, using raw image', err);
     }
 
     const worker = await getWorker();
-    const result = await worker.recognize(objectUrl);
+    const result = await worker.recognize(recognizeUrl);
     const text = String(result?.data?.text || '')
       .replace(/\r\n/g, '\n')
       .replace(/[ \t]+\n/g, '\n')
@@ -184,9 +272,9 @@ export async function recognizePageImage(imageUrl, options = {}) {
     };
   } finally {
     progressHandler = null;
-    if (shouldRevoke && objectUrl) {
+    for (const url of toRevoke) {
       try {
-        URL.revokeObjectURL(objectUrl);
+        URL.revokeObjectURL(url);
       } catch {
         /* ignore */
       }

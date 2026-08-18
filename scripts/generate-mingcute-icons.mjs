@@ -25,6 +25,10 @@ const ICONS = [
   { key: 'addFill', name: 'add-fill', desc: '노트 추가 (+)' },
   { key: 'edit2Fill', name: 'edit-2-fill', desc: '노트 정보 편집' },
   { key: 'fileNewFill', name: 'file-new-fill', desc: '노트 페이지 추가' },
+  { key: 'share2Line', name: 'share-2-line', desc: '노트 공유' },
+  { key: 'starLine', name: 'star-line', desc: '즐겨찾기 (꺼짐)' },
+  { key: 'starFill', name: 'star-fill', desc: '즐겨찾기 (켜짐)' },
+  { key: 'delete2Line', name: 'delete-2-line', desc: '노트 삭제' },
   { key: 'downLine', name: 'down-line', desc: '아래 화살표 (접힌 필터 네비 열기)', size: 16 },
   { key: 'eye2Line', name: 'eye-2-line', desc: '보기 (눈, line)' },
   { key: 'eye2Fill', name: 'eye-2-fill', desc: '보기 (눈, fill)' },
@@ -41,12 +45,17 @@ const ICONS = [
   { key: 'sunFill', name: 'sun-fill', desc: '테마 스위치 · 라이트' },
   { key: 'moonFill', name: 'moon-fill', desc: '테마 스위치 · 다크' },
   { key: 'pic2Fill', name: 'pic-2-fill', desc: '이미지 플레이스홀더' },
-  { key: 'starFill', name: 'star-fill', desc: '즐겨찾기 on (채운 별)' },
-  { key: 'starLine', name: 'star-line', desc: '즐겨찾기 off · 모바일 (라인 별)' },
+  { key: 'rightLine', name: 'right-line', desc: '오른쪽 화살표 (CTA · 다음)' },
+  { key: 'mailSendLine', name: 'mail-send-line', desc: '대기열 · 메일 보내기' },
+  { key: 'calendarLine', name: 'calendar-line', desc: '시기별 보기' },
+  { key: 'foldersLine', name: 'folders-line', desc: '유형별 보기' },
+  { key: 'pdfLine', name: 'pdf-line', desc: 'PDF · 갤러리 보기' },
+  { key: 'scanLine', name: 'scan-line', desc: '스캔 단계' },
+  { key: 'classify2Line', name: 'classify-2-line', desc: '정리 단계' },
+  { key: 'book5Line', name: 'book-5-line', desc: '다시 읽기 단계' },
   { key: 'bookmarkFill', name: 'bookmark-fill', desc: '페이지 북마크 on (채운 북마크)' },
   { key: 'bookmarkLine', name: 'bookmark-line', desc: '페이지 북마크 off · 모바일 (라인 북마크)' },
-  { key: 'delete2Fill', name: 'delete-2-fill', desc: '노트 삭제 (휴지통)' },
-  { key: 'share2Line', name: 'share-2-line', desc: '노트 공유 링크 복사' }
+  { key: 'delete2Fill', name: 'delete-2-fill', desc: '노트 삭제 (휴지통, fill)' }
 ];
 
 const res = await fetch(`${API}?icons=${ICONS.map((icon) => icon.name).join(',')}`);

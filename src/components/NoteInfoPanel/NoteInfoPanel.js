@@ -2,20 +2,20 @@
  * NoteInfoPanel
  *
  * Jukebox 중앙 카드(포커스된 노트)의 정보 표시영역.
- * 데스크톱은 제목·메타·메모 + 액션 버튼, 모바일은 제목 + 노트 인디케이터(또는 수정 버튼)로 갈라진다.
- * 기존 `.jukebox-focus-info__desktop` / `__mobile` 분기와 클래스명을 그대로 유지한다.
+ * 노트명 · Icon Button 5개(공유/즐겨찾기/수정/페이지 추가/삭제) · 메모.
  */
 
-import { formatNoteSizeLabel } from '../../utils/noteSize.js';
+import { renderIconButton, render as renderButton } from '../Button/Button.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { isFavoriteNote } from '../../utils/noteFavorites.js';
 import { isBookmarksNoteId } from '../../utils/bookmarksNote.js';
-import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
 import { showToast } from '../Toast/Toast.js';
 import { requireAuth } from '../../services/auth.js';
 import { trashNotionNote } from '../../services/createNote.js';
 import './NoteInfoPanel.css';
+
+const MEMO_MAX_CHARS = 70;
 
 /** 포커스 기준 한쪽 최대 슬롯 수 (전체 최대 1 + 2*N) */
 const NOTE_INDICATOR_MAX_SIDE = 4;
@@ -29,9 +29,20 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function categoryLabel(note, filterMode) {
-  if (filterMode === 'type') return note.type || note.notebookType || '';
-  return note.notebookType || note.type || '';
+function formatMemo(value) {
+  const raw = String(value || '');
+  return escapeHtml(raw.length > MEMO_MAX_CHARS ? raw.slice(0, MEMO_MAX_CHARS) : raw);
+}
+
+function iconAction({ action, label, icon, noteId, pressed = null, className = '' }) {
+  return renderIconButton({
+    ariaLabel: label,
+    title: label,
+    ariaPressed: pressed,
+    content: icon,
+    className: [`jukebox-focus-info__${action}`, className].filter(Boolean).join(' '),
+    dataset: { 'note-id': noteId, action }
+  });
 }
 
 /**
@@ -82,184 +93,85 @@ export function renderNoteIndicator(index, total) {
 }
 
 /**
- * @param {string} noteId
- * @param {boolean} favorites
- * @param {'desktop'|'mobile'} variant
- */
-/**
- * @param {string} noteId
- * @param {'desktop'|'mobile'} variant
- */
-function renderShareButton(noteId, variant = 'desktop') {
-  return renderButton({
-    shape: 'circle',
-    size: 's',
-    role: 'toolbar',
-    tone: 'ghost',
-    ariaLabel: '공유 링크 복사',
-    title: '공유 링크 복사',
-    content: MINGCUTE.share2Line,
-    className: `jukebox-focus-info__share jukebox-focus-info__share--${variant}`,
-    dataset: {
-      'note-id': noteId,
-      action: 'share',
-      variant
-    }
-  });
-}
-
-/**
- * @param {string} noteId
- * @param {boolean} favorites
- * @param {'desktop'|'mobile'} variant
- */
-function renderFavoriteButton(noteId, favorites, variant = 'desktop') {
-  const pressed = Boolean(favorites);
-  /* 모바일 off만 star-line, 그 외(데스크톱·on)는 star-fill */
-  const icon = variant === 'mobile' && !pressed ? MINGCUTE.starLine : MINGCUTE.starFill;
-  return renderButton({
-    shape: 'circle',
-    size: 's',
-    role: 'toolbar',
-    tone: 'ghost',
-    ariaLabel: pressed ? '즐겨찾기 해제' : '즐겨찾기 추가',
-    title: pressed ? '즐겨찾기 해제' : '즐겨찾기 추가',
-    ariaPressed: pressed,
-    content: icon,
-    className: `jukebox-focus-info__favorite jukebox-focus-info__favorite--${variant}${pressed ? ' is-favorite' : ''}`,
-    dataset: {
-      'note-id': noteId,
-      action: 'favorite',
-      variant
-    }
-  });
-}
-
-/**
  * @param {Object|null} note - 포커스된 노트. null이면 빈 상태
- * @param {'period'|'type'} filterMode
+ * @param {'period'|'type'} [_filterMode]
  * @param {{ index?: number, total?: number, actionsOpen?: boolean, canEdit?: boolean }} [opts]
  * @returns {string} HTML 문자열
  */
-export function render(note, filterMode, opts = {}) {
-  const { index = 0, total = 0, actionsOpen = false, canEdit = false } = opts;
-  const noteIndicator = renderNoteIndicator(index, total);
+export function render(note, _filterMode, opts = {}) {
+  const { canEdit = false } = opts;
 
   if (!note) {
-    return `<div class="jukebox-focus-info" aria-live="polite" data-actions-open="false">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
-          <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-          ${
-            canEdit
-              ? `<div class="jukebox-focus-info__actions">
-            <button
-              type="button"
-              class="jukebox-focus-info__create auth-only"
-              aria-label="노트 추가"
-              title="노트 추가"
-            >${MINGCUTE.addFill}</button>
-          </div>`
-              : ''
-          }
-        </div>
-      </div>
-      <div class="jukebox-focus-info__mobile">
-        <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-      </div>
+    return `<div class="jukebox-focus-info" aria-live="polite">
+      <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
     </div>`;
   }
 
   const title = escapeHtml(note.title || '제목 없음');
-  const category = escapeHtml(categoryLabel(note, filterMode));
-  const pages = note.pageCount != null ? `${escapeHtml(String(note.pageCount))}장` : '';
-  const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
-  const memo = escapeHtml(note.description || '');
+  const memo = formatMemo(note.description || '');
   const noteId = escapeHtml(note.id || '');
   const isBookmarks = isBookmarksNoteId(note.id);
-  const favorites = isFavoriteNote(note);
-  const shareBtnDesktop = isBookmarks ? '' : renderShareButton(noteId, 'desktop');
-  const shareBtnMobile = isBookmarks ? '' : renderShareButton(noteId, 'mobile');
-  const favoriteBtnDesktop = isBookmarks
-    ? ''
-    : renderFavoriteButton(noteId, favorites, 'desktop');
-  const favoriteBtnMobile = isBookmarks
-    ? ''
-    : renderFavoriteButton(noteId, favorites, 'mobile');
-  const metaParts = [category, pages, size].filter(Boolean);
-  const editActions =
-    !canEdit || isBookmarks
-      ? ''
-      : `
-            <button
-              type="button"
-              class="jukebox-focus-info__edit auth-only"
-              data-note-id="${noteId}"
-              aria-label="노트 정보 수정"
-              title="노트 정보 수정"
-            >${MINGCUTE.edit2Fill}</button>
-            <button
-              type="button"
-              class="jukebox-focus-info__add auth-only"
-              data-note-id="${noteId}"
-              aria-label="페이지 추가"
-              title="페이지 추가"
-            >${MINGCUTE.fileNewFill}</button>
-            ${renderButton({
-              shape: 'circle',
-              size: 's',
-              role: 'toolbar',
-              ariaLabel: '노트 삭제',
-              title: '노트 삭제',
-              content: MINGCUTE.delete2Fill,
-              className: 'jukebox-focus-info__delete auth-only',
-              dataset: {
-                'note-id': noteId,
-                action: 'delete'
-              }
-            })}`;
+  const favorited = isFavoriteNote(note);
+  const showShareFav = !isBookmarks;
+  const showEditActions = Boolean(canEdit) && !isBookmarks;
+
+  const actions = [
+    showShareFav
+      ? iconAction({
+          action: 'share',
+          label: '공유',
+          icon: MINGCUTE.share2Line,
+          noteId
+        })
+      : '',
+    showShareFav
+      ? iconAction({
+          action: 'favorite',
+          label: favorited ? '즐겨찾기 해제' : '즐겨찾기 추가',
+          icon: favorited ? MINGCUTE.starFill : MINGCUTE.starLine,
+          noteId,
+          pressed: favorited,
+          className: favorited ? 'is-favorite' : ''
+        })
+      : '',
+    showEditActions
+      ? iconAction({
+          action: 'edit',
+          label: '노트 정보 수정',
+          icon: MINGCUTE.edit2Fill,
+          noteId,
+          className: 'auth-only'
+        })
+      : '',
+    showEditActions
+      ? iconAction({
+          action: 'add-page',
+          label: '페이지 추가',
+          icon: MINGCUTE.fileNewFill,
+          noteId,
+          className: 'auth-only'
+        })
+      : '',
+    showEditActions
+      ? iconAction({
+          action: 'delete',
+          label: '삭제',
+          icon: MINGCUTE.delete2Line,
+          noteId,
+          className: 'auth-only'
+        })
+      : ''
+  ]
+    .filter(Boolean)
+    .join('');
 
   return `
-    <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header">
-          <h2 class="jukebox-focus-info__title">${title}</h2>
-          <div class="jukebox-focus-info__actions">
-            ${shareBtnDesktop}
-            ${favoriteBtnDesktop}
-            ${editActions}
-            ${
-              canEdit
-                ? `<button
-              type="button"
-              class="jukebox-focus-info__create auth-only"
-              aria-label="노트 추가"
-              title="노트 추가"
-            >${MINGCUTE.addFill}</button>`
-                : ''
-            }
-          </div>
-        </div>
-        ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
-        ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
+    <div class="jukebox-focus-info" aria-live="polite">
+      <div class="jukebox-focus-info__main">
+        <h2 class="jukebox-focus-info__title">${title}</h2>
+        ${actions ? `<div class="jukebox-focus-info__actions">${actions}</div>` : ''}
       </div>
-      <div class="jukebox-focus-info__mobile">
-        <div class="jukebox-focus-info__mobile-row">
-          <p class="jukebox-focus-info__note-title">${title}</p>
-          ${shareBtnMobile}
-          ${favoriteBtnMobile}
-        </div>
-        ${
-          actionsOpen && !isBookmarks && canEdit
-            ? `<button
-          type="button"
-          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit auth-only"
-          data-note-id="${noteId}"
-          aria-label="수정"
-        >${MINGCUTE.edit2Fill}<span>수정</span></button>`
-            : noteIndicator
-        }
-      </div>
+      ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
     </div>
   `;
 }
