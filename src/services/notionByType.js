@@ -109,10 +109,10 @@ export function convertNotionPageToTypeItem(page) {
   const description = parseNotionProperty(
     getProperty(
       properties,
-      'notes',
-      'Notes',
       'description',
       'Description',
+      'notes',
+      'Notes',
       'desc',
       '설명',
       '메모',

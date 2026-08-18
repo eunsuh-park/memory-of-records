@@ -84,6 +84,7 @@ export function renderColorSwatches(colors = [], config = {}) {
  * @param {string} [config.inputClassName] - 입력요소 추가 클래스
  * @param {boolean} [config.disabled]
  * @param {number} [config.rows=4] - textarea 전용
+ * @param {number} [config.maxLength] - input/textarea maxlength
  * @param {string} [config.list] - input list 속성(datalist id)
  * @param {string} [config.autocomplete='off']
  * @param {string} [config.extra=''] - 입력요소 뒤에 덧붙일 마크업(datalist, 체크박스 등)
@@ -107,6 +108,7 @@ export function render(config = {}) {
     inputClassName = '',
     disabled = false,
     rows = 4,
+    maxLength,
     list = '',
     autocomplete = 'off',
     extra = '',
@@ -148,6 +150,11 @@ export function render(config = {}) {
   const isNativePicker = NATIVE_PICKER_TYPES.has(type);
   const fieldId = isNativePicker ? `field-${name || 'input'}-${++pickerFieldSeq}` : '';
 
+  const maxLengthAttr =
+    Number.isFinite(Number(maxLength)) && Number(maxLength) > 0
+      ? ` maxlength="${Math.floor(Number(maxLength))}"`
+      : '';
+
   let control = '';
   if (type === 'select') {
     control = renderSelect({
@@ -164,7 +171,7 @@ export function render(config = {}) {
       .filter(Boolean)
       .join(' ')}" name="${escapeHtml(name)}" rows="${rows}"${
       placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ''
-    }${required ? ' required' : ''}${disabled ? ' disabled' : ''}>${escapeHtml(value)}</textarea>`;
+    }${maxLengthAttr}${required ? ' required' : ''}${disabled ? ' disabled' : ''}>${escapeHtml(value)}</textarea>`;
   } else {
     control = `<input class="${['field__input', inputClassName]
       .filter(Boolean)
@@ -172,7 +179,7 @@ export function render(config = {}) {
       fieldId ? ` id="${fieldId}"` : ''
     }${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ''}${
       list ? ` list="${escapeHtml(list)}"` : ''
-    } value="${escapeHtml(value)}"${required ? ' required' : ''}${
+    } value="${escapeHtml(value)}"${maxLengthAttr}${required ? ' required' : ''}${
       disabled ? ' disabled' : ''
     } autocomplete="${escapeHtml(autocomplete)}" />`;
   }

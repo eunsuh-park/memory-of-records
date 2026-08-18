@@ -230,10 +230,10 @@ export function convertNotionPageToNotebook(page) {
     parseNotionProperty(
       getProperty(
         properties,
-        'notes',
-        'Notes',
         'description',
         'Description',
+        'notes',
+        'Notes',
         'desc',
         '설명',
         '메모',

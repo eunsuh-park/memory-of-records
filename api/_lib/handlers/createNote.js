@@ -7,9 +7,12 @@
  *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
  *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
+ * notes는 Notion description(text/rich_text)에 공백 포함 70자로 저장
  */
 import {
   NOTEBOOK_DB_ID,
+  buildDescriptionPropertyPayload,
+  findNoteDescriptionProperty,
   findSchemaProperty,
   findTitleProperty,
   notionFetch
@@ -98,16 +101,7 @@ export async function handleCreateNote(req, res) {
     const sizeProp = findSchemaProperty(schema, 'size', 'Size', '사이즈', '노트 사이즈');
     const startProp = findSchemaProperty(schema, 'period_start', 'Period Start', 'period start');
     const endProp = findSchemaProperty(schema, 'period_end', 'Period End', 'period end');
-    const notesProp = findSchemaProperty(
-      schema,
-      'notes',
-      'Notes',
-      '메모',
-      'description',
-      'Description',
-      'note',
-      'Note'
-    );
+    const notesProp = findNoteDescriptionProperty(schema);
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
     const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
     const favoritesProp = findSchemaProperty(
@@ -198,23 +192,17 @@ export async function handleCreateNote(req, res) {
       if (!notesProp) {
         return res.status(500).json({
           error: 'Schema error',
-          message:
-            '메모(notes)를 저장할 Notion 속성(notes/메모/description 등 rich_text)이 없습니다'
+          message: '메모를 저장할 Notion 속성(description)이 없습니다'
         });
       }
-      if (notesProp.type === 'rich_text') {
-        assignIfPresent(properties, notesProp, buildRichText(notes));
-      } else if (notesProp.type === 'title') {
+      const notesPayload = buildDescriptionPropertyPayload(notesProp, notes);
+      if (!notesPayload) {
         return res.status(500).json({
           error: 'Schema error',
-          message: `메모 속성(${notesProp.key})이 title이라 노트 이름과 겹칩니다. rich_text 속성을 추가해 주세요`
-        });
-      } else {
-        return res.status(500).json({
-          error: 'Schema error',
-          message: `메모 속성(${notesProp.key}) 타입이 ${notesProp.type}입니다. rich_text여야 합니다`
+          message: `description 속성(${notesProp.key}) 타입이 ${notesProp.type}입니다. text/rich_text여야 합니다`
         });
       }
+      assignIfPresent(properties, notesProp, notesPayload);
     }
 
     const isKept = body.isKept !== false && body.isKept !== 'false';

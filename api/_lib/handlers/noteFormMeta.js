@@ -4,6 +4,7 @@
  */
 import {
   NOTEBOOK_DB_ID,
+  findNoteDescriptionProperty,
   findSchemaProperty,
   findTitleProperty,
   notionFetch,
@@ -40,16 +41,7 @@ export async function handleNoteFormMeta(req, res) {
     );
     const colorProp = findSchemaProperty(schema, 'color', 'Color', '색', '색상');
     const sizeProp = findSchemaProperty(schema, 'size', 'Size', '사이즈', '노트 사이즈');
-    const notesProp = findSchemaProperty(
-      schema,
-      'notes',
-      'Notes',
-      '메모',
-      'description',
-      'Description',
-      'note',
-      'Note'
-    );
+    const notesProp = findNoteDescriptionProperty(schema);
     const keptProp = findSchemaProperty(schema, 'is_kept', 'is kept', 'kept', '보관');
     const visibleProp = findSchemaProperty(schema, 'visible', 'Visible', '노출', '공개');
 
