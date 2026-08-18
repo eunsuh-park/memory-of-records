@@ -62,6 +62,7 @@ export function renderItem(options = {}) {
     `class="${classes.join(' ')}"`,
     'role="option"',
     `aria-selected="${selected ? 'true' : 'false'}"`,
+    `data-value="${escapeHtml(value)}"`,
     id ? `id="${escapeHtml(id)}"` : '',
     labelAttr ? `aria-label="${labelAttr}"` : '',
     disabled ? 'disabled' : '',

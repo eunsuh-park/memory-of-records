@@ -12,7 +12,7 @@
  */
 
 import { render as renderChip } from '../FilterChip/FilterChip.js';
-import { render as renderSelect } from '../Select/Select.js';
+import { render as renderDropdown, bind as bindDropdown } from '../DropdownMenu/DropdownMenu.js';
 import { FAVORITES_PATH } from '../../utils/noteFavorites.js';
 import './FilterSubMenu.css';
 
@@ -113,12 +113,13 @@ export function renderFilterSubMenu(
   const controlsHtml = controls
     ? `
     <div class="filter-controls">
-      ${renderSelect({
-        tone: 'pill',
-        ariaLabel: '정렬',
+      ${renderDropdown({
+        id: 'filter-sort',
+        className: 'filter-sort__dropdown',
+        label: '기본순',
         options: SORT_OPTIONS,
         value: sortKey,
-        className: 'filter-sort__select'
+        ariaLabel: '정렬'
       })}
     </div>
   `
@@ -162,10 +163,14 @@ export function renderFilterSubMenu(
 
   if (!controls) return;
 
-  const sortSelect = container.querySelector('.filter-sort__select');
-  sortSelect?.addEventListener('change', () => {
-    if (typeof controls.onSortChange === 'function') {
-      controls.onSortChange(sortSelect.value);
-    }
-  });
+  const sortDropdown = container.querySelector('.filter-sort__dropdown');
+  if (sortDropdown) {
+    bindDropdown(sortDropdown, {
+      onChange: (value) => {
+        if (typeof controls.onSortChange === 'function') {
+          controls.onSortChange(value);
+        }
+      }
+    });
+  }
 }
