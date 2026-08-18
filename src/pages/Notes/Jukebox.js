@@ -23,6 +23,7 @@ import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
 import { render as renderNoteInfoPanel } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
+import { toggleNoteFavorite } from '../../utils/noteFavorites.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
@@ -52,6 +53,27 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+async function shareNote(note) {
+  if (!note?.id) return;
+  const base = import.meta.env.BASE_URL || '/';
+  const prefix = base.endsWith('/') ? base.slice(0, -1) : base;
+  const url = `${window.location.origin}${prefix}/note/${note.id}`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: note.title || '노트', url });
+      return;
+    }
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('노트 링크를 복사했습니다');
+  } catch {
+    showToast('공유에 실패했습니다');
+  }
 }
 
 /**
@@ -887,37 +909,46 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
-      const createBtn = e.target?.closest?.('.jukebox-focus-info__create');
-      if (createBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        openAddNoteModal({ onCreated: refreshAfterNoteEdit });
-        return;
-      }
-
-      const editPill = e.target?.closest?.(
-        '.jukebox-focus-info__edit-pill, .jukebox-focus-info__pager--edit'
-      );
-      const editBtn = e.target?.closest?.('.jukebox-focus-info__edit');
-      const addBtn = e.target?.closest?.('.jukebox-focus-info__add');
-      if (!editPill && !editBtn && !addBtn) return;
+      const actionBtn = e.target?.closest?.('[data-action]');
+      if (!actionBtn || !focusSlot.contains(actionBtn)) return;
       e.preventDefault();
       e.stopPropagation();
-      const noteId = (editPill || editBtn || addBtn).getAttribute('data-note-id');
+
+      const action = actionBtn.getAttribute('data-action');
+      const noteId = actionBtn.getAttribute('data-note-id');
       const note = findNoteById(noteId);
-      if (!note) return;
-      if (addBtn) {
+
+      if (action === 'share') {
+        void shareNote(note);
+        return;
+      }
+      if (action === 'favorite') {
+        if (!noteId) return;
+        const on = toggleNoteFavorite(noteId);
+        updateFocusInfo(boundNotes);
+        showToast(on ? '즐겨찾기에 추가했습니다' : '즐겨찾기를 해제했습니다');
+        return;
+      }
+      if (action === 'edit') {
+        if (!note) return;
+        openAddNoteModal({
+          mode: 'edit',
+          note,
+          onUpdated: refreshAfterNoteEdit
+        });
+        return;
+      }
+      if (action === 'add-page') {
+        if (!note) return;
         openAddPageModal({
           note,
           onDone: refreshAfterNoteEdit
         });
         return;
       }
-      openAddNoteModal({
-        mode: 'edit',
-        note,
-        onUpdated: refreshAfterNoteEdit
-      });
+      if (action === 'delete') {
+        showToast('노트 삭제는 아직 지원하지 않습니다');
+      }
     });
   }
 

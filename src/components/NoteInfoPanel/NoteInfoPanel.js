@@ -2,13 +2,15 @@
  * NoteInfoPanel
  *
  * Jukebox 중앙 카드(포커스된 노트)의 정보 표시영역.
- * 데스크톱은 제목·메타·메모 + 액션 버튼, 모바일은 제목 + 페이저(또는 수정 버튼)로 갈라진다.
- * 기존 `.jukebox-focus-info__desktop` / `__mobile` 분기와 클래스명을 그대로 유지한다.
+ * 노트명 · Icon Button 5개(공유/즐겨찾기/수정/페이지 추가/삭제) · 메모.
  */
 
-import { formatNoteSizeLabel } from '../../utils/noteSize.js';
+import { renderIconButton } from '../Button/Button.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { isNoteFavorite } from '../../utils/noteFavorites.js';
 import './NoteInfoPanel.css';
+
+const MEMO_MAX_CHARS = 70;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -19,97 +21,79 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-function categoryLabel(note, filterMode) {
-  if (filterMode === 'type') return note.type || note.notebookType || '';
-  return note.notebookType || note.type || '';
+function formatMemo(value) {
+  const raw = String(value || '');
+  return escapeHtml(raw.length > MEMO_MAX_CHARS ? raw.slice(0, MEMO_MAX_CHARS) : raw);
+}
+
+function iconAction({ action, label, icon, noteId, pressed = null }) {
+  return renderIconButton({
+    ariaLabel: label,
+    title: label,
+    ariaPressed: pressed,
+    content: icon,
+    className: `jukebox-focus-info__${action}`,
+    dataset: { 'note-id': noteId, action }
+  });
 }
 
 /**
  * @param {Object|null} note - 포커스된 노트. null이면 빈 상태
- * @param {'period'|'type'} filterMode
- * @param {{ index?: number, total?: number, actionsOpen?: boolean }} [opts]
+ * @param {'period'|'type'} [_filterMode]
+ * @param {{ index?: number, total?: number, actionsOpen?: boolean }} [_opts]
  * @returns {string} HTML 문자열
  */
-export function render(note, filterMode, opts = {}) {
-  const { index = 0, total = 0, actionsOpen = false } = opts;
-  const pager =
-    total > 0 ? `${escapeHtml(String(index + 1))} / ${escapeHtml(String(total))}` : '';
-
+export function render(note, _filterMode, _opts = {}) {
   if (!note) {
-    return `<div class="jukebox-focus-info" aria-live="polite" data-actions-open="false">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header jukebox-focus-info__header--empty">
-          <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-          <div class="jukebox-focus-info__actions">
-            <button
-              type="button"
-              class="jukebox-focus-info__create"
-              aria-label="노트 추가"
-              title="노트 추가"
-            >${MINGCUTE.addFill}</button>
-          </div>
-        </div>
-      </div>
-      <div class="jukebox-focus-info__mobile">
-        <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-      </div>
+    return `<div class="jukebox-focus-info" aria-live="polite">
+      <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
     </div>`;
   }
 
   const title = escapeHtml(note.title || '제목 없음');
-  const category = escapeHtml(categoryLabel(note, filterMode));
-  const pages = note.pageCount != null ? `${escapeHtml(String(note.pageCount))}장` : '';
-  const size = escapeHtml(formatNoteSizeLabel(note.size) || note.size || '');
-  const memo = escapeHtml(note.description || '');
+  const memo = formatMemo(note.description || '');
   const noteId = escapeHtml(note.id || '');
-  const metaParts = [category, pages, size].filter(Boolean);
+  const favorited = isNoteFavorite(note.id);
 
   return `
-    <div class="jukebox-focus-info" aria-live="polite" data-actions-open="${actionsOpen ? 'true' : 'false'}">
-      <div class="jukebox-focus-info__desktop">
-        <div class="jukebox-focus-info__header">
-          <h2 class="jukebox-focus-info__title">${title}</h2>
-          <div class="jukebox-focus-info__actions">
-            <button
-              type="button"
-              class="jukebox-focus-info__edit"
-              data-note-id="${noteId}"
-              aria-label="노트 정보 수정"
-              title="노트 정보 수정"
-            >${MINGCUTE.edit2Fill}</button>
-            <button
-              type="button"
-              class="jukebox-focus-info__add"
-              data-note-id="${noteId}"
-              aria-label="페이지 추가"
-              title="페이지 추가"
-            >${MINGCUTE.fileNewFill}</button>
-            <button
-              type="button"
-              class="jukebox-focus-info__create"
-              aria-label="노트 추가"
-              title="노트 추가"
-            >${MINGCUTE.addFill}</button>
-          </div>
+    <div class="jukebox-focus-info" aria-live="polite">
+      <div class="jukebox-focus-info__main">
+        <h2 class="jukebox-focus-info__title">${title}</h2>
+        <div class="jukebox-focus-info__actions">
+          ${iconAction({
+            action: 'share',
+            label: '공유',
+            icon: MINGCUTE.share2Line,
+            noteId
+          })}
+          ${iconAction({
+            action: 'favorite',
+            label: '즐겨찾기',
+            icon: favorited ? MINGCUTE.starFill : MINGCUTE.starLine,
+            noteId,
+            pressed: favorited
+          })}
+          ${iconAction({
+            action: 'edit',
+            label: '노트 정보 수정',
+            icon: MINGCUTE.edit2Fill,
+            noteId
+          })}
+          ${iconAction({
+            action: 'add-page',
+            label: '페이지 추가',
+            icon: MINGCUTE.fileNewFill,
+            noteId
+          })}
+          ${iconAction({
+            action: 'delete',
+            label: '삭제',
+            icon: MINGCUTE.delete2Line,
+            noteId
+          })}
         </div>
-        ${metaParts.length ? `<p class="jukebox-focus-info__meta">${metaParts.join(' · ')}</p>` : ''}
-        ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
       </div>
-      <div class="jukebox-focus-info__mobile">
-        <p class="jukebox-focus-info__note-title">${title}</p>
-        ${
-          actionsOpen
-            ? `<button
-          type="button"
-          class="jukebox-focus-info__pager jukebox-focus-info__pager--edit"
-          data-note-id="${noteId}"
-          aria-label="수정"
-        >${MINGCUTE.edit2Fill}<span>수정</span></button>`
-            : pager
-              ? `<span class="jukebox-focus-info__pager">${pager}</span>`
-              : ''
-        }
-      </div>
+      ${memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''}
     </div>
   `;
 }
