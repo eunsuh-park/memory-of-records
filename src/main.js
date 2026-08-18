@@ -6,7 +6,6 @@
 import { router } from './router.js';
 import { render as renderButton } from './components/Button/Button.js';
 import { renderPageHeader } from './widgets/PageHeader/PageHeader.js';
-import { renderFooter } from './components/Footer/Footer.js';
 import { mountAddNoteFab } from './components/AddNoteFab/AddNoteFab.js';
 import { getSession } from './services/auth.js';
 import { initTheme } from './utils/theme.js';
@@ -34,17 +33,14 @@ async function initApp() {
         <div class="main-wrapper">
           <main class="app-main" id="main-content"></main>
         </div>
-        <div id="footer"></div>
       </div>
     `;
 
-    // PageHeader와 푸터 렌더링
     try {
       renderPageHeader();
-      renderFooter();
-      console.log('✅ 네비게이션과 푸터 렌더링 완료');
+      console.log('✅ 네비게이션 렌더링 완료');
     } catch (error) {
-      console.error('❌ 네비게이션/푸터 렌더링 오류:', error);
+      console.error('❌ 네비게이션 렌더링 오류:', error);
     }
 
     // 라우터 초기화

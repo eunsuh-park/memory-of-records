@@ -715,7 +715,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 
   .jukebox-focus-slot {
     width: min(260px, calc(100% - var(--space-6)));
-    bottom: calc(48px + max(var(--space-3), env(safe-area-inset-bottom)));
+    bottom: max(var(--space-3), env(safe-area-inset-bottom));
   }
 
   /*
@@ -834,7 +834,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    bottom: calc(48px + max(var(--space-4), env(safe-area-inset-bottom)));
+    bottom: max(var(--space-4), env(safe-area-inset-bottom));
     right: max(var(--space-4), env(safe-area-inset-right));
     width: 3rem;
     height: 3rem;
