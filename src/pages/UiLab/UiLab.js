@@ -83,7 +83,7 @@ const RESPONSIVE_MATRIX = [
       '.main-wrapper height calc(100vh - 7rem)'
     ],
     tablet: ['데스크톱과 동일 (768px 규칙만 존재)'],
-    desktop: ['.app-main padding-top 80px', '.main-wrapper height calc(100vh - 80px)', '푸터 48px 고정']
+    desktop: ['.app-main padding-top 80px', '.main-wrapper height calc(100vh - 80px)']
   },
   {
     name: 'PageHeader',
@@ -240,14 +240,6 @@ const RESPONSIVE_MATRIX = [
     mobile: ['모든 폭에서 동일'],
     tablet: ['모든 폭에서 동일'],
     desktop: ['fixed bottom 3rem 중앙 · radius 999px · z-index 2000', '브레이크포인트 없이 내용 폭에 맞춰 늘어남']
-  },
-  {
-    name: 'Footer',
-    files: 'src/components/Footer/Footer.js · Footer.css',
-    points: '없음',
-    mobile: ['모든 폭에서 동일'],
-    tablet: ['모든 폭에서 동일'],
-    desktop: ['fixed bottom · height 48px · 컨테이너 max-width 1200px · 폰트 0.6rem']
   }
 ];
 
@@ -769,17 +761,15 @@ export function renderUiLab() {
         </section>
 
         <section class="ui-lab__section" id="shell">
-          <h2 class="ui-lab__section-title">Shell · PageHeader · Footer · Login</h2>
+          <h2 class="ui-lab__section-title">Shell · PageHeader · Login</h2>
           <p class="ui-lab__section-desc">
-            앱 셸은 상단 PageHeader와 하단 Footer로 감쌉니다. 헤더의 Login/Logout과
+            앱 셸은 상단 PageHeader로 감쌉니다. 헤더의 Login/Logout과
             <a href="/login" data-link>/login</a> 페이지로 편집 권한 세션을 다룹니다.
           </p>
           <p class="ui-lab__files">
             참조:
             <code>src/widgets/PageHeader/PageHeader.js</code>,
             <code>src/widgets/PageHeader/PageHeader.css</code>,
-            <code>src/components/Footer/Footer.js</code>,
-            <code>src/components/Footer/Footer.css</code>,
             <code>src/pages/Login/Login.js</code>,
             <code>src/services/auth.js</code>,
             <code>api/auth.js</code>
