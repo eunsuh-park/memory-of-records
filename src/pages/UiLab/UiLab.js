@@ -5,6 +5,7 @@
 
 import { render as renderButton, renderIconButton } from '../../components/Button/Button.js';
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
+import { render as renderChip } from '../../components/FilterChip/FilterChip.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
@@ -109,18 +110,17 @@ const RESPONSIVE_MATRIX = [
     files: 'src/components/FilterSubMenu/FilterSubMenu.js · FilterSubMenu.css',
     points: '1024 · 768 · 600 · 480px',
     mobile: [
-      'top 7rem, 탭 목록 nowrap + 가로 스크롤, font 0.75rem',
-      '주크박스에서는 2줄 고정 그리드(탭 80×28px, 라벨 0.55rem)로 바뀌고 정렬 select 숨김',
-      '캐러셀 스크롤 시 자동 접힘(max-height 0 · opacity 0)',
-      '≤600px 축약 라벨로 교체, ≤480px 추가 축소'
+      'top 7rem, 탭 목록 nowrap + 가로 스크롤',
+      '칩은 FilterChip 모바일 레이아웃(세로 스택 · radius 8px)을 그대로 쓰고 정렬 select 숨김',
+      '캐러셀 스크롤 시 자동 접힘(max-height 0 · opacity 0)'
     ],
     tablet: [
-      '구조는 데스크톱과 같고 치수만 축소',
-      '탭 padding 0.4rem 0.6rem · font 0.8rem · gap 0.35rem'
+      '구조는 데스크톱과 같고 칩이 넘치면 수평 스크롤',
+      '칩 모양은 FilterChip PC(가로 pill)를 그대로 씀'
     ],
     desktop: [
-      '헤더 중앙에 static으로 주입 (단독 사용 시 fixed top 80px 중앙, radius 999px)',
-      '탭 가로 나열 · 라벨 0.85rem',
+      '헤더 중앙에 static으로 주입 (단독 사용 시 fixed top 80px 중앙)',
+      '탭 가로 나열 · FilterChip PC 레이아웃',
       '정렬 select 표시, 접기 토글 숨김'
     ]
   },
@@ -137,7 +137,7 @@ const RESPONSIVE_MATRIX = [
     ],
     tablet: [
       '.notes-container padding-top 90px',
-      '필터 칩 수평 스크롤 · 짧은 라벨(labelMobile) 사용',
+      '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지',
       'FAB 항상 표시(Primary)'
     ],
     desktop: [
@@ -233,6 +233,22 @@ const RESPONSIVE_MATRIX = [
     ],
     tablet: ['데스크톱과 동일'],
     desktop: ['back 48×48px fixed · 아이콘 24px', 'nav padding 12px 원형', 'toolbar 32×32px · 아이콘 16px']
+  },
+  {
+    name: 'FilterChip',
+    files: 'src/components/FilterChip/FilterChip.js · FilterChip.css',
+    points: '768px',
+    mobile: [
+      '세로 스택 · radius 8px · padding 12px 8px',
+      '라벨 14px thin · 개수 10px · 기본 글자 50% 투명',
+      '선택 시 라벨 primary semibold · 개수 text regular · 배경 surface-hover'
+    ],
+    tablet: ['데스크톱과 동일 (가로 pill)'],
+    desktop: [
+      '가로 pill · radius 999px · padding 6px 12px',
+      '라벨 12px muted thin · 개수 ~9px 50% 투명',
+      'hover/selected 배경 surface-hover, 선택은 라벨 primary'
+    ]
   },
   {
     name: 'ThemeSwitch',
@@ -397,6 +413,32 @@ function attachViewportReadout(root) {
 
   update();
   window.addEventListener('resize', update);
+}
+
+/**
+ * Lab FilterChip 데모: 같은 그룹에서 하나만 선택.
+ * @param {HTMLElement|null} root
+ * @returns {void}
+ */
+function bindLabChips(root) {
+  if (!root) return;
+  const groups = new Map();
+  root.querySelectorAll('.chip[data-lab-chip]').forEach((chip) => {
+    const key = chip.getAttribute('data-lab-chip') || 'default';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(chip);
+  });
+  groups.forEach((chips) => {
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        chips.forEach((other) => {
+          const on = other === chip;
+          other.classList.toggle('is-active', on);
+          other.setAttribute('aria-pressed', String(on));
+        });
+      });
+    });
+  });
 }
 
 /**
@@ -706,6 +748,43 @@ export function renderUiLab() {
           )}
         </section>
 
+        <section class="ui-lab__section" id="filter-chip">
+          <h2 class="ui-lab__section-title">FilterChip</h2>
+          <p class="ui-lab__section-desc">
+            Timeline / By type에서 시기·유형을 나누는 칩입니다. 라벨 + 개수이고 상태는 default · hover · selected 셋입니다.
+            PC는 가로 pill, 모바일(≤768px)은 세로 스택입니다. Button과 목적이 달라 별도 컴포넌트입니다.
+            아래 PC/모바일 행은 뷰포트와 무관하게 레이아웃을 고정한 프리뷰이고, 마지막 행은 창 폭을 따릅니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/FilterChip/FilterChip.js</code>, <code>src/components/FilterChip/FilterChip.css</code></p>
+          ${renderVariantRow(
+            'PC · default / hover / selected',
+            [
+              renderChip({ label: '플래너', count: 19, device: 'pc' }),
+              renderChip({ label: '플래너', count: 19, device: 'pc', className: 'is-hover' }),
+              renderChip({ label: '일반 노트', count: 19, device: 'pc', active: true })
+            ].join(''),
+            { stageClass: 'ui-lab__demo-stage--chips' }
+          )}
+          ${renderVariantRow(
+            'Mobile · default / hover / selected',
+            [
+              renderChip({ label: '다이어리', count: 19, device: 'mobile' }),
+              renderChip({ label: '다이어리', count: 19, device: 'mobile', className: 'is-hover' }),
+              renderChip({ label: '플래너', count: 19, device: 'mobile', active: true })
+            ].join(''),
+            { stageClass: 'ui-lab__demo-stage--chips' }
+          )}
+          ${renderVariantRow(
+            'auto · 뷰포트에 따라 PC/모바일 전환 (눌러서 선택)',
+            [
+              renderChip({ label: '다이어리', count: 19, dataset: { labChip: '1' } }),
+              renderChip({ label: '플래너', count: 19, active: true, dataset: { labChip: '1' } }),
+              renderChip({ label: '일반 노트', count: 8, dataset: { labChip: '1' } })
+            ].join(''),
+            { stageClass: 'ui-lab__demo-stage--chips ui-lab__demo-stage--chips-row' }
+          )}
+        </section>
+
         <section class="ui-lab__section" id="theme-switch">
           <h2 class="ui-lab__section-title">ThemeSwitch</h2>
           <p class="ui-lab__section-desc">
@@ -912,6 +991,7 @@ export function renderUiLab() {
   watchThemeChange(root);
   attachViewportReadout(root);
   bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
+  bindLabChips(root.querySelector('#filter-chip'));
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
