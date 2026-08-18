@@ -103,9 +103,11 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 두 가지는 규칙으로 못 박아 뒀습니다(`.cursor/rules/ui-buttons.mdc`). 버튼은 `<button>`을 직접 쓰지 않고 항상 이 팩토리를 거치며, 아이콘 버튼의 내용은 공용 MingCute 세트(`src/assets/mingcuteIcons.js`)에서만 가져옵니다. 컴포넌트 파일에 SVG를 직접 적거나 파일마다 `ICONS` 상수를 만들지 않고, 세트에 없는 아이콘은 세트에 추가한 뒤 이름으로 참조합니다. 아이콘 크기는 `Button.css`가 정합니다(circle 기본 1.25rem, role별 override).
 
-Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip).
+Chip/Pill은 버튼이 아니라 필터·드롭다운 트리거를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip · DropdownChip).
 
 **FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, Timeline / By type에서 시기·유형을 나누는 칩입니다. 라벨 + 개수이고 상태는 default · hover(`.is-hover` 또는 실제 hover) · selected(`.is-active`)입니다. PC는 가로 pill(padding 6×12, radius 999), 모바일(≤768px)은 세로 스택(padding 12×8, radius 8)입니다. 선택 시 배경은 `--color-surface-hover`, 라벨은 `--color-primary` semibold입니다. Lab에서 레이아웃을 고정하려면 `device: 'pc'|'mobile'`을 넘깁니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
+
+**DropdownChip**은 `src/components/DropdownChip/DropdownChip.js` · `DropdownChip.css`로, 커스텀 드롭다운의 트리거 칩입니다. 라벨 + MingCute `downLine`이고 상태는 default · hover · active(`.is-open`) · selected(`.is-selected`) · active-hover입니다. padding은 `1px 4px 1px 12px`, 아이콘 칸은 24px입니다. default/selected는 `--color-border` 0.5px, hover는 `--color-surface-hover`, 열림은 `--color-surface-active`이며 열림·선택의 글자는 `--color-primary` semibold입니다. 목록 패널은 아직 포함하지 않습니다.
 
 **Select**는 `src/components/Select/Select.js` · `Select.css`로 `<select>` 마크업을 통합했습니다. `render()`는 필드 하나를, `renderOptions()`는 옵션 문자열만 돌려주어 FormField가 자기 컨트롤 안에 끼워 쓸 수 있게 합니다. `tone: 'pill'`은 FilterSubMenu의 정렬 드롭다운용입니다.
 
