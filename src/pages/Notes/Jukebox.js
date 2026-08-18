@@ -942,18 +942,13 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
-      const actionBtn = e.target?.closest?.('[data-action]');
-      if (!actionBtn || !focusSlot.contains(actionBtn)) return;
-      e.preventDefault();
-      e.stopPropagation();
-
-      const action = actionBtn.getAttribute('data-action');
-      const noteId = actionBtn.getAttribute('data-note-id');
-      const note = findNoteById(noteId);
-      if (!note) return;
-
-      if (action === 'share') {
-        if (isBookmarksNoteId(note.id)) return;
+      const shareBtn = e.target?.closest?.('.jukebox-focus-info__share');
+      if (shareBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const noteId = shareBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note || isBookmarksNoteId(note.id)) return;
         void copyNoteShareUrl(note)
           .then(() => {
             showToast('노트 링크를 복사했습니다');
@@ -965,15 +960,24 @@ export function renderJukeboxWithFilter(options) {
         return;
       }
 
-      if (action === 'favorite') {
-        if (actionBtn.disabled || isBookmarksNoteId(note.id)) return;
+      const favoriteBtn = e.target?.closest?.('.jukebox-focus-info__favorite');
+      if (favoriteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (favoriteBtn.disabled) return;
+        const noteId = favoriteBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note) return;
+
         const next = !note.favorites;
         const syncFavoriteButtons = (value, { disabled = false } = {}) => {
           const label = value ? '즐겨찾기 해제' : '즐겨찾기 추가';
           focusSlot
             .querySelectorAll(`.jukebox-focus-info__favorite[data-note-id="${CSS.escape(noteId)}"]`)
             .forEach((btn) => {
-              btn.innerHTML = value ? MINGCUTE.starFill : MINGCUTE.starLine;
+              const isMobile = btn.classList.contains('jukebox-focus-info__favorite--mobile');
+              /* 모바일 off만 line, 데스크톱·on은 fill */
+              btn.innerHTML = isMobile && !value ? MINGCUTE.starLine : MINGCUTE.starFill;
               btn.disabled = disabled;
               btn.classList.toggle('is-favorite', value);
               btn.setAttribute('aria-pressed', value ? 'true' : 'false');
@@ -1015,34 +1019,52 @@ export function renderJukeboxWithFilter(options) {
         return;
       }
 
-      if (action === 'edit') {
-        openAddNoteModal({
-          mode: 'edit',
+      const createBtn = e.target?.closest?.('.jukebox-focus-info__create');
+      if (createBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        openAddNoteModal({ onCreated: refreshAfterNoteEdit });
+        return;
+      }
+
+      const deleteBtn = e.target?.closest?.('.jukebox-focus-info__delete');
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (deleteBtn.disabled) return;
+        const noteId = deleteBtn.getAttribute('data-note-id');
+        const note = findNoteById(noteId);
+        if (!note || isBookmarksNoteId(note.id)) return;
+        openDeleteNoteDialog({
           note,
-          onUpdated: refreshAfterNoteEdit
+          onDeleted: refreshAfterNoteEdit
         });
         return;
       }
 
-      if (action === 'add-page') {
-        if (isBookmarksNoteId(note.id)) {
-          showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
-          return;
-        }
+      const editPill = e.target?.closest?.(
+        '.jukebox-focus-info__edit-pill, .jukebox-focus-info__pager--edit'
+      );
+      const editBtn = e.target?.closest?.('.jukebox-focus-info__edit');
+      const addBtn = e.target?.closest?.('.jukebox-focus-info__add');
+      if (!editPill && !editBtn && !addBtn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const noteId = (editPill || editBtn || addBtn).getAttribute('data-note-id');
+      const note = findNoteById(noteId);
+      if (!note) return;
+      if (addBtn) {
         openAddPageModal({
           note,
           onDone: refreshAfterNoteEdit
         });
         return;
       }
-
-      if (action === 'delete') {
-        if (actionBtn.disabled || isBookmarksNoteId(note.id)) return;
-        openDeleteNoteDialog({
-          note,
-          onDeleted: refreshAfterNoteEdit
-        });
-      }
+      openAddNoteModal({
+        mode: 'edit',
+        note,
+        onUpdated: refreshAfterNoteEdit
+      });
     });
   }
 

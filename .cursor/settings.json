@@ -1,7 +1,0 @@
-{
-  "plugins": {
-    "cloudinary": {
-      "enabled": true
-    }
-  }
-}

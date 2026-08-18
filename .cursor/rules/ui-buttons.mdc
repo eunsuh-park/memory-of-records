@@ -11,7 +11,7 @@ alwaysApply: true
 - `src/components/Button/Button.js`의 `render()`만 사용한다. `<button>` 태그를 직접 쓰지 않는다.
 - 형태는 `shape`로 고른다: `circle`(아이콘 버튼) · `solid`(폼 제출) · `text`(보조 액션).
 - `circle`은 `size`(`l` 52px · `m` 48px · `s` 32px)와 `role`을 조합한다.
- - `fab` 새로 만들기 · `back` 뒤로가기 · `navPrev`/`navNext` 좌우 이동 · `toolbar` 툴바/시트 · `close` 닫기 · `icon` 정보 패널 등 32px 투명 아이콘 버튼
+  - `fab` 새로 만들기 · `back` 뒤로가기 · `navPrev`/`navNext` 좌우 이동 · `toolbar` 툴바/시트 · `close` 닫기
 - 배경 없는 아이콘 버튼이 필요하면 role을 유지한 채 `tone: 'ghost'`를 준다. 새 클래스를 만들어 배경을 지우지 않는다.
 - 크기·위치만 다른 경우 `className`으로 덮고, 버튼 마크업을 새로 짜지 않는다.
 
@@ -34,4 +34,4 @@ alwaysApply: true
 
 ## 4. 확인
 
-새 버튼을 추가하면 `/ui-lab`의 `Icons` · `Button` · `NoteInfoPanel` · `뷰어 크롬` 섹션에서 실제 렌더를 확인한다.
+새 버튼을 추가하면 `/ui-lab`의 `Icons` · `Button` · `뷰어 크롬` 섹션에서 실제 렌더를 확인한다.
