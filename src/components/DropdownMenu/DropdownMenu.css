@@ -1,0 +1,104 @@
+/**
+ * DropdownMenu 스타일
+ *
+ * 패널은 160px 폭 · 검정 85% 오버레이.
+ * 항목은 26px pill. 목록 간격·열림 동작은 아직 이 파일에 두지 않는다.
+ */
+
+.dropdown-menu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 160px;
+  background-color: var(--color-menu);
+}
+
+.dropdown-menu__item {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  box-sizing: border-box;
+  margin: 0;
+  width: auto;
+  height: 26px;
+  padding: 7px 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background-color: transparent;
+  color: var(--color-text-dim);
+  font-family: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--font-regular);
+  line-height: 12px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease, font-weight 0.2s ease;
+}
+
+.dropdown-menu__item:focus {
+  outline: none;
+}
+
+.dropdown-menu__item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.dropdown-menu__label {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 12px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-menu__item:hover:not(.is-selected):not(:disabled) {
+    background-color: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+
+  .dropdown-menu__item.is-selected:hover:not(:disabled) {
+    background-color: var(--color-surface-hover);
+    cursor: pointer;
+  }
+}
+
+/* Lab에서 hover 상태를 고정해 보여 줄 때 */
+.dropdown-menu__item.is-hover:not(.is-selected) {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.dropdown-menu__item.is-selected {
+  background-color: transparent;
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+  cursor: default;
+}
+
+.dropdown-menu__item.is-selected.is-hover {
+  background-color: var(--color-surface-hover);
+  cursor: pointer;
+}
+
+.dropdown-menu__item[aria-disabled='true'],
+.dropdown-menu__item:disabled {
+  pointer-events: none;
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* 시안 에셋 보드 — 항목 사이 24px. 실제 목록 간격은 다음 작업 */
+.dropdown-menu--states {
+  gap: var(--space-6);
+}

@@ -147,6 +147,13 @@
   flex-shrink: 0;
 }
 
+.ui-lab__demo-stage--menu {
+  justify-content: center;
+  min-height: 0;
+  padding: var(--space-6);
+  background: var(--color-bg);
+}
+
 /* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */
 .ui-lab__demo-stage--flow .btn--fab,
 .ui-lab__demo-stage--flow .btn--back,

@@ -6,7 +6,7 @@
  * 아이콘은 MingCute 세트만 쓴다.
  *
  * 상태: default · hover · active(열림) · selected(값 선택, 닫힘) · active-hover.
- * 목록 패널은 아직 이 컴포넌트에 포함하지 않는다.
+ * 목록 항목은 DropdownMenu. 트리거와 묶는 동작은 다음 작업에서 붙인다.
  */
 
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';

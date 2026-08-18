@@ -37,7 +37,7 @@ Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에
 | `--color-border` | 두 테마 모두 grey 8단계 |
 | `--color-primary` | 다크 `primary-3`, 라이트 `primary-5`. `-on`은 두 테마 모두 `grey-dark-3` 고정 |
 | `--color-overlay-*`, `--color-shadow-*`, `--color-surface-*` | 합성이 목적이라 grey 참조 대신 테마별 알파값을 직접 정의 |
-| `--color-chrome-*` | 두 테마 값이 **동일**. 스캔 이미지 위에 얹혀 항상 어두운 배경을 전제하는 것들(뷰어 시트·화살표)의 의도적 예외 |
+| `--color-chrome-*`, `--color-menu` | 두 테마 값이 **동일**. 스캔 이미지·플로팅 메뉴처럼 항상 어두운 면을 전제하는 것들 |
 
 의도적 예외가 하나 더 있습니다. Story의 데스크톱 책 지면(`--color-book-*`, `--white`/`--grey-light-*` 직접 참조)은 테마와 무관하게 "종이"여야 해서 semantic을 쓰지 않습니다. 타블렛(≤1024px) 이하에서 책형 장식을 버릴 때 앱 테마 토큰으로 전환합니다.
 
@@ -103,11 +103,13 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 두 가지는 규칙으로 못 박아 뒀습니다(`.cursor/rules/ui-buttons.mdc`). 버튼은 `<button>`을 직접 쓰지 않고 항상 이 팩토리를 거치며, 아이콘 버튼의 내용은 공용 MingCute 세트(`src/assets/mingcuteIcons.js`)에서만 가져옵니다. 컴포넌트 파일에 SVG를 직접 적거나 파일마다 `ICONS` 상수를 만들지 않고, 세트에 없는 아이콘은 세트에 추가한 뒤 이름으로 참조합니다. 아이콘 크기는 `Button.css`가 정합니다(circle 기본 1.25rem, role별 override).
 
-Chip/Pill은 버튼이 아니라 필터·드롭다운 트리거를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip · DropdownChip).
+Chip/Pill은 버튼이 아니라 필터·드롭다운 트리거를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip · DropdownChip · DropdownMenu).
 
 **FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, Timeline / By type에서 시기·유형을 나누는 칩입니다. 라벨 + 개수이고 상태는 default · hover(`.is-hover` 또는 실제 hover) · selected(`.is-active`)입니다. PC는 가로 pill(padding 6×12, radius 999), 모바일(≤768px)은 세로 스택(padding 12×8, radius 8)입니다. 선택 시 배경은 `--color-surface-hover`, 라벨은 `--color-primary` semibold입니다. Lab에서 레이아웃을 고정하려면 `device: 'pc'|'mobile'`을 넘깁니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
 
-**DropdownChip**은 `src/components/DropdownChip/DropdownChip.js` · `DropdownChip.css`로, 커스텀 드롭다운의 트리거 칩입니다. 라벨 + MingCute `downLine`이고 상태는 default · hover · active(`.is-open`) · selected(`.is-selected`) · active-hover입니다. padding은 `1px 4px 1px 12px`, 아이콘 칸은 24px입니다. default/selected는 `--color-border` 0.5px, hover는 `--color-surface-hover`, 열림은 `--color-surface-active`이며 열림·선택의 글자는 `--color-primary` semibold입니다. 목록 패널은 아직 포함하지 않습니다.
+**DropdownChip**은 `src/components/DropdownChip/DropdownChip.js` · `DropdownChip.css`로, 커스텀 드롭다운의 트리거 칩입니다. 라벨 + MingCute `downLine`이고 상태는 default · hover · active(`.is-open`) · selected(`.is-selected`) · active-hover입니다. padding은 `1px 4px 1px 12px`, 아이콘 칸은 24px입니다. default/selected는 `--color-border` 0.5px, hover는 `--color-surface-hover`, 열림은 `--color-surface-active`이며 열림·선택의 글자는 `--color-primary` semibold입니다.
+
+**DropdownMenu**는 `src/components/DropdownMenu/DropdownMenu.js` · `DropdownMenu.css`로, 열린 드롭다운의 목록 패널과 항목입니다. 패널은 160px · `--color-menu`(검정 85%, 테마 무관). 항목은 26px pill(`padding 7px 12px`)이고 상태는 default(`--color-text-dim`) · hover(`--color-surface-hover` + `--color-text`) · selected(`--color-primary` semibold) · active-hover(선택 + hover 필)입니다. 트리거와 묶는 목록 동작은 아직 없습니다.
 
 **Select**는 `src/components/Select/Select.js` · `Select.css`로 `<select>` 마크업을 통합했습니다. `render()`는 필드 하나를, `renderOptions()`는 옵션 문자열만 돌려주어 FormField가 자기 컨트롤 안에 끼워 쓸 수 있게 합니다. `tone: 'pill'`은 FilterSubMenu의 정렬 드롭다운용입니다.
 

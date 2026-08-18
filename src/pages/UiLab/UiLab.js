@@ -7,6 +7,10 @@ import { render as renderButton, renderIconButton } from '../../components/Butto
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
 import { render as renderChip } from '../../components/FilterChip/FilterChip.js';
 import { render as renderDropdownChip } from '../../components/DropdownChip/DropdownChip.js';
+import {
+  renderItem as renderDropdownMenuItem,
+  renderPanel as renderDropdownMenu
+} from '../../components/DropdownMenu/DropdownMenu.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
@@ -61,7 +65,7 @@ const SEMANTIC_GROUPS = [
   },
   {
     title: 'Line · Overlay',
-    names: ['--color-border', '--color-border-light', '--color-overlay', '--color-chrome', '--color-chrome-on']
+    names: ['--color-border', '--color-border-light', '--color-overlay', '--color-menu', '--color-chrome', '--color-chrome-on']
   },
   {
     title: 'Status',
@@ -261,6 +265,18 @@ const RESPONSIVE_MATRIX = [
       '가로 pill · padding 1px 4px 1px 12px · 아이콘 24px',
       'default/selected는 0.5px border, hover는 surface-hover, 열림은 surface-active',
       '열림·선택은 라벨 primary semibold'
+    ]
+  },
+  {
+    name: 'DropdownMenu',
+    files: 'src/components/DropdownMenu/DropdownMenu.js · DropdownMenu.css',
+    points: '없음',
+    mobile: ['모든 폭에서 동일 (160px 패널 · 26px 항목)'],
+    tablet: ['모든 폭에서 동일'],
+    desktop: [
+      '패널 160px · 배경 --color-menu (검정 85%)',
+      '항목 26px pill · padding 7px 12px',
+      'default는 text-dim, hover는 surface-hover+text, 선택은 primary semibold'
     ]
   },
   {
@@ -466,6 +482,27 @@ function bindLabDropdownChips(root) {
       const open = chip.getAttribute('aria-expanded') !== 'true';
       chip.classList.toggle('is-open', open);
       chip.setAttribute('aria-expanded', String(open));
+    });
+  });
+}
+
+/**
+ * Lab DropdownMenu 데모: 같은 목록에서 하나만 선택.
+ * @param {HTMLElement|null} root
+ * @returns {void}
+ */
+function bindLabDropdownMenu(root) {
+  if (!root) return;
+  root.querySelectorAll('[data-lab-menu]').forEach((panel) => {
+    const items = [...panel.querySelectorAll('.dropdown-menu__item')];
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        items.forEach((other) => {
+          const on = other === item;
+          other.classList.toggle('is-selected', on);
+          other.setAttribute('aria-selected', String(on));
+        });
+      });
     });
   });
 }
@@ -818,7 +855,7 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">DropdownChip</h2>
           <p class="ui-lab__section-desc">
             커스텀 드롭다운의 트리거 칩입니다. 라벨 + 아래 화살표이고, 상태는 default · hover · active(열림) · selected(값 선택, 닫힘) · active-hover 다섯입니다.
-            FilterChip과 달리 개수 없이 화살표만 붙고, 폭은 라벨에 맞춥니다. 목록 패널은 다음 작업에서 붙입니다.
+            FilterChip과 달리 개수 없이 화살표만 붙고, 폭은 라벨에 맞춥니다. 목록 항목 에셋은 아래 DropdownMenu에 있습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/DropdownChip/DropdownChip.js</code>, <code>src/components/DropdownChip/DropdownChip.css</code></p>
           ${renderVariantRow(
@@ -839,6 +876,44 @@ export function renderUiLab() {
               renderDropdownChip({ label: 'Tab Name', selected: true, dataset: { labDropdown: '1' } })
             ].join(''),
             { stageClass: 'ui-lab__demo-stage--chips ui-lab__demo-stage--chips-row' }
+          )}
+        </section>
+
+        <section class="ui-lab__section" id="dropdown-menu">
+          <h2 class="ui-lab__section-title">DropdownMenu</h2>
+          <p class="ui-lab__section-desc">
+            드롭다운이 열렸을 때 아래에 붙는 목록의 패널·항목 에셋입니다. 항목 상태는 default · hover · selected · active-hover 넷입니다.
+            패널은 160px 폭에 검정 85% 면이고, 시안 보드에서는 항목 사이 24px입니다. 트리거와 묶는 목록 동작은 다음 작업에서 붙입니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/DropdownMenu/DropdownMenu.js</code>, <code>src/components/DropdownMenu/DropdownMenu.css</code></p>
+          ${renderVariantRow(
+            '시안 에셋 — hover / selected / active-hover / default',
+            renderDropdownMenu({
+              ariaLabel: '드롭다운 항목 상태',
+              className: 'dropdown-menu--states',
+              content: [
+                renderDropdownMenuItem({ label: 'Tab Name', className: 'is-hover' }),
+                renderDropdownMenuItem({ label: 'Tab Name', selected: true }),
+                renderDropdownMenuItem({ label: 'Tab Name', selected: true, className: 'is-hover' }),
+                renderDropdownMenuItem({ label: 'Tab Name' })
+              ].join('')
+            }),
+            { stageClass: 'ui-lab__demo-stage--menu' }
+          )}
+          ${renderVariantRow(
+            '눌러서 항목 선택 (호버는 마우스로)',
+            renderDropdownMenu({
+              ariaLabel: '드롭다운 데모',
+              className: 'dropdown-menu--states',
+              dataset: { labMenu: '1' },
+              content: [
+                renderDropdownMenuItem({ label: 'Tab Name', selected: true }),
+                renderDropdownMenuItem({ label: 'Tab Name' }),
+                renderDropdownMenuItem({ label: 'Tab Name' }),
+                renderDropdownMenuItem({ label: 'Tab Name' })
+              ].join('')
+            }),
+            { stageClass: 'ui-lab__demo-stage--menu' }
           )}
         </section>
 
@@ -1050,6 +1125,7 @@ export function renderUiLab() {
   bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
   bindLabChips(root.querySelector('#filter-chip'));
   bindLabDropdownChips(root.querySelector('#dropdown-chip'));
+  bindLabDropdownMenu(root.querySelector('#dropdown-menu'));
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
