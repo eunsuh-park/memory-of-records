@@ -4,6 +4,8 @@
  * .tab-list — 가로 묶음
  * .tab + .is-selected | :hover | :active(pressed)
  * UiLab 고정 미리보기: .is-hover · .is-pressed · .tab--preview
+ *
+ * color/bg는 .tab, font-weight는 FilterChip과 같이 .tab__label에서 전환한다.
  */
 
 .tab-list {
@@ -38,7 +40,6 @@
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* hover·selected: color/bg만 부드럽게. font-weight는 보간 불가라 즉시 전환 */
   transition:
     color 0.2s ease,
     background-color 0.2s ease;
@@ -56,6 +57,7 @@
   width: auto;
   height: var(--space-6);
   line-height: var(--space-6);
+  transition: font-weight 0.3s ease;
 }
 
 /* hover — selected·inactive 모두 --color-surface-hover */
@@ -66,6 +68,9 @@
 
   .tab:hover:not(.is-selected):not(.is-pressed):not(.tab--preview) {
     color: var(--color-text);
+  }
+
+  .tab:hover:not(.is-selected):not(.is-pressed):not(.tab--preview) .tab__label {
     font-weight: var(--font-semibold);
   }
 }
@@ -76,31 +81,43 @@
 
 .tab.is-hover:not(.is-selected) {
   color: var(--color-text);
+}
+
+.tab.is-hover:not(.is-selected) .tab__label {
   font-weight: var(--font-semibold);
 }
 
 /* pressed — 클릭 순간. hover/pressed 모두 surface 토큰 */
 .tab:active:not(.tab--preview) {
   background-color: var(--color-surface-active);
-  font-weight: var(--font-semibold);
 }
 
 .tab:active:not(.is-selected):not(.tab--preview) {
   color: var(--color-text-dim);
 }
 
+.tab:active:not(.tab--preview) .tab__label {
+  font-weight: var(--font-semibold);
+}
+
 .tab.is-pressed {
   background-color: var(--color-surface-active);
-  font-weight: var(--font-semibold);
 }
 
 .tab.is-pressed:not(.is-selected) {
   color: var(--color-text-dim);
 }
 
+.tab.is-pressed .tab__label {
+  font-weight: var(--font-semibold);
+}
+
 /* selected — 다크: primary 글자. hover 배경은 위 surface-hover가 덮는다 */
 .tab.is-selected {
   color: var(--color-primary);
+}
+
+.tab.is-selected .tab__label {
   font-weight: var(--font-semibold);
 }
 
