@@ -71,7 +71,7 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 스택은 `--font-sans`(Pretendard → system-ui 폴백)와 `--font-mono` 두 개뿐이고, CSS에서 `font-family`를 직접 쓰는 곳은 없습니다. Jukebox에 있던 `'Noto Sans KR'` 선언은 폰트 파일을 로드하지 않는 죽은 선언이라 제거했습니다.
 
-타입 스케일은 `--text-xs`(0.75rem) · `-sm`(0.85rem) · `-base`(1rem) · `-md`(1.1rem) · `-lg`(1.25rem) · `-xl`(1.5rem) · `-2xl`(2rem) · `-3xl`(2.5rem)의 8단계이고, 예외로 `--text-2xs`(0.55rem)를 두었습니다. 2xs는 크기가 고정된 마이크로 라벨(모바일 헤더 칩 80×28, 푸터 고지, Lab의 토큰 값 표기)에만 쓰고 본문에는 쓰지 않습니다. Weight는 `--font-regular`/`-medium`/`-semibold`/`-bold`(400/500/600/700) 네 단계이며, 이전에 있던 `650`·`300`·`bold` 키워드는 가까운 단계로 흡수했습니다.
+타입 스케일은 `--text-xs`(0.75rem) · `-sm`(0.85rem) · `-base`(1rem) · `-md`(1.1rem) · `-lg`(1.25rem) · `-xl`(1.5rem) · `-2xl`(2rem) · `-3xl`(2.5rem)의 8단계이고, 예외로 `--text-2xs`(0.55rem)를 두었습니다. 2xs는 크기가 고정된 마이크로 라벨(FilterChip PC 개수, 푸터 고지, Lab의 토큰 값 표기)에만 쓰고 본문에는 쓰지 않습니다. Weight는 `--font-thin`/`-regular`/`-medium`/`-semibold`/`-bold`(100/400/500/600/700) 다섯 단계이며, 이전에 있던 `650`·`300`·`bold` 키워드는 가까운 단계로 흡수했습니다.
 
 앱 셸은 헤더 높이와 고정 푸터(48px)를 전제로 `App.css`가 메인 영역을 잡습니다. 새 UI를 넣을 때는 `--color-*`·`--space-*`·`--radius-*`·`--text-*`를 먼저 쓰고, 필요하면 atomic을 확장한 뒤 semantic에 연결하는 순서를 권합니다.
 
@@ -81,7 +81,7 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 뷰포트는 실제 CSS가 쓰는 값을 기준으로 **Mobile ≤768px · iPad 769–1024px · Desktop ≥1025px** 세 구간으로 봅니다. 모바일 안에서는 640px(모달·뷰어), 600px(필터 라벨 축약), 480px(주크박스 카드) 하위 단계가 추가로 쓰입니다. iPad 구간에 전용 규칙이 있는 것은 FilterSubMenu(치수 축소), Jukebox(상단 여백), Story(책 → 단일 열 전환) 셋뿐이고 나머지 컴포넌트는 데스크톱 레이아웃을 그대로 씁니다.
 
-구조가 실제로 갈라지는 곳은 세 군데입니다. PageHeader는 768px 아래에서 한 줄 레이아웃이 세로 스택 + 햄버거 + 우측 드로어로 바뀌고, FilterSubMenu는 같은 지점에서 접이식 상단 네비가 되며 주크박스에서는 2줄 고정 그리드로 다시 바뀝니다. Jukebox는 중앙 카드를 데스크톱에서는 클릭 즉시 뷰어로 열지만 모바일에서는 보기/채우기 오버레이를 먼저 띄웁니다. 이 두 곳만 JS가 `matchMedia('(max-width: 768px)')`로 분기하고, 나머지는 전부 CSS로만 반응합니다.
+구조가 실제로 갈라지는 곳은 세 군데입니다. PageHeader는 768px 아래에서 한 줄 레이아웃이 세로 스택 + 햄버거 + 우측 드로어로 바뀌고, FilterSubMenu는 같은 지점에서 접이식 상단 네비가 되며 FilterChip이 가로 pill에서 세로 스택으로 바뀝니다. Jukebox는 중앙 카드를 데스크톱에서는 클릭 즉시 뷰어로 열지만 모바일에서는 보기/채우기 오버레이를 먼저 띄웁니다. 이 두 곳만 JS가 `matchMedia('(max-width: 768px)')`로 분기하고, 나머지는 전부 CSS로만 반응합니다.
 
 컴포넌트별로 어떤 값이 어떻게 달라지는지는 `/ui-lab`의 Responsive 섹션에 정리해 두었고, 현재 창 폭에 해당하는 열이 강조됩니다.
 
@@ -105,7 +105,7 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip).
 
-**FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, 라벨 + 개수 + 선택 상태(`.is-active`)를 가진 탭형 칩입니다. `--m`/`--s` 두 사이즈가 있고 좁은 화면용 짧은 라벨(`labelMobile`)을 함께 받습니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
+**FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, Timeline / By type에서 시기·유형을 나누는 칩입니다. 라벨 + 개수이고 상태는 default · hover(`.is-hover` 또는 실제 hover) · selected(`.is-active`)입니다. PC는 가로 pill(padding 6×12, radius 999), 모바일(≤768px)은 세로 스택(padding 12×8, radius 8)입니다. 선택 시 배경은 `--color-surface-hover`, 라벨은 `--color-primary` semibold입니다. Lab에서 레이아웃을 고정하려면 `device: 'pc'|'mobile'`을 넘깁니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
 
 **Select**는 `src/components/Select/Select.js` · `Select.css`로 `<select>` 마크업을 통합했습니다. `render()`는 필드 하나를, `renderOptions()`는 옵션 문자열만 돌려주어 FormField가 자기 컨트롤 안에 끼워 쓸 수 있게 합니다. `tone: 'pill'`은 FilterSubMenu의 정렬 드롭다운용입니다.
 

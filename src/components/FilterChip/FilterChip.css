@@ -1,55 +1,112 @@
 /**
  * FilterChip 스타일
- * .chip + .chip--m | .chip--s, 선택 상태는 .is-active
- * 값은 FilterSubMenu의 탭(.filter-link) 톤을 기준으로 맞췄다.
+ *
+ * Timeline / By type 유형(시기) 칩.
+ * PC: 가로 pill · 모바일: 세로 스택.
+ * 선택 상태는 .is-active, Lab 고정 레이아웃은 [data-device='pc'|'mobile'].
  */
 
 .chip {
+  --chip-dir: row;
+  --chip-content-dir: row;
+  --chip-radius: var(--radius-pill);
+  --chip-pad-block: 0.375rem; /* 6px */
+  --chip-pad-inline: var(--space-3); /* 12px */
+  --chip-label-size: var(--text-xs); /* 12px */
+  --chip-label-line: 12px;
+  --chip-label-color: var(--color-text-muted); /* #bfc2c5 */
+  --chip-count-size: var(--text-2xs); /* ~9px */
+  --chip-count-line: 14px;
+  --chip-count-color: color-mix(in srgb, var(--color-text) 50%, transparent);
+
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: var(--chip-dir);
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
   box-sizing: border-box;
   margin: 0;
   border: none;
-  border-radius: var(--radius-pill);
+  border-radius: var(--chip-radius);
+  padding: var(--chip-pad-block) var(--chip-pad-inline);
   background-color: transparent;
-  color: var(--color-text-dim);
-  font: inherit;
-  font-weight: var(--font-regular);
-  line-height: 100%;
+  font-family: inherit;
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 0.2s ease, background-color 0.3s ease-in-out;
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.chip--m {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+.chip:focus {
+  outline: none;
 }
 
-.chip--s {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-xs);
+.chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.chip__content {
+  display: flex;
+  flex-direction: var(--chip-content-dir);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 0;
+}
+
+.chip__label {
+  display: block;
+  color: var(--chip-label-color);
+  font-size: var(--chip-label-size);
+  font-weight: var(--font-thin);
+  line-height: var(--chip-label-line);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease, font-weight 0.2s ease;
+}
+
+.chip__count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--chip-count-color);
+  font-size: var(--chip-count-size);
+  font-weight: var(--font-thin);
+  line-height: var(--chip-count-line);
+  transition: color 0.2s ease, font-weight 0.2s ease;
+}
+
+.chip__label--mobile {
+  display: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .chip:hover:not(.is-active) {
-    color: var(--color-text);
+  .chip:hover:not(.is-active):not(:disabled) {
     background-color: var(--color-surface-hover);
   }
 }
 
+/* Lab에서 hover 상태를 고정해 보여 줄 때 */
+.chip.is-hover:not(.is-active) {
+  background-color: var(--color-surface-hover);
+}
+
 .chip.is-active {
-  color: var(--color-text);
-  background-color: transparent;
+  background-color: var(--color-surface-hover);
 }
 
 .chip.is-active .chip__label {
-  font-weight: var(--font-bold);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.chip.is-active .chip__count {
+  color: var(--color-text);
+  font-weight: var(--font-regular);
 }
 
 .chip[aria-disabled='true'],
@@ -59,30 +116,62 @@
   opacity: 0.5;
 }
 
-.chip__label {
-  display: block;
-  width: 100%;
-  overflow: hidden;
-  transition: font-weight 0.3s ease;
+/* ===== Mobile (세로 스택) ===== */
+.chip[data-device='mobile'] {
+  --chip-dir: column;
+  --chip-content-dir: column;
+  --chip-radius: var(--radius-md);
+  --chip-pad-block: var(--space-3);
+  --chip-pad-inline: var(--space-2);
+  --chip-label-size: 0.875rem; /* 14px */
+  --chip-label-line: 18px;
+  --chip-label-color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  --chip-count-size: 0.625rem; /* 10px */
+  white-space: normal;
 }
 
-/* 짧은 라벨은 태블릿·좁은 화면에서 전환 (칩 오버플로우 완화) */
-.chip__label--mobile {
-  display: none;
+.chip[data-device='pc'] {
+  --chip-dir: row;
+  --chip-content-dir: row;
+  --chip-radius: var(--radius-pill);
+  --chip-pad-block: 0.375rem;
+  --chip-pad-inline: var(--space-3);
+  --chip-label-size: var(--text-xs);
+  --chip-label-line: 12px;
+  --chip-label-color: var(--color-text-muted);
+  --chip-count-size: var(--text-2xs);
+  white-space: nowrap;
 }
 
-@media (max-width: 1024px) {
-  .chip__label--desktop {
+@media (max-width: 768px) {
+  .chip:not([data-device='pc']) {
+    --chip-dir: column;
+    --chip-content-dir: column;
+    --chip-radius: var(--radius-md);
+    --chip-pad-block: var(--space-3);
+    --chip-pad-inline: var(--space-2);
+    --chip-label-size: 0.875rem;
+    --chip-label-line: 18px;
+    --chip-label-color: color-mix(in srgb, var(--color-text) 50%, transparent);
+    --chip-count-size: 0.625rem;
+    white-space: normal;
+  }
+
+  .chip:not([data-device='pc']) .chip__label--desktop {
     display: none;
   }
 
-  .chip__label--mobile {
+  .chip:not([data-device='pc']) .chip__label--mobile {
     display: block;
   }
 }
 
-.chip__count {
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  color: var(--color-text-muted);
+@media (min-width: 769px) {
+  .chip[data-device='mobile'] .chip__label--desktop {
+    display: none;
+  }
+
+  .chip[data-device='mobile'] .chip__label--mobile {
+    display: block;
+  }
 }

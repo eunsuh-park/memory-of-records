@@ -2,7 +2,7 @@
  * FilterSubMenu 스타일
  *
  * Timeline / By Type 페이지 상단의 필터 탭 메뉴.
- * 탭 자체는 FilterChip(.chip)이고, 여기서는 배치와 화면별 스케일만 다룬다.
+ * 탭 자체는 FilterChip(.chip)이 모양·상태를 맡고, 여기서는 목록 배치만 다룬다.
  *
  * - .sub-menu: 메뉴 컨테이너 (고정 위치, 상단 중앙)
  * - .sub-nav: 내부 네비 래퍼
@@ -105,10 +105,8 @@
 /* 정렬 드롭다운 스타일은 Select 컴포넌트(.select--pill)에 있음 */
 
 /*
- * ========== 타블렛 (1024px 이하): 스케일 축소, 전부 표시 ==========
- * 터치 환경이므로 마우스 기준 데스크톱 값보다 높이를 줄이지 않고
- * 탭하기 편한 최소 터치 타겟(2.5rem/40px)을 보장한다.
- * 칩이 넘치면 수평 스크롤로 잘림을 막는다.
+ * ========== 타블렛 (1024px 이하) ==========
+ * 칩 모양은 FilterChip이 담당한다. 여기서는 목록이 넘칠 때 수평 스크롤만 연다.
  */
 @media (max-width: 1024px) {
   .view-mode-toggle {
@@ -144,16 +142,7 @@
   }
 
   .filter-list .chip {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-sm);
-    min-height: 2.5rem;
     flex-shrink: 0;
-    max-width: 11rem;
-  }
-
-  .filter-list .chip .chip__label {
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
@@ -193,8 +182,6 @@
   }
 
   .filter-list .chip {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--text-xs);
     flex-shrink: 0;
   }
 
@@ -226,7 +213,7 @@
     width: 100%;
     max-width: 100%;
     overflow: hidden;
-    max-height: 4.75rem;
+    max-height: 5.5rem;
     opacity: 1;
     padding: var(--space-1) var(--space-4);
     margin: 0;
@@ -284,7 +271,7 @@
     min-width: 0;
     align-items: stretch;
     justify-content: center;
-    gap: 0;
+    gap: var(--space-1);
     margin: 0;
     padding: 0;
     overflow-x: auto;
@@ -299,55 +286,7 @@
 
   body.jukebox-active .filter-item {
     flex-shrink: 0;
-    width: 80px;
-  }
-
-  /* 모바일 헤더의 칩: 고정 크기 2줄(라벨 + 개수) */
-  body.jukebox-active .filter-list .chip {
-    box-sizing: border-box;
-    width: 80px;
-    min-width: 80px;
-    max-width: 80px;
-    height: 28px;
-    min-height: 28px;
-    max-height: 28px;
-    padding: 0;
-    border-radius: var(--radius-none);
-    background-color: transparent;
-    gap: 2px;
-    white-space: normal;
-    overflow: hidden;
-    transition: color 0.15s ease;
-  }
-
-  /* 선택: 라벨 강조, 개수는 primary */
-  body.jukebox-active .filter-list .chip.is-active .chip__count {
-    color: var(--color-primary);
-    font-weight: var(--font-regular);
-  }
-
-  body.jukebox-active .chip__label,
-  body.jukebox-active .chip__count {
-    display: block;
-    width: 100%;
-    font-size: var(--text-2xs);
-    line-height: 1.1;
-    text-align: center;
-  }
-
-  body.jukebox-active .chip__label {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* 모바일 헤더: 영문(desktop) 라벨만 표시 — 한글 labelMobile 숨김 */
-  body.jukebox-active .chip__label--desktop {
-    display: block;
-  }
-
-  body.jukebox-active .chip__label--mobile {
-    display: none !important;
+    width: auto;
   }
 
   body.jukebox-active .filter-controls {
@@ -369,15 +308,6 @@
     color: var(--color-text);
     background-color: var(--color-surface-hover);
   }
-
-  body.jukebox-active .filter-list .chip:hover:not(.is-active) {
-    background-color: transparent;
-  }
-
-  body.jukebox-active .filter-list .chip:hover:not(.is-active) .chip__label {
-    color: var(--color-text);
-    font-weight: var(--font-bold);
-  }
 }
 
 /* ========== 초소형 모바일 (480px 이하): 최소 스케일 ========== */
@@ -398,9 +328,5 @@
     height: 22px;
     padding: 0 var(--space-2);
     font-size: var(--text-xs);
-  }
-
-  body.jukebox-active .chip__label {
-    font-size: var(--text-2xs);
   }
 }

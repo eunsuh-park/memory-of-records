@@ -128,11 +128,22 @@
   padding: var(--space-6) var(--space-4);
 }
 
-.ui-lab__demo-stage--note-indicator {
+.ui-lab__demo-stage--chips {
   flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-4);
+  align-items: center;
+  gap: var(--space-6);
   background: var(--color-bg);
+}
+
+.ui-lab__demo-stage--chips-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.ui-lab__demo-stage--chips .chip {
+  flex-shrink: 0;
 }
 
 /* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */
