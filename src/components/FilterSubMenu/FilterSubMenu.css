@@ -102,7 +102,32 @@
   margin-top: var(--space-2);
 }
 
-/* 정렬 드롭다운 스타일은 Select 컴포넌트(.select--pill)에 있음 */
+/* 정렬 드롭다운 스타일(Select(.select--pill) 대체) */
+.filter-sort__dropdown .dropdown-chip {
+  background: var(--color-bg-alt);
+  border: none;
+  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-3);
+  color: var(--color-text);
+  font-weight: var(--font-regular);
+}
+
+.filter-sort__dropdown .dropdown-chip__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.filter-sort__dropdown .dropdown-chip__icon svg {
+  width: 10px;
+  height: 10px;
+}
+
+.filter-sort__dropdown.is-open .dropdown-chip {
+  color: var(--color-primary);
+}
+
+.filter-sort__dropdown .dropdown-menu {
+  background: var(--color-bg-alt);
+}
 
 /*
  * ========== 타블렛 (1024px 이하) ==========
