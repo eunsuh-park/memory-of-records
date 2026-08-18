@@ -38,7 +38,17 @@
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: color 0.2s ease, background-color 0.2s ease, font-weight 0.2s ease;
+  /* hover·selected: color/bg만 부드럽게. font-weight는 보간 불가라 즉시 전환 */
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tab:active:not(.tab--preview) {
+    /* pressed는 짧게 스냅 — hover와 같은 0.2s면 클릭감이 느슨해짐 */
+    transition-duration: 0.08s;
+  }
 }
 
 .tab__label {
