@@ -48,17 +48,23 @@
   line-height: var(--space-6);
 }
 
-/* hover — 이름 있는 Figma variant */
+/* hover — selected·inactive 모두 --color-surface-hover */
 @media (hover: hover) and (pointer: fine) {
+  .tab:hover:not(.is-pressed):not(.tab--preview) {
+    background-color: var(--color-surface-hover);
+  }
+
   .tab:hover:not(.is-selected):not(.is-pressed):not(.tab--preview) {
-    background-color: var(--color-tab-hover);
     color: var(--color-text);
     font-weight: var(--font-semibold);
   }
 }
 
 .tab.is-hover {
-  background-color: var(--color-tab-hover);
+  background-color: var(--color-surface-hover);
+}
+
+.tab.is-hover:not(.is-selected) {
   color: var(--color-text);
   font-weight: var(--font-semibold);
 }
@@ -76,9 +82,8 @@
   font-weight: var(--font-semibold);
 }
 
-/* selected — 노란 글자, 배경 없음 */
+/* selected — 노란 글자. hover 배경은 위 surface-hover가 덮는다 */
 .tab.is-selected {
-  background-color: transparent;
   color: var(--color-primary);
   font-weight: var(--font-semibold);
 }
