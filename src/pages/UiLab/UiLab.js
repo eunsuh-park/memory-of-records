@@ -6,6 +6,13 @@
 import { render as renderButton, renderIconButton } from '../../components/Button/Button.js';
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
 import { render as renderChip } from '../../components/FilterChip/FilterChip.js';
+import { render as renderDropdownChip } from '../../components/DropdownChip/DropdownChip.js';
+import {
+  bind as bindDropdown,
+  render as renderDropdown,
+  renderItem as renderDropdownMenuItem,
+  renderPanel as renderDropdownMenu
+} from '../../components/DropdownMenu/DropdownMenu.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
@@ -251,6 +258,30 @@ const RESPONSIVE_MATRIX = [
     ]
   },
   {
+    name: 'DropdownChip',
+    files: 'src/components/DropdownChip/DropdownChip.js · DropdownChip.css',
+    points: '없음',
+    mobile: ['모든 폭에서 동일 (라벨 폭에 맞춘 pill)'],
+    tablet: ['모든 폭에서 동일'],
+    desktop: [
+      '가로 pill · padding 1px 4px 1px 12px · 아이콘 24px',
+      'default/selected는 0.5px border, hover는 surface-hover, 열림은 surface-active',
+      '열림·선택은 라벨 primary semibold'
+    ]
+  },
+  {
+    name: 'DropdownMenu',
+    files: 'src/components/DropdownMenu/DropdownMenu.js · DropdownMenu.css',
+    points: '없음',
+    mobile: ['모든 폭에서 동일 (auto 패널 · 26px 항목)'],
+    tablet: ['모든 폭에서 동일'],
+    desktop: [
+      '패널 auto · padding/gap 4px · radius 18px · 0.5px border · --color-bg',
+      '항목 26px pill · padding 7px 12px',
+      '칩 아래에 열림 · 선택 시 칩 라벨 갱신 후 닫힘'
+    ]
+  },
+  {
     name: 'ThemeSwitch',
     files: 'src/components/ThemeSwitch/ThemeSwitch.js · ThemeSwitch.css',
     points: '없음',
@@ -435,6 +466,44 @@ function bindLabChips(root) {
           const on = other === chip;
           other.classList.toggle('is-active', on);
           other.setAttribute('aria-pressed', String(on));
+        });
+      });
+    });
+  });
+}
+
+/**
+ * Lab DropdownChip 데모: 눌러서 열림(active)을 토글.
+ * @param {HTMLElement|null} root
+ * @returns {void}
+ */
+function bindLabDropdownChips(root) {
+  if (!root) return;
+  root.querySelectorAll('.dropdown-chip[data-lab-dropdown]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const open = chip.getAttribute('aria-expanded') !== 'true';
+      chip.classList.toggle('is-open', open);
+      chip.setAttribute('aria-expanded', String(open));
+    });
+  });
+}
+
+/**
+ * Lab DropdownMenu 데모: 묶인 드롭다운 bind + 패널 안 항목 선택.
+ * @param {HTMLElement|null} root
+ * @returns {void}
+ */
+function bindLabDropdownMenu(root) {
+  if (!root) return;
+  root.querySelectorAll('.dropdown').forEach((el) => bindDropdown(el));
+  root.querySelectorAll('[data-lab-menu]').forEach((panel) => {
+    const items = [...panel.querySelectorAll('.dropdown-menu__item')];
+    items.forEach((item) => {
+      item.addEventListener('click', () => {
+        items.forEach((other) => {
+          const on = other === item;
+          other.classList.toggle('is-selected', on);
+          other.setAttribute('aria-selected', String(on));
         });
       });
     });
@@ -785,6 +854,64 @@ export function renderUiLab() {
           )}
         </section>
 
+        <section class="ui-lab__section" id="dropdown-chip">
+          <h2 class="ui-lab__section-title">DropdownChip</h2>
+          <p class="ui-lab__section-desc">
+            커스텀 드롭다운의 트리거 칩입니다. 라벨 + 아래 화살표이고, 상태는 default · hover · active(열림) · selected(값 선택, 닫힘) · active-hover 다섯입니다.
+            FilterChip과 달리 개수 없이 화살표만 붙고, 폭은 라벨에 맞춥니다. 열리면 화살표가 위로 뒤집히고 아래에 DropdownMenu가 붙습니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/DropdownChip/DropdownChip.js</code>, <code>src/components/DropdownChip/DropdownChip.css</code></p>
+          ${renderVariantRow(
+            'state — default / hover / active / selected / active-hover',
+            [
+              renderDropdownChip({ label: 'Tab Name' }),
+              renderDropdownChip({ label: 'Tab Name', className: 'is-hover' }),
+              renderDropdownChip({ label: 'Tab Name', open: true }),
+              renderDropdownChip({ label: 'Tab Name', selected: true }),
+              renderDropdownChip({ label: 'Tab Name', open: true, className: 'is-hover' })
+            ].join(''),
+            { stageClass: 'ui-lab__demo-stage--chips ui-lab__demo-stage--chips-row' }
+          )}
+        </section>
+
+        <section class="ui-lab__section" id="dropdown-menu">
+          <h2 class="ui-lab__section-title">DropdownMenu</h2>
+          <p class="ui-lab__section-desc">
+            칩 아래에 붙는 드롭박스입니다. 상하좌우 padding 4px, 항목 간격 4px, radius 18px, 0.5px 보더입니다.
+            항목 상태는 default · hover · selected · active-hover이고, 칩을 누르면 목록이 열리며 고르면 닫힙니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/DropdownMenu/DropdownMenu.js</code>, <code>src/components/DropdownMenu/DropdownMenu.css</code></p>
+          ${renderVariantRow(
+            'dropbox — hover / selected / active-hover / default',
+            renderDropdownMenu({
+              ariaLabel: '드롭다운 항목 상태',
+              content: [
+                renderDropdownMenuItem({ label: 'Tab Name', className: 'is-hover' }),
+                renderDropdownMenuItem({ label: 'Tab Name', selected: true }),
+                renderDropdownMenuItem({ label: 'Tab Name', selected: true, className: 'is-hover' }),
+                renderDropdownMenuItem({ label: 'Tab Name' })
+              ].join('')
+            }),
+            { stageClass: 'ui-lab__demo-stage--menu' }
+          )}
+          ${renderVariantRow(
+            '칩 + 목록 (눌러서 열고 고르기)',
+            renderDropdown({
+              id: 'lab-dropdown',
+              label: 'Tab Name',
+              value: 'tab-1',
+              open: true,
+              options: [
+                { value: 'tab-1', label: 'Tab Name' },
+                { value: 'tab-2', label: 'Planner' },
+                { value: 'tab-3', label: 'Diary' },
+                { value: 'tab-4', label: 'Notes' }
+              ]
+            }),
+            { stageClass: 'ui-lab__demo-stage--dropdown' }
+          )}
+        </section>
+
         <section class="ui-lab__section" id="theme-switch">
           <h2 class="ui-lab__section-title">ThemeSwitch</h2>
           <p class="ui-lab__section-desc">
@@ -992,6 +1119,8 @@ export function renderUiLab() {
   attachViewportReadout(root);
   bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
   bindLabChips(root.querySelector('#filter-chip'));
+  bindLabDropdownChips(root.querySelector('#dropdown-chip'));
+  bindLabDropdownMenu(root.querySelector('#dropdown-menu'));
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');

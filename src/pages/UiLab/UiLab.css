@@ -142,7 +142,27 @@
   gap: var(--space-2);
 }
 
-.ui-lab__demo-stage--chips .chip {
+.ui-lab__demo-stage--chips .chip,
+.ui-lab__demo-stage--chips .dropdown-chip {
+  flex-shrink: 0;
+}
+
+.ui-lab__demo-stage--menu {
+  justify-content: center;
+  min-height: 0;
+  padding: var(--space-6);
+  background: var(--color-bg-alt);
+}
+
+.ui-lab__demo-stage--dropdown {
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 12rem;
+  padding: var(--space-6);
+  overflow: visible;
+}
+
+.ui-lab__demo-stage--dropdown .dropdown {
   flex-shrink: 0;
 }
 
