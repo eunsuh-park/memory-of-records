@@ -975,9 +975,7 @@ export function renderJukeboxWithFilter(options) {
           focusSlot
             .querySelectorAll(`.jukebox-focus-info__favorite[data-note-id="${CSS.escape(noteId)}"]`)
             .forEach((btn) => {
-              const isMobile = btn.classList.contains('jukebox-focus-info__favorite--mobile');
-              /* 모바일 off만 line, 데스크톱·on은 fill */
-              btn.innerHTML = isMobile && !value ? MINGCUTE.starLine : MINGCUTE.starFill;
+              btn.innerHTML = value ? MINGCUTE.starFill : MINGCUTE.starLine;
               btn.disabled = disabled;
               btn.classList.toggle('is-favorite', value);
               btn.setAttribute('aria-pressed', value ? 'true' : 'false');

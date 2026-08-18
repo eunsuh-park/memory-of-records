@@ -3,7 +3,7 @@
  *
  * .btn + .btn--circle | .btn--solid | .btn--text
  *  circle 사이즈: .btn--l(52px) · .btn--m(48px, 모바일 44px) · .btn--s(32px)
- *  circle 역할  : .btn--fab · .btn--back · .btn--back-inline · .btn--nav(+prev/next) · .btn--toolbar · .btn--close
+ *  circle 역할  : .btn--fab · .btn--back · .btn--back-inline · .btn--nav(+prev/next) · .btn--toolbar · .btn--close · .btn--icon
  *  circle 톤    : 기본(filled) · .btn--ghost(배경 없음)
  */
 
@@ -278,6 +278,31 @@
 }
 
 .btn--toolbar svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ========== role: icon (노트 정보 패널 등 32px 투명 Icon Button) ========== */
+.btn--icon {
+  background: transparent;
+  color: var(--color-text);
+  line-height: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--icon:hover {
+    background: var(--color-surface-hover);
+  }
+}
+
+.btn--icon:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.btn--icon svg {
   display: block;
   width: 16px;
   height: 16px;
