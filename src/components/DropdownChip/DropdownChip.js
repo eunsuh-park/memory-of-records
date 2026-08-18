@@ -6,7 +6,7 @@
  * 아이콘은 MingCute 세트만 쓴다.
  *
  * 상태: default · hover · active(열림) · selected(값 선택, 닫힘) · active-hover.
- * 목록 항목은 DropdownMenu. 트리거와 묶는 동작은 다음 작업에서 붙인다.
+ * 목록은 DropdownMenu가 칩 아래에 붙인다. 열리면 화살표가 위로 뒤집힌다.
  */
 
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
@@ -28,6 +28,7 @@ function escapeHtml(value) {
  * @param {string} [options.ariaLabel]
  * @param {string} [options.id]
  * @param {string} [options.className]
+ * @param {string} [options.controls] - aria-controls용 목록 id
  * @param {boolean} [options.disabled]
  * @param {Record<string, string>} [options.dataset]
  * @returns {string} HTML 문자열
@@ -40,6 +41,7 @@ export function render(options = {}) {
     ariaLabel = '',
     id = '',
     className = '',
+    controls = '',
     disabled = false,
     dataset = null
   } = options;
@@ -57,6 +59,7 @@ export function render(options = {}) {
     id ? `id="${escapeHtml(id)}"` : '',
     'aria-haspopup="listbox"',
     `aria-expanded="${open ? 'true' : 'false'}"`,
+    controls ? `aria-controls="${escapeHtml(controls)}"` : '',
     labelAttr ? `aria-label="${labelAttr}"` : '',
     disabled ? 'disabled' : '',
     ...Object.entries(dataset || {}).map(

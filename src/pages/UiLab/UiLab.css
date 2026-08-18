@@ -151,7 +151,19 @@
   justify-content: center;
   min-height: 0;
   padding: var(--space-6);
-  background: var(--color-bg);
+  background: var(--color-bg-alt);
+}
+
+.ui-lab__demo-stage--dropdown {
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 12rem;
+  padding: var(--space-6);
+  overflow: visible;
+}
+
+.ui-lab__demo-stage--dropdown .dropdown {
+  flex-shrink: 0;
 }
 
 /* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */

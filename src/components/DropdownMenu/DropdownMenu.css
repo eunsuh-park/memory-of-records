@@ -1,23 +1,47 @@
 /**
  * DropdownMenu 스타일
  *
- * 패널은 160px 폭 · 검정 85% 오버레이.
- * 항목은 26px pill. 목록 간격·열림 동작은 아직 이 파일에 두지 않는다.
+ * 패널(드롭박스): padding·gap 4px, radius 18px, 0.5px 보더, --color-bg.
+ * 항목은 26px pill. .dropdown 안에서만 칩 아래 absolute.
  */
+
+.dropdown {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
 .dropdown-menu {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  width: 160px;
-  background-color: var(--color-menu);
+  align-items: center;
+  width: auto;
+  height: auto;
+  padding: var(--space-1);
+  gap: var(--space-1);
+  border: 0.5px solid var(--color-border);
+  border-radius: 18px;
+  background-color: var(--color-bg);
+}
+
+.dropdown > .dropdown-menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 20;
+  min-width: 100%;
+}
+
+.dropdown-menu[hidden] {
+  display: none;
 }
 
 .dropdown-menu__item {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
   gap: var(--space-1);
@@ -96,9 +120,4 @@
   pointer-events: none;
   cursor: default;
   opacity: 0.5;
-}
-
-/* 시안 에셋 보드 — 항목 사이 24px. 실제 목록 간격은 다음 작업 */
-.dropdown-menu--states {
-  gap: var(--space-6);
 }

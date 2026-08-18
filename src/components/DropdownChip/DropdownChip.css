@@ -62,6 +62,11 @@
   height: 24px;
   flex-shrink: 0;
   color: inherit;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-chip.is-open .dropdown-chip__icon {
+  transform: rotate(180deg);
 }
 
 .dropdown-chip__icon svg {

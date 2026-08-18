@@ -9,7 +9,7 @@
  *
  * 2) Semantic — 역할 이름(--color-*). 테마별로 atomic 중 어느 단계를 쓸지만 고른다.
  *    컴포넌트는 semantic만 쓰고, 새 색이 필요하면 atomic을 먼저 늘린 뒤 여기에 연결한다.
- *    단, 이미지·모달 위에 겹쳐 깔리는 역할(surface-hover, overlay, shadow, chrome, menu)은
+ *    단, 이미지·모달 위에 겹쳐 깔리는 역할(surface-hover, overlay, shadow, chrome)은
  *    합성이 목적이므로 단색 대신 알파 값을 그대로 둔다.
  */
 
@@ -107,9 +107,6 @@
   --color-overlay-light: rgba(17, 24, 39, 0.5);
   --color-viewer-loading: rgba(0, 0, 0, 0.35);
 
-  /* 드롭다운 목록 패널 — 테마와 무관하게 어두운 면 */
-  --color-menu: rgba(0, 0, 0, 0.85);
-
   /* 토스트·뷰어 화살표 등 — 테마와 무관하게 어두운 크롬 */
   --color-chrome: rgba(17, 24, 39, 0.75);
   --color-chrome-strong: rgba(17, 24, 39, 0.9);
@@ -203,7 +200,6 @@
   --color-overlay-light: rgba(255, 255, 255, 0.65);
   --color-viewer-loading: rgba(20, 28, 36, 0.28);
 
-  --color-menu: rgba(0, 0, 0, 0.85);
   --color-chrome: rgba(17, 24, 39, 0.75);
   --color-chrome-strong: rgba(17, 24, 39, 0.9);
   --color-chrome-soft: rgba(0, 0, 0, 0.35);
