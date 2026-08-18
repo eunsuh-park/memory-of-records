@@ -6,7 +6,7 @@
  * - FilterChip: 필터 토글(라벨 + 개수)
  * - Tab: 같은 계층의 뷰를 고르는 한 칸 (Timeline / By type / Favorites)
  *
- * Figma 상태: default · hover · pressed(클릭 순간, 이름 없는 variant) · selected
+ * Figma 상태: default · hover · pressed(UiLab 미리보기) · selected
  * 링크형(href)과 버튼형(href 없음)을 모두 지원한다.
  */
 
