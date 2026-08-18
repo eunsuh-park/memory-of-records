@@ -5,7 +5,8 @@
  * .tab + .is-selected | :hover | :active(pressed)
  * UiLab 고정 미리보기: .is-hover · .is-pressed · .tab--preview
  *
- * color/bg는 .tab, font-weight는 FilterChip과 같이 .tab__label에서 전환한다.
+ * color는 .tab, font-weight는 .tab__label. hover 배경은 transition 없음(클릭·라우트 깜빡임 방지).
+ * motion 규칙: docs/TRANSITIONS.md
  */
 
 .tab-list {
@@ -40,9 +41,7 @@
   white-space: nowrap;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+  transition: color var(--duration-interaction) var(--ease-default);
 }
 
 .tab__label {
@@ -50,10 +49,10 @@
   width: auto;
   height: var(--space-6);
   line-height: var(--space-6);
-  transition: font-weight 0.3s ease;
+  transition: font-weight var(--duration-emphasis) var(--ease-default);
 }
 
-/* hover — selected·inactive 모두 --color-surface-hover */
+/* hover — selected·inactive 모두 --color-surface-hover (배경 instant) */
 @media (hover: hover) and (pointer: fine) {
   .tab:hover:not(.is-pressed):not(.tab--preview) {
     background-color: var(--color-surface-hover);
@@ -80,7 +79,7 @@
   font-weight: var(--font-semibold);
 }
 
-/* pressed — UiLab 고정 미리보기 전용. :active 배경은 hover→active→해제로 깜빡여서 쓰지 않는다 */
+/* pressed — UiLab 고정 미리보기 전용 */
 .tab.is-pressed {
   background-color: var(--color-surface-active);
 }
@@ -93,7 +92,7 @@
   font-weight: var(--font-semibold);
 }
 
-/* selected — 다크: primary 글자. hover 배경은 위 surface-hover가 덮는다 */
+/* selected — 다크: primary 글자 */
 .tab.is-selected {
   color: var(--color-primary);
 }

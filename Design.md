@@ -65,6 +65,10 @@ Spacing은 4px(0.25rem) 그리드의 rem 스케일입니다. `--space-1`(4px) ·
 
 Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 재사용합니다. `--shadow-sm`(`0 2px 8px`, 헤더·작은 부양) · `--shadow-md`(`0 4px 16px`, FAB·토스트·떠 있는 패널) · `--shadow-lg`(`0 16px 48px`, 모달) 세 단계로, 이전에 6가지 이상이던 조합을 여기로 모았습니다.
 
+### Motion (transition)
+
+hover·상태 전환 easing/duration은 **`docs/TRANSITIONS.md`**와 `src/styles/sizes.css`의 `--ease-default`(ease-in-out) · `--duration-interaction`(0.2s) · `--duration-emphasis`(0.3s)를 따릅니다. 같은 종류의 인터랙션(hover 색, 라벨 굵기 등)은 기본적으로 동일한 duration을 씁니다.
+
 ### 타이포그래피
 
 한글 가독성을 위해 **Pretendard Variable**을 self-host로 씁니다. npm 패키지(`pretendard`)를 설치하고 `src/main.js`에서 `pretendard/dist/web/variable/pretendardvariable.css`를 import하면 Vite가 woff2를 번들에 넣습니다. CDN을 쓰지 않는 것은 외부 의존성을 없애고 버전을 고정하기 위함이며, variable 폰트라 파일 하나로 전체 weight를 커버합니다.
@@ -105,7 +109,7 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 Chip/Pill은 버튼이 아니라 필터링 상태를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip).
 
-**Tab**은 `src/components/Tab/Tab.js` · `Tab.css`로, Timeline / By type / Favorites처럼 같은 계층의 뷰를 고르는 텍스트 탭입니다. 상태는 default · hover · pressed(UiLab 미리보기) · selected 네 가지입니다. hover 배경은 selected·inactive 모두 `--color-surface-hover`이고, selected 글자는 다크에서 `--color-primary`·라이트에서 `--color-text`입니다. 실제 클릭 시 `:active` 배경 전환은 하지 않아 hover→pressed→해제 깜빡임을 막습니다. `render()`는 한 칸, `renderList()`는 가로 묶음입니다. FilterSubMenu의 보기 전환이 이걸 씁니다.
+**Tab**은 `src/components/Tab/Tab.js` · `Tab.css`로, Timeline / By type / Favorites처럼 같은 계층의 뷰를 고르는 텍스트 탭입니다. 상태는 default · hover · pressed(UiLab 미리보기) · selected 네 가지입니다. hover 배경(`--color-surface-hover`)은 transition 없이 instant이고, 글자·굵기는 `docs/TRANSITIONS.md` motion 토큰(ease-in-out)으로 전환합니다. selected 글자는 다크 `--color-primary`·라이트 `--color-text`입니다. `render()`는 한 칸, `renderList()`는 가로 묶음입니다. FilterSubMenu의 보기 전환이 이걸 씁니다.
 
 **FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, 라벨 + 개수 + 선택 상태(`.is-active`)를 가진 탭형 칩입니다. `--m`/`--s` 두 사이즈가 있고 좁은 화면용 짧은 라벨(`labelMobile`)을 함께 받습니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
 

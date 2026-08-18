@@ -60,4 +60,9 @@
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
+
+  /* ===== Motion (transition / animation) — docs/TRANSITIONS.md */
+  --ease-default: ease-in-out;
+  --duration-interaction: 0.2s;
+  --duration-emphasis: 0.3s;
 }
