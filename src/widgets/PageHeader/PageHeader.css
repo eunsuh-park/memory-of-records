@@ -59,10 +59,6 @@
   order: 4;
 }
 
-.page-header__nav-toggle {
-  order: 5;
-}
-
 /* FilterSubMenu가 PageHeader 안에 있을 때 fixed 해제 */
 .page-header #sub-menu {
   position: static;
@@ -113,8 +109,7 @@
   gap: var(--space-2);
 }
 
-.page-header__right--mobile,
-.page-header__nav-toggle {
+.page-header__right--mobile {
   display: none;
 }
 
@@ -308,67 +303,9 @@
       padding 0.2s ease;
   }
 
-  .page-header--nav-collapsed .page-header__center {
-    padding: 0;
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .page-header--nav-collapsed {
-    padding-bottom: var(--space-3);
-  }
-
-  /* 헤더 하단 접기/펼치기 토글 — 주크박스(필터 있을 때)만 */
-  .page-header__nav-toggle {
-    display: none;
-  }
-
-  body.jukebox-active .page-header__nav-toggle {
-    display: inline-flex;
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    transform: translate(-50%, 50%);
-    z-index: 4;
-    align-items: center;
-    justify-content: center;
-    width: 1.7rem;
-    height: 1.7rem;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-radius: var(--radius-circle);
-    /* 헤더 배경과 이어 붙은 반원처럼 보이게 같은 색 */
-    background: var(--color-bg) !important;
-    background-color: var(--color-bg) !important;
-    color: var(--color-text) !important;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-  }
-
-  /* Favorites 등 칩이 없으면 접이식 필터 줄을 숨긴다 */
-  body.jukebox-filter-empty .page-header__center,
-  body.jukebox-filter-empty .page-header__nav-toggle {
+  /* Favorites 등 칩이 없으면 필터 줄을 숨긴다 */
+  body.jukebox-filter-empty .page-header__center {
     display: none !important;
-  }
-
-  .page-header__nav-toggle svg {
-    width: 0.85rem;
-    height: 0.85rem;
-    display: block;
-    transition: transform 0.2s ease;
-  }
-
-  /* 펼쳐진 상태: 화살표 위 */
-  .page-header:not(.page-header--nav-collapsed) .page-header__nav-toggle svg {
-    transform: rotate(180deg);
-  }
-
-  .page-header__nav-toggle:focus-visible {
-    filter: brightness(1.08);
-    outline: none;
   }
 
   /* 주크박스에서도 동일 헤더 크롬 유지 */
@@ -539,10 +476,5 @@
     outline: none;
     opacity: 1 !important;
     filter: brightness(0.9);
-  }
-
-  .page-header__nav-toggle:hover {
-    filter: brightness(1.08);
-    outline: none;
   }
 }

@@ -11,10 +11,7 @@
  * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
  */
 
-import {
-  collapseFilterSubMenu,
-  renderFilterSubMenu
-} from '../../components/FilterSubMenu/FilterSubMenu.js';
+import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
@@ -260,10 +257,6 @@ function enableCenterPerspective(gallery) {
         return;
       }
       updateCardAngles(gallery);
-      /* 모바일: 사용자가 캐러셀을 좌우로 스크롤하면 필터 네비 자동 접기 */
-      if (gallery._jukeboxScrollState?.userScrolled) {
-        collapseFilterSubMenu();
-      }
     });
   };
 

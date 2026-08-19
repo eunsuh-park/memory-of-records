@@ -1,7 +1,7 @@
 /**
  * PageHeader
  * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login(우)
- * 모바일: 로고(중앙) | 햄버거(우) + 접이식 필터 + 우측 드로어
+ * 모바일: 로고(중앙) | 햄버거(우) + 필터 + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 하단)
  */
 
@@ -10,10 +10,6 @@ import logo from '../../assets/logo.png';
 import { getStoredTheme } from '../../utils/theme.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
-import {
-  setFilterSubMenuCollapsed,
-  isFilterSubMenuCollapsed
-} from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { render as renderDim } from '../../components/Dim/Dim.js';
 import { getSession, logout, clearSessionCache } from '../../services/auth.js';
 import { showToast } from '../../components/Toast/Toast.js';
@@ -52,18 +48,6 @@ function isByTypePath(path) {
 
 function isFavoritesPath(path) {
   return path.startsWith('/favorites');
-}
-
-function syncNavToggle(header) {
-  if (!header) return;
-  const collapsed = isFilterSubMenuCollapsed();
-  header.classList.toggle('page-header--nav-collapsed', collapsed);
-  const btn = header.querySelector('[data-nav-toggle]');
-  if (btn) {
-    btn.setAttribute('aria-expanded', String(!collapsed));
-    btn.setAttribute('aria-label', collapsed ? '필터 메뉴 열기' : '필터 메뉴 닫기');
-    btn.setAttribute('title', collapsed ? '필터 메뉴 열기' : '필터 메뉴 닫기');
-  }
 }
 
 function setDrawerOpen(open) {
@@ -133,15 +117,6 @@ export function renderPageHeader() {
       <div class="page-header__center" id="sub-menu">
         <!-- FilterSubMenu가 여기에 렌더링됨 -->
       </div>
-      <button
-        type="button"
-        class="page-header__nav-toggle"
-        aria-expanded="true"
-        aria-controls="sub-menu-panel"
-        aria-label="필터 메뉴 닫기"
-        title="필터 메뉴 닫기"
-        data-nav-toggle
-      >${MINGCUTE.downLine}</button>
     </header>
 
     ${renderDim({
@@ -265,15 +240,6 @@ export function renderPageHeader() {
 
   void fillAuthSlots();
 
-  const header = container.querySelector('.page-header');
-  const navToggle = container.querySelector('[data-nav-toggle]');
-  navToggle?.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setFilterSubMenuCollapsed(!isFilterSubMenuCollapsed());
-    syncNavToggle(header);
-  });
-
   container.querySelector('[data-drawer-open]')?.addEventListener('click', (e) => {
     e.preventDefault();
     openDrawer();
@@ -294,9 +260,4 @@ export function renderPageHeader() {
       }
     });
   }
-
-  syncNavToggle(header);
-
-  /* FilterSubMenu 리렌더 후에도 헤더 토글 상태 동기화 */
-  window.__syncPageHeaderNavToggle = () => syncNavToggle(header);
 }
