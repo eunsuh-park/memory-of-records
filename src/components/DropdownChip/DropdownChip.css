@@ -12,7 +12,7 @@
   justify-content: center;
   box-sizing: border-box;
   margin: 0;
-  width: auto;
+  width: fit-content;
   height: auto;
   padding: 1px 4px 1px 12px;
   border: 0.5px solid var(--color-border);
@@ -72,8 +72,8 @@
 
 .dropdown-chip__icon svg {
   display: block;
-  width: 12px;
-  height: 12px;
+  width: 7.62px;
+  height: 4.8px;
 }
 
 @media (hover: hover) and (pointer: fine) {
