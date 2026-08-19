@@ -131,6 +131,7 @@
 .filter-sort__dropdown .dropdown-chip.is-open,
 .filter-sort__dropdown.is-open .dropdown-chip {
   color: var(--color-text);
+  background-color: var(--color-surface-hover);
 }
 
 /*
