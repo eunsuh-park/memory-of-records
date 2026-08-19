@@ -47,9 +47,14 @@ export async function renderStory() {
           `
               : ''
           }
+          ${
+            Array.isArray(content) && content.length
+              ? `
           <div class="story-content">
             ${content.map((paragraph) => `<p>${paragraph}</p>`).join('\n            ')}
-          </div>
+          </div>`
+              : ''
+          }
         </div>
       </article>
       <footer class="story-footer">

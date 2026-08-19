@@ -19,10 +19,7 @@ export const storyContent = {
 사진과 글에 대한 저작권은 모두 저에게 있으며, 개인적·상업적 이용을 불문하고 사전 허락 없이 사용할 수 없습니다.`,
   
   // 본문 내용 (HTML 배열)
-  content: [
-    `애착을 가지고 정성껏 사용해온 노트들을 추억하기 위해 만든 공간입니다.<br>
-이곳에서 부디 일상의 작은 즐거움, 기록에 대한 인사이트를 발견한다면 좋겠습니다.`
-  ],
+  content: [],
   
   // 푸터 내용
   footer: '© 2026 Memory of Records. PES All rights reserved.'
