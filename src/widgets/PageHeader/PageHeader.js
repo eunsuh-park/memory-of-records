@@ -10,7 +10,9 @@ import logo from '../../assets/logo.png';
 import { getStoredTheme } from '../../utils/theme.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
+import { render as renderButton } from '../../components/Button/Button.js';
 import { render as renderDim } from '../../components/Dim/Dim.js';
+import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { getSession, logout, clearSessionCache } from '../../services/auth.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { router } from '../../router.js';
@@ -143,7 +145,16 @@ export function renderPageHeader() {
       </div>
       <nav class="nav-drawer__nav">
         <div class="nav-drawer__group ${notesActive ? 'is-active' : ''}" role="group" aria-label="Notes">
-          <span class="nav-drawer__link nav-drawer__parent">Notes</span>
+          <div class="nav-drawer__group-head">
+            <span class="nav-drawer__link nav-drawer__parent">Notes</span>
+            ${renderButton({
+              shape: 'text',
+              ariaLabel: '새로운 노트 추가',
+              content: `${MINGCUTE.arrowToRightLine}<span>+ 새로운 노트 추가</span>`,
+              className: 'nav-drawer__add-note auth-only',
+              dataset: { 'add-note': '' }
+            })}
+          </div>
           <div class="nav-drawer__sub">
             <a
               href="/timeline"
@@ -249,6 +260,16 @@ export function renderPageHeader() {
     el.addEventListener('click', (e) => {
       if (el.tagName !== 'A') e.preventDefault();
       closeDrawer();
+    });
+  });
+
+  container.querySelector('[data-add-note]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    closeDrawer();
+    void openAddNoteModal({
+      onCreated: () => {
+        router.handleRoute();
+      }
     });
   });
 
