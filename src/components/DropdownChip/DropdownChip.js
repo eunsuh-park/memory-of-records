@@ -10,15 +10,8 @@
  */
 
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { attr, classNames, dataAttrs, escapeHtml } from '../../utils/html.js';
 import './DropdownChip.css';
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /**
  * @param {Object} options
@@ -46,25 +39,19 @@ export function render(options = {}) {
     dataset = null
   } = options;
 
-  const classes = ['dropdown-chip'];
-  if (open) classes.push('is-open');
-  if (selected) classes.push('is-selected');
-  if (className) classes.push(className);
-
+  const classes = classNames('dropdown-chip', open && 'is-open', selected && 'is-selected', className);
   const safeLabel = escapeHtml(label);
   const labelAttr = ariaLabel ? escapeHtml(ariaLabel) : safeLabel;
   const attrs = [
     'type="button"',
-    `class="${classes.join(' ')}"`,
-    id ? `id="${escapeHtml(id)}"` : '',
+    attr('class', classes),
+    attr('id', id),
     'aria-haspopup="listbox"',
     `aria-expanded="${open ? 'true' : 'false'}"`,
-    controls ? `aria-controls="${escapeHtml(controls)}"` : '',
+    attr('aria-controls', controls),
     labelAttr ? `aria-label="${labelAttr}"` : '',
     disabled ? 'disabled' : '',
-    ...Object.entries(dataset || {}).map(
-      ([key, value]) => `data-${key}="${escapeHtml(value)}"`
-    )
+    dataAttrs(dataset)
   ].filter(Boolean);
 
   return `<button ${attrs.join(' ')}><span class="dropdown-chip__label">${safeLabel}</span><span class="dropdown-chip__icon" aria-hidden="true">${MINGCUTE.upSmallFill}</span></button>`;

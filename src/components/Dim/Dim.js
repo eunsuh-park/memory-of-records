@@ -9,6 +9,7 @@
  */
 
 import './Dim.css';
+import { classNames, dataAttrs } from '../../utils/html.js';
 
 /**
  * @param {Object} [config]
@@ -21,14 +22,10 @@ import './Dim.css';
  */
 export function render(config = {}) {
   const { tone = 'solid', zIndex, className = '', visible = true, dataset = null } = config;
-  const classes = ['dim', `dim--${tone}`];
-  if (visible) classes.push('is-visible');
-  if (className) classes.push(className);
+  const classes = classNames('dim', `dim--${tone}`, visible && 'is-visible', className);
   const style = zIndex == null ? '' : ` style="--dim-z:${zIndex}"`;
-  const dataAttrs = Object.entries(dataset || {})
-    .map(([key, value]) => (value === '' ? ` data-${key}` : ` data-${key}="${value}"`))
-    .join('');
-  return `<div class="${classes.join(' ')}"${style} aria-hidden="true"${dataAttrs}></div>`;
+  const data = dataAttrs(dataset);
+  return `<div class="${classes}"${style} aria-hidden="true"${data ? ` ${data}` : ''}></div>`;
 }
 
 /**

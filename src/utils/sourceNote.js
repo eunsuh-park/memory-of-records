@@ -2,8 +2,7 @@
  * Cloudinary Content 폴더명 → Notion 노트 매칭 (북마크 앨범용)
  */
 
-import { getNotionNotebooks } from '../services/notionNotebooks.js';
-import { getNotionTypeItems } from '../services/notionByType.js';
+import { loadAllNotes } from './notesCatalog.js';
 
 function normalizeStem(value) {
   return String(value || '')
@@ -71,18 +70,6 @@ export function matchSourceNote(notes, page = {}) {
   });
   if (!byStem) return null;
   return { id: byStem.id, title: byStem.title || byStem.name || noteFolder || '원본 노트' };
-}
-
-async function loadAllNotes() {
-  const [notebooks, types] = await Promise.all([
-    getNotionNotebooks().catch(() => []),
-    getNotionTypeItems().catch(() => [])
-  ]);
-  const byId = new Map();
-  for (const note of [...(notebooks || []), ...(types || [])]) {
-    if (note?.id && !byId.has(note.id)) byId.set(note.id, note);
-  }
-  return Array.from(byId.values());
 }
 
 /**

@@ -361,3 +361,21 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* text + block: 폼 푸터 보조 버튼 (테두리 · 전체 너비) */
+.btn--text.btn--block {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--text.btn--block:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+}

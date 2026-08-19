@@ -3,8 +3,7 @@
  *
  * Timeline/By Type와 동일한 Notion 노트북 목록에서 favorites === true 만 골라 반환한다.
  */
-import { getNotionNotebooks } from './notionNotebooks.js';
-import { getNotionTypeItems } from './notionByType.js';
+import { loadAllNotes } from '../utils/notesCatalog.js';
 import { filterFavoriteNotes } from '../utils/noteFavorites.js';
 
 /**
@@ -13,14 +12,5 @@ import { filterFavoriteNotes } from '../utils/noteFavorites.js';
  * @returns {Promise<Array>}
  */
 export async function getFavoriteNotes(options = {}) {
-  const [notebooks, typeItems] = await Promise.all([
-    getNotionNotebooks(options).catch(() => []),
-    getNotionTypeItems(options).catch(() => [])
-  ]);
-
-  const byId = new Map();
-  for (const note of [...(notebooks || []), ...(typeItems || [])]) {
-    if (note?.id && !byId.has(note.id)) byId.set(note.id, note);
-  }
-  return filterFavoriteNotes(Array.from(byId.values()));
+  return filterFavoriteNotes(await loadAllNotes(options));
 }

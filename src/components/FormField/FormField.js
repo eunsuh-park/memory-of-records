@@ -10,6 +10,7 @@
  */
 
 import { render as renderSelect } from '../Select/Select.js';
+import { escapeHtml } from '../../utils/html.js';
 import './FormField.css';
 
 /*
@@ -20,14 +21,6 @@ import './FormField.css';
  */
 const NATIVE_PICKER_TYPES = new Set(['date', 'time', 'month', 'week', 'datetime-local']);
 let pickerFieldSeq = 0;
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /** 이름이 없는 색상에도 안정적인 색을 주기 위한 해시 → hue */
 function fallbackColor(name) {
@@ -208,4 +201,23 @@ export function render(config = {}) {
       ${extra}
       ${hintHtml}
     </label>`;
+}
+
+/**
+ * `.form-status` 문구·에러 톤을 한곳에서 맞춘다.
+ * @param {HTMLElement|null} el
+ * @param {string} [message]
+ * @param {boolean} [isError=false]
+ */
+export function setStatus(el, message = '', isError = false) {
+  if (!el) return;
+  if (!message) {
+    el.hidden = true;
+    el.textContent = '';
+    el.classList.remove('form-status--error');
+    return;
+  }
+  el.hidden = false;
+  el.textContent = message;
+  el.classList.toggle('form-status--error', Boolean(isError));
 }

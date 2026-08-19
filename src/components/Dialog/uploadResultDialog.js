@@ -5,14 +5,7 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from './Dialog.js';
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+import { escapeHtml } from '../../utils/html.js';
 
 /**
  * API/예외 문구를 Dialog에 넣을 한 줄로 줄인다.
@@ -50,12 +43,12 @@ export function openUploadResultDialog(options = {}) {
     title,
     titleId: 'upload-result-title',
     className: 'upload-result-dialog',
-    panelClassName: 'upload-result-panel',
+    panelClassName: 'dialog__panel--narrow',
     showClose: false,
     bodyHtml: `
       <p class="upload-result-text">${escapeHtml(message)}</p>
       ${detail ? `<p class="upload-result-detail">${escapeHtml(detail)}</p>` : ''}
-      <div class="upload-result-actions">
+      <div class="dialog-actions dialog-actions--one">
         ${renderButton({
           shape: 'solid',
           content: '확인',

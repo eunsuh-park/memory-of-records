@@ -4,6 +4,7 @@
  */
 
 import uploadingLottieUrl from '../../assets/uploading.json?url';
+import './uploadOverlay.css';
 
 /**
  * @param {string | { message?: string, current?: number, total?: number }} messageOrOptions

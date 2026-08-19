@@ -7,8 +7,6 @@
  * - 전체 페이지: /note/:id 경로
  */
 
-import { getNotionNotebooks } from '../../services/notionNotebooks.js';
-import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderViewerChrome } from './ViewerChrome.js';
 import {
   render as wrapInNoteDetailPage,
@@ -34,6 +32,7 @@ import {
   ensureBookmarkNoteCovers
 } from '../../utils/bookmarksNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
+import { loadAllNotes } from '../../utils/notesCatalog.js';
 import {
   buildNoteSlug,
   copyNoteShareUrl,
@@ -44,7 +43,6 @@ import {
   parseSharePageParam
 } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import '../Button/Button.css';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
 import '../PdfModal/PdfModal.css';
 import './NoteImageViewer.css';
@@ -121,20 +119,6 @@ function fetchHiddenPages(folderUrl, { force = false } = {}) {
     });
   hiddenPagesCache.set(key, promise);
   return promise;
-}
-
-async function loadAllNotes() {
-  const [notebookResult, typeResult] = await Promise.allSettled([
-    getNotionNotebooks(),
-    getNotionTypeItems()
-  ]);
-  const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
-  const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
-  const byId = new Map();
-  for (const note of [...(notebooks || []), ...(typeItems || [])]) {
-    if (note?.id && !byId.has(note.id)) byId.set(note.id, note);
-  }
-  return Array.from(byId.values());
 }
 
 /** UUID 또는 slug로 노트 조회 */

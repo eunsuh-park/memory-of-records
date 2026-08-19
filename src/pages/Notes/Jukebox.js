@@ -22,8 +22,8 @@ import { render as renderNoteInfoPanel, openDeleteNoteDialog } from '../../compo
 import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
-import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
-import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
+import { clearNotesCaches } from '../../utils/notesCatalog.js';
+import { escapeHtml } from '../../utils/html.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
 import { isAuthenticated, onAuthChange } from '../../services/auth.js';
 import { getBookmarkedPages } from '../../services/bookmarkedPages.js';
@@ -61,15 +61,6 @@ const EDGE_ZONE_RIGHT = 0.12;
 const EDGE_HOVER_DELAY_MS = 280;
 /** 가장자리 스크롤 최대 속도 (px/frame, requestAnimationFrame 기준 약 60fps) */
 const EDGE_SCROLL_SPEED = 28;
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 /**
  * Cover Flow 스타일 상수 (참고: https://scroll-driven-animations.style/demos/cover-flow/css/)
@@ -937,8 +928,7 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function refreshAfterNoteEdit() {
-    clearNotionNotebooksCache();
-    clearNotionTypeItemsCache();
+    clearNotesCaches();
     allNotesCache = null;
     loadNotes()
       .then((allNotes) => {
@@ -1097,7 +1087,6 @@ export function renderJukeboxWithFilter(options) {
       const note = notes[i];
       if (!note) return;
       card.setAttribute('data-note-id', note.id);
-      card.setAttribute('data-pdf-url', note.pdfUrl || '');
       card.addEventListener('click', (e) => {
         /* 빨간 점 클릭은 캡처 핸들러가 처리 — 여기서는 카드 동작만 */
         if (e.target?.closest?.('.jukebox-new-badge')) return;

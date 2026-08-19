@@ -10,6 +10,7 @@ import { renderIconButton, render as renderButton } from '../Button/Button.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { isFavoriteNote } from '../../utils/noteFavorites.js';
 import { isBookmarksNoteId } from '../../utils/bookmarksNote.js';
+import { escapeHtml } from '../../utils/html.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
 import { showToast } from '../Toast/Toast.js';
 import { requireAuth } from '../../services/auth.js';
@@ -20,15 +21,6 @@ const MEMO_MAX_CHARS = 70;
 
 /** 포커스 기준 한쪽 최대 슬롯 수 (전체 최대 1 + 2*N) */
 const NOTE_INDICATOR_MAX_SIDE = 4;
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 function formatMemo(value) {
   const raw = String(value || '');
@@ -106,7 +98,7 @@ export function render(note, _filterMode, opts = {}) {
 
   const title = escapeHtml(note.title || '제목 없음');
   const memo = formatMemo(note.description || '');
-  const noteId = escapeHtml(note.id || '');
+  const noteId = note.id || '';
   const isBookmarks = isBookmarksNoteId(note.id);
   const favorited = isFavoriteNote(note);
   const showShareFav = !isBookmarks;
@@ -220,15 +212,16 @@ export async function openDeleteNoteDialog(options = {}) {
   const dialog = openDialog({
     titleId: 'note-delete-title',
     className: 'note-delete-dialog',
-    panelClassName: 'note-delete-panel',
+    panelClassName: 'dialog__panel--narrow',
     showClose: false,
     canClose: () => !busy,
     bodyHtml: `
       <p class="note-delete-name">${noteName}</p>
       <p class="note-delete-text" id="note-delete-title">이 노트를 정말 삭제할까요?</p>
-      <div class="note-delete-actions">
+      <div class="dialog-actions">
         ${renderButton({
           shape: 'text',
+          block: true,
           content: '취소',
           className: 'note-delete-cancel',
           dataset: { choice: 'cancel' }

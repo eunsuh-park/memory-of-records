@@ -5,15 +5,8 @@
  * { value, label } 객체 배열을 모두 받는다.
  */
 
+import { attr, classNames, escapeHtml, normalizeOptions } from '../../utils/html.js';
 import './Select.css';
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /**
  * <option> 목록만 생성 (비동기로 옵션을 갱신할 때 재사용)
@@ -23,9 +16,7 @@ function escapeHtml(value) {
  */
 export function renderOptions(options = [], config = {}) {
   const { placeholder = '', selected = '' } = config;
-  const list = (options || []).map((opt) =>
-    typeof opt === 'string' ? { value: opt, label: opt } : opt
-  );
+  const list = normalizeOptions(options);
   /* 저장된 값이 옵션 목록에 없으면(Notion에서 지워진 값 등) 목록에 덧붙여 보존 */
   if (selected && !list.some((opt) => opt.value === selected)) {
     list.push({ value: selected, label: selected });
@@ -50,7 +41,6 @@ export function renderOptions(options = [], config = {}) {
  * @param {string} [config.value] - 선택된 값
  * @param {Array<string|{value: string, label: string}>} [config.options]
  * @param {string} [config.placeholder] - 빈 값 옵션 라벨
- * @param {'default'|'pill'} [config.tone='default'] - pill은 필터 정렬 드롭다운 톤
  * @param {string} [config.ariaLabel]
  * @param {string} [config.id]
  * @param {string} [config.className]
@@ -64,7 +54,6 @@ export function render(config = {}) {
     value = '',
     options = [],
     placeholder = '',
-    tone = 'default',
     ariaLabel = '',
     id = '',
     className = '',
@@ -72,15 +61,11 @@ export function render(config = {}) {
     disabled = false
   } = config;
 
-  const classes = ['select'];
-  if (tone !== 'default') classes.push(`select--${tone}`);
-  if (className) classes.push(className);
-
   const attrs = [
-    `class="${classes.join(' ')}"`,
-    name ? `name="${escapeHtml(name)}"` : '',
-    id ? `id="${escapeHtml(id)}"` : '',
-    ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : '',
+    attr('class', classNames('select', className)),
+    attr('name', name),
+    attr('id', id),
+    attr('aria-label', ariaLabel),
     required ? 'required' : '',
     disabled ? 'disabled' : ''
   ].filter(Boolean);

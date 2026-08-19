@@ -6,7 +6,7 @@
 import { login, getSession, safeNextPath } from '../../services/auth.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
-import { render as renderField } from '../../components/FormField/FormField.js';
+import { render as renderField, setStatus as setFormStatus } from '../../components/FormField/FormField.js';
 import { router } from '../../router.js';
 import './Login.css';
 
@@ -67,28 +67,19 @@ export async function renderLogin() {
     e.preventDefault();
     const password = String(passwordInput?.value || '');
     if (!password) {
-      if (statusEl) {
-        statusEl.textContent = '비밀번호를 입력해 주세요';
-        statusEl.classList.add('form-status--error');
-      }
+      setFormStatus(statusEl, '비밀번호를 입력해 주세요', true);
       return;
     }
 
     if (submitBtn) submitBtn.disabled = true;
-    if (statusEl) {
-      statusEl.textContent = '확인 중…';
-      statusEl.classList.remove('form-status--error');
-    }
+    setFormStatus(statusEl, '확인 중…');
 
     try {
       await login(password);
       showToast('로그인되었습니다');
       router.navigate(next);
     } catch (err) {
-      if (statusEl) {
-        statusEl.textContent = err?.message || '로그인에 실패했습니다';
-        statusEl.classList.add('form-status--error');
-      }
+      setFormStatus(statusEl, err?.message || '로그인에 실패했습니다', true);
       showToast(err?.message || '로그인에 실패했습니다');
       if (submitBtn) submitBtn.disabled = false;
       passwordInput?.focus();

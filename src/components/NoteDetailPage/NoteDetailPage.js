@@ -8,7 +8,6 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import '../Button/Button.css';
 import '../PdfModal/PdfModal.css';
 import './NoteDetailPage.css';
 
