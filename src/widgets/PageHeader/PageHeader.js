@@ -153,9 +153,9 @@ export function renderPageHeader() {
             <span class="nav-drawer__link nav-drawer__parent">Notes</span>
             ${renderButton({
               shape: 'text',
-              ariaLabel: '새로운 노트 추가',
-              content: `${MINGCUTE.arrowToRightLine}<span>+ 새로운 노트 추가</span>`,
-              className: 'nav-drawer__add-note auth-only',
+              ariaLabel: '새 노트 추가',
+              content: `${MINGCUTE.arrowToRightLine}<span>+새 노트 추가</span>`,
+              className: 'nav-drawer__add-note',
               dataset: { 'add-note': '' }
             })}
           </div>
