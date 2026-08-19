@@ -72,8 +72,8 @@
 
 .dropdown-chip__icon svg {
   display: block;
-  width: 7.62px;
-  height: 4.8px;
+  width: 24px;
+  height: 24px;
 }
 
 @media (hover: hover) and (pointer: fine) {
