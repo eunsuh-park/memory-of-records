@@ -18,7 +18,7 @@
   background-color: var(--color-bg);
   border-bottom-left-radius: 48px;
   border-bottom-right-radius: 48px;
-  max-width: 1200px;
+  max-width: 1920px;
   width: calc(100% - var(--space-12));
   margin: 0 auto;
   box-sizing: border-box;
