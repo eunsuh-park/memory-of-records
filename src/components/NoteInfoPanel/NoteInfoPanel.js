@@ -82,7 +82,7 @@ export function renderNoteIndicator(index, total) {
 }
 
 /**
- * @param {Object|null} note - 포커스된 노트. null이면 빈 상태
+ * @param {Object|null} note - 포커스된 노트. null이면 빈 문자열
  * @param {'period'|'type'} [_filterMode]
  * @param {{ index?: number, total?: number, detailsOpen?: boolean, compact?: boolean, canEdit?: boolean }} [opts]
  * @returns {string} HTML 문자열
@@ -90,11 +90,7 @@ export function renderNoteIndicator(index, total) {
 export function render(note, _filterMode, opts = {}) {
   const { canEdit = false, detailsOpen = false, compact = false } = opts;
 
-  if (!note) {
-    return `<div class="jukebox-focus-info" aria-live="polite">
-      <p class="jukebox-focus-info__empty">노트를 선택하세요</p>
-    </div>`;
-  }
+  if (!note) return '';
 
   const title = escapeHtml(note.title || '제목 없음');
   const memo = formatMemo(note.description || '');

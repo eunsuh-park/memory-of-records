@@ -90,13 +90,6 @@
   overflow: hidden;
 }
 
-.jukebox-focus-info__empty {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-dim);
-  text-align: center;
-}
-
 .jukebox-focus-info__toggle.btn--icon {
   display: none;
   box-sizing: border-box;
