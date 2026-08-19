@@ -16,24 +16,6 @@ export async function renderStory() {
   mainContent.innerHTML = `
     <div class="story-page">
       <article class="story-card">
-        <div class="story-card__media">
-          ${
-            imageSrc
-              ? `
-            <img
-              src="${imageSrc}"
-              alt="${title}"
-              loading="eager"
-              class="story-card__img"
-            />
-          `
-              : `
-            <div class="story-card__placeholder" aria-hidden="true">
-              <span class="story-card__placeholder-icon">${MINGCUTE.pic2Fill}</span>
-            </div>
-          `
-          }
-        </div>
         <div class="story-card__body">
           <header class="story-header">
             ${subtitle ? `<div class="story-subtitle">${subtitle}</div>` : ''}
@@ -54,6 +36,24 @@ export async function renderStory() {
             ${content.map((paragraph) => `<p>${paragraph}</p>`).join('\n            ')}
           </div>`
               : ''
+          }
+        </div>
+        <div class="story-card__media">
+          ${
+            imageSrc
+              ? `
+            <img
+              src="${imageSrc}"
+              alt="${title}"
+              loading="eager"
+              class="story-card__img"
+            />
+          `
+              : `
+            <div class="story-card__placeholder" aria-hidden="true">
+              <span class="story-card__placeholder-icon">${MINGCUTE.pic2Fill}</span>
+            </div>
+          `
           }
         </div>
       </article>
