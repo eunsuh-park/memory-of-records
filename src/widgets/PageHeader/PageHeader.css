@@ -1,6 +1,6 @@
 /**
  * PageHeader 스타일
- * 데스크톱: [로고] --- [FilterSubMenu] --- [테마 + Story]
+ * 데스크톱: [로고 + Intro] --- [FilterSubMenu] --- [테마 + Login]
  * 모바일: 로고 중앙 + 햄버거, 접이식 필터, 우측 드로어(Notes 하위 메뉴 · 테마는 하단)
  */
 
@@ -40,6 +40,7 @@
 
 .page-header__left {
   order: 1;
+  gap: var(--space-2);
 }
 
 .page-header__center {
@@ -236,6 +237,10 @@
     z-index: 2;
     margin: 0 auto;
     order: unset;
+  }
+
+  .page-header__story-link {
+    display: none;
   }
 
   .page-header__logo-image {

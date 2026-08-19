@@ -1,6 +1,6 @@
 /**
  * PageHeader
- * 데스크톱: 로고(좌) | FilterSubMenu(중앙) | 테마 + Story(우)
+ * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login(우)
  * 모바일: 로고(중앙) | 햄버거(우) + 접이식 필터 + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 하단)
  */
@@ -107,6 +107,13 @@ export function renderPageHeader() {
             <span class="page-header__logo-text">Memory of Records</span>
             <img src="${logo}" alt="Memory of Records" class="page-header__logo-image" />
           </a>
+          <a
+            href="/story"
+            class="page-header__story-link ${storyActive ? 'active' : ''}"
+            data-link
+          >
+            Intro
+          </a>
         </div>
         <div class="page-header__right page-header__right--mobile">
           <button
@@ -121,13 +128,6 @@ export function renderPageHeader() {
         <div class="page-header__right page-header__right--desktop">
           ${renderThemeSwitch({ theme })}
           <span class="page-header__auth" data-auth-slot></span>
-          <a
-            href="/story"
-            class="page-header__story-link ${storyActive ? 'active' : ''}"
-            data-link
-          >
-            Intro
-          </a>
         </div>
       </div>
       <div class="page-header__center" id="sub-menu">
