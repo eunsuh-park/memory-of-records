@@ -103,6 +103,10 @@
 }
 
 /* 정렬 드롭다운 트리거(칩) — 메뉴 항목 스타일은 DropdownMenu 기본값 유지 */
+.filter-sort__dropdown .dropdown-menu {
+  border-radius: 18px;
+}
+
 .filter-sort__dropdown .dropdown-chip {
   background: var(--color-bg-alt);
   border: 0.5px solid var(--color-border);
