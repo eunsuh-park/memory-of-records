@@ -109,7 +109,7 @@ Chip/Pill은 버튼이 아니라 필터·드롭다운 트리거를 나타내는 
 
 **DropdownChip**은 `src/components/DropdownChip/DropdownChip.js` · `DropdownChip.css`로, 커스텀 드롭다운의 트리거 칩입니다. 라벨 + MingCute `upSmallFill`(닫힘에서 180° 회전해 아래를 가리킴)이고 상태는 default · hover · active(`.is-open`) · selected(`.is-selected`) · active-hover입니다. padding은 `1px 4px 1px 12px`, 아이콘 칸은 24px입니다. default/selected는 `--color-border` 0.5px, hover는 `--color-surface-hover`, 열림은 `--color-surface-active`이며 열림·선택의 글자는 `--color-primary` semibold입니다.
 
-**DropdownMenu**는 `src/components/DropdownMenu/DropdownMenu.js` · `DropdownMenu.css`로, 열린 드롭다운의 드롭박스와 항목입니다. 패널은 padding·gap 4px, radius 18px, `--color-border` 0.5px, 배경은 `--color-bg`(#29323f)입니다. 항목은 26px pill(`padding 1px 12px`, `line-height 24px`)이고 상태는 default(`--color-text-muted` #bfc2c5) · hover(`--color-surface-hover` + `--color-text`) · selected(`--color-primary` semibold) · active-hover(선택 + hover 필)입니다.
+**DropdownMenu**는 `src/components/DropdownMenu/DropdownMenu.js` · `DropdownMenu.css`로, 열린 드롭다운의 드롭박스와 항목입니다. 패널은 padding·gap 4px, radius 18px, `--color-border` 0.5px, 배경은 `--color-bg`(#29323f)입니다. 항목은 26px pill(`padding 7px 12px`, `line-height 12px`)이고 상태는 default(`--color-text-dim` #94999f) · hover(`--color-surface-hover` + `--color-text` #eeeff0) · selected(`--color-primary` #ffe699 semibold) · active-hover(선택 + hover 필)입니다.
 
 **Select**는 `src/components/Select/Select.js` · `Select.css`로 `<select>` 마크업을 통합했습니다. `render()`는 필드 하나를, `renderOptions()`는 옵션 문자열만 돌려주어 FormField가 자기 컨트롤 안에 끼워 쓸 수 있게 합니다. `tone: 'pill'`은 FilterSubMenu의 정렬 드롭다운용입니다.
 
