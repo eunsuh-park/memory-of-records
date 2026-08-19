@@ -38,24 +38,19 @@ export async function renderStory() {
               : ''
           }
         </div>
+        ${
+          imageSrc
+            ? `
         <div class="story-card__media">
-          ${
-            imageSrc
-              ? `
-            <img
-              src="${imageSrc}"
-              alt="${title}"
-              loading="eager"
-              class="story-card__img"
-            />
-          `
-              : `
-            <div class="story-card__placeholder" aria-hidden="true">
-              <span class="story-card__placeholder-icon">${MINGCUTE.pic2Fill}</span>
-            </div>
-          `
-          }
-        </div>
+          <img
+            src="${imageSrc}"
+            alt="${title}"
+            loading="eager"
+            class="story-card__img"
+          />
+        </div>`
+            : ''
+        }
       </article>
       <footer class="story-footer">
         <p>${footer}</p>
