@@ -4,7 +4,6 @@
  */
 
 import './Story.css';
-import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { storyContent } from '../../data/storyContent.js';
 
 export async function renderStory() {
