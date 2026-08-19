@@ -100,7 +100,7 @@
 }
 
 .chip.is-active .chip__label {
-  color: var(--color-primary);
+  color: var(--color-text);
   font-weight: var(--font-semibold);
 }
 
