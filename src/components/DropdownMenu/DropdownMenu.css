@@ -38,7 +38,7 @@
   display: none;
 }
 
-.dropdown-menu__item {
+button.dropdown-menu__item {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
