@@ -10,9 +10,9 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: start;
-  justify-content: space-between;
   padding: var(--space-4) var(--space-8);
   padding-top: max(var(--space-4), env(safe-area-inset-top));
   background-color: var(--color-bg);
@@ -33,7 +33,7 @@
   align-items: center;
 }
 
-/* 데스크톱: 자식이 header flex에 직접 참여 (로고 | 필터 | 테마) */
+/* 데스크톱: 자식이 header 그리드에 직접 참여 (로고 | 필터 | 테마) */
 .page-header__top {
   display: contents;
 }
@@ -41,10 +41,10 @@
 .page-header__left {
   order: 1;
   gap: var(--space-2);
+  justify-content: flex-start;
 }
 
 .page-header__center {
-  flex: 1;
   justify-content: center;
   min-width: 0;
   order: 2;
@@ -52,6 +52,7 @@
 
 .page-header__right--desktop {
   order: 3;
+  justify-content: flex-end;
 }
 
 .page-header__right--mobile {
@@ -194,6 +195,7 @@
 
 @media (max-width: 768px) {
   .page-header {
+    display: flex;
     flex-wrap: wrap;
     flex-direction: column;
     gap: 0;
