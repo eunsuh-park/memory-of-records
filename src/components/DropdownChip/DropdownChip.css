@@ -79,28 +79,24 @@
 @media (hover: hover) and (pointer: fine) {
   .dropdown-chip:hover:not(.is-open):not(.is-selected):not(:disabled) {
     background-color: var(--color-surface-hover);
-    border-color: transparent;
     color: var(--color-text);
     font-weight: var(--font-semibold);
   }
 
   .dropdown-chip.is-open:hover:not(:disabled) {
     background-color: var(--color-surface-hover);
-    border-color: transparent;
   }
 }
 
 /* Lab에서 hover 상태를 고정해 보여 줄 때 */
 .dropdown-chip.is-hover:not(.is-open):not(.is-selected) {
   background-color: var(--color-surface-hover);
-  border-color: transparent;
   color: var(--color-text);
   font-weight: var(--font-semibold);
 }
 
 .dropdown-chip.is-open {
   background-color: var(--color-surface-active);
-  border-color: transparent;
   color: var(--color-primary);
   font-weight: var(--font-semibold);
 }
@@ -114,7 +110,6 @@
 
 .dropdown-chip.is-open.is-hover {
   background-color: var(--color-surface-hover);
-  border-color: transparent;
 }
 
 .dropdown-chip[aria-disabled='true'],
