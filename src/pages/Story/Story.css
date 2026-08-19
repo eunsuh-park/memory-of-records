@@ -64,6 +64,14 @@
   flex-direction: column;
   gap: var(--space-6);
   padding: var(--space-8) var(--space-6);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--color-bg-alt) 78%, transparent),
+      color-mix(in srgb, var(--color-bg-alt) 88%, transparent)
+    ),
+    url('../../assets/bookmarks-cover-front.png');
+  background-size: cover;
+  background-position: center;
 }
 
 .story-header {
