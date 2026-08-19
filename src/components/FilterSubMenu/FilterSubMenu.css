@@ -113,13 +113,13 @@
 }
 
 .filter-sort__dropdown .dropdown-chip__icon {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
 }
 
 .filter-sort__dropdown .dropdown-chip__icon svg {
-  width: 10px;
-  height: 10px;
+  width: 7.62px;
+  height: 4.8px;
 }
 
 .filter-sort__dropdown .dropdown-chip.is-selected,
