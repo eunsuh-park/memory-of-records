@@ -13,7 +13,7 @@ import {
   openUploadResultDialog,
   shortUploadError
 } from '../Dialog/uploadResultDialog.js';
-import { render as renderField, renderColorSwatches } from '../FormField/FormField.js';
+import { render as renderField, renderColorSwatches, setStatus as setFormStatus } from '../FormField/FormField.js';
 import { renderOptions as renderSelectOptions } from '../Select/Select.js';
 import { renderPicker as renderFilePicker } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
@@ -31,9 +31,9 @@ import {
   validateCoverImageFile
 } from '../../services/createNote.js';
 import { renameNoteContentFolder } from '../../services/pages.js';
-import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
-import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
+import { clearNotesCaches } from '../../utils/notesCatalog.js';
+import { escapeHtml } from '../../utils/html.js';
 import {
   openAddPageModal,
   openAddPagesConfirmDialog
@@ -61,14 +61,6 @@ const NOTES_PLACEHOLDER =
   '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
 /** 노션 description 속성 · 정보 패널과 동일 (공백 포함) */
 const NOTES_MAX_CHARS = 70;
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 function datalistHtml(id, values) {
   return `<datalist id="${escapeHtml(id)}">${values
@@ -377,15 +369,7 @@ export async function openAddNoteModal(options = {}) {
     });
 
   const setStatus = (message, isError = false) => {
-    if (!statusEl) return;
-    if (!message) {
-      statusEl.hidden = true;
-      statusEl.textContent = '';
-      return;
-    }
-    statusEl.hidden = false;
-    statusEl.textContent = message;
-    statusEl.classList.toggle('form-status--error', isError);
+    setFormStatus(statusEl, message, isError);
   };
 
   const closeModal = dialog.close;
@@ -496,8 +480,7 @@ export async function openAddNoteModal(options = {}) {
         const result = await updateNotionNote(metaPayload);
         if (result?.id) markNoteUnseen(result.id);
         else if (metaPayload.id) markNoteUnseen(metaPayload.id);
-        clearNotionNotebooksCache();
-        clearNotionTypeItemsCache();
+        clearNotesCaches();
         hideUploadingOverlay();
         showToast(
           nameChanged
@@ -568,8 +551,7 @@ export async function openAddNoteModal(options = {}) {
 
       if (created?.id) markNoteUnseen(created.id);
 
-      clearNotionNotebooksCache();
-      clearNotionTypeItemsCache();
+      clearNotesCaches();
       hideUploadingOverlay();
       options.onCreated?.(created);
 

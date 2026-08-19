@@ -6,11 +6,12 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
-import { render as renderField } from '../FormField/FormField.js';
+import { render as renderField, setStatus as setFormStatus } from '../FormField/FormField.js';
 import { showToast } from '../Toast/Toast.js';
 import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
 import { recognizePageImage } from '../../services/ocr.js';
 import { requireAuth } from '../../services/auth.js';
+import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
 
 /**
@@ -43,14 +44,6 @@ export function openPageMetaModal(options = {}) {
   const imageUrl =
     String(options.imageUrl || '').trim() || buildPageImageUrl(folder, pageNumber);
 
-  function escapeHtml(value) {
-    return String(value ?? '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
   const sourceNoteHtml = sourceNote
     ? `
         <div class="field page-meta-source">
@@ -74,10 +67,7 @@ export function openPageMetaModal(options = {}) {
   let loaded = false;
 
   function setStatus(message, isError = false) {
-    const el = overlay.querySelector('.page-meta-status');
-    if (!el) return;
-    el.textContent = message || '';
-    el.classList.toggle('form-status--error', Boolean(isError));
+    setFormStatus(overlay.querySelector('.page-meta-status'), message, isError);
   }
 
   function readFields() {
@@ -179,8 +169,18 @@ export function openPageMetaModal(options = {}) {
           <div class="page-meta-ocr-label-row">
             <span class="field__label">상세 설명 (OCR)</span>
             <div class="page-meta-ocr-actions" hidden>
-              <button type="button" class="page-meta-ocr-reset-btn" disabled>리셋</button>
-              <button type="button" class="page-meta-ocr-btn" disabled>이미지에서 인식</button>
+              ${renderButton({
+                shape: 'text',
+                content: '리셋',
+                className: 'page-meta-ocr-reset-btn',
+                disabled: true
+              })}
+              ${renderButton({
+                shape: 'solid',
+                content: '이미지에서 인식',
+                className: 'page-meta-ocr-btn',
+                disabled: true
+              })}
             </div>
           </div>
           <textarea class="field__textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
@@ -191,11 +191,30 @@ export function openPageMetaModal(options = {}) {
           <span>사이트에 표시 (visible)</span>
         </label>
         <div class="page-meta-actions page-meta-actions--view auth-only">
-          <button type="button" class="page-meta-edit-btn" data-action="edit" disabled>수정</button>
-          <button type="button" class="page-meta-delete-btn" data-action="delete" disabled>삭제</button>
+          ${renderButton({
+            shape: 'solid',
+            content: '수정',
+            className: 'page-meta-edit-btn',
+            dataset: { action: 'edit' },
+            disabled: true
+          })}
+          ${renderButton({
+            shape: 'text',
+            block: true,
+            content: '삭제',
+            className: 'page-meta-delete-btn',
+            dataset: { action: 'delete' },
+            disabled: true
+          })}
         </div>
         <div class="page-meta-actions page-meta-actions--edit" hidden>
-          <button type="button" class="add-page-secondary" data-action="cancel-edit">취소</button>
+          ${renderButton({
+            shape: 'text',
+            block: true,
+            content: '취소',
+            className: 'add-page-secondary',
+            dataset: { action: 'cancel-edit' }
+          })}
           ${renderButton({
             shape: 'solid',
             type: 'submit',

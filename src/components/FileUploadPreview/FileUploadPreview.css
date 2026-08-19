@@ -102,17 +102,25 @@
   gap: var(--space-1);
 }
 
-.upload-item__btn {
+.upload-item__btn.btn--circle {
   flex: 1;
+  width: auto;
   min-width: 0;
   height: 1.5rem;
+  min-height: 1.5rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-surface-hover);
   color: var(--color-text);
-  font-size: var(--text-xs);
-  line-height: 1;
-  cursor: pointer;
+}
+
+.upload-item__btn svg {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.upload-item__btn--up svg {
+  transform: rotate(180deg);
 }
 
 @media (hover: hover) and (pointer: fine) {

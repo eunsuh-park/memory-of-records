@@ -13,6 +13,7 @@
  */
 
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { attr, classNames, dataAttrs, escapeHtml } from '../../utils/html.js';
 import './Button.css';
 
 export const BACK_ARROW_SVG = MINGCUTE.leftLine;
@@ -54,6 +55,7 @@ const CIRCLE_ROLE_SIZE = {
  * @param {'button'|'submit'} [options.type='button']
  * @param {string} [options.className] - 추가 클래스 (예: pdf-modal-close)
  * @param {boolean} [options.dataLink] - data-link 속성 (뒤로가기 등)
+ * @param {boolean} [options.block=false] - text 전용. 폼 푸터용 테두리·전체 너비
  * @param {boolean} [options.disabled]
  * @param {Record<string, string>} [options.dataset] - data-* 속성 (예: { action: 'upload' })
  * @returns {string} HTML 문자열
@@ -65,6 +67,7 @@ export function render(options = {}) {
     role = '',
     tone = 'filled',
     inline = false,
+    block = false,
     ariaLabel = '',
     title = '',
     ariaPressed = null,
@@ -85,6 +88,7 @@ export function render(options = {}) {
     else if (CIRCLE_ROLE_CLASS[role]) classes.push(CIRCLE_ROLE_CLASS[role]);
     if (tone === 'ghost') classes.push('btn--ghost');
   }
+  if (shape === 'text' && block) classes.push('btn--block');
   if (className) classes.push(className);
 
   let inner = content;
@@ -95,15 +99,15 @@ export function render(options = {}) {
   }
 
   const attrs = [
-    `type="${type}"`,
-    `class="${classes.join(' ')}"`,
-    id ? `id="${id}"` : '',
-    ariaLabel ? `aria-label="${ariaLabel}"` : '',
-    title ? `title="${title}"` : '',
+    `type="${escapeHtml(type)}"`,
+    attr('class', classNames(classes)),
+    attr('id', id),
+    attr('aria-label', ariaLabel),
+    attr('title', title),
     ariaPressed === null ? '' : `aria-pressed="${ariaPressed ? 'true' : 'false'}"`,
     dataLink ? 'data-link' : '',
     disabled ? 'disabled' : '',
-    ...Object.entries(dataset || {}).map(([key, value]) => `data-${key}="${value}"`)
+    dataAttrs(dataset)
   ].filter(Boolean);
 
   return `<button ${attrs.join(' ')}>${inner}</button>`;

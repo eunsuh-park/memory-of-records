@@ -36,25 +36,26 @@
   gap: var(--space-3);
 }
 
-.add-page-source-btn {
+.add-page-source-btn.btn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
+  width: 100%;
   padding: var(--space-4) var(--space-3);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-bg);
   color: inherit;
   text-align: left;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  font-size: inherit;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .add-page-source-btn:hover {
+  .add-page-source-btn.btn:hover:not(:disabled) {
     border-color: var(--color-primary);
     background: var(--color-surface-hover);
+    color: inherit;
   }
 }
 
@@ -76,33 +77,13 @@
   margin-top: 0;
 }
 
-/* 보조 액션(뒤로·나중에) — 테두리만 있는 버튼 */
-.add-page-secondary {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-  font: inherit;
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  color: var(--color-text);
-  background: transparent;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .add-page-secondary:hover {
-    background: var(--color-surface-hover);
-  }
+.add-page-footer .btn--solid {
+  margin-top: 0;
 }
 
 .add-page-submit,
 .add-page-confirm-ok {
   margin-top: 0;
-}
-
-/* 확인 다이얼로그 */
-.add-page-confirm-panel {
-  width: min(420px, 100%);
 }
 
 .add-page-confirm-text {
@@ -114,12 +95,6 @@
 
 .add-page-confirm-text strong {
   color: var(--color-text);
-}
-
-.add-page-confirm-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
 }
 
 /* ===== 페이지 정보 모달 ===== */
@@ -184,26 +159,18 @@
   flex-shrink: 0;
 }
 
-.page-meta-ocr-btn,
-.page-meta-ocr-reset-btn {
+.page-meta-ocr-btn.btn--solid,
+.page-meta-ocr-reset-btn.btn {
   flex-shrink: 0;
+  width: auto;
   margin: 0;
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  font: inherit;
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
-  cursor: pointer;
 }
 
-.page-meta-ocr-btn {
-  background: var(--color-primary);
-  color: var(--color-primary-on);
-}
-
-.page-meta-ocr-reset-btn {
-  background: transparent;
+.page-meta-ocr-reset-btn.btn {
+  border: 1px solid var(--color-border);
   color: var(--color-text-muted);
 }
 
@@ -233,50 +200,26 @@
 }
 
 .page-meta-actions .btn--solid,
-.page-meta-actions .add-page-secondary {
+.page-meta-actions .btn--text.btn--block {
   margin-top: 0;
   width: 100%;
 }
 
-.page-meta-edit-btn,
-.page-meta-delete-btn {
-  margin: 0;
+.page-meta-edit-btn.btn--solid {
   min-height: 2.6rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  font: inherit;
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
 }
 
-.page-meta-edit-btn {
-  background: var(--color-primary);
-  color: var(--color-primary-on);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .page-meta-edit-btn:hover:not(:disabled) {
-    filter: brightness(1.05);
-  }
-}
-
-.page-meta-delete-btn {
-  background: transparent;
+.page-meta-delete-btn.btn {
+  min-height: 2.6rem;
   color: var(--color-error-text);
   border-color: var(--color-error);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .page-meta-delete-btn:hover:not(:disabled) {
+  .page-meta-delete-btn.btn:hover:not(:disabled) {
     background: var(--color-error-bg);
+    color: var(--color-error-text);
   }
-}
-
-.page-meta-edit-btn:disabled,
-.page-meta-delete-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 
 /* 보기 모드: 필드 클릭 불가 느낌 */
@@ -292,7 +235,6 @@
   }
 
   .add-page-footer,
-  .add-page-confirm-actions,
   .page-meta-actions {
     grid-template-columns: 1fr;
   }

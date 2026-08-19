@@ -1,6 +1,6 @@
 /**
  * Select 스타일
- * .select(기본, 폼 입력과 같은 톤) · .select--pill(필터 정렬 드롭다운 톤)
+ * 폼 입력(.field__input)과 같은 톤. 필터 정렬은 DropdownMenu를 쓴다.
  */
 
 .select {
@@ -23,20 +23,4 @@
 .select:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-/* 필터 정렬용 pill */
-.select--pill {
-  width: auto;
-  border-radius: var(--radius-pill);
-  background: var(--color-bg-alt);
-  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-3);
-  font-size: var(--text-xs);
-  /* 네이티브 option 드롭다운이 흰 글씨로 안 보이는 문제 방지 */
-  color-scheme: light;
-}
-
-.select--pill option {
-  color: var(--grey-dark-3);
-  background: var(--white);
 }

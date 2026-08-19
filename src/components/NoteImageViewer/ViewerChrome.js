@@ -12,7 +12,6 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import '../Button/Button.css';
 import './NoteImageViewer.css';
 
 /** 이미지 좌우에 겹치는 페이지 이동 버튼 */

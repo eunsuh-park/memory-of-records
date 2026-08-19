@@ -1,0 +1,59 @@
+/**
+ * 표지·페이지 업로드 중 전체 화면 오버레이
+ * (노트 뷰어 로딩과 같은 딤 + lottie)
+ */
+
+body.add-note-uploading {
+  overflow: hidden;
+}
+
+.add-note-upload-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-viewer-loading);
+  color: var(--color-chrome-on);
+  text-align: center;
+  pointer-events: all;
+}
+
+.add-note-upload-lottie {
+  width: 300px;
+  height: 300px;
+  max-width: 80vw;
+  max-height: 60vh;
+  flex-shrink: 0;
+}
+
+.add-note-upload-lottie::part(canvas) {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.add-note-upload-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-chrome-on);
+}
+
+.add-note-upload-progress {
+  width: min(16rem, 70vw);
+  height: 0.4rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.add-note-upload-progress__fill {
+  width: var(--upload-progress, 0%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transition: width 0.2s ease;
+}

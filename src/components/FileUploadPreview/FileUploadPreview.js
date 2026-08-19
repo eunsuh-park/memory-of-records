@@ -5,15 +5,10 @@
  * 액션 버튼은 data-action(up/down/remove) + data-id로 위임 처리한다.
  */
 
+import { render as renderButton } from '../Button/Button.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { attr, escapeHtml } from '../../utils/html.js';
 import './FileUploadPreview.css';
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /**
  * 파일 선택 버튼(숨은 input + 라벨) + 선택 상태 텍스트
@@ -41,16 +36,25 @@ export function renderPicker(config = {}) {
   return `
     <label class="upload-pick">
       <span ${labelAttr}>${escapeHtml(pickLabel)}</span>
-      <input type="file" name="${escapeHtml(name)}"${accept ? ` accept="${escapeHtml(accept)}"` : ''}${
+      <input type="file" ${attr('name', name)}${accept ? ` accept="${escapeHtml(accept)}"` : ''}${
         multiple ? ' multiple' : ''
       } hidden />
     </label>
     <span class="upload-pick__status" ${statusAttr}>${escapeHtml(statusText)}</span>`;
 }
 
-/** 빈 리스트 컨테이너 (내용은 renderList로 채운다) */
-export function renderListContainer() {
-  return '<ul class="upload-list"></ul>';
+function itemActionButton({ action, id, label, icon, extraClass = '', disabled = false }) {
+  return renderButton({
+    shape: 'circle',
+    size: 's',
+    role: 'icon',
+    ariaLabel: label,
+    title: label,
+    content: icon,
+    className: ['upload-item__btn', extraClass].filter(Boolean).join(' '),
+    dataset: { action, id },
+    disabled
+  });
 }
 
 /**
@@ -79,15 +83,29 @@ export function renderList(items = [], config = {}) {
         <div class="upload-item__meta">
           <span class="upload-item__label">${escapeHtml(item.label || `${index + 1}`)}</span>
           <div class="upload-item__actions">
-            <button type="button" class="upload-item__btn" data-action="up" data-id="${escapeHtml(item.id)}" ${
-              index === 0 ? 'disabled' : ''
-            } aria-label="위로">↑</button>
-            <button type="button" class="upload-item__btn" data-action="down" data-id="${escapeHtml(item.id)}" ${
-              index === items.length - 1 ? 'disabled' : ''
-            } aria-label="아래로">↓</button>
-            <button type="button" class="upload-item__btn upload-item__btn--danger" data-action="remove" data-id="${escapeHtml(
-              item.id
-            )}" aria-label="삭제">×</button>
+            ${itemActionButton({
+              action: 'up',
+              id: item.id,
+              label: '위로',
+              icon: MINGCUTE.downLine,
+              extraClass: 'upload-item__btn--up',
+              disabled: index === 0
+            })}
+            ${itemActionButton({
+              action: 'down',
+              id: item.id,
+              label: '아래로',
+              icon: MINGCUTE.downLine,
+              extraClass: 'upload-item__btn--down',
+              disabled: index === items.length - 1
+            })}
+            ${itemActionButton({
+              action: 'remove',
+              id: item.id,
+              label: '삭제',
+              icon: MINGCUTE.closeLine,
+              extraClass: 'upload-item__btn--danger'
+            })}
           </div>
         </div>
       </li>`

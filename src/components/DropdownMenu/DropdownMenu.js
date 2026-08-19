@@ -9,21 +9,8 @@
  */
 
 import { render as renderChip } from '../DropdownChip/DropdownChip.js';
+import { attr, classNames, dataAttrs, escapeHtml, normalizeOptions } from '../../utils/html.js';
 import './DropdownMenu.css';
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function normalizeOptions(options = []) {
-  return (options || []).map((opt) =>
-    typeof opt === 'string' ? { value: opt, label: opt } : opt
-  );
-}
 
 /**
  * @param {Object} options
@@ -49,24 +36,25 @@ export function renderItem(options = {}) {
     dataset = null
   } = options;
 
-  const classes = ['dropdown-menu__item'];
-  if (selected) classes.push('is-selected');
-  if (className) classes.push(className);
+  const classes = classNames(
+    'dropdown-menu__item',
+    selected && 'is-selected',
+    className
+  );
 
   const safeLabel = escapeHtml(label);
   const labelAttr = ariaLabel ? escapeHtml(ariaLabel) : safeLabel;
   const data = { ...(dataset || {}) };
-  if (value !== '' && data.value == null) data.value = value;
+  if (data.value == null) data.value = value;
   const attrs = [
     'type="button"',
-    `class="${classes.join(' ')}"`,
+    attr('class', classes),
     'role="option"',
     `aria-selected="${selected ? 'true' : 'false'}"`,
-    `data-value="${escapeHtml(value)}"`,
-    id ? `id="${escapeHtml(id)}"` : '',
+    attr('id', id),
     labelAttr ? `aria-label="${labelAttr}"` : '',
     disabled ? 'disabled' : '',
-    ...Object.entries(data).map(([key, val]) => `data-${key}="${escapeHtml(val)}"`)
+    dataAttrs(data)
   ].filter(Boolean);
 
   return `<button ${attrs.join(' ')}><span class="dropdown-menu__label">${safeLabel}</span></button>`;
@@ -93,17 +81,14 @@ export function renderPanel(options = {}) {
     hidden = false,
     dataset = null
   } = options;
-  const classes = ['dropdown-menu'];
-  if (className) classes.push(className);
+  const classes = classNames('dropdown-menu', className);
   const attrs = [
-    `class="${classes.join(' ')}"`,
+    attr('class', classes),
     'role="listbox"',
-    id ? `id="${escapeHtml(id)}"` : '',
-    ariaLabel ? `aria-label="${escapeHtml(ariaLabel)}"` : '',
+    attr('id', id),
+    attr('aria-label', ariaLabel),
     hidden ? 'hidden' : '',
-    ...Object.entries(dataset || {}).map(
-      ([key, value]) => `data-${key}="${escapeHtml(value)}"`
-    )
+    dataAttrs(dataset)
   ].filter(Boolean);
   return `<div ${attrs.join(' ')}>${content}</div>`;
 }
@@ -148,14 +133,8 @@ export function render(config = {}) {
     )
     .join('');
 
-  const classes = ['dropdown'];
-  if (open) classes.push('is-open');
-  if (className) classes.push(className);
-
-  const wrapAttrs = [
-    `class="${classes.join(' ')}"`,
-    id ? `id="${escapeHtml(id)}"` : ''
-  ].filter(Boolean);
+  const classes = classNames('dropdown', open && 'is-open', className);
+  const wrapAttrs = [attr('class', classes), attr('id', id)].filter(Boolean);
 
   return `<div ${wrapAttrs.join(' ')}>${renderChip({
     label: chipLabel,

@@ -5,8 +5,7 @@
  * - 전체 페이지: /note/:id 경로
  */
 
-import { getNotionNotebooks } from '../../services/notionNotebooks.js';
-import { getNotionTypeItems } from '../../services/notionByType.js';
+import { loadAllNotes } from '../../utils/notesCatalog.js';
 import {
   computeNoteDisplayBoxes,
   fitAspectBox,
@@ -20,7 +19,6 @@ import {
 import { showToast } from '../Toast/Toast.js';
 import { findNoteByRouteParam } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
-import '../Button/Button.css';
 import './PdfModal.css';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
@@ -30,41 +28,9 @@ const PDFJS_WORKER_CDN =
 const PDF_LOADING_LOTTIE =
   'https://lottie.host/ac9f0d95-b144-482c-a2d4-fb707e069f94/lHcmDqwHwt.lottie';
 
-let cachedTimelineNotes = null;
-let cachedTimelineNotesPromise = null;
-
-async function loadTimelineNotes() {
-  if (cachedTimelineNotes) return cachedTimelineNotes;
-  if (cachedTimelineNotesPromise) return cachedTimelineNotesPromise;
-
-  cachedTimelineNotesPromise = getNotionNotebooks()
-    .then((notes) => {
-      cachedTimelineNotes = notes;
-      return notes;
-    })
-    .catch((error) => {
-      console.warn('노션 노트 목록 로드 실패:', error);
-      cachedTimelineNotes = null;
-      cachedTimelineNotesPromise = null;
-      return [];
-    });
-
-  return cachedTimelineNotesPromise;
-}
-
 async function findNoteMetaById(noteId) {
-  const [notebookResult, typeResult] = await Promise.allSettled([
-    getNotionNotebooks(),
-    getNotionTypeItems()
-  ]);
-  const notebooks = notebookResult.status === 'fulfilled' ? notebookResult.value : [];
-  const typeItems = typeResult.status === 'fulfilled' ? typeResult.value : [];
-  const notes = [...(notebooks || []), ...(typeItems || [])];
-  return (
-    findNoteByRouteParam(notes, noteId) ||
-    notes.find((note) => note.id === noteId) ||
-    null
-  );
+  const notes = await loadAllNotes();
+  return findNoteByRouteParam(notes, noteId) || notes.find((note) => note.id === noteId) || null;
 }
 
 function loadScript(src) {
@@ -436,12 +402,9 @@ export function renderPdfViewer(targetEl, id, options = {}) {
     showOverlay('PDF 목록 불러오는 중...');
     await ensurePdfJs();
     const noteMeta = (await findNoteMetaById(noteId)) || null;
-    const timelineNotes = await loadTimelineNotes();
-    const timelineNote = timelineNotes.find((note) => note.id === noteId) || null;
-    const notionPdfUrl = noteMeta?.pdfUrl || timelineNote?.pdfUrl || null;
-    if (!noteSize) noteSize = noteMeta?.size || timelineNote?.size || null;
+    if (!noteSize) noteSize = noteMeta?.size || null;
     invalidateLockedBoxes();
-    const pdfUrl = preferredPdfUrl || notionPdfUrl;
+    const pdfUrl = preferredPdfUrl || noteMeta?.pdfUrl || null;
 
     if (!pdfUrl) {
       showOverlay('PDF를 찾을 수 없습니다. Notion의 pdf_url을 확인해주세요.');

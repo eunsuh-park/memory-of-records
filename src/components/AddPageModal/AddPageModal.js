@@ -10,7 +10,7 @@ import {
   openUploadResultDialog,
   shortUploadError
 } from '../Dialog/uploadResultDialog.js';
-import { render as renderField } from '../FormField/FormField.js';
+import { render as renderField, setStatus as setFormStatus } from '../FormField/FormField.js';
 import {
   renderPicker as renderFilePicker,
   renderList as renderUploadList
@@ -33,21 +33,12 @@ import {
   validateImageFiles,
   validatePdfFile
 } from '../../services/pages.js';
-import { clearNotionNotebooksCache } from '../../services/notionNotebooks.js';
-import { clearNotionTypeItemsCache } from '../../services/notionByType.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
 import { requireAuth } from '../../services/auth.js';
 import { notePagesFolder } from '../../services/notePages.js';
-import '../AddNoteFab/AddNoteFab.css';
+import { clearNotesCaches } from '../../utils/notesCatalog.js';
+import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
-
-function escapeHtml(value) {
-  return String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 /**
  * @param {{
@@ -150,10 +141,7 @@ export async function openAddPageModal(options = {}) {
   const closeModal = dialog.close;
 
   function setStatus(message, isError = false) {
-    const el = overlay.querySelector('.add-page-status');
-    if (!el) return;
-    el.textContent = message || '';
-    el.classList.toggle('form-status--error', Boolean(isError));
+    setFormStatus(overlay.querySelector('.add-page-status'), message, isError);
   }
 
   function renderPreviewList() {
@@ -177,14 +165,18 @@ export async function openAddPageModal(options = {}) {
               : ''
         }</p>
         <div class="add-page-source-grid">
-          <button type="button" class="add-page-source-btn" data-source="pdf">
-            <span class="add-page-source-title">PDF</span>
-            <span class="add-page-source-desc">자동으로 JPEG로 변환해 업로드</span>
-          </button>
-          <button type="button" class="add-page-source-btn" data-source="images">
-            <span class="add-page-source-title">이미지</span>
-            <span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>
-          </button>
+          ${renderButton({
+            shape: 'text',
+            className: 'add-page-source-btn',
+            dataset: { source: 'pdf' },
+            content: `<span class="add-page-source-title">PDF</span><span class="add-page-source-desc">자동으로 JPEG로 변환해 업로드</span>`
+          })}
+          ${renderButton({
+            shape: 'text',
+            className: 'add-page-source-btn',
+            dataset: { source: 'images' },
+            content: `<span class="add-page-source-title">이미지</span><span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>`
+          })}
         </div>
         <p class="form-status add-page-status" role="status"></p>
       `;
@@ -209,7 +201,13 @@ export async function openAddPageModal(options = {}) {
         <ul class="upload-list"></ul>
         <p class="form-status add-page-status" role="status"></p>
         <div class="add-page-footer">
-          <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
+          ${renderButton({
+            shape: 'text',
+            block: true,
+            content: '뒤로',
+            className: 'add-page-secondary',
+            dataset: { action: 'back' }
+          })}
           ${renderButton({
             shape: 'solid',
             content: '이 순서로 업로드',
@@ -248,7 +246,13 @@ export async function openAddPageModal(options = {}) {
       <ul class="upload-list"></ul>
       <p class="form-status add-page-status" role="status"></p>
       <div class="add-page-footer">
-        <button type="button" class="add-page-secondary" data-action="back">뒤로</button>
+        ${renderButton({
+          shape: 'text',
+          block: true,
+          content: '뒤로',
+          className: 'add-page-secondary',
+          dataset: { action: 'back' }
+        })}
         ${renderButton({
           shape: 'solid',
           content: '이 순서로 업로드',
@@ -503,8 +507,7 @@ export async function openAddPageModal(options = {}) {
       }
 
       if (noteId) markNoteUnseen(noteId);
-      clearNotionNotebooksCache();
-      clearNotionTypeItemsCache();
+      clearNotesCaches();
       hideUploadingOverlay();
       openUploadResultDialog({
         title: '업로드 완료',
@@ -545,8 +548,7 @@ export async function openAddPageModal(options = {}) {
       const savedSome = folderUrl && uploadedCount > 0 && linkedCount > existingCount;
       if (savedSome) {
         if (noteId) markNoteUnseen(noteId);
-        clearNotionNotebooksCache();
-        clearNotionTypeItemsCache();
+        clearNotesCaches();
         options.onDone?.({
           ...(updated || {}),
           id: noteId,
@@ -628,14 +630,20 @@ export function openAddPagesConfirmDialog(options = {}) {
     title: '페이지를 추가할까요?',
     titleId: 'add-page-confirm-title',
     className: 'add-page-confirm-dialog',
-    panelClassName: 'add-page-confirm-panel',
+    panelClassName: 'dialog__panel--narrow',
     showClose: false,
     bodyHtml: `
       <p class="add-page-confirm-text">
         ${noteName ? `<strong>${escapeHtml(noteName)}</strong> 노트에 ` : ''}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.
       </p>
-      <div class="add-page-confirm-actions">
-        <button type="button" class="add-page-secondary" data-choice="later">나중에</button>
+      <div class="dialog-actions">
+        ${renderButton({
+          shape: 'text',
+          block: true,
+          content: '나중에',
+          className: 'add-page-secondary',
+          dataset: { choice: 'later' }
+        })}
         ${renderButton({
           shape: 'solid',
           content: '확인',
