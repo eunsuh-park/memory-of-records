@@ -13,6 +13,7 @@
   width: 260px;
   max-width: 100%;
   padding: 0;
+  margin-bottom: var(--space-6);
   background: var(--color-bg);
   pointer-events: auto;
 }
@@ -23,6 +24,15 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  width: 100%;
+}
+
+.jukebox-focus-info__details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
   width: 100%;
 }
 
@@ -87,10 +97,40 @@
   text-align: center;
 }
 
+.jukebox-focus-info__toggle.btn--icon {
+  display: none;
+  box-sizing: border-box;
+  border: 1px solid var(--color-primary);
+  color: var(--color-text);
+  transition: transform 0.2s ease;
+}
+
+.jukebox-focus-info.is-open .jukebox-focus-info__toggle {
+  transform: rotate(45deg);
+}
+
 @media (max-width: 768px) {
   .jukebox-focus-info {
     width: min(260px, 100%);
+    margin-bottom: var(--space-6);
   }
+
+  .jukebox-focus-info__toggle.btn--icon {
+    display: inline-flex;
+  }
+
+  .jukebox-focus-info:not(.is-open) .jukebox-focus-info__details {
+    display: none;
+  }
+}
+
+/* UiLab 모바일 접힘 미리보기 — 뷰포트와 무관하게 같은 규칙을 적용 */
+.jukebox-focus-info--compact .jukebox-focus-info__toggle.btn--icon {
+  display: inline-flex;
+}
+
+.jukebox-focus-info--compact:not(.is-open) .jukebox-focus-info__details {
+  display: none;
 }
 
 /*

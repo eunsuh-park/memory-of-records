@@ -836,6 +836,10 @@ export function renderJukeboxWithFilter(options) {
   const mainWrapper = mainContent.closest('.main-wrapper');
   if (mainWrapper) mainWrapper.classList.add('jukebox-active');
   document.body.classList.add('jukebox-active');
+  document.body.classList.toggle(
+    'jukebox-filter-empty',
+    !Array.isArray(filterOptions) || filterOptions.length === 0
+  );
 
   mainContent.innerHTML = `
     <div class="jukebox-fullscreen" id="jukebox-fullscreen">
@@ -864,6 +868,8 @@ export function renderJukeboxWithFilter(options) {
 
   /** 모바일: 중앙 카드 탭 시 보기/채우기·수정 노출 */
   let cardActionsOpen = false;
+  /** 모바일: 정보 패널 툴박스·메모 펼침 */
+  let infoDetailsOpen = false;
   /** @type {Array} */
   let boundNotes = [];
   let canEdit = isAuthenticated();
@@ -902,6 +908,11 @@ export function renderJukeboxWithFilter(options) {
     updateFocusInfo(boundNotes);
   }
 
+  function setInfoDetailsOpen(open) {
+    infoDetailsOpen = !!open;
+    updateFocusInfo(boundNotes);
+  }
+
   function updateFocusInfo(notes) {
     const list = notes || boundNotes || [];
     const centered = gallery.querySelector('.jukebox-card--centered');
@@ -913,7 +924,7 @@ export function renderJukeboxWithFilter(options) {
       focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
         index,
         total: list.length,
-        actionsOpen: cardActionsOpen,
+        detailsOpen: infoDetailsOpen,
         canEdit
       });
     }
@@ -942,6 +953,14 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
+      const toggleBtn = e.target?.closest?.('.jukebox-focus-info__toggle');
+      if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        setInfoDetailsOpen(!infoDetailsOpen);
+        return;
+      }
+
       const shareBtn = e.target?.closest?.('.jukebox-focus-info__share');
       if (shareBtn) {
         e.preventDefault();
@@ -1069,6 +1088,7 @@ export function renderJukeboxWithFilter(options) {
   function bindGallery(notes) {
     boundNotes = notes || [];
     cardActionsOpen = false;
+    infoDetailsOpen = false;
     document.body.classList.remove('jukebox-card-actions-open');
     fillJukeboxGallery(gallery, prevBtn, nextBtn, notes);
 
