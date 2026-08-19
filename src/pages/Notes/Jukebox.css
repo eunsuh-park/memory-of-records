@@ -659,17 +659,21 @@ body.jukebox-active.loading-active .notes-scrollbar {
   }
 }
 
-/* 캐러셀 중앙 포커스 노트 정보 */
+/* 캐러셀 중앙 포커스 노트 정보 — 하단 풀폭 고정, 안쪽 패널만 중앙 */
 .jukebox-focus-slot {
-  position: absolute;
-  left: 50%;
-  bottom: max(var(--space-5), env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  position: fixed;
+  left: 0;
+  bottom: 0;
   z-index: 40;
-  width: 260px;
-  max-width: calc(100% - var(--space-8));
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   pointer-events: none;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
 }
 
 /* 포커스 노트 정보 패널 스타일은 NoteInfoPanel 컴포넌트에 있음 */
@@ -711,11 +715,6 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev,
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     display: none !important;
-  }
-
-  .jukebox-focus-slot {
-    width: min(260px, calc(100% - var(--space-6)));
-    bottom: max(var(--space-3), env(safe-area-inset-bottom));
   }
 
   /*
