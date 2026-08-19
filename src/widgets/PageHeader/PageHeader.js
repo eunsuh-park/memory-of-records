@@ -1,7 +1,8 @@
 /**
  * PageHeader
  * 데스크톱: 로고(좌) | FilterSubMenu(중앙) | 테마 + Story(우)
- * 모바일: 로고(중앙) | 햄버거(우) + 접이식 필터 + 우측 드로어(Notes/Story/테마)
+ * 모바일: 로고(중앙) | 햄버거(우) + 접이식 필터 + 우측 드로어
+ *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 하단)
  */
 
 import './PageHeader.css';
@@ -41,6 +42,18 @@ function isNotesPath(path) {
   );
 }
 
+function isTimelinePath(path) {
+  return path === '/' || path.startsWith('/timeline') || path.startsWith('/note/');
+}
+
+function isByTypePath(path) {
+  return path.startsWith('/by-type');
+}
+
+function isFavoritesPath(path) {
+  return path.startsWith('/favorites');
+}
+
 function syncNavToggle(header) {
   if (!header) return;
   const collapsed = isFilterSubMenuCollapsed();
@@ -78,7 +91,9 @@ export function renderPageHeader() {
   const currentPath = getActualPath(window.location.pathname);
   const theme = getStoredTheme();
   const notesActive = isNotesPath(currentPath);
-  const favoritesActive = currentPath.startsWith('/favorites');
+  const timelineActive = isTimelinePath(currentPath);
+  const byTypeActive = isByTypePath(currentPath);
+  const favoritesActive = isFavoritesPath(currentPath);
   const storyActive = currentPath.startsWith('/story');
   const loginActive = currentPath.startsWith('/login');
 
@@ -149,21 +164,32 @@ export function renderPageHeader() {
           aria-label="메뉴 닫기"
           data-drawer-close
         >${MINGCUTE.arrowToRightLine}</button>
-        ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
+        <img src="${logo}" alt="" class="nav-drawer__logo" />
       </div>
       <nav class="nav-drawer__nav">
-        <a
-          href="/timeline"
-          class="nav-drawer__link ${notesActive && !favoritesActive ? 'active' : ''}"
-          data-link
-          data-drawer-close
-        >Notes</a>
-        <a
-          href="/favorites"
-          class="nav-drawer__link ${favoritesActive ? 'active' : ''}"
-          data-link
-          data-drawer-close
-        >Favorites</a>
+        <div class="nav-drawer__group ${notesActive ? 'is-active' : ''}" role="group" aria-label="Notes">
+          <span class="nav-drawer__link nav-drawer__parent">Notes</span>
+          <div class="nav-drawer__sub">
+            <a
+              href="/timeline"
+              class="nav-drawer__link ${timelineActive ? 'active' : ''}"
+              data-link
+              data-drawer-close
+            >Timeline</a>
+            <a
+              href="/by-type"
+              class="nav-drawer__link ${byTypeActive ? 'active' : ''}"
+              data-link
+              data-drawer-close
+            >By type</a>
+            <a
+              href="/favorites"
+              class="nav-drawer__link ${favoritesActive ? 'active' : ''}"
+              data-link
+              data-drawer-close
+            >Favorite</a>
+          </div>
+        </div>
         <a
           href="/story"
           class="nav-drawer__link ${storyActive ? 'active' : ''}"
@@ -172,6 +198,9 @@ export function renderPageHeader() {
         >Intro</a>
         <div class="nav-drawer__auth" data-auth-slot-drawer></div>
       </nav>
+      <div class="nav-drawer__footer">
+        ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
+      </div>
     </aside>
   `;
 

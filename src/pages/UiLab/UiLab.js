@@ -102,7 +102,7 @@ const RESPONSIVE_MATRIX = [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
       '로고 중앙, 햄버거 2.5rem 우측 절대배치, 데스크톱 우측 그룹 숨김',
       '필터 슬롯이 아랫줄(order 2, max-height 6rem) — 접으면 max-height 0',
-      '우측 드로어 min(72vw, 300px) 슬라이드'
+      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, 하단 테마 토글'
     ],
     tablet: ['데스크톱 한 줄 레이아웃 유지'],
     desktop: [
@@ -138,7 +138,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일 포커스 정보(노트명 · 아이콘 버튼 · 메모)로 동일 레이아웃',
+      '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
       '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
       'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -639,7 +639,8 @@ export function renderUiLab() {
               renderIconButton({ ariaLabel: '즐겨찾기 데모', content: MINGCUTE.starLine }),
               renderIconButton({ ariaLabel: '노트 정보 수정 데모', content: MINGCUTE.edit2Fill }),
               renderIconButton({ ariaLabel: '페이지 추가 데모', content: MINGCUTE.fileNewFill }),
-              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Line })
+              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Line }),
+              renderIconButton({ ariaLabel: '노트 정보 펼치기 데모', content: MINGCUTE.addFill })
             ].join(''),
             { stageClass: 'ui-lab__demo-stage--icons' }
           )}
@@ -939,13 +940,42 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
-            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다.
+            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 모바일에서는 툴박스와 메모를 가리고
+            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 24px입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
+          ${renderVariantRow(
+            '모바일 접힘',
+            renderNoteInfoPanel(
+              {
+                id: 'ui-lab-demo-note',
+                title: '03_2024-25_카툰연습장',
+                description:
+                  '여기에는 노트에 대한 메모가 들어갑니다.\n들여쓰기를 허용하며, 최대 세 줄이 들어가고\n글자수로는 공백포함 70자까지.'
+              },
+              'period',
+              { canEdit: true, compact: true, detailsOpen: false }
+            ),
+            { stageClass: 'ui-lab__demo-stage--info' }
+          )}
+          ${renderVariantRow(
+            '모바일 펼침',
+            renderNoteInfoPanel(
+              {
+                id: 'ui-lab-demo-note-open',
+                title: '03_2024-25_카툰연습장',
+                description:
+                  '여기에는 노트에 대한 메모가 들어갑니다.\n들여쓰기를 허용하며, 최대 세 줄이 들어가고\n글자수로는 공백포함 70자까지.'
+              },
+              'period',
+              { canEdit: true, compact: true, detailsOpen: true }
+            ),
+            { stageClass: 'ui-lab__demo-stage--info' }
+          )}
           <div class="ui-lab__demo-stage ui-lab__demo-stage--info">
             ${renderNoteInfoPanel(
               {
-                id: 'ui-lab-demo-note',
+                id: 'ui-lab-demo-note-desktop',
                 title: '03_2024-25_카툰연습장',
                 description:
                   '여기에는 노트에 대한 메모가 들어갑니다.\n들여쓰기를 허용하며, 최대 세 줄이 들어가고\n글자수로는 공백포함 70자까지.'
@@ -1018,7 +1048,8 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">FilterSubMenu</h2>
           <p class="ui-lab__section-desc">
             Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만 헤더 중앙에 주입되며,
-            모바일에서는 접이식 상단 네비로 동작합니다. 실데이터 연동 데모는 Timeline·By type에서 확인하세요.
+            모바일에서는 접이식 상단 네비(시기·유형 칩)로 동작합니다. Timeline / By type / Favorite 전환은
+            모바일 우측 드로어 Notes 하위에 있습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code></p>
           <ul class="ui-lab__list">

@@ -115,7 +115,12 @@ class Router {
       path.startsWith('/by-type') ||
       path.startsWith(FAVORITES_PATH);
     if (!isNotesPage) {
-      document.body.classList.remove('jukebox-active', 'filter-nav-collapsed', 'filter-nav-open');
+      document.body.classList.remove(
+        'jukebox-active',
+        'jukebox-filter-empty',
+        'filter-nav-collapsed',
+        'filter-nav-open'
+      );
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
