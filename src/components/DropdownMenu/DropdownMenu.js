@@ -1,7 +1,7 @@
 /**
  * DropdownMenu
  *
- * 커스텀 드롭다운 목록. 트리거는 DropdownChip, 항목은 26px pill.
+ * 커스텀 드롭다운 목록. 트리거는 DropdownChip, 항목은 padding 7px 12px · fit-content.
  * 패널(.dropdown-menu)은 padding·gap 4px, radius 18px, 0.5px 보더.
  *
  * 항목 상태: default · hover · selected · active-hover.
