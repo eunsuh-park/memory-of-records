@@ -147,10 +147,10 @@
   --color-shadow-lg: rgba(0, 0, 0, 0.28);
   --color-drop-shadow: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
 
-  /* 주크박스 바닥 반사 — 중앙에서 멀어질수록 옅게 (라이트 모드는 미사용) */
-  --color-reflect: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.25));
-  --color-reflect-mid: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.13));
-  --color-reflect-far: linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.06));
+  /* 주크박스 바닥 반사 — 노트 바로 아래만 아주 옅게, 곧 사라짐 (라이트 모드는 미사용) */
+  --color-reflect: linear-gradient(rgb(0 0 0 / 0.07), rgb(0 0 0 / 0) 28%);
+  --color-reflect-mid: linear-gradient(rgb(0 0 0 / 0.035), rgb(0 0 0 / 0) 24%);
+  --color-reflect-far: linear-gradient(rgb(0 0 0 / 0.018), rgb(0 0 0 / 0) 20%);
   --color-fade-edge: linear-gradient(90deg, var(--black), transparent);
 
   /* 밝은 서피스 위 컨트롤(뒤로가기 버튼 등) */
