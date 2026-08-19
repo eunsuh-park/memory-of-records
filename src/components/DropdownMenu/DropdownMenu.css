@@ -110,7 +110,7 @@ button.dropdown-menu__item {
 
 .dropdown-menu__item.is-selected[aria-selected='true'] {
   background-color: transparent;
-  color: var(--color-primary);
+  color: var(--color-text);
   font-weight: var(--font-semibold);
   cursor: default;
 }
