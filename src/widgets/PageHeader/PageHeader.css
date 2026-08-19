@@ -421,18 +421,22 @@
     background: transparent !important;
     background-color: transparent !important;
     color: var(--color-text) !important;
+    -webkit-text-fill-color: var(--color-text) !important;
     cursor: pointer;
     box-shadow: none !important;
+    opacity: 1 !important;
+    filter: none !important;
   }
 
   .nav-drawer__close svg {
     display: block;
     width: 22px;
     height: 22px;
+    color: var(--color-text);
   }
 
   .nav-drawer__close svg path {
-    stroke: currentColor !important;
+    stroke: var(--color-text) !important;
   }
 
   .nav-drawer__logo {
