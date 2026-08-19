@@ -882,14 +882,14 @@ export function renderUiLab() {
           </p>
           <p class="ui-lab__files">참조: <code>src/components/DropdownMenu/DropdownMenu.js</code>, <code>src/components/DropdownMenu/DropdownMenu.css</code></p>
           ${renderVariantRow(
-            'dropbox — hover / selected / active-hover / default',
+            'dropbox — default / hover / selected / active-hover',
             renderDropdownMenu({
               ariaLabel: '드롭다운 항목 상태',
               content: [
+                renderDropdownMenuItem({ label: 'Tab Name' }),
                 renderDropdownMenuItem({ label: 'Tab Name', className: 'is-hover' }),
                 renderDropdownMenuItem({ label: 'Tab Name', selected: true }),
-                renderDropdownMenuItem({ label: 'Tab Name', selected: true, className: 'is-hover' }),
-                renderDropdownMenuItem({ label: 'Tab Name' })
+                renderDropdownMenuItem({ label: 'Tab Name', selected: true, className: 'is-hover' })
               ].join('')
             }),
             { stageClass: 'ui-lab__demo-stage--menu' }
