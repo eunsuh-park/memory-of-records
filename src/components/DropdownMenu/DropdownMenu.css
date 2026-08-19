@@ -2,7 +2,7 @@
  * DropdownMenu 스타일
  *
  * 패널(드롭박스): padding·gap 4px, radius 18px, 0.5px 보더, --color-bg.
- * 항목은 26px pill(padding 7px 12px). .dropdown 안에서만 칩 아래 absolute.
+ * 항목은 padding 7px 12px, 크기는 fit-content. .dropdown 안에서만 칩 아래 absolute.
  */
 
 .dropdown {
@@ -16,7 +16,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
   width: auto;
   height: auto;
   padding: var(--space-1);
@@ -47,8 +47,8 @@ button.dropdown-menu__item {
   gap: var(--space-1);
   box-sizing: border-box;
   margin: 0;
-  width: 100%;
-  height: 26px;
+  width: fit-content;
+  height: fit-content;
   padding: 7px 12px;
   border: none;
   border-radius: var(--radius-pill);
