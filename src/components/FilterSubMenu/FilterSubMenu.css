@@ -121,8 +121,10 @@
   height: 10px;
 }
 
+.filter-sort__dropdown .dropdown-chip.is-selected,
+.filter-sort__dropdown .dropdown-chip.is-open,
 .filter-sort__dropdown.is-open .dropdown-chip {
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 /*
