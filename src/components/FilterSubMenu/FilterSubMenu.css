@@ -102,7 +102,28 @@
   margin-top: var(--space-2);
 }
 
-/* 정렬 드롭다운 — DropdownChip/DropdownMenu 기본(default) 스타일 그대로 사용 */
+/* 정렬 드롭다운 트리거(칩) — 메뉴 항목 스타일은 DropdownMenu 기본값 유지 */
+.filter-sort__dropdown .dropdown-chip {
+  background: var(--color-bg-alt);
+  border: none;
+  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-3);
+  color: var(--color-text);
+  font-weight: var(--font-regular);
+}
+
+.filter-sort__dropdown .dropdown-chip__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.filter-sort__dropdown .dropdown-chip__icon svg {
+  width: 10px;
+  height: 10px;
+}
+
+.filter-sort__dropdown.is-open .dropdown-chip {
+  color: var(--color-primary);
+}
 
 /*
  * ========== 타블렛 (1024px 이하) ==========
