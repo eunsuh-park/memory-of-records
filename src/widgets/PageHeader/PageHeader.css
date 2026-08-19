@@ -345,24 +345,12 @@
     padding: var(--space-1) var(--space-4) var(--space-3);
   }
 
-  .nav-drawer__close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .nav-drawer__close.btn--icon {
     width: 2.4rem;
     height: 2.4rem;
-    margin: 0;
-    padding: 0;
-    border: none !important;
-    border-radius: var(--radius-none);
-    background: transparent !important;
-    background-color: transparent !important;
-    color: var(--color-text) !important;
-    -webkit-text-fill-color: var(--color-text) !important;
-    cursor: pointer;
-    box-shadow: none !important;
-    opacity: 1 !important;
-    filter: none !important;
+    min-width: 2.4rem;
+    min-height: 2.4rem;
+    color: var(--color-text);
   }
 
   .nav-drawer__close svg {
@@ -370,10 +358,12 @@
     width: 22px;
     height: 22px;
     color: var(--color-text);
+    stroke: var(--color-text);
   }
 
   .nav-drawer__close svg path {
-    stroke: var(--color-text) !important;
+    fill: none;
+    stroke: var(--color-text);
   }
 
   .nav-drawer__logo {

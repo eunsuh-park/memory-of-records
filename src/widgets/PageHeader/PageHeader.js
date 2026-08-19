@@ -135,12 +135,16 @@ export function renderPageHeader() {
       aria-label="사이트 메뉴"
     >
       <div class="nav-drawer__top">
-        <button
-          type="button"
-          class="nav-drawer__close"
-          aria-label="메뉴 닫기"
-          data-drawer-close
-        >${MINGCUTE.arrowToRightLine}</button>
+        ${renderButton({
+          shape: 'circle',
+          size: 's',
+          role: 'icon',
+          tone: 'ghost',
+          ariaLabel: '메뉴 닫기',
+          content: MINGCUTE.arrowToRightLine,
+          className: 'nav-drawer__close',
+          dataset: { 'drawer-close': '' }
+        })}
         <img src="${logo}" alt="" class="nav-drawer__logo" />
       </div>
       <nav class="nav-drawer__nav">
