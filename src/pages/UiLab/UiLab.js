@@ -108,7 +108,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       'fixed · max-width 1200px · width calc(100% - 3rem) · padding 1rem 2rem',
       '하단 모서리 48px 라운드',
-      '로고 | 필터 슬롯(flex 1) | 테마·Login·Story 한 줄',
+      '로고 | 필터 슬롯(flex 1) | 테마·Login/Logout·(+ 새 노트 추가, 로그인 시) 한 줄',
       '햄버거·드로어 display none'
     ]
   },

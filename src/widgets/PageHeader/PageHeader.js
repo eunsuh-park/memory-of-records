@@ -1,6 +1,6 @@
 /**
  * PageHeader
- * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login(우)
+ * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
  * 모바일: 로고(중앙) | 햄버거(우) + 필터 + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 하단)
  */
@@ -196,6 +196,16 @@ export function renderPageHeader() {
 
   bindThemeSwitches(container);
 
+  function onAddNoteClick(e) {
+    e.preventDefault();
+    closeDrawer();
+    void openAddNoteModal({
+      onCreated: () => {
+        router.handleRoute();
+      }
+    });
+  }
+
   async function fillAuthSlots() {
     const session = await getSession();
     const desktop = container.querySelector('[data-auth-slot]');
@@ -205,7 +215,14 @@ export function renderPageHeader() {
         desktop.innerHTML = `
           <button type="button" class="page-header__auth-btn" data-auth-logout>
             Logout
-          </button>`;
+          </button>
+          ${renderButton({
+            shape: 'text',
+            ariaLabel: '새 노트 추가',
+            content: `${MINGCUTE.addFill}<span>+ 새 노트 추가</span>`,
+            className: 'page-header__auth-btn',
+            dataset: { 'add-note': '' }
+          })}`;
       }
       if (drawer) {
         drawer.innerHTML = `
@@ -251,6 +268,10 @@ export function renderPageHeader() {
         }
       });
     });
+
+    desktop?.querySelectorAll('[data-add-note]').forEach((btn) => {
+      btn.addEventListener('click', onAddNoteClick);
+    });
   }
 
   void fillAuthSlots();
@@ -267,15 +288,7 @@ export function renderPageHeader() {
     });
   });
 
-  container.querySelector('[data-add-note]')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    closeDrawer();
-    void openAddNoteModal({
-      onCreated: () => {
-        router.handleRoute();
-      }
-    });
-  });
+  container.querySelector('.nav-drawer [data-add-note]')?.addEventListener('click', onAddNoteClick);
 
   if (!window.__pageHeaderEscBound) {
     window.__pageHeaderEscBound = true;
