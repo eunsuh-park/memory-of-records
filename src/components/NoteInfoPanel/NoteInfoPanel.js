@@ -105,7 +105,7 @@ export function render(note, _filterMode, opts = {}) {
       ? iconAction({
           action: 'share',
           label: '공유',
-          icon: MINGCUTE.share2Line,
+          icon: MINGCUTE.share2Fill,
           noteId
         })
       : '',
@@ -141,7 +141,7 @@ export function render(note, _filterMode, opts = {}) {
       ? iconAction({
           action: 'delete',
           label: '삭제',
-          icon: MINGCUTE.delete2Line,
+          icon: MINGCUTE.delete2Fill,
           noteId,
           extraClass: 'auth-only'
         })
