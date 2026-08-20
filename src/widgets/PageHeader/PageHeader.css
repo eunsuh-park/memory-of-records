@@ -1,6 +1,6 @@
 /**
  * PageHeader 스타일
- * 데스크톱: [로고 + Intro] --- [FilterSubMenu] --- [테마 + Login]
+ * 데스크톱: [로고 + Intro] --- [FilterSubMenu] --- [테마 + Login/Logout + 새 노트 추가]
  * 모바일: 로고 중앙 + 햄버거, 접이식 필터, 우측 드로어(Notes 하위 메뉴 · 테마는 하단)
  */
 
@@ -134,6 +134,18 @@
 .page-header__auth {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
+}
+
+.page-header__auth-btn.btn--text {
+  gap: var(--space-1);
+}
+
+.page-header__auth-btn.btn--text svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .page-header__story-link:focus,
