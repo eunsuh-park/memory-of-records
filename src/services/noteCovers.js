@@ -4,6 +4,7 @@
  */
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isBookmarksNoteId } from '../utils/bookmarksNote.js';
+import { isDemoNoteId } from '../utils/demoNote.js';
 
 /** @type {{ data: Record<string, {front?: string|null, back?: string|null}>|null, loaded: boolean, promise: Promise<unknown>|null }} */
 const cachedCovers = { data: null, loaded: false, promise: null };
@@ -84,7 +85,9 @@ export function attachNoteCovers(notes, coversResult) {
 
   const covers = coversResult.covers || {};
   return list.map((note) => {
-    if (!note || isBookmarksNoteId(note.id) || note.isVirtualBookmarks) return note;
+    if (!note || isBookmarksNoteId(note.id) || note.isVirtualBookmarks || isDemoNoteId(note.id)) {
+      return note;
+    }
     const hit = lookupCover(covers, note);
     return {
       ...note,

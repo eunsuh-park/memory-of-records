@@ -33,6 +33,17 @@
   color: var(--color-text-muted);
 }
 
+.login-lede:has(+ .login-local-hint) {
+  margin-bottom: var(--space-1);
+}
+
+.login-local-hint {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-text-dim);
+}
+
 .login-status {
   min-height: 1.2em;
 }

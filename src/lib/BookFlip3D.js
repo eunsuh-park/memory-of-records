@@ -175,16 +175,29 @@ export function createBookFlip3D(THREE, options) {
     if (!key) return Promise.reject(new Error('empty texture url'));
     if (textureMap.has(key)) return Promise.resolve(textureMap.get(key));
 
+    const isInline = key.startsWith('data:') || key.startsWith('blob:');
+
     return new Promise((resolve, reject) => {
+      const accept = (texture) => {
+        applyTextureColorSpace(THREE, texture);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.needsUpdate = true;
+        textureMap.set(key, texture);
+        resolve(texture);
+      };
+
+      if (isInline) {
+        const image = new Image();
+        image.onload = () => accept(new THREE.Texture(image));
+        image.onerror = () => reject(new Error('failed to load inline texture'));
+        image.src = key;
+        return;
+      }
+
       textureLoader.load(
         key,
-        (texture) => {
-          applyTextureColorSpace(THREE, texture);
-          texture.minFilter = THREE.LinearFilter;
-          texture.magFilter = THREE.LinearFilter;
-          textureMap.set(key, texture);
-          resolve(texture);
-        },
+        (texture) => accept(texture),
         undefined,
         (err) => reject(err || new Error(`failed to load ${key}`))
       );

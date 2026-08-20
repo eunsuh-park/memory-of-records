@@ -29,6 +29,12 @@ import {
   ensureBookmarkNoteCovers,
   isBookmarksNoteId
 } from '../../utils/bookmarksNote.js';
+import {
+  createDemoNote,
+  demoNoteViewerOptions,
+  isDemoNoteId,
+  isLocalDemoEnabled
+} from '../../utils/demoNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { copyNoteShareUrl } from '../../utils/noteSlug.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
@@ -496,7 +502,12 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
       const noteId = escapeHtml(note.id || '');
-      const showBadge = Boolean(note.id && !isBookmarksNoteId(note.id) && isNoteUnseen(note.id));
+      const showBadge = Boolean(
+        note.id &&
+          !isBookmarksNoteId(note.id) &&
+          !isDemoNoteId(note.id) &&
+          isNoteUnseen(note.id)
+      );
       /*
        * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
        * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
@@ -680,6 +691,8 @@ function openNoteModal(note) {
     return;
   }
 
+  const demoOptions = isDemoNoteId(noteId) ? demoNoteViewerOptions(note) : null;
+
   const existing = document.querySelector('.pdf-modal-overlay');
   if (existing) existing.remove();
 
@@ -702,7 +715,8 @@ function openNoteModal(note) {
     pageCount: note?.pageCount,
     size: note?.size,
     title: note?.title || note?.name || '',
-    note
+    note,
+    ...(demoOptions || {})
   });
 
   const closeModal = () => {
@@ -950,7 +964,7 @@ export function renderJukeboxWithFilter(options) {
         e.stopPropagation();
         const noteId = shareBtn.getAttribute('data-note-id');
         const note = findNoteById(noteId);
-        if (!note || isBookmarksNoteId(note.id)) return;
+        if (!note || isBookmarksNoteId(note.id) || isDemoNoteId(note.id)) return;
         void copyNoteShareUrl(note)
           .then(() => {
             showToast('노트 링크를 복사했습니다');
@@ -1034,7 +1048,7 @@ export function renderJukeboxWithFilter(options) {
         if (deleteBtn.disabled) return;
         const noteId = deleteBtn.getAttribute('data-note-id');
         const note = findNoteById(noteId);
-        if (!note || isBookmarksNoteId(note.id)) return;
+        if (!note || isBookmarksNoteId(note.id) || isDemoNoteId(note.id)) return;
         openDeleteNoteDialog({
           note,
           onDeleted: refreshAfterNoteEdit
@@ -1052,7 +1066,7 @@ export function renderJukeboxWithFilter(options) {
       e.stopPropagation();
       const noteId = (editPill || editBtn || addBtn).getAttribute('data-note-id');
       const note = findNoteById(noteId);
-      if (!note) return;
+      if (!note || isBookmarksNoteId(note.id) || isDemoNoteId(note.id)) return;
       if (addBtn) {
         openAddPageModal({
           note,
@@ -1098,6 +1112,8 @@ export function renderJukeboxWithFilter(options) {
           if (viewBtn) openNoteModal(note);
           else if (isBookmarksNoteId(note.id)) {
             showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
+          } else if (isDemoNoteId(note.id)) {
+            showToast('데모 노트에는 페이지를 추가할 수 없습니다.');
           } else {
             openAddPageModal({
               note,
@@ -1146,9 +1162,10 @@ export function renderJukeboxWithFilter(options) {
       (note) => resolveFilterKey(note) === selectedValue
     );
     const sorted = sortNotes(byPeriodOrType, sortKey);
-    /* Timeline/By type만 Bookmark Note를 맨 앞에 붙인다. Favorites는 즐겨찾기 노트만. */
-    const galleryNotes =
-      filterMode === 'favorites' ? sorted : [createBookmarksNote(), ...sorted];
+    /* Timeline/By type만 Bookmark Note(+ 로컬 Demo Note)를 맨 앞에 붙인다. Favorites는 즐겨찾기 노트만. */
+    const extras = filterMode === 'favorites' ? [] : [createBookmarksNote()];
+    if (filterMode !== 'favorites' && isLocalDemoEnabled()) extras.push(createDemoNote());
+    const galleryNotes = extras.length ? [...extras, ...sorted] : sorted;
     bindGallery(galleryNotes);
 
     const counts = getNotesCount(allNotesCache);
@@ -1177,6 +1194,11 @@ export function renderJukeboxWithFilter(options) {
     })
     .catch((err) => {
       console.warn('Jukebox filter: 노트 로드 실패', err);
+      if (isLocalDemoEnabled()) {
+        allNotesCache = [];
+        applyFiltersAndRender();
+        return;
+      }
       renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle, {
         sortKey
       });

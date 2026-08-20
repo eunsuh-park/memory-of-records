@@ -255,6 +255,22 @@
   opacity: 0.5;
 }
 
+.ui-lab__live-viewer {
+  position: relative;
+  height: min(72vh, 760px);
+  margin-top: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-chrome-strong);
+  overflow: hidden;
+}
+
+.ui-lab__live-viewer .pdf-viewer,
+.ui-lab__live-viewer .pdf-canvas-wrap {
+  height: 100%;
+  margin-top: 0;
+}
+
 /* 데모용 solid 버튼은 폭을 내용에 맞춤 (실사용은 폼 안에서 100%) */
 .ui-lab-demo-solid {
   width: auto;

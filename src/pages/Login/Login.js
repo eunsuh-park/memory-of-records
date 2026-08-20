@@ -35,6 +35,11 @@ export async function renderLogin() {
       <div class="login-panel">
         <h1 class="login-title">로그인</h1>
         <p class="login-lede">추가 및 수정은 로그인이 필요합니다.</p>
+        ${
+          import.meta.env.DEV
+            ? '<p class="login-local-hint">로컬 개발에서는 비밀번호 1114로 로그인할 수 있습니다.</p>'
+            : ''
+        }
         <form class="form login-form" novalidate>
           ${renderField({
             type: 'password',
