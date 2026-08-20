@@ -150,7 +150,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
-      '데스크톱 포커스 정보 블록 표시(260px · 노트명 · Icon Button 5 · 메모), 카드 액션 오버레이 숨김',
+      '데스크톱 포커스 정보 블록 표시(높이 139px · 노트명 · Icon Button 5 · 메모), 카드 액션 오버레이 숨김',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]
   },
@@ -635,11 +635,11 @@ export function renderUiLab() {
           ${renderVariantRow(
             'circle · role icon (Icon Button) — 32px 투명 · 아이콘 16px, 노트 정보 패널 액션',
             [
-              renderIconButton({ ariaLabel: '공유 데모', content: MINGCUTE.share2Line }),
+              renderIconButton({ ariaLabel: '공유 데모', content: MINGCUTE.share2Fill }),
               renderIconButton({ ariaLabel: '즐겨찾기 데모', content: MINGCUTE.starLine }),
               renderIconButton({ ariaLabel: '노트 정보 수정 데모', content: MINGCUTE.edit2Fill }),
               renderIconButton({ ariaLabel: '페이지 추가 데모', content: MINGCUTE.fileNewFill }),
-              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Line }),
+              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Fill }),
               renderIconButton({ ariaLabel: '노트 정보 펼치기 데모', content: MINGCUTE.addFill })
             ].join(''),
             { stageClass: 'ui-lab__demo-stage--icons' }
@@ -709,7 +709,7 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
-            '노트 공유 — ghost toolbar · share-2-line (주크박스: 노트 링크 · 뷰어: 현재 페이지 링크)',
+            '노트 공유 — ghost toolbar · share-2-fill (주크박스 정보 패널) / share-2-line (뷰어 시트)',
             [
               renderButton({
                 shape: 'circle',
@@ -718,7 +718,7 @@ export function renderUiLab() {
                 tone: 'ghost',
                 ariaLabel: '공유 링크 복사',
                 title: '공유 링크 복사',
-                content: MINGCUTE.share2Line,
+                content: MINGCUTE.share2Fill,
                 className: 'jukebox-focus-info__share jukebox-focus-info__share--desktop'
               })
             ].join('')
@@ -940,8 +940,9 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
-            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 모바일에서는 툴박스와 메모를 가리고
-            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 24px입니다.
+            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 139px로 고정되고 내용은 상단부터 쌓입니다.
+            모바일에서는 접혀도 펼친 높이를 유지하고(<code>justify-content: flex-start</code>), 툴박스와 메모를 가린 뒤
+            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 48px입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(

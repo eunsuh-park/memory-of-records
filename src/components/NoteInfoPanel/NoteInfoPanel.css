@@ -5,24 +5,28 @@
  */
 
 .jukebox-focus-info {
+  --jukebox-focus-info-h: 139px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-4);
-  width: 260px;
+  width: 100%;
+  height: var(--jukebox-focus-info-h);
   max-width: 100%;
+  box-sizing: border-box;
   padding: 0;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-12);
   background: var(--color-bg);
   pointer-events: auto;
+  overflow: hidden;
 }
 
 .jukebox-focus-info__main {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
   gap: var(--space-2);
   width: 100%;
 }
@@ -31,7 +35,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--space-4);
   width: 100%;
 }
@@ -46,9 +50,6 @@
   line-height: 1.2;
   color: var(--color-text);
   text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .jukebox-focus-info__actions {
@@ -104,8 +105,10 @@
 
 @media (max-width: 768px) {
   .jukebox-focus-info {
-    width: min(260px, 100%);
-    margin-bottom: var(--space-6);
+    /* 접혀도 펼친 높이(+ 토글)를 유지하고, 남은 공간은 아래로 */
+    height: auto;
+    min-height: calc(var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4));
+    justify-content: flex-start;
   }
 
   .jukebox-focus-info__toggle.btn--icon {
@@ -118,6 +121,12 @@
 }
 
 /* UiLab 모바일 접힘 미리보기 — 뷰포트와 무관하게 같은 규칙을 적용 */
+.jukebox-focus-info--compact {
+  height: auto;
+  min-height: calc(var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4));
+  justify-content: flex-start;
+}
+
 .jukebox-focus-info--compact .jukebox-focus-info__toggle.btn--icon {
   display: inline-flex;
 }

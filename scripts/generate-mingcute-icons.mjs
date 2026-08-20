@@ -48,7 +48,8 @@ const ICONS = [
   { key: 'bookmarkLine', name: 'bookmark-line', desc: '페이지 북마크 off · 모바일 (라인 북마크)' },
   { key: 'delete2Fill', name: 'delete-2-fill', desc: '노트 삭제 (휴지통)' },
   { key: 'delete2Line', name: 'delete-2-line', desc: '노트 삭제 (휴지통, line)' },
-  { key: 'share2Line', name: 'share-2-line', desc: '노트 공유 링크 복사' }
+  { key: 'share2Line', name: 'share-2-line', desc: '뷰어 현재 페이지 링크 복사' },
+  { key: 'share2Fill', name: 'share-2-fill', desc: '노트 공유 링크 복사 (정보 패널)' }
 ];
 
 const res = await fetch(`${API}?icons=${ICONS.map((icon) => icon.name).join(',')}`);
