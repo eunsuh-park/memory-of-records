@@ -53,6 +53,9 @@
 .page-header__right--desktop {
   order: 3;
   justify-content: flex-end;
+  min-width: 0;
+  container-type: inline-size;
+  container-name: header-right;
 }
 
 .page-header__right--mobile {
@@ -137,6 +140,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .page-header__auth-btn.btn--text {
@@ -151,17 +155,36 @@
 }
 
 /*
- * 타블렛(≤1024px): 데스크톱 헤더가 유지되므로 라벨을 숨기고 아이콘만 둔다.
- * 모바일(≤768px)에서는 이 버튼 자체가 숨겨진다.
+ * 새 노트 추가: 높이·라벨은 한 줄로 고정한다.
+ * 우측 열(테마+Logout+버튼)이 라벨 버튼 폭을 못 받으면
+ * 모바일처럼 44px + 아이콘만 남긴다. 열 너비는 그리드 1fr이라
+ * 라벨을 접어도 컨테이너 크기가 바뀌지 않아 깜빡이지 않는다.
  */
-@media (max-width: 1024px) {
+.page-header__add-note.page-header__auth-btn {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.page-header__add-note-label {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@container header-right (max-width: 21.5rem) {
   .page-header__add-note-label {
     display: none;
   }
 
   .page-header__add-note.btn--text {
-    padding: var(--space-2);
+    width: 44px;
     min-width: 44px;
+    padding: 0;
     justify-content: center;
     gap: 0;
   }
