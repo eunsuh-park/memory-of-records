@@ -1,8 +1,8 @@
 /**
  * PageHeader
  * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
- * 모바일: 로고(중앙) | 햄버거(우) + 필터 + 우측 드로어
- *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 하단)
+ * 모바일: 로고(좌) | 햄버거(우) + 필터 + 우측 드로어
+ *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 Logout 아래)
  */
 
 import './PageHeader.css';
@@ -145,7 +145,6 @@ export function renderPageHeader() {
           className: 'nav-drawer__close',
           dataset: { 'drawer-close': '' }
         })}
-        <img src="${logo}" alt="" class="nav-drawer__logo" />
       </div>
       <nav class="nav-drawer__nav">
         <div class="nav-drawer__group ${notesActive ? 'is-active' : ''}" role="group" aria-label="Notes">
@@ -154,7 +153,7 @@ export function renderPageHeader() {
             ${renderButton({
               shape: 'text',
               ariaLabel: '새 노트 추가',
-              content: `${MINGCUTE.arrowToRightLine}<span>+새 노트 추가</span>`,
+              content: `${MINGCUTE.addFill}<span>새 노트 추가</span>`,
               className: 'nav-drawer__add-note',
               dataset: { 'add-note': '' }
             })}
@@ -186,11 +185,11 @@ export function renderPageHeader() {
           data-link
           data-drawer-close
         >Intro</a>
-        <div class="nav-drawer__auth" data-auth-slot-drawer></div>
+        <div class="nav-drawer__account">
+          <div class="nav-drawer__auth" data-auth-slot-drawer></div>
+          ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
+        </div>
       </nav>
-      <div class="nav-drawer__footer">
-        ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
-      </div>
     </aside>
   `;
 
