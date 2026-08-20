@@ -100,9 +100,9 @@ const RESPONSIVE_MATRIX = [
     points: '768px',
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
-      '로고 중앙, 햄버거 2.5rem 우측 절대배치, 데스크톱 우측 그룹 숨김',
+      '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
       '필터 슬롯이 아랫줄(order 2, max-height 6rem) — 접으면 max-height 0',
-      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, 하단 테마 토글'
+      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, Logout 아래 테마 토글'
     ],
     tablet: ['데스크톱 한 줄 레이아웃 유지'],
     desktop: [
@@ -140,12 +140,11 @@ const RESPONSIVE_MATRIX = [
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
       '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
-      'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
+      '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
     tablet: [
       '.notes-container padding-top 90px',
-      '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지',
-      'FAB 항상 표시(Primary)'
+      '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
@@ -190,13 +189,11 @@ const RESPONSIVE_MATRIX = [
     files: 'src/components/AddNoteFab/AddNoteFab.js · AddNoteFab.css',
     points: '640px (주크박스 한정 768px)',
     mobile: [
-      '≤640px FAB right/bottom 1rem · 패널 padding 1rem',
-      '커버·입력 행 그리드가 모두 1열로 스택',
-      '주크박스 모바일에서는 기본 숨김, 필터가 열렸을 때만 3rem 원형으로 노출'
+      '≤640px 패널 padding 1rem',
+      '커버·입력 행 그리드가 모두 1열로 스택'
     ],
     tablet: ['데스크톱과 동일'],
     desktop: [
-      'FAB fixed right/bottom 1.25rem · 3.25rem 원형',
       '패널 min(600px, 100%) · max-height min(92vh, 920px)',
       '커버 2열, 입력 행 2~3열 그리드'
     ]
@@ -1074,7 +1071,7 @@ export function renderUiLab() {
             <code>src/components/AddPageModal/PageMetaModal.js</code>
           </p>
           <ul class="ui-lab__list">
-            <li>노트 추가/수정: Notes 주크박스 하단·카드 액션</li>
+            <li>노트 추가/수정: 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>

@@ -1,6 +1,6 @@
 /**
  * 새 노트 추가 모달 — AddNoteFab 고유 부분만
- * (FAB·제출 버튼 → Button, 모달 껍데기 → Dialog, 폼 필드 → FormField,
+ * (제출 버튼 → Button, 모달 껍데기 → Dialog, 폼 필드 → FormField,
  *  파일 선택 → FileUploadPreview 로 옮겼다)
  */
 
