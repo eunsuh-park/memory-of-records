@@ -385,6 +385,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
   box-shadow: none;
   cursor: pointer;
   pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
 }
 

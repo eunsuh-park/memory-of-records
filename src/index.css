@@ -54,28 +54,3 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
   margin: 0;
 }
-
-/* 버튼 기본 스타일 (.btn·드롭다운 칩/항목은 각 컴포넌트 CSS가 패딩·색을 맡는다) */
-button:not(.btn):not(.dropdown-chip):not(.dropdown-menu__item) {
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: var(--font-medium);
-  font-family: inherit;
-  background-color: var(--primary-color);
-  color: var(--color-primary-on);
-  cursor: pointer;
-  transition: all 0.25s;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  button:not(.btn):not(.dropdown-chip):not(.dropdown-menu__item):hover {
-    background-color: var(--hover-color);
-  }
-}
-
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}

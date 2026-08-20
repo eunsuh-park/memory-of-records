@@ -129,6 +129,8 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .page-header__auth {
@@ -179,6 +181,8 @@
   border: none;
   background: transparent;
   font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .nav-drawer__auth {
@@ -253,7 +257,7 @@
     max-height: 36px;
   }
 
-  /* 아이콘 버튼: 전역 button 스타일을 눌러야 해서 !important 유지 */
+  /* 햄버거 — 투명 아이콘 버튼. 모양은 이 규칙만 쓴다 */
   .page-header__menu-btn {
     display: inline-flex;
     align-items: center;
@@ -262,24 +266,27 @@
     height: 2.5rem;
     margin: 0;
     padding: 0;
-    border: none !important;
+    border: none;
     border-radius: var(--radius-none);
-    background: transparent !important;
-    background-color: transparent !important;
-    color: var(--color-text) !important;
-    -webkit-text-fill-color: var(--color-text) !important;
+    background: transparent;
+    background-color: transparent;
+    color: var(--color-text);
+    -webkit-text-fill-color: var(--color-text);
+    font: inherit;
     cursor: pointer;
-    box-shadow: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+    box-shadow: none;
     outline: none;
-    filter: none !important;
-    opacity: 1 !important;
+    filter: none;
+    opacity: 1;
   }
 
   .page-header__menu-btn:focus-visible {
-    background: transparent !important;
-    background-color: transparent !important;
+    background: transparent;
+    background-color: transparent;
     outline: none;
-    opacity: 1 !important;
+    opacity: 1;
     filter: brightness(0.9);
   }
 
@@ -497,10 +504,10 @@
 
 @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
   .page-header__menu-btn:hover {
-    background: transparent !important;
-    background-color: transparent !important;
+    background: transparent;
+    background-color: transparent;
     outline: none;
-    opacity: 1 !important;
+    opacity: 1;
     filter: brightness(0.9);
   }
 }

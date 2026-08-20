@@ -86,12 +86,6 @@ a {
   text-decoration: none;
 }
 
-/* 버튼 기본 스타일 */
-button {
-  font-family: inherit;
-  font-size: inherit;
-}
-
 /* 앱 로딩 오류 시 새로고침 버튼 (Button solid shape 확장) */
 .app-error-reload-btn {
   width: auto;
