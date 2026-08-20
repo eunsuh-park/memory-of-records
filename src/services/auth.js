@@ -9,6 +9,39 @@ let cachedSession = null;
 let cacheAt = 0;
 const CACHE_MS = 15_000;
 
+/** Vite 개발 서버 전용. 프로덕션 빌드에서는 import.meta.env.DEV 가 false. */
+const LOCAL_TEST_PASSWORD = '1114';
+const LOCAL_AUTH_KEY = 'mor-local-auth';
+
+function isViteDev() {
+  return Boolean(import.meta.env.DEV);
+}
+
+function readLocalAuth() {
+  if (!isViteDev()) return false;
+  try {
+    return window.localStorage.getItem(LOCAL_AUTH_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeLocalAuth(on) {
+  if (!isViteDev()) return;
+  try {
+    if (on) window.localStorage.setItem(LOCAL_AUTH_KEY, '1');
+    else window.localStorage.removeItem(LOCAL_AUTH_KEY);
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function applyLocalAuth() {
+  cachedSession = { authenticated: true, exp: null };
+  cacheAt = Date.now();
+  syncAuthUi(true);
+}
+
 /** @type {Set<(authenticated: boolean) => void>} */
 const authListeners = new Set();
 /** @type {boolean|null} */
@@ -83,6 +116,11 @@ export async function getSession(options = {}) {
     return { ok: true, ...cachedSession };
   }
 
+  if (readLocalAuth()) {
+    applyLocalAuth();
+    return { ok: true, authenticated: true, exp: null };
+  }
+
   try {
     const response = await fetch('/api/auth?op=me', {
       method: 'GET',
@@ -101,6 +139,10 @@ export async function getSession(options = {}) {
       message: data?.message
     };
   } catch (err) {
+    if (readLocalAuth()) {
+      applyLocalAuth();
+      return { ok: true, authenticated: true, exp: null };
+    }
     cachedSession = { authenticated: false, exp: null };
     cacheAt = Date.now();
     syncAuthUi(false);
@@ -121,37 +163,61 @@ export function clearSessionCache() {
  * @param {string} password
  */
 export async function login(password) {
-  const response = await fetch('/api/auth', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ op: 'login', password })
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
+  const allowLocal = isViteDev() && password === LOCAL_TEST_PASSWORD;
+
+  try {
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ op: 'login', password })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      if (allowLocal) writeLocalAuth(true);
+      cachedSession = { authenticated: true, exp: data?.exp ?? null };
+      cacheAt = Date.now();
+      syncAuthUi(true);
+      return data;
+    }
+    if (allowLocal) {
+      writeLocalAuth(true);
+      applyLocalAuth();
+      return { ok: true, authenticated: true, exp: null };
+    }
     clearSessionCache();
     throw new Error(data?.message || data?.error || '로그인에 실패했습니다');
+  } catch (err) {
+    if (allowLocal) {
+      writeLocalAuth(true);
+      applyLocalAuth();
+      return { ok: true, authenticated: true, exp: null };
+    }
+    throw err;
   }
-  cachedSession = { authenticated: true, exp: data?.exp ?? null };
-  cacheAt = Date.now();
-  syncAuthUi(true);
-  return data;
 }
 
 export async function logout() {
-  const response = await fetch('/api/auth', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ op: 'logout' })
-  });
+  writeLocalAuth(false);
   clearSessionCache();
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data?.message || data?.error || '로그아웃에 실패했습니다');
+  try {
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ op: 'logout' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok && !isViteDev()) {
+      throw new Error(data?.message || data?.error || '로그아웃에 실패했습니다');
+    }
+    syncAuthUi(false);
+    return data;
+  } catch (err) {
+    syncAuthUi(false);
+    if (isViteDev()) return { ok: true, authenticated: false };
+    throw err;
   }
-  syncAuthUi(false);
-  return data;
 }
 
 /**

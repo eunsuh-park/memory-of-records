@@ -10,10 +10,20 @@ import crypto from 'crypto';
 
 const COOKIE_NAME = 'mor_session';
 const MAX_AGE_SEC = 60 * 60 * 24 * 7; /* 7일 */
+const LOCAL_DEV_PASSWORD = '1114';
+const LOCAL_DEV_SECRET = 'mor-local-dev-auth';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
   return String(value).trim();
+}
+
+function isLocalDevAuth() {
+  const vercelEnv = trimOrEmpty(process.env.VERCEL_ENV).toLowerCase();
+  if (vercelEnv === 'production' || vercelEnv === 'preview') return false;
+  if (process.env.VERCEL === '1' && vercelEnv !== 'development') return false;
+  if (vercelEnv === 'development') return true;
+  return process.env.NODE_ENV !== 'production';
 }
 
 function getAdminPassword() {
@@ -21,7 +31,11 @@ function getAdminPassword() {
 }
 
 function getAuthSecret() {
-  return trimOrEmpty(process.env.AUTH_SECRET) || getAdminPassword();
+  return (
+    trimOrEmpty(process.env.AUTH_SECRET) ||
+    getAdminPassword() ||
+    (isLocalDevAuth() ? LOCAL_DEV_SECRET : '')
+  );
 }
 
 function timingSafeEqualString(a, b) {
@@ -111,7 +125,7 @@ export default async function handler(req, res) {
       if (op !== 'me') {
         return res.status(400).json({ error: 'Unknown op', message: 'GET op=me 만 지원합니다' });
       }
-      if (!adminPassword || !secret) {
+      if (!secret) {
         return res.status(503).json({
           ok: false,
           authenticated: false,
@@ -139,18 +153,26 @@ export default async function handler(req, res) {
     }
 
     if (op === 'login') {
-      if (!adminPassword || !secret) {
+      const password = String(body.password ?? '');
+      const adminOk = Boolean(adminPassword) && timingSafeEqualString(password, adminPassword);
+      const localOk = isLocalDevAuth() && timingSafeEqualString(password, LOCAL_DEV_PASSWORD);
+      if (!adminPassword && !localOk) {
         return res.status(503).json({
           error: 'Auth not configured',
           message: 'ADMIN_PASSWORD와 AUTH_SECRET을 설정해주세요'
         });
       }
-      const password = String(body.password ?? '');
-      if (!timingSafeEqualString(password, adminPassword)) {
+      if (!adminOk && !localOk) {
         return res.status(401).json({
           ok: false,
           authenticated: false,
           message: '비밀번호가 올바르지 않습니다'
+        });
+      }
+      if (!secret) {
+        return res.status(503).json({
+          error: 'Auth not configured',
+          message: 'ADMIN_PASSWORD와 AUTH_SECRET을 설정해주세요'
         });
       }
       const token = createSessionToken(secret);

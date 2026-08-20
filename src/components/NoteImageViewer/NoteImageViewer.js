@@ -31,6 +31,7 @@ import {
   createBookmarksNote,
   ensureBookmarkNoteCovers
 } from '../../utils/bookmarksNote.js';
+import { createDemoNote, demoNoteViewerOptions, isDemoNoteId } from '../../utils/demoNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { loadAllNotes } from '../../utils/notesCatalog.js';
 import {
@@ -148,6 +149,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let shareNote = options.note || null;
   const isModal = options.mode === 'modal';
   const isBookmarksAlbum = isBookmarksNoteId(noteId);
+  const isDemoNote = isDemoNoteId(noteId);
+  const demoNote = isDemoNote ? options.note || createDemoNote() : null;
 
   const viewerMarkup = `
     <section class="pdf-viewer${isModal ? ' pdf-viewer--modal' : ''} note-image-viewer">
@@ -199,7 +202,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   /** 가상 앨범(북마크): 1-based index → 원본 페이지 엔트리 */
   let albumPages = Array.isArray(options.pages)
     ? options.pages.filter((p) => p && (p.url || (p.folderUrl && p.pageNumber)))
-    : null;
+    : isDemoNote
+      ? (demoNote.pages || []).filter((p) => p && p.url)
+      : null;
   let isAlbumMode = Array.isArray(albumPages);
   /* page_count가 비어 있으면 null: 로드 실패 지점에서 마지막 페이지를 동적으로 확정 */
   let totalPages = isAlbumMode
@@ -207,23 +212,28 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     : Number.isFinite(Number(options.pageCount)) && Number(options.pageCount) > 0
       ? Math.floor(Number(options.pageCount))
       : null;
-  let hasKnownPageCount = totalPages !== null || isBookmarksAlbum;
-  let noteSize = options.size || null;
+  let hasKnownPageCount = totalPages !== null || isBookmarksAlbum || isDemoNote;
+  let noteSize = options.size || demoNote?.size || null;
   let noteTitle = String(
-    options.title || options.noteTitle || (isBookmarksAlbum ? BOOKMARKS_NOTE_TITLE : '')
+    options.title ||
+      options.noteTitle ||
+      (isBookmarksAlbum ? BOOKMARKS_NOTE_TITLE : '') ||
+      (isDemoNote ? demoNote.title : '')
   ).trim();
   let coverFrontUrl = String(
-    options.coverFrontUrl || options.note?.coverFrontUrl || ''
+    options.coverFrontUrl || options.note?.coverFrontUrl || demoNote?.coverFrontUrl || ''
   ).trim();
   let coverBackUrl = String(
-    options.coverBackUrl || options.note?.coverBackUrl || ''
+    options.coverBackUrl || options.note?.coverBackUrl || demoNote?.coverBackUrl || ''
   ).trim();
   /** 중간 삽입 후 Cloudinary/브라우저 캐시 무효화용 */
   let mediaVersion = 0;
   /** size 없을 때: 첫 1페이지 이미지 비율을 노트 전체에 고정 */
   let fallbackSingleAspect = null;
 
-  if ((isAlbumMode || isBookmarksAlbum) && addPageBtn) {
+  if (isDemoNote && !shareNote) shareNote = demoNote;
+
+  if ((isAlbumMode || isBookmarksAlbum || isDemoNote) && addPageBtn) {
     addPageBtn.hidden = true;
     addPageBtn.setAttribute('aria-hidden', 'true');
   }
@@ -978,11 +988,13 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function openInsertPageModal() {
-    if (isAlbumMode || isBookmarksAlbum) {
+    if (isAlbumMode || isBookmarksAlbum || isDemoNote) {
       showToast(
         isBookmarksAlbum
           ? '북마크 모음에는 페이지를 추가할 수 없습니다.'
-          : '이 모아보기에는 페이지를 추가할 수 없습니다.'
+          : isDemoNote
+            ? '데모 노트에는 페이지를 추가할 수 없습니다.'
+            : '이 모아보기에는 페이지를 추가할 수 없습니다.'
       );
       return;
     }
@@ -1192,7 +1204,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   function syncShareButton() {
     if (!shareNoteBtn) return;
-    const hide = isBookmarksAlbum || isAlbumMode || !noteId;
+    const hide = isBookmarksAlbum || isDemoNote || isAlbumMode || !noteId;
     shareNoteBtn.hidden = hide;
     shareNoteBtn.setAttribute('aria-hidden', hide ? 'true' : 'false');
   }
@@ -1207,7 +1219,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function copyShareLink() {
-    if (isBookmarksAlbum || isAlbumMode) {
+    if (isBookmarksAlbum || isAlbumMode || isDemoNote) {
       showToast('이 모아보기는 공유할 수 없습니다.');
       return;
     }
@@ -1227,7 +1239,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function applyCanonicalNoteUrl(note, page) {
-    if (isAlbumMode || isBookmarksAlbum || !note?.id) return;
+    if (isAlbumMode || isBookmarksAlbum || isDemoNote || !note?.id) return;
     const href = noteHref(note, page);
     if (!href || href.endsWith('/note')) return;
     const current = `${window.location.pathname}${window.location.search}`;
@@ -1237,7 +1249,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function syncShareUrl() {
-    if (isAlbumMode || isBookmarksAlbum || !shareNote?.id || !ready) return;
+    if (isAlbumMode || isBookmarksAlbum || isDemoNote || !shareNote?.id || !ready) return;
     const page = sharePageNumber();
     const href = noteHref(shareNote, page);
     if (!href || href === lastSyncedShareHref) return;
@@ -1555,6 +1567,13 @@ export function renderNoteDetailPage(id) {
           note
         });
       });
+    return;
+  }
+  if (isDemoNoteId(id)) {
+    mainContent._routeCleanup = renderNoteImageViewer(mainContent, id, {
+      mode: 'page',
+      ...demoNoteViewerOptions()
+    });
     return;
   }
   mainContent._routeCleanup = renderNoteImageViewer(mainContent, id);

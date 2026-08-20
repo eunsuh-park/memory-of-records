@@ -14,10 +14,16 @@ import {
   renderPanel as renderDropdownMenu
 } from '../../components/DropdownMenu/DropdownMenu.js';
 import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrome.js';
+import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
+import {
+  DEMO_NOTE_ID,
+  demoNoteViewerOptions,
+  isLocalDemoEnabled
+} from '../../utils/demoNote.js';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
 import './UiLab.css';
@@ -139,7 +145,7 @@ const RESPONSIVE_MATRIX = [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
-      '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
+      '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
     tablet: [
@@ -149,7 +155,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
-      '데스크톱 포커스 정보 블록 표시(높이 139px · 노트명 · Icon Button 5 · 메모), 카드 액션 오버레이 숨김',
+      '데스크톱 포커스 정보 블록 표시(높이 139px · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]
   },
@@ -1005,6 +1011,7 @@ export function renderUiLab() {
             <li>모바일 북마크는 양면 토글 위 FAB로 표시되고, 시트 안 북마크는 숨깁니다</li>
             <li>북마크는 Cloudinary <code>is_bookmarked</code>와 연결되며, 변경 시 토스트를 띄웁니다</li>
             <li>양면 토글(2페이지로 보기)을 누르면 3D 책장(BookFlip3D)으로 바뀝니다. 기본은 1페이지 보기이고, WebGL을 쓸 수 없으면 기존 2D 양면 붙이기를 씁니다</li>
+            <li>로컬(<code>npm run dev</code>)에서는 주크박스에 Demo Note(흰 페이지 9장, 홀수 장이라 뒷표지 안쪽에 회색 가상 페이지)가 붙습니다</li>
             <li>공유 버튼은 보고 있는 장의 <code>/note/{slug}?p=N</code> 링크를 복사합니다. 주크박스 포커스 공유는 노트 전체 링크입니다</li>
             <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
             <li>공유 링크로 연 전체 페이지 뷰어는 오른쪽 위 닫기(X)·ESC·여백 클릭으로 주크박스에 돌아갑니다</li>
@@ -1117,7 +1124,17 @@ export function renderUiLab() {
           </p>
           <ul class="ui-lab__list">
             <li><a href="/" data-link>주크박스에서 노트 열어 뷰어 확인</a></li>
+            ${
+              isLocalDemoEnabled()
+                ? `<li><a href="/note/${DEMO_NOTE_ID}" data-link>Demo Note 전체 페이지 뷰어</a> — Bookmark Note 표지 + 흰 페이지 9장</li>`
+                : '<li>Demo Note는 <code>npm run dev</code> 로컬에서만 주크박스에 붙습니다</li>'
+            }
           </ul>
+          ${
+            isLocalDemoEnabled()
+              ? `<div class="ui-lab__live-viewer note-image-viewer" data-lab="demo-note-viewer"></div>`
+              : ''
+          }
         </section>
 
         <section class="ui-lab__section" id="pages">
@@ -1181,5 +1198,21 @@ export function renderUiLab() {
   if (chromeDemo) {
     const totalEl = chromeDemo.querySelector('.niv-total-pages');
     if (totalEl) totalEl.textContent = '12';
+  }
+
+  const liveViewer = root.querySelector('[data-lab="demo-note-viewer"]');
+  if (liveViewer && isLocalDemoEnabled()) {
+    const cleanup = renderNoteImageViewer(liveViewer, DEMO_NOTE_ID, {
+      mode: 'modal',
+      ...demoNoteViewerOptions()
+    });
+    const main = document.getElementById('main-content');
+    if (main) {
+      const prev = main._routeCleanup;
+      main._routeCleanup = () => {
+        cleanup?.();
+        if (typeof prev === 'function') prev();
+      };
+    }
   }
 }

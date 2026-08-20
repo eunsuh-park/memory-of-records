@@ -81,7 +81,7 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 뷰포트는 실제 CSS가 쓰는 값을 기준으로 **Mobile ≤768px · iPad 769–1024px · Desktop ≥1025px** 세 구간으로 봅니다. 모바일 안에서는 640px(모달·뷰어), 600px(필터 라벨 축약), 480px(주크박스 카드) 하위 단계가 추가로 쓰입니다. iPad 구간에 전용 규칙이 있는 것은 FilterSubMenu(치수 축소), Jukebox(상단 여백), Story(책 → 단일 열 전환) 셋뿐이고 나머지 컴포넌트는 데스크톱 레이아웃을 그대로 씁니다.
 
-구조가 실제로 갈라지는 곳은 세 군데입니다. PageHeader는 768px 아래에서 한 줄 레이아웃이 세로 스택 + 햄버거 + 우측 드로어로 바뀌고, FilterSubMenu는 같은 지점에서 접이식 상단 네비가 되며 FilterChip이 가로 pill에서 세로 스택으로 바뀝니다. Jukebox는 중앙 카드를 데스크톱에서는 클릭 즉시 뷰어로 열지만 모바일에서는 보기/채우기 오버레이를 먼저 띄웁니다. 이 두 곳만 JS가 `matchMedia('(max-width: 768px)')`로 분기하고, 나머지는 전부 CSS로만 반응합니다.
+구조가 실제로 갈라지는 곳은 세 군데입니다. PageHeader는 768px 아래에서 한 줄 레이아웃이 세로 스택 + 햄버거 + 우측 드로어로 바뀌고, FilterSubMenu는 같은 지점에서 접이식 상단 네비가 되며 FilterChip이 가로 pill에서 세로 스택으로 바뀝니다. Jukebox는 모바일에서 바닥 반사를 끄고 포커스 정보를 접습니다. 이 두 곳만 JS가 `matchMedia('(max-width: 768px)')`로 분기하고, 나머지는 전부 CSS로만 반응합니다.
 
 컴포넌트별로 어떤 값이 어떻게 달라지는지는 `/ui-lab`의 Responsive 섹션에 정리해 두었고, 현재 창 폭에 해당하는 열이 강조됩니다.
 

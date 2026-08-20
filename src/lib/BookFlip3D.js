@@ -13,6 +13,8 @@
  * - 페이지 1 잎: FrontSide = pages[0], BackSide = cover_front
  * - 마지막 페이지 잎: FrontSide = pages[n-1], BackSide = cover_back
  * - 그 외 잎: FrontSide = page k, BackSide = page k±1 (넘김 방향에 맞게)
+ * - 실제 페이지가 홀수 장이면 맨 뒤에 회색 가상 페이지(뒷표지 안쪽)를 붙인다.
+ *   노트 pageCount·페이지 번호에는 넣지 않는다.
  *
  * 상태:
  * - bookState 'open'   → 스프레드 (왼·오른 페이지)
@@ -42,8 +44,18 @@ export function createBookFlip3D(THREE, options) {
     throw new Error('assets.cover_front / assets.cover_back are required');
   }
 
-  const pages = normalizePages(assets.pages);
-  if (pages.length < 1) throw new Error('assets.pages must have at least 1 page');
+  const VIRTUAL_ENDPAPER = Object.freeze({
+    pageNumber: null,
+    url: '',
+    virtual: true,
+  });
+  const VIRTUAL_ENDPAPER_COLOR = 0xcccccc;
+
+  const realPages = normalizePages(assets.pages);
+  if (realPages.length < 1) throw new Error('assets.pages must have at least 1 page');
+  const pages = realPages.length % 2 === 1
+    ? [...realPages, VIRTUAL_ENDPAPER]
+    : realPages;
 
   const UNDERLAY_Z = -0.015;
   const FLIP_SPEED = 0.045;
@@ -104,14 +116,24 @@ export function createBookFlip3D(THREE, options) {
       .sort((a, b) => a.pageNumber - b.pageNumber);
   }
 
+  function isVirtualPage(page) {
+    return Boolean(page?.virtual);
+  }
+
+  function realPageNumberAt(index) {
+    const page = pages[index];
+    if (!page || isVirtualPage(page)) return null;
+    return page.pageNumber ?? null;
+  }
+
   function snapshotState() {
     return {
       bookState,
       closedFace,
       currentLeftIndex,
-      leftPageNumber: pages[currentLeftIndex]?.pageNumber ?? null,
-      rightPageNumber: pages[currentLeftIndex + 1]?.pageNumber ?? null,
-      pageCount: pages.length,
+      leftPageNumber: realPageNumberAt(currentLeftIndex),
+      rightPageNumber: realPageNumberAt(currentLeftIndex + 1),
+      pageCount: realPages.length,
       isAnimating,
       canGoPrev: canGoPrev(),
       canGoNext: canGoNext(),
@@ -153,16 +175,29 @@ export function createBookFlip3D(THREE, options) {
     if (!key) return Promise.reject(new Error('empty texture url'));
     if (textureMap.has(key)) return Promise.resolve(textureMap.get(key));
 
+    const isInline = key.startsWith('data:') || key.startsWith('blob:');
+
     return new Promise((resolve, reject) => {
+      const accept = (texture) => {
+        applyTextureColorSpace(THREE, texture);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.needsUpdate = true;
+        textureMap.set(key, texture);
+        resolve(texture);
+      };
+
+      if (isInline) {
+        const image = new Image();
+        image.onload = () => accept(new THREE.Texture(image));
+        image.onerror = () => reject(new Error('failed to load inline texture'));
+        image.src = key;
+        return;
+      }
+
       textureLoader.load(
         key,
-        (texture) => {
-          applyTextureColorSpace(THREE, texture);
-          texture.minFilter = THREE.LinearFilter;
-          texture.magFilter = THREE.LinearFilter;
-          textureMap.set(key, texture);
-          resolve(texture);
-        },
+        (texture) => accept(texture),
         undefined,
         (err) => reject(err || new Error(`failed to load ${key}`))
       );
@@ -182,10 +217,10 @@ export function createBookFlip3D(THREE, options) {
 
   function makeFaceMaterial(faceKey, side) {
     const url = resolveFaceUrl(faceKey);
-    const base = textureMap.get(url);
+    const base = url ? textureMap.get(url) : null;
     if (!base) {
       return new THREE.MeshStandardMaterial({
-        color: 0xcccccc,
+        color: VIRTUAL_ENDPAPER_COLOR,
         side,
         transparent: true,
         opacity: 1,
@@ -285,7 +320,7 @@ export function createBookFlip3D(THREE, options) {
 
   function backFaceForLeft(leftIndex) {
     if (leftIndex === 0) return 'front';
-    // 홀수 장: 마지막 페이지가 왼쪽에만 있을 때 뒷면 = cover_back
+    // 가상 페이지를 붙이기 전 홀수 장 폴백: 마지막 왼쪽 장의 뒷면 = cover_back
     if (leftIndex === LAST_PAGE_INDEX) return 'back';
     return leftIndex - 1;
   }
@@ -687,7 +722,7 @@ export function createBookFlip3D(THREE, options) {
 
   function preloadRest() {
     pages.forEach((page, index) => {
-      if (index < 4) return;
+      if (index < 4 || isVirtualPage(page) || !page.url) return;
       loadTexture(page.url)
         .then(() => refreshIfUrlVisible(page.url))
         .catch(() => {});
@@ -702,9 +737,15 @@ export function createBookFlip3D(THREE, options) {
     buildClosedCover(face);
   }
 
+  function findRealPageIndex(pageNumber) {
+    return pages.findIndex(
+      (page) => !isVirtualPage(page) && page.pageNumber === pageNumber
+    );
+  }
+
   function goToPageNumber(pageNumber) {
     if (isAnimating || disposed) return;
-    const index = pages.findIndex((page) => page.pageNumber === pageNumber);
+    const index = findRealPageIndex(pageNumber);
     if (index < 0) return;
     const leftIndex = index % 2 === 0 ? index : Math.max(0, index - 1);
     currentLeftIndex = Math.max(0, Math.min(LAST_LEFT_INDEX, leftIndex));
@@ -719,7 +760,7 @@ export function createBookFlip3D(THREE, options) {
     } else {
       const pageNumber = Number(initialPageNumber);
       if (Number.isFinite(pageNumber) && pageNumber >= 1) {
-        const index = pages.findIndex((page) => page.pageNumber === pageNumber);
+        const index = findRealPageIndex(pageNumber);
         if (index >= 0) {
           const leftIndex = index % 2 === 0 ? index : Math.max(0, index - 1);
           currentLeftIndex = Math.max(0, Math.min(LAST_LEFT_INDEX, leftIndex));
