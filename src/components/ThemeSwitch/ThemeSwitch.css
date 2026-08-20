@@ -6,13 +6,11 @@
  * 트랙(surface)은 각 모드 --color-bg와 같은 단계(dark-5 / light-4).
  * hover는 핸들(썸)만 한 단계 밝아진다. 트랙·아이콘은 그대로.
  *
- * 선택자는 index.css의 전역 `button`(이 파일보다 늦게 로드됨)보다
- * 특이도가 높아야 해서 [role='switch']를 함께 쓴다.
- * 전역 규칙은 `.theme-switch`를 제외해야 한다. 드롭다운 칩처럼 :not()을 늘리면
- * 이 선택자를 다시 덮어 패딩·primary 배경이 토글에 들어간다.
+ * index.css가 이 파일보다 늦게 로드된다. 전역 `button:not(.btn)…`에
+ * :not()을 더해 빼지 말고, 이 컴포넌트 선택자가 그 규칙보다 특이도가 높아야 한다.
  */
 
-button.theme-switch[role='switch'] {
+button.theme-switch[role='switch'][data-theme][data-theme-toggle] {
   --theme-switch-size: var(--space-8);
   --theme-switch-inset: var(--space-1);
   --theme-switch-thumb: calc(var(--theme-switch-size) - 2 * var(--theme-switch-inset));
@@ -42,14 +40,14 @@ button.theme-switch[role='switch'] {
   transition: background-color 0.35s ease;
 }
 
-button.theme-switch[role='switch'][data-theme='light'] {
+button.theme-switch[role='switch'][data-theme='light'][data-theme-toggle] {
   --theme-switch-track: var(--grey-light-4);
   --theme-switch-handle: var(--grey-light-2);
   --theme-switch-handle-hover: var(--grey-light-1);
 }
 
-button.theme-switch[role='switch']:focus,
-button.theme-switch[role='switch']:focus-visible {
+button.theme-switch[role='switch'][data-theme-toggle]:focus,
+button.theme-switch[role='switch'][data-theme-toggle]:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -70,7 +68,7 @@ button.theme-switch[role='switch']:focus-visible {
   pointer-events: none;
 }
 
-button.theme-switch[role='switch'][data-theme='light'] .theme-switch__thumb {
+button.theme-switch[role='switch'][data-theme='light'][data-theme-toggle] .theme-switch__thumb {
   transform: translateX(0);
 }
 
@@ -97,16 +95,16 @@ button.theme-switch[role='switch'][data-theme='light'] .theme-switch__thumb {
   right: var(--theme-switch-inset);
 }
 
-button.theme-switch[role='switch'][data-theme='light'] .theme-switch__icon {
+button.theme-switch[role='switch'][data-theme='light'][data-theme-toggle] .theme-switch__icon {
   color: var(--grey-light-9);
 }
 
-button.theme-switch[role='switch'][data-theme='dark'] .theme-switch__icon--moon {
+button.theme-switch[role='switch'][data-theme='dark'][data-theme-toggle] .theme-switch__icon--moon {
   color: var(--primary-2);
   opacity: 1;
 }
 
-button.theme-switch[role='switch'][data-theme='light'] .theme-switch__icon--sun {
+button.theme-switch[role='switch'][data-theme='light'][data-theme-toggle] .theme-switch__icon--sun {
   color: var(--primary-3);
   opacity: 1;
 }
@@ -119,11 +117,11 @@ button.theme-switch[role='switch'][data-theme='light'] .theme-switch__icon--sun 
 
 @media (hover: hover) and (pointer: fine) {
   /* 전역 button:hover 배경을 막고, 트랙 색은 유지한다 */
-  button.theme-switch[role='switch']:hover {
+  button.theme-switch[role='switch'][data-theme-toggle]:hover {
     background-color: var(--theme-switch-track);
   }
 
-  button.theme-switch[role='switch']:hover .theme-switch__thumb {
+  button.theme-switch[role='switch'][data-theme-toggle]:hover .theme-switch__thumb {
     background-color: var(--theme-switch-handle-hover);
   }
 }
