@@ -6,8 +6,10 @@
  * 트랙(surface)은 각 모드 --color-bg와 같은 단계(dark-5 / light-4).
  * hover는 핸들(썸)만 한 단계 밝아진다. 트랙·아이콘은 그대로.
  *
- * 선택자는 index.css의 `button:not(.btn)`(이 파일보다 늦게 로드됨)보다
+ * 선택자는 index.css의 전역 `button`(이 파일보다 늦게 로드됨)보다
  * 특이도가 높아야 해서 [role='switch']를 함께 쓴다.
+ * 전역 규칙은 `.theme-switch`를 제외해야 한다. 드롭다운 칩처럼 :not()을 늘리면
+ * 이 선택자를 다시 덮어 패딩·primary 배경이 토글에 들어간다.
  */
 
 button.theme-switch[role='switch'] {
