@@ -3,8 +3,6 @@
  *
  * 패널·항목의 크기·패딩·radius는 모든 상태에 같다.
  * 항목 배경은 기본 transparent, hover(selected hover 포함)만 surface-hover.
- *
- * 항목 선택자는 index.css `button:not(.btn)`보다 특이도를 높인다.
  */
 
 .dropdown {

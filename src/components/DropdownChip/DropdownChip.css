@@ -3,8 +3,6 @@
  *
  * 레이아웃 값(padding·gap·min-width·line-height·아이콘)은 모든 상태에 같다.
  * 상태별로 바꾸는 것: 배경, 글자색, 굵기, 화살표 방향.
- *
- * index.css `button:not(.btn)`보다 특이도를 높인다 (해당 규칙이 이 파일보다 늦게 로드됨).
  */
 
 button.dropdown-chip[aria-haspopup='listbox'] {

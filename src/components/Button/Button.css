@@ -12,7 +12,14 @@
   margin: 0;
   font: inherit;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.btn:focus,
+.btn:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
 }
 
 /* ========== shape: circle ========== */

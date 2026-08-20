@@ -6,8 +6,7 @@
  * 트랙(surface)은 각 모드 --color-bg와 같은 단계(dark-5 / light-4).
  * hover는 핸들(썸)만 한 단계 밝아진다. 트랙·아이콘은 그대로.
  *
- * 전역 `button` 규칙은 `.theme-switch`를 제외한다. 앱에 토글은 이 컴포넌트 하나뿐이라
- * 기본 버튼이 아니다. 모양은 이 파일이 정한다.
+ * 모양은 이 파일이 정한다. 전역 button 규칙은 두지 않는다.
  */
 
 button.theme-switch[role='switch'] {
@@ -18,6 +17,8 @@ button.theme-switch[role='switch'] {
   --theme-switch-handle: var(--grey-dark-6);
   --theme-switch-handle-hover: var(--grey-dark-7);
 
+  appearance: none;
+  -webkit-appearance: none;
   position: relative;
   box-sizing: border-box;
   display: inline-block;
@@ -116,7 +117,7 @@ button.theme-switch[role='switch'][data-theme='light'] .theme-switch__icon--sun 
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* 전역 button:hover 배경을 막고, 트랙 색은 유지한다 */
+  /* 전역 hover가 아니라 핸들만 한 단계 밝아진다 */
   button.theme-switch[role='switch']:hover {
     background-color: var(--theme-switch-track);
   }

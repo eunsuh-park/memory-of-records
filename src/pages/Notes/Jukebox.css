@@ -385,6 +385,8 @@ body.jukebox-active.loading-active .notes-scrollbar {
   box-shadow: none;
   cursor: pointer;
   pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -718,7 +720,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   }
 
   /*
-   * 카드 위 보기 / 채우기 — frame59 시안 (button:not(.btn)보다 특이도 높게)
+   * 카드 위 보기 / 채우기 — frame59 시안
    * display:none 대신 opacity로 열고 닫아, 버튼이 사라질 때도 자연스럽게 페이드 아웃된다.
    * (닫힌 동안은 inert로 탭/스크린리더 접근을 막는다)
    */
