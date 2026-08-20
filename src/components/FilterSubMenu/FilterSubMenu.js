@@ -14,6 +14,7 @@
 import { render as renderChip } from '../FilterChip/FilterChip.js';
 import { render as renderDropdown, bind as bindDropdown } from '../DropdownMenu/DropdownMenu.js';
 import { FAVORITES_PATH } from '../../utils/noteFavorites.js';
+import { schedulePageHeaderLayoutSync } from '../../widgets/PageHeader/headerLayout.js';
 import './FilterSubMenu.css';
 
 const SORT_OPTIONS = [
@@ -112,6 +113,8 @@ export function renderFilterSubMenu(
       </nav>
     </aside>
   `;
+
+  schedulePageHeaderLayoutSync();
 
   if (!controls) return;
 

@@ -2,6 +2,7 @@
  * PageHeader 스타일
  * 데스크톱: [로고 + Intro] --- [FilterSubMenu] --- [테마 + Login/Logout + 새 노트 추가]
  * 모바일: 로고 좌측 + 햄버거 우측, 접이식 필터, 우측 드로어(Notes 하위 메뉴 · 테마는 Logout 아래)
+ * ≤768px 또는 좌·중·우가 겹치면 body.page-header-mobile (JS)
  */
 
 .page-header {
@@ -544,6 +545,314 @@
 
 @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
   .page-header__menu-btn:hover {
+    background: transparent;
+    background-color: transparent;
+    outline: none;
+    opacity: 1;
+    filter: brightness(0.9);
+  }
+}
+
+/*
+ * JS가 좌·중·우 겹침을 보면 body.page-header-mobile.
+ * ≤768px 규칙과 같다. 미디어 쿼리 안이 아니라 뷰포트와 무관하게 켠다.
+ */
+body.page-header-mobile .page-header {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  padding-top: max(var(--space-2), env(safe-area-inset-top));
+  border-bottom-left-radius: var(--radius-none);
+  border-bottom-right-radius: var(--radius-none);
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+body.page-header-mobile .page-header__top {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.5rem;
+  order: 1;
+}
+
+body.page-header-mobile .page-header__right--desktop {
+  display: none;
+}
+
+body.page-header-mobile .page-header__right--mobile {
+  display: flex;
+  position: static;
+  transform: none;
+  z-index: 3;
+  order: unset;
+}
+
+body.page-header-mobile .page-header__left {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  justify-content: flex-start;
+  order: unset;
+}
+
+body.page-header-mobile .page-header__story-link {
+  display: none;
+}
+
+body.page-header-mobile .page-header__logo-image {
+  max-height: 36px;
+}
+
+body.page-header-mobile .page-header__menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-none);
+  background: transparent;
+  background-color: transparent;
+  color: var(--color-text);
+  -webkit-text-fill-color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: none;
+  outline: none;
+  filter: none;
+  opacity: 1;
+}
+
+body.page-header-mobile .page-header__menu-btn:focus-visible {
+  background: transparent;
+  background-color: transparent;
+  outline: none;
+  opacity: 1;
+  filter: brightness(0.9);
+}
+
+body.page-header-mobile .page-header__menu-btn svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+body.page-header-mobile .page-header__menu-btn svg path {
+  stroke: currentColor !important;
+}
+
+body.page-header-mobile .page-header__center {
+  order: 2;
+  flex: 1 1 auto;
+  width: calc(100% + var(--space-8));
+  margin-left: calc(var(--space-4) * -1);
+  margin-right: calc(var(--space-4) * -1);
+  justify-content: stretch;
+  padding: var(--space-1) 0 var(--space-2);
+  min-height: 0;
+  max-height: 6rem;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    max-height 0.28s ease,
+    opacity 0.2s ease,
+    padding 0.2s ease;
+}
+
+body.page-header-mobile.jukebox-filter-empty .page-header__center {
+  display: none !important;
+}
+
+body.page-header-mobile.jukebox-active .page-header {
+  pointer-events: auto;
+}
+
+body.page-header-mobile .nav-drawer-backdrop {
+  display: block;
+}
+
+body.page-header-mobile .nav-drawer {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1101;
+  width: min(72vw, 300px);
+  height: 100%;
+  padding: max(var(--space-3), env(safe-area-inset-top)) 0 0;
+  background: var(--color-bg-alt);
+  box-sizing: border-box;
+  transform: translateX(105%);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.page-header-mobile.nav-drawer-open .nav-drawer {
+  transform: translateX(0);
+}
+
+body.page-header-mobile .nav-drawer__top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--space-1) var(--space-4) var(--space-3);
+}
+
+body.page-header-mobile .nav-drawer__close.btn--icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  color: var(--color-text);
+}
+
+body.page-header-mobile .nav-drawer__close svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  color: var(--color-text);
+  stroke: var(--color-text);
+}
+
+body.page-header-mobile .nav-drawer__close svg path {
+  fill: none;
+  stroke: var(--color-text);
+}
+
+body.page-header-mobile .nav-drawer__nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: var(--space-4);
+  padding: var(--space-2) 0 max(var(--space-4), env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+
+body.page-header-mobile .nav-drawer__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+body.page-header-mobile .nav-drawer__group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+body.page-header-mobile .nav-drawer__group-head .nav-drawer__parent {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+body.page-header-mobile .nav-drawer__add-note.btn--text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  margin-right: var(--space-4);
+  padding: 0;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+body.page-header-mobile .nav-drawer__add-note svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+body.page-header-mobile .nav-drawer__group.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
+}
+
+body.page-header-mobile .nav-drawer__sub {
+  display: flex;
+  flex-direction: column;
+}
+
+body.page-header-mobile .nav-drawer__nav > .nav-drawer__link {
+  margin-top: var(--space-2);
+}
+
+body.page-header-mobile .nav-drawer__link {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-5);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  border-left: 3px solid transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body.page-header-mobile .nav-drawer__parent {
+  color: var(--color-text);
+  cursor: default;
+  border-left-color: transparent;
+}
+
+body.page-header-mobile .nav-drawer__sub .nav-drawer__link {
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-5) var(--space-2) var(--space-8);
+  font-size: var(--text-sm);
+  font-weight: var(--font-regular);
+  border-left-color: transparent;
+}
+
+body.page-header-mobile .nav-drawer__link.active {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-left-color: var(--color-primary);
+}
+
+body.page-header-mobile .nav-drawer__sub .nav-drawer__link.active {
+  color: var(--color-primary);
+  background: transparent;
+  font-weight: var(--font-semibold);
+  border-left-color: transparent;
+}
+
+body.page-header-mobile .nav-drawer__account {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  gap: var(--space-2);
+}
+
+body.page-header-mobile .nav-drawer__theme {
+  align-self: flex-start;
+  margin: 0 var(--space-5) var(--space-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body.page-header-mobile .page-header__menu-btn:hover {
     background: transparent;
     background-color: transparent;
     outline: none;

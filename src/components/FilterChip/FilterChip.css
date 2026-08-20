@@ -166,6 +166,27 @@
   }
 }
 
+body.page-header-mobile .chip:not([data-device='pc']) {
+  --chip-dir: column;
+  --chip-content-dir: column;
+  --chip-radius: var(--radius-md);
+  --chip-pad-block: var(--space-3);
+  --chip-pad-inline: var(--space-2);
+  --chip-label-size: 0.875rem;
+  --chip-label-line: 18px;
+  --chip-label-color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  --chip-count-size: 0.625rem;
+  white-space: normal;
+}
+
+body.page-header-mobile .chip:not([data-device='pc']) .chip__label--desktop {
+  display: none;
+}
+
+body.page-header-mobile .chip:not([data-device='pc']) .chip__label--mobile {
+  display: block;
+}
+
 @media (min-width: 769px) {
   .chip[data-device='mobile'] .chip__label--desktop {
     display: none;

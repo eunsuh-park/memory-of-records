@@ -3,6 +3,7 @@
  * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
  * 모바일: 로고(좌) | 햄버거(우) + 필터 + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 Logout 아래)
+ * ≤768px이거나, 고정 높이에서 중앙·우측이 겹치면 body.page-header-mobile
  */
 
 import './PageHeader.css';
@@ -16,6 +17,7 @@ import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { getSession, logout, clearSessionCache } from '../../services/auth.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { router } from '../../router.js';
+import { bindPageHeaderLayout, schedulePageHeaderLayoutSync } from './headerLayout.js';
 
 const BASE_URL = import.meta.env.BASE_URL || '/';
 
@@ -272,6 +274,8 @@ export function renderPageHeader() {
     desktop?.querySelectorAll('[data-add-note]').forEach((btn) => {
       btn.addEventListener('click', onAddNoteClick);
     });
+
+    schedulePageHeaderLayoutSync();
   }
 
   void fillAuthSlots();
@@ -289,6 +293,8 @@ export function renderPageHeader() {
   });
 
   container.querySelector('.nav-drawer [data-add-note]')?.addEventListener('click', onAddNoteClick);
+
+  bindPageHeaderLayout(container);
 
   if (!window.__pageHeaderEscBound) {
     window.__pageHeaderEscBound = true;

@@ -103,7 +103,7 @@ const RESPONSIVE_MATRIX = [
   {
     name: 'PageHeader',
     files: 'src/widgets/PageHeader/PageHeader.js · PageHeader.css',
-    points: 'header-right 21.5rem · 768px',
+    points: '겹침 감지 · header-right 21.5rem · 768px',
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
       '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
@@ -111,7 +111,8 @@ const RESPONSIVE_MATRIX = [
       '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, Logout 아래 테마 토글'
     ],
     tablet: [
-      '데스크톱 한 줄 레이아웃 유지',
+      '한 줄이 들어가면 데스크톱 레이아웃',
+      'center·right가 겹치면 뷰포트와 무관하게 모바일 헤더(body.page-header-mobile)',
       '우측 열 ≤21.5rem이면 「새 노트 추가」 라벨 숨김 · 44px + 아이콘만'
     ],
     desktop: [
@@ -119,7 +120,7 @@ const RESPONSIVE_MATRIX = [
       '하단 모서리 48px 라운드',
       '로고 | 필터 슬롯(flex 1) | 테마·Login/Logout·(새 노트 추가, 로그인 시) 한 줄',
       '새 노트 추가 높이 44px · 라벨 1줄. 우측 열이 좁아지면 + 아이콘만',
-      '햄버거·드로어 display none'
+      'center·right 겹침 시 모바일 헤더. 햄버거·드로어는 그때 표시'
     ]
   },
   {
