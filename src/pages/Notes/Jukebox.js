@@ -1162,9 +1162,13 @@ export function renderJukeboxWithFilter(options) {
       (note) => resolveFilterKey(note) === selectedValue
     );
     const sorted = sortNotes(byPeriodOrType, sortKey);
-    /* Timeline/By type만 Bookmark Note(+ 로컬 Demo Note)를 맨 앞에 붙인다. Favorites는 즐겨찾기 노트만. */
-    const extras = filterMode === 'favorites' ? [] : [createBookmarksNote()];
-    if (filterMode !== 'favorites' && isLocalDemoEnabled()) extras.push(createDemoNote());
+    /* Timeline/By type만 가상 노트를 맨 앞에 붙인다. Favorites는 즐겨찾기 노트만.
+     * 로컬 개발은 Demo Note만, 그 외는 Bookmark Note만. */
+    const extras = [];
+    if (filterMode !== 'favorites') {
+      if (isLocalDemoEnabled()) extras.push(createDemoNote());
+      else extras.push(createBookmarksNote());
+    }
     const galleryNotes = extras.length ? [...extras, ...sorted] : sorted;
     bindGallery(galleryNotes);
 
