@@ -106,15 +106,15 @@ const RESPONSIVE_MATRIX = [
     points: '768px',
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
-      '로고 중앙, 햄버거 2.5rem 우측 절대배치, 데스크톱 우측 그룹 숨김',
+      '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
       '필터 슬롯이 아랫줄(order 2, max-height 6rem) — 접으면 max-height 0',
-      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, 하단 테마 토글'
+      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, Logout 아래 테마 토글'
     ],
     tablet: ['데스크톱 한 줄 레이아웃 유지'],
     desktop: [
       'fixed · max-width 1200px · width calc(100% - 3rem) · padding 1rem 2rem',
       '하단 모서리 48px 라운드',
-      '로고 | 필터 슬롯(flex 1) | 테마·Login·Story 한 줄',
+      '로고 | 필터 슬롯(flex 1) | 테마·Login/Logout·(+ 새 노트 추가, 로그인 시) 한 줄',
       '햄버거·드로어 display none'
     ]
   },
@@ -146,17 +146,16 @@ const RESPONSIVE_MATRIX = [
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
-      'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
+      '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
     tablet: [
       '.notes-container padding-top 90px',
-      '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지',
-      'FAB 항상 표시(Primary)'
+      '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
-      '데스크톱 포커스 정보 블록 표시(260px · 노트명 · Icon Button 5 · 메모)',
+      '데스크톱 포커스 정보 블록 표시(높이 139px · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]
   },
@@ -196,13 +195,11 @@ const RESPONSIVE_MATRIX = [
     files: 'src/components/AddNoteFab/AddNoteFab.js · AddNoteFab.css',
     points: '640px (주크박스 한정 768px)',
     mobile: [
-      '≤640px FAB right/bottom 1rem · 패널 padding 1rem',
-      '커버·입력 행 그리드가 모두 1열로 스택',
-      '주크박스 모바일에서는 기본 숨김, 필터가 열렸을 때만 3rem 원형으로 노출'
+      '≤640px 패널 padding 1rem',
+      '커버·입력 행 그리드가 모두 1열로 스택'
     ],
     tablet: ['데스크톱과 동일'],
     desktop: [
-      'FAB fixed right/bottom 1.25rem · 3.25rem 원형',
       '패널 min(600px, 100%) · max-height min(92vh, 920px)',
       '커버 2열, 입력 행 2~3열 그리드'
     ]
@@ -270,7 +267,7 @@ const RESPONSIVE_MATRIX = [
     mobile: ['모든 폭에서 동일 (라벨 폭에 맞춘 pill)'],
     tablet: ['모든 폭에서 동일'],
     desktop: [
-      '가로 pill · padding 1px 4px 1px 12px · 아이콘 24px',
+      '가로 pill · min-width 120px · padding 1px 4px 1px 12px · gap 8px · 아이콘 24px',
       'default/selected는 0.5px border, hover는 surface-hover, 열림은 surface-active',
       '열림·선택은 라벨 primary semibold'
     ]
@@ -282,9 +279,9 @@ const RESPONSIVE_MATRIX = [
     mobile: ['모든 폭에서 동일 (auto 패널 · 26px 항목)'],
     tablet: ['모든 폭에서 동일'],
     desktop: [
-      '패널 auto · padding/gap 4px · radius 18px · 0.5px border · --color-bg',
-      '항목 26px pill · padding 7px 12px',
-      '칩 아래에 열림 · 선택 시 칩 라벨 갱신 후 닫힘'
+      '패널 fit-content · min-width 120px · padding/gap 4px · radius 13px · 0.5px border · --color-bg',
+      '항목 width 100% · padding 7px 8px · radius 13px · hover만 surface-hover',
+      '칩 아래 10px · 좌측 정렬 · 선택 시 칩 라벨 갱신 후 닫힘'
     ]
   },
   {
@@ -641,11 +638,11 @@ export function renderUiLab() {
           ${renderVariantRow(
             'circle · role icon (Icon Button) — 32px 투명 · 아이콘 16px, 노트 정보 패널 액션',
             [
-              renderIconButton({ ariaLabel: '공유 데모', content: MINGCUTE.share2Line }),
+              renderIconButton({ ariaLabel: '공유 데모', content: MINGCUTE.share2Fill }),
               renderIconButton({ ariaLabel: '즐겨찾기 데모', content: MINGCUTE.starLine }),
               renderIconButton({ ariaLabel: '노트 정보 수정 데모', content: MINGCUTE.edit2Fill }),
               renderIconButton({ ariaLabel: '페이지 추가 데모', content: MINGCUTE.fileNewFill }),
-              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Line }),
+              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Fill }),
               renderIconButton({ ariaLabel: '노트 정보 펼치기 데모', content: MINGCUTE.addFill })
             ].join(''),
             { stageClass: 'ui-lab__demo-stage--icons' }
@@ -715,7 +712,7 @@ export function renderUiLab() {
             ].join('')
           )}
           ${renderVariantRow(
-            '노트 공유 — ghost toolbar · share-2-line (주크박스: 노트 링크 · 뷰어: 현재 페이지 링크)',
+            '노트 공유 — ghost toolbar · share-2-fill (주크박스 정보 패널) / share-2-line (뷰어 시트)',
             [
               renderButton({
                 shape: 'circle',
@@ -724,7 +721,7 @@ export function renderUiLab() {
                 tone: 'ghost',
                 ariaLabel: '공유 링크 복사',
                 title: '공유 링크 복사',
-                content: MINGCUTE.share2Line,
+                content: MINGCUTE.share2Fill,
                 className: 'jukebox-focus-info__share jukebox-focus-info__share--desktop'
               })
             ].join('')
@@ -884,7 +881,7 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="dropdown-menu">
           <h2 class="ui-lab__section-title">DropdownMenu</h2>
           <p class="ui-lab__section-desc">
-            칩 아래에 붙는 드롭박스입니다. 상하좌우 padding 4px, 항목 간격 4px, radius 18px, 0.5px 보더입니다.
+            칩 아래에 붙는 드롭박스입니다. 상하좌우 padding 4px, 항목 간격 4px, radius 13px, 0.5px 보더입니다.
             항목 상태는 default · hover · selected · active-hover이고, 칩을 누르면 목록이 열리며 고르면 닫힙니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/DropdownMenu/DropdownMenu.js</code>, <code>src/components/DropdownMenu/DropdownMenu.css</code></p>
@@ -946,8 +943,9 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
-            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 모바일에서는 툴박스와 메모를 가리고
-            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 24px입니다.
+            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 139px로 고정되고 내용은 상단부터 쌓입니다.
+            모바일에서는 접혀도 펼친 높이를 유지하고(<code>justify-content: flex-start</code>), 툴박스와 메모를 가린 뒤
+            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 48px입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(
@@ -1080,7 +1078,7 @@ export function renderUiLab() {
             <code>src/components/AddPageModal/PageMetaModal.js</code>
           </p>
           <ul class="ui-lab__list">
-            <li>노트 추가/수정: Notes 주크박스 하단 FAB·포커스 패널</li>
+            <li>노트 추가/수정: 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>

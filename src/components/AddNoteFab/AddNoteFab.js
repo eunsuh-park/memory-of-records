@@ -1,5 +1,5 @@
 /**
- * 우측 하단 FAB(+) → 새 노트 추가 / 노트 정보 수정 모달
+ * 새 노트 추가 / 노트 정보 수정 모달
  *
  * 흐름:
  * 1) 폼 작성 (이름·앞뒤표지·타입·사용 시작일 필수, is_kept/visible 기본 true)
@@ -39,12 +39,9 @@ import {
   openAddPagesConfirmDialog
 } from '../AddPageModal/AddPageModal.js';
 import { requireAuth } from '../../services/auth.js';
-import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { NOTE_COLOR_PAINT, LIGHT_NOTE_COLORS, NOTE_COLOR_NAMES } from '../../utils/noteColorMap.js';
 import { hideUploadingOverlay, showUploadingOverlay } from './uploadOverlay.js';
 import './AddNoteFab.css';
-
-const PLUS_ICON = MINGCUTE.addFill;
 
 const FALLBACK_TYPES = typeOptions.map((t) => t.labelKr);
 const FALLBACK_PERIODS = periodOptions.map((p) => p.label);
@@ -97,29 +94,6 @@ function noteToFormSeed(note) {
     coverFrontUrl: note?.coverFrontUrl || '',
     coverBackUrl: note?.coverBackUrl || ''
   };
-}
-
-/**
- * @param {{ onCreated?: (result?: { id?: string }) => void }} [options]
- */
-export function mountAddNoteFab(options = {}) {
-  if (document.querySelector('.add-note-fab')) return;
-
-  document.body.insertAdjacentHTML(
-    'beforeend',
-    renderButton({
-      shape: 'circle',
-      size: 'l',
-      role: 'fab',
-      ariaLabel: '새 노트 추가',
-      content: PLUS_ICON,
-      className: 'add-note-fab auth-only'
-    })
-  );
-
-  document.querySelector('.add-note-fab')?.addEventListener('click', () => {
-    void openAddNoteModal({ onCreated: options.onCreated });
-  });
 }
 
 /**
