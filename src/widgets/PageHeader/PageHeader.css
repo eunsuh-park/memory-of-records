@@ -150,6 +150,23 @@
   flex-shrink: 0;
 }
 
+/*
+ * 타블렛(≤1024px): 데스크톱 헤더가 유지되므로 라벨을 숨기고 아이콘만 둔다.
+ * 모바일(≤768px)에서는 이 버튼 자체가 숨겨진다.
+ */
+@media (max-width: 1024px) {
+  .page-header__add-note-label {
+    display: none;
+  }
+
+  .page-header__add-note.btn--text {
+    padding: var(--space-2);
+    min-width: 44px;
+    justify-content: center;
+    gap: 0;
+  }
+}
+
 .page-header__story-link:focus,
 .page-header__auth-link:focus,
 .page-header__auth-btn:focus {

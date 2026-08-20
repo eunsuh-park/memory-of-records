@@ -218,8 +218,9 @@ export function renderPageHeader() {
           ${renderButton({
             shape: 'text',
             ariaLabel: '새 노트 추가',
-            content: `${MINGCUTE.addFill}<span>+ 새 노트 추가</span>`,
-            className: 'page-header__auth-btn',
+            title: '새 노트 추가',
+            content: `${MINGCUTE.addFill}<span class="page-header__add-note-label">새 노트 추가</span>`,
+            className: 'page-header__auth-btn page-header__add-note',
             dataset: { 'add-note': '' }
           })}`;
       }
