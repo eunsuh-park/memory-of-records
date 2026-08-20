@@ -145,7 +145,7 @@ const RESPONSIVE_MATRIX = [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
-      '중앙 카드 탭 → 72px 원형 보기/채우기 오버레이 (데스크톱은 바로 뷰어)',
+      '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       'FAB는 필터 상태와 무관하게 항상 Primary로 표시 · ≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
     tablet: [
@@ -156,7 +156,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
-      '데스크톱 포커스 정보 블록 표시(260px · 노트명 · Icon Button 5 · 메모), 카드 액션 오버레이 숨김',
+      '데스크톱 포커스 정보 블록 표시(260px · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]
   },
@@ -1080,7 +1080,7 @@ export function renderUiLab() {
             <code>src/components/AddPageModal/PageMetaModal.js</code>
           </p>
           <ul class="ui-lab__list">
-            <li>노트 추가/수정: Notes 주크박스 하단·카드 액션</li>
+            <li>노트 추가/수정: Notes 주크박스 하단 FAB·포커스 패널</li>
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>

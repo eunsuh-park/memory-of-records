@@ -119,9 +119,6 @@
   /* 이미지 위 밝은 유리 패널 */
   --color-chrome-panel: rgba(245, 245, 247, 0.72);
   --color-chrome-panel-hover: rgba(255, 255, 255, 0.88);
-  /* 표지 이미지 위 반투명 흰 버튼(모바일 보기/채우기) */
-  --color-chrome-frost: rgba(255, 255, 255, 0.25);
-  --color-chrome-frost-hover: rgba(255, 255, 255, 0.32);
 
   /* 이미지 위 회색 컨트롤(모바일 수정 pill, 필터 열림 FAB) — 테마 무관 */
   --color-control-grey: rgba(90, 98, 110, 0.92);
@@ -209,8 +206,6 @@
   --color-chrome-on-active: rgba(255, 255, 255, 0.16);
   --color-chrome-panel: rgba(245, 245, 247, 0.72);
   --color-chrome-panel-hover: rgba(255, 255, 255, 0.88);
-  --color-chrome-frost: rgba(255, 255, 255, 0.25);
-  --color-chrome-frost-hover: rgba(255, 255, 255, 0.32);
 
   --color-control-grey: rgba(90, 98, 110, 0.92);
   --color-control-grey-hover: rgba(110, 118, 130, 0.95);

@@ -628,18 +628,6 @@ body.jukebox-active.loading-active .notes-scrollbar {
       rotateY(var(--jukebox-rotate-y, 0deg))
       scale(calc(var(--jukebox-scale, 1) * 0.88));
   }
-
-  /* 노트 탭(보기/채우기 열림): 현재 크기 대비 115% — 열림/닫힘만 짧게 보간 */
-  body.jukebox-card-actions-open
-    .jukebox-gallery
-    > div.jukebox-card.jukebox-card--centered
-    .jukebox-card-3d {
-    transform:
-      translate3d(0, 0, var(--jukebox-translate-z, 0))
-      rotateY(var(--jukebox-rotate-y, 0deg))
-      scale(calc(var(--jukebox-scale, 1) * 0.88 * 1.15));
-    transition: transform 0.18s ease;
-  }
 }
 
 @media (max-width: 480px) {
@@ -678,11 +666,6 @@ body.jukebox-active.loading-active .notes-scrollbar {
 
 /* 포커스 노트 정보 패널 스타일은 NoteInfoPanel 컴포넌트에 있음 */
 
-/* 카드 액션 오버레이: 데스크톱에서는 숨김 */
-.jukebox-card-actions {
-  display: none;
-}
-
 body.jukebox-active #sub-menu {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
@@ -715,113 +698,6 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-prev,
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     display: none !important;
-  }
-
-  /*
-   * 카드 위 보기 / 채우기 — frame59 시안 (button:not(.btn)보다 특이도 높게)
-   * display:none 대신 opacity로 열고 닫아, 버튼이 사라질 때도 자연스럽게 페이드 아웃된다.
-   * (닫힌 동안은 inert로 탭/스크린리더 접근을 막는다)
-   */
-  .jukebox-card-actions {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-3);
-    pointer-events: none;
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  .jukebox-card-actions.is-open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  /* 노트 탭 시 표지 위에 옅은 딤 */
-  .jukebox-card-actions::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background: var(--color-overlay-scrim);
-    border-radius: inherit;
-    pointer-events: none;
-  }
-
-  button.jukebox-card-action {
-    position: relative;
-    z-index: 1;
-    display: inline-flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    box-sizing: border-box;
-    width: 72px !important;
-    height: 72px !important;
-    min-width: 72px !important;
-    min-height: 72px !important;
-    max-width: 72px !important;
-    max-height: 72px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    border-radius: var(--radius-pill) !important;
-    background: var(--color-chrome-frost) !important;
-    background-color: var(--color-chrome-frost) !important;
-    color: var(--color-chrome-on) !important;
-    font-size: var(--text-base) !important;
-    font-weight: var(--font-medium) !important;
-    line-height: 1 !important;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: none !important;
-    filter: none !important;
-    transition: background-color 0.2s ease;
-  }
-
-  button.jukebox-card-action:focus-visible {
-    background: var(--color-chrome-frost-hover) !important;
-    background-color: var(--color-chrome-frost-hover) !important;
-    color: var(--color-chrome-on) !important;
-    outline: none !important;
-    filter: none !important;
-  }
-
-  button.jukebox-card-action .jukebox-card-action__icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    line-height: 0;
-    color: var(--color-chrome-on) !important;
-  }
-
-  button.jukebox-card-action .jukebox-card-action__icon svg {
-    width: 28px !important;
-    height: 28px !important;
-    display: block;
-    color: var(--color-chrome-on) !important;
-  }
-
-  button.jukebox-card-action .jukebox-card-action__icon svg path {
-    fill: currentColor !important;
-  }
-
-  button.jukebox-card-action .jukebox-card-action__label {
-    color: var(--color-chrome-on) !important;
-    text-align: center;
-    font-size: var(--text-base) !important;
-    font-family: inherit;
-    font-weight: var(--font-medium) !important;
-    letter-spacing: -0.5px;
-    line-height: 1 !important;
   }
 
   /*
@@ -858,14 +734,6 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 }
 
 @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
-  button.jukebox-card-action:hover {
-    background: var(--color-chrome-frost-hover) !important;
-    background-color: var(--color-chrome-frost-hover) !important;
-    color: var(--color-chrome-on) !important;
-    outline: none !important;
-    filter: none !important;
-  }
-
   body.jukebox-active button.add-note-fab:hover,
   body.jukebox-active .add-note-fab:hover {
     background: var(--color-primary);

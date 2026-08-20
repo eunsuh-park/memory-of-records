@@ -529,7 +529,6 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
                 <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
               </div>
             </div>
-            ${renderCardActionOverlay(noteId)}
           </div>
         </div>
       `;
@@ -776,23 +775,6 @@ function isMobileJukebox() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
 }
 
-/** 카드 위 보기/채우기 오버레이 HTML */
-function renderCardActionOverlay(noteId) {
-  const id = escapeHtml(noteId || '');
-  return `
-    <div class="jukebox-card-actions" data-note-id="${id}" inert>
-      <button type="button" class="jukebox-card-action jukebox-card-action--view" data-note-id="${id}" aria-label="보기">
-        <span class="jukebox-card-action__icon">${MINGCUTE.eye2Fill}</span>
-        <span class="jukebox-card-action__label">보기</span>
-      </button>
-      <button type="button" class="jukebox-card-action jukebox-card-action--fill auth-only" data-note-id="${id}" aria-label="채우기">
-        <span class="jukebox-card-action__icon">${MINGCUTE.addFill}</span>
-        <span class="jukebox-card-action__label">채우기</span>
-      </button>
-    </div>
-  `;
-}
-
 /**
  * Jukebox 페이지 + 필터 (Timeline: 기간별, By Type: 타입별)
  *
@@ -864,8 +846,6 @@ export function renderJukeboxWithFilter(options) {
   gallery._jukeboxNavNext = nextBtn;
   updateJukeboxNavButtons(gallery);
 
-  /** 모바일: 중앙 카드 탭 시 보기/채우기·수정 노출 */
-  let cardActionsOpen = false;
   /** 모바일: 정보 패널 툴박스·메모 펼침 */
   let infoDetailsOpen = false;
   /** @type {Array} */
@@ -894,18 +874,6 @@ export function renderJukeboxWithFilter(options) {
     ) || null;
   }
 
-  function setCardActionsOpen(open) {
-    cardActionsOpen = !!open;
-    document.body.classList.toggle('jukebox-card-actions-open', cardActionsOpen);
-    gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
-      const card = el.closest('.jukebox-card');
-      const show = cardActionsOpen && card?.classList.contains('jukebox-card--centered');
-      el.classList.toggle('is-open', show);
-      el.toggleAttribute('inert', !show);
-    });
-    updateFocusInfo(boundNotes);
-  }
-
   function setInfoDetailsOpen(open) {
     infoDetailsOpen = !!open;
     updateFocusInfo(boundNotes);
@@ -926,12 +894,6 @@ export function renderJukeboxWithFilter(options) {
         canEdit
       });
     }
-    gallery.querySelectorAll('.jukebox-card-actions').forEach((el) => {
-      const card = el.closest('.jukebox-card');
-      const show = cardActionsOpen && card?.classList.contains('jukebox-card--centered');
-      el.classList.toggle('is-open', show);
-      el.toggleAttribute('inert', !show);
-    });
   }
 
   function refreshAfterNoteEdit() {
@@ -1084,9 +1046,7 @@ export function renderJukeboxWithFilter(options) {
 
   function bindGallery(notes) {
     boundNotes = notes || [];
-    cardActionsOpen = false;
     infoDetailsOpen = false;
-    document.body.classList.remove('jukebox-card-actions-open');
     fillJukeboxGallery(gallery, prevBtn, nextBtn, notes);
 
     const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
@@ -1104,36 +1064,11 @@ export function renderJukeboxWithFilter(options) {
           card.querySelector('.jukebox-new-badge')?.remove();
         }
 
-        const viewBtn = e.target?.closest?.('.jukebox-card-action--view');
-        const fillBtn = e.target?.closest?.('.jukebox-card-action--fill');
-        if (viewBtn || fillBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (viewBtn) openNoteModal(note);
-          else if (isBookmarksNoteId(note.id)) {
-            showToast('북마크 모음에는 페이지를 추가할 수 없습니다.');
-          } else if (isDemoNoteId(note.id)) {
-            showToast('데모 노트에는 페이지를 추가할 수 없습니다.');
-          } else {
-            openAddPageModal({
-              note,
-              onDone: refreshAfterNoteEdit
-            });
-          }
-          return;
-        }
-
         if (card.classList.contains('jukebox-card--centered')) {
-          if (isMobileJukebox()) {
-            setCardActionsOpen(!cardActionsOpen);
-          } else {
-            openNoteModal(note);
-          }
+          openNoteModal(note);
         } else if (typeof gallery.jukeboxScrollCardToCenter === 'function') {
-          setCardActionsOpen(false);
           gallery.jukeboxScrollCardToCenter(card);
         } else {
-          setCardActionsOpen(false);
           const targetScroll = card.offsetLeft + card.offsetWidth / 2 - gallery.clientWidth / 2;
           gallery.scrollTo({
             left: Math.max(0, Math.min(gallery.scrollWidth - gallery.clientWidth, targetScroll)),
@@ -1147,9 +1082,6 @@ export function renderJukeboxWithFilter(options) {
       gallery.removeEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
     }
     gallery._jukeboxFocusHandler = () => {
-      if (gallery._jukeboxScrollState?.userScrolled) {
-        setCardActionsOpen(false);
-      }
       updateFocusInfo(notes);
     };
     gallery.addEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
