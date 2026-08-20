@@ -45,14 +45,6 @@ body,
   }
 }
 
-body.page-header-mobile .main-wrapper {
-  height: calc(100vh - 7rem);
-}
-
-body.page-header-mobile .app-main {
-  padding-top: 7rem;
-}
-
 #main-content {
   background: unset;
   background-color: unset;

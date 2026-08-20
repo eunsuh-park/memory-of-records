@@ -66,10 +66,6 @@
   }
 }
 
-body.page-header-mobile .sub-menu {
-  top: 7rem;
-}
-
 /* 내부 네비 래퍼 (flex로 목록 중앙 정렬) */
 .sub-nav {
   position: relative;
@@ -286,124 +282,6 @@ body.page-header-mobile .sub-menu {
 
 @media (max-width: 768px) and (hover: hover) and (pointer: fine) {
   body.jukebox-active .view-mode-link:not(.active):hover {
-    color: var(--color-text);
-    background-color: var(--color-surface-hover);
-  }
-}
-
-body.page-header-mobile .view-mode-toggle {
-  gap: var(--space-1);
-  margin-bottom: var(--space-1);
-  padding-bottom: var(--space-1);
-}
-
-body.page-header-mobile .view-mode-link {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-xs);
-}
-
-body.page-header-mobile .sub-nav {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-body.page-header-mobile .filter-list {
-  gap: var(--space-1);
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  padding: 0 var(--space-2) var(--space-1);
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  margin: 0 calc(var(--space-2) * -1);
-}
-
-body.page-header-mobile .filter-list .chip {
-  flex-shrink: 0;
-}
-
-body.page-header-mobile.jukebox-active .view-mode-toggle {
-  display: none;
-}
-
-body.page-header-mobile.jukebox-active .sub-menu {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  border-radius: var(--radius-none);
-}
-
-body.page-header-mobile.jukebox-active .sub-menu__toggle {
-  display: none !important;
-}
-
-body.page-header-mobile.jukebox-active .sub-nav {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-1);
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  max-height: 5.5rem;
-  opacity: 1;
-  padding: var(--space-1) var(--space-4);
-  margin: 0;
-  border-radius: var(--radius-none);
-  background: transparent;
-  border: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-sizing: border-box;
-  transition:
-    max-height 0.28s ease,
-    opacity 0.2s ease,
-    padding 0.2s ease;
-}
-
-body.page-header-mobile.jukebox-active .filter-list {
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-  align-items: stretch;
-  justify-content: center;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-body.page-header-mobile.jukebox-active .filter-list::-webkit-scrollbar {
-  display: none;
-}
-
-body.page-header-mobile.jukebox-active .filter-item {
-  flex-shrink: 0;
-  width: auto;
-}
-
-body.page-header-mobile.jukebox-active .filter-controls {
-  display: none;
-}
-
-body.page-header-mobile.jukebox-active .sub-menu.is-collapsed .sub-nav,
-body.page-header-mobile.filter-nav-collapsed .sub-nav {
-  max-height: 0;
-  opacity: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  pointer-events: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  body.page-header-mobile.jukebox-active .view-mode-link:not(.active):hover {
     color: var(--color-text);
     background-color: var(--color-surface-hover);
   }
