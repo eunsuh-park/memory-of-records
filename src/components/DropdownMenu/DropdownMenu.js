@@ -1,8 +1,8 @@
 /**
  * DropdownMenu
  *
- * 커스텀 드롭다운 목록. 트리거는 DropdownChip, 항목은 padding 7px 12px · fit-content.
- * 패널(.dropdown-menu)은 padding·gap 4px, radius 18px, 0.5px 보더.
+ * 커스텀 드롭다운 목록. 트리거는 DropdownChip, 항목은 padding 7px 8px · width 100%.
+ * 패널(.dropdown-menu)은 padding·gap 4px, radius 13px, 0.5px 보더.
  *
  * 항목 상태: default · hover · selected · active-hover.
  * render()는 칩+목록을 묶고, bind()가 열고 고르는 동작을 붙인다.

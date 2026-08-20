@@ -1,7 +1,7 @@
 /**
  * DropdownChip 스타일
  *
- * 커스텀 드롭다운 트리거. 폭은 라벨에 맞추고, 고정 107px은 쓰지 않는다.
+ * 커스텀 드롭다운 트리거. 안쪽 content 래퍼 없이 칩 자체에 패딩·갭을 둔다.
  * default/selected는 0.5px 보더, hover/active는 서피스 필.
  */
 
@@ -9,10 +9,12 @@
   display: inline-flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 8px;
   box-sizing: border-box;
   margin: 0;
   width: auto;
+  min-width: 120px;
   height: auto;
   padding: 1px 4px 1px 12px;
   border: 0.5px solid var(--color-border);
@@ -22,7 +24,7 @@
   font-family: inherit;
   font-size: 12px;
   font-weight: var(--font-regular);
-  line-height: 24px;
+  line-height: 12px;
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
@@ -51,7 +53,7 @@
   color: inherit;
   font-size: inherit;
   font-weight: inherit;
-  line-height: 24px;
+  line-height: 12px;
 }
 
 .dropdown-chip__icon {
@@ -72,8 +74,9 @@
 
 .dropdown-chip__icon svg {
   display: block;
-  width: 12px;
-  height: 12px;
+  width: 8.19px;
+  height: 10.01px;
+  flex-shrink: 0;
 }
 
 @media (hover: hover) and (pointer: fine) {

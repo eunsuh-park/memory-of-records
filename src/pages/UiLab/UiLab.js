@@ -264,7 +264,7 @@ const RESPONSIVE_MATRIX = [
     mobile: ['모든 폭에서 동일 (라벨 폭에 맞춘 pill)'],
     tablet: ['모든 폭에서 동일'],
     desktop: [
-      '가로 pill · padding 1px 4px 1px 12px · 아이콘 24px',
+      '가로 pill · min-width 120px · padding 1px 4px 1px 12px · gap 8px · 아이콘 24px',
       'default/selected는 0.5px border, hover는 surface-hover, 열림은 surface-active',
       '열림·선택은 라벨 primary semibold'
     ]
@@ -276,9 +276,9 @@ const RESPONSIVE_MATRIX = [
     mobile: ['모든 폭에서 동일 (auto 패널 · 26px 항목)'],
     tablet: ['모든 폭에서 동일'],
     desktop: [
-      '패널 auto · padding/gap 4px · radius 18px · 0.5px border · --color-bg',
-      '항목 26px pill · padding 7px 12px',
-      '칩 아래에 열림 · 선택 시 칩 라벨 갱신 후 닫힘'
+      '패널 fit-content · min-width 120px · padding/gap 4px · radius 13px · 0.5px border · --color-bg',
+      '항목 width 100% · padding 7px 8px · radius 13px · hover만 surface-hover',
+      '칩 아래 10px · 좌측 정렬 · 선택 시 칩 라벨 갱신 후 닫힘'
     ]
   },
   {
@@ -878,7 +878,7 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="dropdown-menu">
           <h2 class="ui-lab__section-title">DropdownMenu</h2>
           <p class="ui-lab__section-desc">
-            칩 아래에 붙는 드롭박스입니다. 상하좌우 padding 4px, 항목 간격 4px, radius 18px, 0.5px 보더입니다.
+            칩 아래에 붙는 드롭박스입니다. 상하좌우 padding 4px, 항목 간격 4px, radius 13px, 0.5px 보더입니다.
             항목 상태는 default · hover · selected · active-hover이고, 칩을 누르면 목록이 열리며 고르면 닫힙니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/DropdownMenu/DropdownMenu.js</code>, <code>src/components/DropdownMenu/DropdownMenu.css</code></p>

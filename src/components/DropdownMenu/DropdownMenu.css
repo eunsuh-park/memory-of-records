@@ -1,8 +1,8 @@
 /**
  * DropdownMenu 스타일
  *
- * 패널(드롭박스): padding·gap 4px, radius 18px, 0.5px 보더, --color-bg.
- * 항목은 padding 7px 12px, 크기는 fit-content. .dropdown 안에서만 칩 아래 absolute.
+ * 패널(드롭박스): padding·gap 4px, radius 13px, 0.5px 보더, --color-bg.
+ * 항목은 width 100%, padding 7px 8px, radius 13px. .dropdown 안에서만 칩 아래 10px.
  */
 
 .dropdown {
@@ -17,21 +17,21 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: auto;
+  width: fit-content;
+  min-width: 120px;
   height: auto;
-  padding: var(--space-1);
-  gap: var(--space-1);
+  padding: 4px;
+  gap: 4px;
   border: 0.5px solid var(--color-border);
-  border-radius: 18px;
+  border-radius: 13px;
   background-color: var(--color-bg);
 }
 
 .dropdown > .dropdown-menu {
   position: absolute;
-  top: calc(100% + var(--space-1));
+  top: calc(100% + 10px);
   left: 0;
   z-index: 20;
-  min-width: 100%;
 }
 
 .dropdown-menu[hidden] {
@@ -47,11 +47,11 @@ button.dropdown-menu__item {
   gap: var(--space-1);
   box-sizing: border-box;
   margin: 0;
-  width: fit-content;
+  width: 100%;
   height: fit-content;
-  padding: 7px 12px;
+  padding: 7px 8px;
   border: none;
-  border-radius: var(--radius-pill);
+  border-radius: 13px;
   background-color: transparent;
   color: var(--color-text-dim);
   font-family: inherit;
@@ -90,34 +90,24 @@ button.dropdown-menu__item {
   text-align: left;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .dropdown-menu__item:hover:not([aria-selected='true']):not(:disabled) {
-    background-color: var(--color-surface-hover);
-    color: var(--color-text);
-  }
-
-  .dropdown-menu__item[aria-selected='true']:hover:not(:disabled) {
-    background-color: var(--color-surface-hover);
-    cursor: pointer;
-  }
-}
-
-/* Lab에서 hover 상태를 고정해 보여 줄 때 */
-.dropdown-menu__item.is-hover:not([aria-selected='true']) {
-  background-color: var(--color-surface-hover);
-  color: var(--color-text);
-}
-
 .dropdown-menu__item.is-selected[aria-selected='true'] {
   background-color: transparent;
   color: var(--color-text);
   font-weight: var(--font-semibold);
-  cursor: default;
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-menu__item:hover:not(:disabled) {
+    background-color: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+}
+
+/* Lab에서 hover 상태를 고정해 보여 줄 때 (selected 포함) */
+.dropdown-menu__item.is-hover,
 .dropdown-menu__item.is-selected.is-hover[aria-selected='true'] {
   background-color: var(--color-surface-hover);
-  cursor: pointer;
+  color: var(--color-text);
 }
 
 .dropdown-menu__item[aria-disabled='true'],
