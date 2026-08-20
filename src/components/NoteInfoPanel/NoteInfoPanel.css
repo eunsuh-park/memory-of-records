@@ -5,13 +5,14 @@
  */
 
 .jukebox-focus-info {
+  --jukebox-focus-info-h: 139px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: var(--space-4);
   width: 100%;
-  height: 139px;
+  height: var(--jukebox-focus-info-h);
   max-width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -103,6 +104,13 @@
 }
 
 @media (max-width: 768px) {
+  .jukebox-focus-info {
+    /* 접혀도 펼친 높이(+ 토글)를 유지하고, 남은 공간은 아래로 */
+    height: auto;
+    min-height: calc(var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4));
+    justify-content: flex-start;
+  }
+
   .jukebox-focus-info__toggle.btn--icon {
     display: inline-flex;
   }
@@ -113,6 +121,12 @@
 }
 
 /* UiLab 모바일 접힘 미리보기 — 뷰포트와 무관하게 같은 규칙을 적용 */
+.jukebox-focus-info--compact {
+  height: auto;
+  min-height: calc(var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4));
+  justify-content: flex-start;
+}
+
 .jukebox-focus-info--compact .jukebox-focus-info__toggle.btn--icon {
   display: inline-flex;
 }
