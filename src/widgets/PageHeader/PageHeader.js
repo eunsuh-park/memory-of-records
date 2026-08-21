@@ -3,7 +3,7 @@
  * 데스크톱: 로고 + Intro(좌) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
  * 모바일: 로고(좌) | 햄버거(우) + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 Logout 아래)
- * 갤러리 필터는 #sub-menu.gallery-filter (헤더 밖, 화면 상단 중앙)
+ * 갤러리 필터는 #sub-menu.gallery-filter (헤더 밖. 데스크톱 상단 중앙, 모바일은 헤더 아래)
  */
 
 import './PageHeader.css';
