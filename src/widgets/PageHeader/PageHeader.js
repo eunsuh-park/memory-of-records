@@ -1,8 +1,9 @@
 /**
  * PageHeader
- * 데스크톱: 로고 + Intro(좌) | FilterSubMenu(중앙) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
- * 모바일: 로고(좌) | 햄버거(우) + 필터 + 우측 드로어
+ * 데스크톱: 로고 + Intro(좌) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
+ * 모바일: 로고(좌) | 햄버거(우) + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 Logout 아래)
+ * 갤러리 필터는 #sub-menu.gallery-filter (헤더 밖, 화면 상단 중앙)
  */
 
 import './PageHeader.css';
@@ -116,9 +117,6 @@ export function renderPageHeader() {
           <span class="page-header__auth" data-auth-slot></span>
         </div>
       </div>
-      <div class="page-header__center" id="sub-menu">
-        <!-- FilterSubMenu가 여기에 렌더링됨 -->
-      </div>
     </header>
 
     ${renderDim({
@@ -218,8 +216,9 @@ export function renderPageHeader() {
           ${renderButton({
             shape: 'text',
             ariaLabel: '새 노트 추가',
-            content: `${MINGCUTE.addFill}<span>+ 새 노트 추가</span>`,
-            className: 'page-header__auth-btn',
+            title: '새 노트 추가',
+            content: `${MINGCUTE.addFill}<span class="page-header__add-note-label">새 노트 추가</span>`,
+            className: 'page-header__auth-btn page-header__add-note',
             dataset: { 'add-note': '' }
           })}`;
       }

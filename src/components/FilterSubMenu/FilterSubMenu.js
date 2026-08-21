@@ -24,7 +24,7 @@ const SORT_OPTIONS = [
 ];
 
 /**
- * #sub-menu 컨테이너에 필터 링크 목록을 그립니다.
+ * #sub-menu.gallery-filter 컨테이너에 필터 링크 목록을 그립니다.
  *
  * @param {string} selectedValue - 현재 선택된 값 (opt.value)
  * @param {string} basePath - 링크 prefix. '/timeline' 또는 '/by-type'

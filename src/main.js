@@ -29,6 +29,7 @@ async function initApp() {
     app.innerHTML = `
       <div class="app">
         <div id="page-header"></div>
+        <div id="sub-menu" class="gallery-filter"></div>
         <div class="main-wrapper">
           <main class="app-main" id="main-content"></main>
         </div>

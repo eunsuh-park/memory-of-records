@@ -1,7 +1,8 @@
 /**
  * PageHeader 스타일
- * 데스크톱: [로고 + Intro] --- [FilterSubMenu] --- [테마 + Login/Logout + 새 노트 추가]
- * 모바일: 로고 좌측 + 햄버거 우측, 접이식 필터, 우측 드로어(Notes 하위 메뉴 · 테마는 Logout 아래)
+ * 데스크톱: [로고 + Intro] --- [테마 + Login/Logout + 새 노트 추가]
+ * 모바일: 로고 좌측 + 햄버거 우측, 우측 드로어(Notes 하위 메뉴 · 테마는 Logout 아래)
+ * 갤러리 필터는 FilterSubMenu(.gallery-filter)가 헤더 밖에서 담당한다.
  */
 
 .page-header {
@@ -11,7 +12,7 @@
   right: 0;
   z-index: 1000;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
   padding: var(--space-4) var(--space-8);
   padding-top: max(var(--space-4), env(safe-area-inset-top));
@@ -26,14 +27,13 @@
 }
 
 .page-header__left,
-.page-header__center,
 .page-header__right {
   flex-shrink: 0;
   display: flex;
   align-items: center;
 }
 
-/* 데스크톱: 자식이 header 그리드에 직접 참여 (로고 | 필터 | 테마) */
+/* 데스크톱: 자식이 header 그리드에 직접 참여 (로고 | 테마) */
 .page-header__top {
   display: contents;
 }
@@ -44,32 +44,16 @@
   justify-content: flex-start;
 }
 
-.page-header__center {
-  justify-content: center;
-  min-width: 0;
-  order: 2;
-}
-
 .page-header__right--desktop {
-  order: 3;
+  order: 2;
   justify-content: flex-end;
+  min-width: 0;
+  container-type: inline-size;
+  container-name: header-right;
 }
 
 .page-header__right--mobile {
-  order: 4;
-}
-
-/* FilterSubMenu가 PageHeader 안에 있을 때 fixed 해제 */
-.page-header #sub-menu {
-  position: static;
-  transform: none;
-}
-
-.page-header #sub-menu .sub-menu {
-  position: static;
-  top: auto;
-  left: auto;
-  transform: none;
+  order: 3;
 }
 
 .page-header__logo {
@@ -137,6 +121,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .page-header__auth-btn.btn--text {
@@ -148,6 +133,59 @@
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+}
+
+/*
+ * 새 노트 추가: 높이 44px · 라벨 1줄.
+ * 라벨이 두 줄로 커져 헤더 높이가 깨지는 것을 막는다.
+ */
+.page-header__add-note.page-header__auth-btn {
+  box-sizing: border-box;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.page-header__add-note-label {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 전역 태블릿(≤1024px): 아이콘만. 데스크톱 헤더는 유지되고 우측만 줄어든다. */
+@media (max-width: 1024px) {
+  .page-header__add-note-label {
+    display: none;
+  }
+
+  .page-header__add-note.btn--text {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+}
+
+/*
+ * 예외(이 버튼만): 1024px보다 넓어도 우측 부모(1fr)가 라벨 폭을 못 받으면
+ * 한 줄 라벨이 잘리거나 필터와 겹친다. 뷰포트가 아니라 부모 너비로 접는다.
+ */
+@container header-right (max-width: 21.5rem) {
+  .page-header__add-note-label {
+    display: none;
+  }
+
+  .page-header__add-note.btn--text {
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
 }
 
 .page-header__story-link:focus,
@@ -299,29 +337,6 @@
 
   .page-header__menu-btn svg path {
     stroke: currentColor !important;
-  }
-
-  .page-header__center {
-    order: 2;
-    flex: 1 1 auto;
-    width: calc(100% + var(--space-8));
-    margin-left: calc(var(--space-4) * -1);
-    margin-right: calc(var(--space-4) * -1);
-    justify-content: stretch;
-    padding: var(--space-1) 0 var(--space-2);
-    min-height: 0;
-    max-height: 6rem;
-    overflow: hidden;
-    opacity: 1;
-    transition:
-      max-height 0.28s ease,
-      opacity 0.2s ease,
-      padding 0.2s ease;
-  }
-
-  /* Favorites 등 칩이 없으면 필터 줄을 숨긴다 */
-  body.jukebox-filter-empty .page-header__center {
-    display: none !important;
   }
 
   /* 주크박스에서도 동일 헤더 크롬 유지 */
