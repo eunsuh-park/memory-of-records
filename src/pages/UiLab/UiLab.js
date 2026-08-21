@@ -94,8 +94,8 @@ const RESPONSIVE_MATRIX = [
     files: 'src/App.css',
     points: '768px',
     mobile: [
-      '헤더가 2줄이라 .app-main padding-top 7rem',
-      '.main-wrapper height calc(100vh - 7rem)'
+      '헤더가 한 줄이라 .app-main padding-top 80px',
+      '.main-wrapper height calc(100vh - 80px)'
     ],
     tablet: ['데스크톱과 동일 (768px 규칙만 존재)'],
     desktop: ['.app-main padding-top 80px', '.main-wrapper height calc(100vh - 80px)']
@@ -107,7 +107,6 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
       '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
-      '필터 슬롯이 아랫줄(order 2, max-height 6rem) — 접으면 max-height 0',
       '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, Logout 아래 테마 토글'
     ],
     tablet: [
@@ -117,19 +116,19 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       'fixed · max-width 1200px · width calc(100% - 3rem) · padding 1rem 2rem',
       '하단 모서리 48px 라운드',
-      '로고 | 필터 슬롯(flex 1) | 테마·Login/Logout·(새 노트 추가, 로그인 시) 한 줄',
+      '로고 | 테마·Login/Logout·(새 노트 추가, 로그인 시)',
       '새 노트 추가 높이 44px · 라벨 1줄',
-      '우측 부모 열이 라벨 폭보다 좁으면(컨테이너) + 아이콘만 — 한 줄 라벨이 잘리는 깨짐 방지',
+      '우측 부모 열이 라벨 폭보다 좁으면(컨테이너) + 아이콘만',
       '햄버거·드로어 display none'
     ]
   },
   {
     name: 'FilterSubMenu',
     files: 'src/components/FilterSubMenu/FilterSubMenu.js · FilterSubMenu.css',
-    points: '1024 · 768 · 600 · 480px',
+    points: '1024 · 768 · 480px',
     mobile: [
-      'top 7rem, 탭 목록 nowrap + 가로 스크롤',
-      '칩은 FilterChip 모바일 레이아웃(세로 스택 · radius 8px)을 그대로 쓰고 정렬 select 숨김',
+      '갤러리 레이어 유지(top 16px 중앙), max-width calc(100vw - 8rem)로 로고·햄버거와 겹침 회피',
+      '칩은 FilterChip 모바일 레이아웃, 정렬 select 숨김',
       '캐러셀 스크롤 시 자동 접힘(max-height 0 · opacity 0)'
     ],
     tablet: [
@@ -137,7 +136,7 @@ const RESPONSIVE_MATRIX = [
       '칩 모양은 FilterChip PC(가로 pill)를 그대로 씀'
     ],
     desktop: [
-      '헤더 중앙에 static으로 주입 (단독 사용 시 fixed top 80px 중앙)',
+      '#sub-menu.gallery-filter: fixed top 16px · left 50% · translateX(-50%)',
       '탭 가로 나열 · FilterChip PC 레이아웃',
       '정렬 select 표시, 접기 토글 숨김'
     ]
@@ -1057,9 +1056,9 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="filter">
           <h2 class="ui-lab__section-title">FilterSubMenu</h2>
           <p class="ui-lab__section-desc">
-            Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만 헤더 중앙에 주입되며,
-            모바일에서는 접이식 상단 네비(시기·유형 칩)로 동작합니다. Timeline / By type / Favorite 전환은
-            모바일 우측 드로어 Notes 하위에 있습니다.
+            Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만
+            <code>#sub-menu.gallery-filter</code>에 주입되며, 화면 상단 중앙(top 16px)에 고정됩니다.
+            Timeline / By type / Favorite 전환은 모바일 우측 드로어 Notes 하위에 있습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code></p>
           <ul class="ui-lab__list">

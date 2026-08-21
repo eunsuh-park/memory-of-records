@@ -35,13 +35,13 @@ body,
 }
 
 @media (max-width: 768px) {
-  /* 모바일: TopNav 2줄 레이아웃으로 높이 증가 */
+  /* 모바일 헤더는 한 줄(로고·햄버거). 필터는 갤러리 레이어 */
   .main-wrapper {
-    height: calc(100vh - 7rem);
+    height: calc(100vh - 80px);
   }
 
   .app-main {
-    padding-top: 7rem;
+    padding-top: 80px;
   }
 }
 

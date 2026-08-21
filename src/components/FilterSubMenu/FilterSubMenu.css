@@ -1,14 +1,33 @@
 /**
  * FilterSubMenu 스타일
  *
- * Timeline / By Type 페이지 상단의 필터 탭 메뉴.
+ * Timeline / By Type 갤러리 상단의 필터 탭.
  * 탭 자체는 FilterChip(.chip)이 모양·상태를 맡고, 여기서는 목록 배치만 다룬다.
  *
- * - .sub-menu: 메뉴 컨테이너 (고정 위치, 상단 중앙)
+ * - .gallery-filter (#sub-menu): 앱 셸 갤러리 레이어. 화면 상단 중앙 fixed
+ * - .sub-menu: 메뉴 컨테이너
  * - .sub-nav: 내부 네비 래퍼
  * - .filter-list / .filter-item: 탭 목록·항목
- * - .filter-controls: 정렬 드롭다운 (Select 컴포넌트)
+ * - .filter-controls: 정렬 드롭다운
  */
+
+/* 갤러리 필터 호스트 — 헤더 밖, 뷰포트 상단 중앙 */
+.gallery-filter {
+  position: fixed;
+  top: var(--space-4); /* 16px */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  width: max-content;
+  max-width: min(96vw, 920px);
+  box-sizing: border-box;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.gallery-filter:empty,
+body.jukebox-filter-empty .gallery-filter {
+  display: none;
+}
 
 /* 뷰 모드 토글 (Timeline | By type) - 통합 노트 페이지에서 사용 */
 .view-mode-toggle {
@@ -45,25 +64,18 @@
   font-weight: var(--font-bold);
 }
 
-/* 서브 메뉴 컨테이너: PageHeader 하단에 고정, 가로 중앙 정렬 */
+/* 서브 메뉴 컨테이너: 갤러리 레이어 안에서 in-flow */
 .sub-menu {
-  position: fixed;
-  top: 80px; /* PageHeader 하단 */
-  left: 50%;
-  transform: translateX(-50%);
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
   background: unset;
   background-color: unset;
   border: none;
   border-radius: var(--radius-pill);
-  z-index: 1001;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: auto;
   width: auto;
-}
-
-@media (max-width: 768px) {
-  .sub-menu {
-    top: 7rem; /* PageHeader 2줄 레이아웃 */
-  }
 }
 
 /* 내부 네비 래퍼 (flex로 목록 중앙 정렬) */
@@ -133,7 +145,7 @@
   }
 
   .sub-menu {
-    max-width: min(96vw, 920px);
+    max-width: 100%;
     width: max-content;
   }
 
@@ -164,6 +176,12 @@
 
 /* ========== 모바일 (768px 이하) ========== */
 @media (max-width: 768px) {
+  /* 로고·햄버거와 겹치지 않게 폭만 줄인다. top은 16px 유지. */
+  .gallery-filter {
+    top: max(var(--space-4), env(safe-area-inset-top));
+    max-width: calc(100vw - 8rem);
+  }
+
   .view-mode-toggle {
     gap: var(--space-1);
     margin-bottom: var(--space-1);

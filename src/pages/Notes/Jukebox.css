@@ -87,8 +87,11 @@ body.jukebox-active.period-after-school {
 body.jukebox-active.loading-active #sub-menu,
 body.jukebox-active.loading-active .notes-scrollbar {
   opacity: 0;
-  transform: translateY(8px);
   pointer-events: none;
+}
+
+body.jukebox-active.loading-active #sub-menu {
+  transform: translateX(-50%) translateY(8px);
 }
 
 #sub-menu,
