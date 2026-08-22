@@ -4,7 +4,8 @@
  * Timeline / By Type 갤러리 상단의 필터 탭.
  * 탭 자체는 FilterChip(.chip)이 모양·상태를 맡고, 여기서는 목록 배치만 다룬다.
  *
- * - .gallery-filter (#sub-menu): 앱 셸 갤러리 레이어. 화면 상단 중앙 fixed
+ * - .gallery-filter (#sub-menu): 앱 셸 갤러리 레이어.
+ *   데스크톱·태블릿은 화면 상단 중앙 fixed, 모바일은 헤더 바로 아래
  * - .sub-menu: 메뉴 컨테이너
  * - .sub-nav: 내부 네비 래퍼
  * - .filter-list / .filter-item: 탭 목록·항목
@@ -176,10 +177,15 @@ body.jukebox-filter-empty .gallery-filter {
 
 /* ========== 모바일 (768px 이하) ========== */
 @media (max-width: 768px) {
-  /* 로고·햄버거와 겹치지 않게 폭만 줄인다. top은 16px 유지. */
+  /*
+   * 모바일 헤더 바로 아래. PageHeader 패딩·로고 행과 같게 맞춰
+   * 로고·햄버거와 겹치지 않게 한다.
+   * padding-top + logo min-height 44px + padding-bottom
+   */
   .gallery-filter {
-    top: max(var(--space-4), env(safe-area-inset-top));
-    max-width: calc(100vw - 8rem);
+    top: calc(
+      max(var(--space-2), env(safe-area-inset-top)) + 44px + var(--space-3)
+    );
   }
 
   .view-mode-toggle {

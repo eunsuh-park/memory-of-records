@@ -8,7 +8,7 @@
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
  * - viewModeToggle: Timeline|By Type|Favorites 뷰 모드 토글
  * - controls: 정렬
- * - 모바일: 상단 네비 (탭 목록 가로 스크롤)
+ * - 모바일: 헤더 아래 (탭 목록 가로 스크롤)
  */
 
 import { render as renderChip } from '../FilterChip/FilterChip.js';

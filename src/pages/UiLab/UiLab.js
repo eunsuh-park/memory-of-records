@@ -127,7 +127,8 @@ const RESPONSIVE_MATRIX = [
     files: 'src/components/FilterSubMenu/FilterSubMenu.js · FilterSubMenu.css',
     points: '1024 · 768 · 480px',
     mobile: [
-      '갤러리 레이어 유지(top 16px 중앙), max-width calc(100vw - 8rem)로 로고·햄버거와 겹침 회피',
+      '갤러리 레이어를 모바일 헤더(로고·햄버거) 바로 아래에 둔다',
+      'top: padding-top + 44px + padding-bottom. 폭은 데스크톱과 같이 min(96vw, 920px)',
       '칩은 FilterChip 모바일 레이아웃, 정렬 select 숨김',
       '캐러셀 스크롤 시 자동 접힘(max-height 0 · opacity 0)'
     ],
@@ -148,7 +149,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
+      '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글은 상단 고정, 툴박스·메모는 +로 공개)',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -948,8 +949,8 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
             노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 139px로 고정되고 내용은 상단부터 쌓입니다.
-            모바일에서는 접혀도 펼친 높이를 유지하고(<code>justify-content: flex-start</code>), 툴박스와 메모를 가린 뒤
-            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 48px입니다.
+            모바일에서는 접힘/펼침 높이를 고정하고, 제목과 +는 상단에 둔 채 툴박스·메모만 그 아래에 펼칩니다.
+            패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(
@@ -1057,7 +1058,8 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">FilterSubMenu</h2>
           <p class="ui-lab__section-desc">
             Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만
-            <code>#sub-menu.gallery-filter</code>에 주입되며, 화면 상단 중앙(top 16px)에 고정됩니다.
+            <code>#sub-menu.gallery-filter</code>에 주입됩니다. 데스크톱은 화면 상단 중앙(top 16px),
+            모바일(≤768px)은 page-header(로고·햄버거) 바로 아래에 고정됩니다.
             Timeline / By type / Favorite 전환은 모바일 우측 드로어 Notes 하위에 있습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code></p>
