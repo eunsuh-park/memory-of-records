@@ -182,8 +182,8 @@ export function render(note, _filterMode, opts = {}) {
       <div class="jukebox-focus-info__main">
         <h2 class="jukebox-focus-info__title">${title}</h2>
       </div>
-      ${details ? `<div class="jukebox-focus-info__details">${details}</div>` : ''}
       ${toggle}
+      ${details ? `<div class="jukebox-focus-info__details">${details}</div>` : ''}
     </div>
   `;
 }

@@ -149,7 +149,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글, 툴박스·메모는 +로 공개)',
+      '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글은 상단 고정, 툴박스·메모는 +로 공개)',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -949,8 +949,8 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
             노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 139px로 고정되고 내용은 상단부터 쌓입니다.
-            모바일에서는 접혀도 펼친 높이를 유지하고(<code>justify-content: flex-start</code>), 툴박스와 메모를 가린 뒤
-            <code>renderIconButton()</code> (+)로 펼칩니다. 패널 <code>margin-bottom</code>은 48px입니다.
+            모바일에서는 접힘/펼침 높이를 고정하고, 제목과 +는 상단에 둔 채 툴박스·메모만 그 아래에 펼칩니다.
+            패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(

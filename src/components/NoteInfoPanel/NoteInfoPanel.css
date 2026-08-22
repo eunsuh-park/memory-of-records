@@ -29,6 +29,7 @@
   justify-content: flex-start;
   gap: var(--space-2);
   width: 100%;
+  flex-shrink: 0;
 }
 
 .jukebox-focus-info__details {
@@ -94,6 +95,7 @@
 .jukebox-focus-info__toggle.btn--icon {
   display: none;
   box-sizing: border-box;
+  flex-shrink: 0;
   border: 1px solid var(--color-primary);
   color: var(--color-text);
   transition: transform 0.2s ease;
@@ -105,9 +107,15 @@
 
 @media (max-width: 768px) {
   .jukebox-focus-info {
-    /* 접혀도 펼친 높이(+ 토글)를 유지하고, 남은 공간은 아래로 */
-    height: auto;
-    min-height: calc(var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4));
+    /*
+     * 접힘/펼침 높이를 고정한다. 슬롯이 bottom 기준이라
+     * height: auto 면 펼칠 때 상단(제목·+)이 위로 밀린다.
+     */
+    --jukebox-focus-info-mobile-h: calc(
+      var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4) + var(--space-2)
+    );
+    height: var(--jukebox-focus-info-mobile-h);
+    min-height: var(--jukebox-focus-info-mobile-h);
     justify-content: flex-start;
     margin-bottom: var(--space-3);
   }
@@ -123,8 +131,11 @@
 
 /* UiLab 모바일 접힘 미리보기 — 뷰포트와 무관하게 같은 규칙을 적용 */
 .jukebox-focus-info--compact {
-  height: auto;
-  min-height: calc(var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4));
+  --jukebox-focus-info-mobile-h: calc(
+    var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4) + var(--space-2)
+  );
+  height: var(--jukebox-focus-info-mobile-h);
+  min-height: var(--jukebox-focus-info-mobile-h);
   justify-content: flex-start;
   margin-bottom: var(--space-3);
 }

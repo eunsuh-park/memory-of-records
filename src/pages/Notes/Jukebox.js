@@ -876,7 +876,18 @@ export function renderJukeboxWithFilter(options) {
 
   function setInfoDetailsOpen(open) {
     infoDetailsOpen = !!open;
-    updateFocusInfo(boundNotes);
+    const panel = focusSlot?.querySelector('.jukebox-focus-info');
+    if (!panel) {
+      updateFocusInfo(boundNotes);
+      return;
+    }
+    panel.classList.toggle('is-open', infoDetailsOpen);
+    const toggleBtn = panel.querySelector('.jukebox-focus-info__toggle');
+    if (!toggleBtn) return;
+    const label = infoDetailsOpen ? '노트 정보 접기' : '노트 정보 펼치기';
+    toggleBtn.setAttribute('aria-pressed', infoDetailsOpen ? 'true' : 'false');
+    toggleBtn.setAttribute('aria-label', label);
+    toggleBtn.setAttribute('title', label);
   }
 
   function updateFocusInfo(notes) {
