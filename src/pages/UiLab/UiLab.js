@@ -149,7 +149,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일 포커스 정보(노트명 + 펼침 토글은 상단 고정, 툴박스·메모는 +로 공개)',
+      '바닥 반사 off, 모바일 포커스 정보(노트명 + 도구모음 기본 노출, 갤러리와 겹치지 않음. 메모 위치는 Backlog)',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -647,8 +647,7 @@ export function renderUiLab() {
               renderIconButton({ ariaLabel: '즐겨찾기 데모', content: MINGCUTE.starLine }),
               renderIconButton({ ariaLabel: '노트 정보 수정 데모', content: MINGCUTE.edit2Fill }),
               renderIconButton({ ariaLabel: '페이지 추가 데모', content: MINGCUTE.fileNewFill }),
-              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Fill }),
-              renderIconButton({ ariaLabel: '노트 정보 펼치기 데모', content: MINGCUTE.addFill })
+              renderIconButton({ ariaLabel: '삭제 데모', content: MINGCUTE.delete2Fill })
             ].join(''),
             { stageClass: 'ui-lab__demo-stage--icons' }
           )}
@@ -949,12 +948,12 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
             노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 139px로 고정되고 내용은 상단부터 쌓입니다.
-            모바일에서는 접힘/펼침 높이를 고정하고, 제목과 +는 상단에 둔 채 툴박스·메모만 그 아래에 펼칩니다.
-            패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
+            모바일에서는 + 토글 없이 도구모음을 기본으로 보여 주고, 메모는 숨깁니다(표시 위치는 Backlog).
+            패널 최소 높이는 제목+도구모음이며 그 아래로 줄지 않습니다. 패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(
-            '모바일 접힘',
+            '모바일 (도구모음 기본 노출, 메모 숨김)',
             renderNoteInfoPanel(
               {
                 id: 'ui-lab-demo-note',
@@ -963,21 +962,7 @@ export function renderUiLab() {
                   '여기에는 노트에 대한 메모가 들어갑니다.\n들여쓰기를 허용하며, 최대 세 줄이 들어가고\n글자수로는 공백포함 70자까지.'
               },
               'period',
-              { canEdit: true, compact: true, detailsOpen: false }
-            ),
-            { stageClass: 'ui-lab__demo-stage--info' }
-          )}
-          ${renderVariantRow(
-            '모바일 펼침',
-            renderNoteInfoPanel(
-              {
-                id: 'ui-lab-demo-note-open',
-                title: '03_2024-25_카툰연습장',
-                description:
-                  '여기에는 노트에 대한 메모가 들어갑니다.\n들여쓰기를 허용하며, 최대 세 줄이 들어가고\n글자수로는 공백포함 70자까지.'
-              },
-              'period',
-              { canEdit: true, compact: true, detailsOpen: true }
+              { canEdit: true, compact: true }
             ),
             { stageClass: 'ui-lab__demo-stage--info' }
           )}

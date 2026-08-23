@@ -846,8 +846,6 @@ export function renderJukeboxWithFilter(options) {
   gallery._jukeboxNavNext = nextBtn;
   updateJukeboxNavButtons(gallery);
 
-  /** 모바일: 정보 패널 툴박스·메모 펼침 */
-  let infoDetailsOpen = false;
   /** @type {Array} */
   let boundNotes = [];
   let canEdit = isAuthenticated();
@@ -874,22 +872,6 @@ export function renderJukeboxWithFilter(options) {
     ) || null;
   }
 
-  function setInfoDetailsOpen(open) {
-    infoDetailsOpen = !!open;
-    const panel = focusSlot?.querySelector('.jukebox-focus-info');
-    if (!panel) {
-      updateFocusInfo(boundNotes);
-      return;
-    }
-    panel.classList.toggle('is-open', infoDetailsOpen);
-    const toggleBtn = panel.querySelector('.jukebox-focus-info__toggle');
-    if (!toggleBtn) return;
-    const label = infoDetailsOpen ? '노트 정보 접기' : '노트 정보 펼치기';
-    toggleBtn.setAttribute('aria-pressed', infoDetailsOpen ? 'true' : 'false');
-    toggleBtn.setAttribute('aria-label', label);
-    toggleBtn.setAttribute('title', label);
-  }
-
   function updateFocusInfo(notes) {
     const list = notes || boundNotes || [];
     const centered = gallery.querySelector('.jukebox-card--centered');
@@ -901,7 +883,6 @@ export function renderJukeboxWithFilter(options) {
       focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
         index,
         total: list.length,
-        detailsOpen: infoDetailsOpen,
         canEdit
       });
     }
@@ -923,14 +904,6 @@ export function renderJukeboxWithFilter(options) {
   if (focusSlot && !focusSlot._jukeboxEditBound) {
     focusSlot._jukeboxEditBound = true;
     focusSlot.addEventListener('click', (e) => {
-      const toggleBtn = e.target?.closest?.('.jukebox-focus-info__toggle');
-      if (toggleBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        setInfoDetailsOpen(!infoDetailsOpen);
-        return;
-      }
-
       const shareBtn = e.target?.closest?.('.jukebox-focus-info__share');
       if (shareBtn) {
         e.preventDefault();
@@ -1057,7 +1030,6 @@ export function renderJukeboxWithFilter(options) {
 
   function bindGallery(notes) {
     boundNotes = notes || [];
-    infoDetailsOpen = false;
     fillJukeboxGallery(gallery, prevBtn, nextBtn, notes);
 
     const cards = gallery.querySelectorAll(':scope > div.jukebox-card');

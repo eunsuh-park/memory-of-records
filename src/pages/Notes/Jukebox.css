@@ -704,4 +704,28 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next {
     display: none !important;
   }
+
+  /*
+   * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
+   * 둘 다 min-height 아래로는 줄지 않고, 뷰포트가 모자라면 패널이 스크롤된다.
+   */
+  .jukebox-fullscreen {
+    --jukebox-gallery-min-h: 18rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .jukebox-gallery-wrap {
+    flex: 1 1 auto;
+    min-height: var(--jukebox-gallery-min-h);
+  }
+
+  .jukebox-focus-slot {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    z-index: 2;
+    flex: 0 0 auto;
+    width: 100%;
+  }
 }

@@ -3,7 +3,7 @@
  *
  * Jukebox 중앙 카드(포커스된 노트)의 정보 표시영역.
  * 노트명 · Icon Button 5개(공유/즐겨찾기/수정/페이지 추가/삭제) · 메모.
- * 모바일에서는 툴박스·메모를 접고 + (Icon Button)로 펼친다.
+ * 모바일에서는 도구모음을 기본으로 보여 주고, 메모는 CSS로 숨긴다(위치는 Backlog).
  */
 
 import { renderIconButton, render as renderButton } from '../Button/Button.js';
@@ -85,11 +85,11 @@ export function renderNoteIndicator(index, total) {
 /**
  * @param {Object|null} note - 포커스된 노트. null이면 빈 문자열
  * @param {'period'|'type'} [_filterMode]
- * @param {{ index?: number, total?: number, detailsOpen?: boolean, compact?: boolean, canEdit?: boolean }} [opts]
+ * @param {{ index?: number, total?: number, compact?: boolean, canEdit?: boolean }} [opts]
  * @returns {string} HTML 문자열
  */
 export function render(note, _filterMode, opts = {}) {
-  const { canEdit = false, detailsOpen = false, compact = false } = opts;
+  const { canEdit = false, compact = false } = opts;
 
   if (!note) return '';
 
@@ -158,20 +158,8 @@ export function render(note, _filterMode, opts = {}) {
     .filter(Boolean)
     .join('');
 
-  const toggle = details
-    ? renderIconButton({
-        ariaLabel: detailsOpen ? '노트 정보 접기' : '노트 정보 펼치기',
-        title: detailsOpen ? '노트 정보 접기' : '노트 정보 펼치기',
-        ariaPressed: detailsOpen,
-        content: MINGCUTE.addFill,
-        className: 'jukebox-focus-info__toggle',
-        dataset: { action: 'toggle-details' }
-      })
-    : '';
-
   const classes = [
     'jukebox-focus-info',
-    detailsOpen ? 'is-open' : '',
     compact ? 'jukebox-focus-info--compact' : ''
   ]
     .filter(Boolean)
@@ -182,7 +170,6 @@ export function render(note, _filterMode, opts = {}) {
       <div class="jukebox-focus-info__main">
         <h2 class="jukebox-focus-info__title">${title}</h2>
       </div>
-      ${toggle}
       ${details ? `<div class="jukebox-focus-info__details">${details}</div>` : ''}
     </div>
   `;
