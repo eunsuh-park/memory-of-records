@@ -137,7 +137,7 @@ const RESPONSIVE_MATRIX = [
     tablet: [
       '너비 769–1024px·높이 769px 이상은 데스크톱과 같고 칩이 넘치면 수평 스크롤',
       '칩 모양은 FilterChip PC(가로 pill)를 그대로 씀',
-      '높이 ≤768px이면 필터를 상단 마진 10px로 고정한다'
+      '높이 ≤768px이면 필터를 햄버거 헤더 바로 아래로 내린다'
     ],
     desktop: [
       '#sub-menu.gallery-filter: fixed top 16px · left 50% · translateX(-50%)',
@@ -1047,8 +1047,7 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만
             <code>#sub-menu.gallery-filter</code>에 주입됩니다. 데스크톱은 화면 상단 중앙(top 16px),
-            모바일(너비 ≤768px)은 page-header(로고·햄버거) 바로 아래, 낮은 화면(높이 ≤768px)에서는
-            서브메뉴 패널(<code>#sub-menu-panel</code>) 상단 마진을 10px로 고정합니다.
+            모바일(너비 ≤768px)과 낮은 화면(높이 ≤768px)에서는 page-header(로고·햄버거) 바로 아래에 고정됩니다.
             Timeline / By type / Favorite 전환은 모바일 우측 드로어 Notes 하위에 있습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code></p>

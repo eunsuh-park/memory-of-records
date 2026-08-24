@@ -177,31 +177,7 @@ body.jukebox-filter-empty .gallery-filter {
 
 @media (max-height: 768px), (max-width: 768px) {
   /*
-   * Timeline / By type / Favorite는 우측 드로어 Notes 하위로 옮긴다.
-   */
-  body.jukebox-active .view-mode-toggle {
-    display: none;
-  }
-}
-
-/*
- * 1) 높이 ≤768px을 먼저 적용한다 (서브메뉴 패널 상단 마진 10px).
- * 2) 너비 ≤768px에 도달하면 아래 블록이 덮어 헤더 아래로 둔다.
- */
-@media (max-height: 768px) {
-  .gallery-filter {
-    top: 0;
-  }
-
-  #sub-menu-panel {
-    margin-top: 10px;
-  }
-}
-
-/* ========== 모바일 (너비 768px 이하) ========== */
-@media (max-width: 768px) {
-  /*
-   * 모바일 헤더 바로 아래. PageHeader 패딩·로고 행과 같게 맞춰
+   * 햄버거 헤더 바로 아래. PageHeader 패딩·로고 행과 같게 맞춰
    * 로고·햄버거와 겹치지 않게 한다.
    */
   .gallery-filter {
@@ -210,10 +186,16 @@ body.jukebox-filter-empty .gallery-filter {
     );
   }
 
-  #sub-menu-panel {
-    margin-top: 0;
+  /*
+   * Timeline / By type / Favorite는 우측 드로어 Notes 하위로 옮긴다.
+   */
+  body.jukebox-active .view-mode-toggle {
+    display: none;
   }
+}
 
+/* ========== 모바일 (너비 768px 이하) ========== */
+@media (max-width: 768px) {
   .view-mode-toggle {
     gap: var(--space-1);
     margin-bottom: var(--space-1);
