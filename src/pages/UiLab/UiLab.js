@@ -103,7 +103,7 @@ const RESPONSIVE_MATRIX = [
   {
     name: 'PageHeader',
     files: 'src/widgets/PageHeader/PageHeader.js · PageHeader.css',
-    points: '1024 · 768px (너비·높이)',
+    points: '1024 · 768px (높이·너비)',
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
       '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
