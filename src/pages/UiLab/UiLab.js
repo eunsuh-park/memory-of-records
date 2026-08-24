@@ -152,7 +152,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 모바일·높이 ≤768px 포커스 정보(노트명 + 도구모음, 메모 숨김, 갤러리와 겹치지 않음)',
+      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 min 18rem×16rem, info min 높이 제목+도구모음 · 너비 15.5rem, 겹치지 않음',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
