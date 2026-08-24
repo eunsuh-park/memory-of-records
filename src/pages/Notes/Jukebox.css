@@ -320,7 +320,7 @@ body.jukebox-active.loading-active #sub-menu {
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  top: 60%;
   transform: translate3d(0, -50%, 0);
 }
 
