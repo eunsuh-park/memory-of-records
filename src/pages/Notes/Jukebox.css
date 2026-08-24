@@ -332,7 +332,7 @@ body.jukebox-active.loading-active #sub-menu {
   position: absolute;
   left: 0;
   right: 0;
-  top: 60%;
+  top: 50%;
   transform: translate3d(0, -50%, 0);
 }
 
@@ -722,10 +722,15 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   /*
    * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
    * 전체 최저 크기는 --app-min-height / --app-min-width.
+   * info가 하단에 따로 잡히므로 갤러리 세로 기준점을 60%로 내린다.
    */
   .jukebox-gallery-wrap {
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  .jukebox-gallery.centerized {
+    top: 60%;
   }
 
   .jukebox-focus-slot {

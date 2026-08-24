@@ -157,7 +157,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 영역별 최저값 없음 — 앱 전체 360×768. 갤러리·정보 겹치지 않음',
+      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%(info가 하단에 따로 잡힘). 앱 전체 360×768',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -166,7 +166,7 @@ const RESPONSIVE_MATRIX = [
       '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
     desktop: [
-      '갤러리 padding 40vh 0 · perspective 60em · scroll-snap x mandatory',
+      '갤러리 padding 40vh 0 · top 50% · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
       '데스크톱 포커스 정보 블록 표시(높이 139px · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
