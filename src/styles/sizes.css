@@ -30,6 +30,16 @@
   --space-12: 3rem; /* 48px */
   --space-16: 4rem; /* 64px */
 
+  /* ===== App floor (전체 최저 크기. 이보다 작은 뷰포트는 스크롤) ===== */
+  --app-min-width: 22.5rem; /* 360px */
+  --app-min-height: 48rem; /* 768px */
+  /*
+   * 지정 크기. min-height만 두면 height:100vh 자식이 최저값을 무시하고
+   * overflow:hidden이 나머지를 잘라 최저 높이가 안 먹힌 것처럼 보인다.
+   */
+  --app-width: max(100%, var(--app-min-width));
+  --app-height: max(100vh, var(--app-min-height));
+
   /* ===== Shadow ===== */
   --shadow-sm: 0 2px 8px var(--color-shadow-sm);
   --shadow-md: 0 4px 16px var(--color-shadow);

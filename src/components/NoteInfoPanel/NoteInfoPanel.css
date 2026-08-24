@@ -6,6 +6,13 @@
 
 .jukebox-focus-info {
   --jukebox-focus-info-h: 139px;
+  /*
+   * 모바일 최소 높이: 제목 1줄(~1.8rem) + 패널 gap + 도구모음 32px.
+   * 메모는 모바일에서 숨기므로 접힘/펼침 예비 높이는 두지 않는다.
+   */
+  --jukebox-focus-info-min-h: calc(
+    (var(--text-xl) * 1.2) + var(--space-4) + 32px
+  );
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -13,6 +20,7 @@
   gap: var(--space-4);
   width: 100%;
   height: var(--jukebox-focus-info-h);
+  min-height: var(--jukebox-focus-info-h);
   max-width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -92,59 +100,32 @@
   overflow: hidden;
 }
 
-.jukebox-focus-info__toggle.btn--icon {
-  display: none;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  border: 1px solid var(--color-primary);
-  color: var(--color-text);
-  transition: transform 0.2s ease;
-}
-
-.jukebox-focus-info.is-open .jukebox-focus-info__toggle {
-  transform: rotate(45deg);
-}
-
-@media (max-width: 768px) {
+@media (max-height: 768px), (max-width: 768px) {
   .jukebox-focus-info {
-    /*
-     * 접힘/펼침 높이를 고정한다. 슬롯이 bottom 기준이라
-     * height: auto 면 펼칠 때 상단(제목·+)이 위로 밀린다.
-     */
-    --jukebox-focus-info-mobile-h: calc(
-      var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4) + var(--space-2)
-    );
-    height: var(--jukebox-focus-info-mobile-h);
-    min-height: var(--jukebox-focus-info-mobile-h);
+    height: auto;
+    min-height: var(--jukebox-focus-info-min-h);
     justify-content: flex-start;
     margin-bottom: var(--space-3);
+    overflow: visible;
+    flex-shrink: 0;
   }
 
-  .jukebox-focus-info__toggle.btn--icon {
-    display: inline-flex;
-  }
-
-  .jukebox-focus-info:not(.is-open) .jukebox-focus-info__details {
+  /* 모바일·낮은 화면 메모 위치는 미정 — 도구모음만 기본 노출 */
+  .jukebox-focus-info__memo {
     display: none;
   }
 }
 
-/* UiLab 모바일 접힘 미리보기 — 뷰포트와 무관하게 같은 규칙을 적용 */
+/* UiLab 모바일 미리보기 — 뷰포트와 무관하게 같은 규칙을 적용 */
 .jukebox-focus-info--compact {
-  --jukebox-focus-info-mobile-h: calc(
-    var(--jukebox-focus-info-h) + var(--space-8) + var(--space-4) + var(--space-2)
-  );
-  height: var(--jukebox-focus-info-mobile-h);
-  min-height: var(--jukebox-focus-info-mobile-h);
+  height: auto;
+  min-height: var(--jukebox-focus-info-min-h);
   justify-content: flex-start;
   margin-bottom: var(--space-3);
+  overflow: visible;
 }
 
-.jukebox-focus-info--compact .jukebox-focus-info__toggle.btn--icon {
-  display: inline-flex;
-}
-
-.jukebox-focus-info--compact:not(.is-open) .jukebox-focus-info__details {
+.jukebox-focus-info--compact .jukebox-focus-info__memo {
   display: none;
 }
 

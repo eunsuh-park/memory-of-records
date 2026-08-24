@@ -1,9 +1,9 @@
 /**
  * PageHeader
  * 데스크톱: 로고 + Intro(좌) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
- * 모바일: 로고(좌) | 햄버거(우) + 우측 드로어
+ * 모바일·낮은 화면(높이 ≤768px 또는 너비 ≤768px): 로고(좌) | 햄버거(우) + 우측 드로어
  *          (Notes 하위: Timeline / By type / Favorite, 테마 토글은 Logout 아래)
- * 갤러리 필터는 #sub-menu.gallery-filter (헤더 밖. 데스크톱 상단 중앙, 모바일은 헤더 아래)
+ * 갤러리 필터는 #sub-menu.gallery-filter (헤더 밖. 데스크톱 상단 중앙, 컴팩트 헤더에서는 헤더 아래)
  */
 
 import './PageHeader.css';
@@ -19,6 +19,7 @@ import { showToast } from '../../components/Toast/Toast.js';
 import { router } from '../../router.js';
 
 const BASE_URL = import.meta.env.BASE_URL || '/';
+const COMPACT_HEADER_MQ = '(max-height: 768px), (max-width: 768px)';
 
 function getActualPath(pathname) {
   if (BASE_URL === '/') return pathname;
@@ -295,5 +296,18 @@ export function renderPageHeader() {
         closeDrawer();
       }
     });
+  }
+
+  if (!window.__pageHeaderCompactMqBound) {
+    window.__pageHeaderCompactMqBound = true;
+    const compactMq = window.matchMedia(COMPACT_HEADER_MQ);
+    const onCompactChange = (e) => {
+      if (!e.matches) closeDrawer();
+    };
+    if (typeof compactMq.addEventListener === 'function') {
+      compactMq.addEventListener('change', onCompactChange);
+    } else {
+      compactMq.addListener(onCompactChange);
+    }
   }
 }
