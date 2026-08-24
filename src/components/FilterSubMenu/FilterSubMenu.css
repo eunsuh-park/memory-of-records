@@ -176,16 +176,20 @@ body.jukebox-filter-empty .gallery-filter {
 }
 
 /*
- * 컴팩트 헤더(너비 ≤768px 또는 높이 ≤768px)와 맞춘다.
- * 칩 모양은 너비 기준 모바일 규칙을 그대로 쓰고, 여기서는 헤더와 겹치지 않게 위치만 옮긴다.
+ * 높이 ≤768px (와이드한 낮은 화면): 서브메뉴 패널 상단 마진 10px.
+ * 너비 ≤768px 모바일은 아래 블록에서 헤더 아래로 둔다.
  */
-@media (max-width: 768px), (max-height: 768px) {
+@media (max-height: 768px) {
   .gallery-filter {
-    top: calc(
-      max(var(--space-2), env(safe-area-inset-top)) + 44px + var(--space-3)
-    );
+    top: 0;
   }
 
+  #sub-menu-panel {
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 768px), (max-height: 768px) {
   /*
    * Timeline / By type / Favorite는 우측 드로어 Notes 하위로 옮긴다.
    */
@@ -196,6 +200,20 @@ body.jukebox-filter-empty .gallery-filter {
 
 /* ========== 모바일 (너비 768px 이하) ========== */
 @media (max-width: 768px) {
+  /*
+   * 모바일 헤더 바로 아래. PageHeader 패딩·로고 행과 같게 맞춰
+   * 로고·햄버거와 겹치지 않게 한다.
+   */
+  .gallery-filter {
+    top: calc(
+      max(var(--space-2), env(safe-area-inset-top)) + 44px + var(--space-3)
+    );
+  }
+
+  #sub-menu-panel {
+    margin-top: 0;
+  }
+
   .view-mode-toggle {
     gap: var(--space-1);
     margin-bottom: var(--space-1);

@@ -100,7 +100,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 768px) {
   .jukebox-focus-info {
     height: auto;
     min-height: var(--jukebox-focus-info-min-h);
@@ -110,7 +110,7 @@
     flex-shrink: 0;
   }
 
-  /* 모바일 메모 위치는 미정 — 도구모음만 기본 노출 */
+  /* 모바일·낮은 화면 메모 위치는 미정 — 도구모음만 기본 노출 */
   .jukebox-focus-info__memo {
     display: none;
   }
