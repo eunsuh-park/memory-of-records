@@ -95,10 +95,15 @@ const RESPONSIVE_MATRIX = [
     points: '768px',
     mobile: [
       '헤더가 한 줄이라 .app-main padding-top 80px',
-      '.main-wrapper height calc(100vh - 80px)'
+      '.main-wrapper height calc(var(--app-height) - 80px)',
+      '전체 최저 360×768. 뷰포트가 더 작으면 페이지 스크롤'
     ],
     tablet: ['데스크톱과 동일 (768px 규칙만 존재)'],
-    desktop: ['.app-main padding-top 80px', '.main-wrapper height calc(100vh - 80px)']
+    desktop: [
+      '.app-main padding-top 80px',
+      '.main-wrapper height calc(var(--app-height) - 80px)',
+      '전체 최저 --app-min-width 360px · --app-min-height 768px'
+    ]
   },
   {
     name: 'PageHeader',
@@ -152,7 +157,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 min 18rem×16rem, info min 높이 제목+도구모음 · 너비 15.5rem, 겹치지 않음',
+      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 영역별 최저값 없음 — 앱 전체 360×768. 갤러리·정보 겹치지 않음',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],

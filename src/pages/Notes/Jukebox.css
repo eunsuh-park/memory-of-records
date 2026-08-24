@@ -11,8 +11,9 @@
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
 .app-main.jukebox-active {
-  height: 100vh;
-  max-height: 100vh;
+  height: var(--app-height);
+  min-height: var(--app-min-height);
+  max-height: none;
   overflow: hidden;
   box-sizing: border-box;
   padding-top: 0;
@@ -21,12 +22,21 @@
 body.jukebox-active {
   margin: 0;
   padding: 0;
-  min-height: 100%;
+  min-width: var(--app-min-width);
+  min-height: var(--app-min-height);
   user-select: none;
   overflow: hidden;
   position: relative;
-  height: 100vh;
+  height: var(--app-height);
   background: var(--color-bg);
+}
+
+@media (max-height: 768px), (max-width: 360px) {
+  html,
+  body,
+  body.jukebox-active {
+    overflow: auto;
+  }
 }
 
 /* 기간별 배경 (Timeline period 필터 시 오버라이드용) */
@@ -292,7 +302,9 @@ body.jukebox-active.loading-active #sub-menu {
     var(--color-bg-alt) 60%,
     var(--color-bg) 100%
   );
-  height: 100%;
+  min-width: var(--app-min-width);
+  min-height: var(--app-min-height);
+  height: var(--app-height);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -709,19 +721,11 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 @media (max-height: 768px), (max-width: 768px) {
   /*
    * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
-   * 높이·너비 최저값 아래로는 줄지 않고, 뷰포트가 모자라면 패널이 스크롤된다.
+   * 전체 최저 크기는 --app-min-height / --app-min-width.
    */
-  .jukebox-fullscreen {
-    --jukebox-gallery-min-h: 18rem;
-    --jukebox-gallery-min-w: 16rem;
-    overflow-x: auto;
-    overflow-y: auto;
-  }
-
   .jukebox-gallery-wrap {
     flex: 1 1 auto;
-    min-height: var(--jukebox-gallery-min-h);
-    min-width: var(--jukebox-gallery-min-w);
+    min-height: 0;
   }
 
   .jukebox-focus-slot {
@@ -731,6 +735,5 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     z-index: 2;
     flex: 0 0 auto;
     width: 100%;
-    min-width: var(--jukebox-gallery-min-w);
   }
 }

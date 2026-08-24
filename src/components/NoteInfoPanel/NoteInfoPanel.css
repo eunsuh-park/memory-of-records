@@ -13,7 +13,6 @@
   --jukebox-focus-info-min-h: calc(
     (var(--text-xl) * 1.2) + var(--space-4) + 32px
   );
-  --jukebox-focus-info-min-w: 15.5rem; /* 248px, 메모 폭과 맞춤 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,7 +21,6 @@
   width: 100%;
   height: var(--jukebox-focus-info-h);
   min-height: var(--jukebox-focus-info-h);
-  min-width: var(--jukebox-focus-info-min-w);
   max-width: 100%;
   box-sizing: border-box;
   padding: 0;
@@ -106,7 +104,6 @@
   .jukebox-focus-info {
     height: auto;
     min-height: var(--jukebox-focus-info-min-h);
-    min-width: var(--jukebox-focus-info-min-w);
     justify-content: flex-start;
     margin-bottom: var(--space-3);
     overflow: visible;
@@ -123,7 +120,6 @@
 .jukebox-focus-info--compact {
   height: auto;
   min-height: var(--jukebox-focus-info-min-h);
-  min-width: var(--jukebox-focus-info-min-w);
   justify-content: flex-start;
   margin-bottom: var(--space-3);
   overflow: visible;
