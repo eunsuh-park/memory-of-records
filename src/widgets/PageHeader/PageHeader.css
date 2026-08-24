@@ -1,7 +1,7 @@
 /**
  * PageHeader 스타일
  * 데스크톱: [로고 + Intro] --- [테마 + Login/Logout + 새 노트 추가]
- * 모바일·낮은 화면(너비 ≤768px 또는 높이 ≤768px): 로고 좌측 + 햄버거 우측, 우측 드로어
+ * 모바일·낮은 화면(높이 ≤768px 또는 너비 ≤768px): 로고 좌측 + 햄버거 우측, 우측 드로어
  * 갤러리 필터는 FilterSubMenu(.gallery-filter)가 헤더 밖에서 담당한다.
  * 데스크톱은 상단 중앙, 컴팩트 헤더에서는 헤더(로고·햄버거) 바로 아래.
  */
@@ -242,10 +242,10 @@
 }
 
 /*
- * 너비 ≤768px 또는 높이 ≤768px: 모바일과 같이 햄버거 + 우측 드로어.
- * 짧은 창(아이패드 가로 등)에서도 헤더가 한 줄을 차지하지 않게 한다.
+ * 높이 ≤768px 또는 너비 ≤768px: 모바일과 같이 햄버거 + 우측 드로어.
+ * 높이 조건을 너비보다 앞에 둔다.
  */
-@media (max-width: 768px), (max-height: 768px) {
+@media (max-height: 768px), (max-width: 768px) {
   .page-header {
     display: flex;
     flex-wrap: wrap;
@@ -522,8 +522,8 @@
   }
 }
 
-@media (max-width: 768px) and (hover: hover) and (pointer: fine),
-  (max-height: 768px) and (hover: hover) and (pointer: fine) {
+@media (max-height: 768px) and (hover: hover) and (pointer: fine),
+  (max-width: 768px) and (hover: hover) and (pointer: fine) {
   .page-header__menu-btn:hover {
     background: transparent;
     background-color: transparent;

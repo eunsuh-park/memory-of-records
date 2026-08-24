@@ -100,7 +100,7 @@
   overflow: hidden;
 }
 
-@media (max-width: 768px), (max-height: 768px) {
+@media (max-height: 768px), (max-width: 768px) {
   .jukebox-focus-info {
     height: auto;
     min-height: var(--jukebox-focus-info-min-h);

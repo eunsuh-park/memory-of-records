@@ -175,21 +175,7 @@ body.jukebox-filter-empty .gallery-filter {
   display: none;
 }
 
-/*
- * 높이 ≤768px (와이드한 낮은 화면): 서브메뉴 패널 상단 마진 10px.
- * 너비 ≤768px 모바일은 아래 블록에서 헤더 아래로 둔다.
- */
-@media (max-height: 768px) {
-  .gallery-filter {
-    top: 0;
-  }
-
-  #sub-menu-panel {
-    margin-top: 10px;
-  }
-}
-
-@media (max-width: 768px), (max-height: 768px) {
+@media (max-height: 768px), (max-width: 768px) {
   /*
    * Timeline / By type / Favorite는 우측 드로어 Notes 하위로 옮긴다.
    */
@@ -329,6 +315,20 @@ body.jukebox-filter-empty .gallery-filter {
   body.jukebox-active .view-mode-link:not(.active):hover {
     color: var(--color-text);
     background-color: var(--color-surface-hover);
+  }
+}
+
+/*
+ * 높이 ≤768px: 서브메뉴 패널 상단 마진 10px.
+ * 너비 규칙보다 뒤에 두어, 너비·높이가 둘 다 768 이하일 때도 높이 조건이 이긴다.
+ */
+@media (max-height: 768px) {
+  .gallery-filter {
+    top: 0;
+  }
+
+  #sub-menu-panel {
+    margin-top: 10px;
   }
 }
 
