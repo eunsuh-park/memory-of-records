@@ -10,8 +10,9 @@
  * }
  */
 import { getCloudinaryCredentials } from '../cloudinaryAuth.js';
+import { pagesFolderForNote, sanitizeNotePublicId } from '../notePagesFolder.js';
 
-const NOTEBOOKS_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
+export { pagesFolderForNote, sanitizeNotePublicId };
 
 function fetchJson(url, authHeader, init = {}) {
   return fetch(url, {
@@ -29,20 +30,6 @@ function fetchJson(url, authHeader, init = {}) {
   });
 }
 
-export function sanitizeNotePublicId(value) {
-  const raw = String(value || '').trim();
-  if (!raw || raw.length > 80) return '';
-  if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(raw)) return '';
-  return raw;
-}
-
-export function pagesFolderForNote(noteId) {
-  const id = sanitizeNotePublicId(noteId);
-  if (!id) return '';
-  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
-  return `${root}/${id}/pages`;
-}
-
 /**
  * notebooks/{NOTE_ID}/pages/page-000001 → { noteId, pageNumber }
  * @param {string} publicId
@@ -53,7 +40,8 @@ export function parsePagePublicId(publicId) {
     .split('/')
     .filter(Boolean);
   if (parts.length !== 4) return null;
-  if (parts[0].toLowerCase() !== String(NOTEBOOKS_ROOT).toLowerCase()) return null;
+  const root = String(process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks');
+  if (parts[0].toLowerCase() !== String(root).toLowerCase()) return null;
   if (parts[2].toLowerCase() !== 'pages') return null;
   const match = String(parts[3] || '')
     .replace(/\.[a-z0-9]+$/i, '')

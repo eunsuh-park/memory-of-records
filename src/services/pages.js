@@ -135,9 +135,10 @@ export function validatePdfFile(file) {
 export { MAX_IMAGE_COUNT };
 
 /**
- * 페이지 이미지 URL 조립
- * `{pdf_folder_url}/page-{6자리 zero-padded 페이지 번호}.jpg`
- * @param {string} folderUrl - Cloudinary 폴더 base URL
+ * 페이지 이미지 URL 조립 (레거시 pdf_folder_url 경로)
+ * `{folder}/page-{6자리 zero-padded 페이지 번호}.jpg`
+ * public_id가 있는 노트는 `fetchNotePages`가 Cloudinary 목록을 쓴다.
+ * @param {string} folderUrl - Cloudinary 폴더 base URL 또는 폴더 경로
  * @param {number} pageNumber - 1부터 시작하는 페이지 번호
  * @returns {string}
  */
@@ -219,6 +220,7 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
  *   folder?: string,
  *   publicId?: string
  * }} payload
+ * publicId가 있으면 notebooks/{publicId}/pages/page-000001.jpg 로 올린다.
  */
 export async function uploadPageImage(payload) {
   const response = await fetch('/api/writePages', {
@@ -240,7 +242,8 @@ export async function uploadPageImage(payload) {
 }
 
 /**
- * @param {{ id: string, pdfFolderUrl: string, pageCount: number }} payload
+ * @param {{ id: string, pdfFolderUrl?: string, pageCount: number }} payload
+ * Notion에 pdf_folder_url/page_count가 있으면 갱신한다. 없으면 서버가 skip한다.
  */
 export async function updateNotionNotePages(payload) {
   const response = await fetch('/api/writePages', {

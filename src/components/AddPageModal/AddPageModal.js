@@ -1,6 +1,6 @@
 /**
  * 페이지 추가 모달
- * - PDF → JPEG 변환 후 Cloudinary Content 폴더 업로드
+ * - PDF → JPEG 변환 후 notebooks/{public_id}/pages 에 업로드
  * - 이미지 1~10장 (순서 변경·삭제)
  */
 
@@ -393,16 +393,20 @@ export async function openAddPageModal(options = {}) {
   }
 
   /**
-   * Cloudinary 업로드와 Notion pdf_folder_url/page_count를 최대한 같이 맞춘다.
-   * 중간에 끊겨도 이미 올라간 장수만큼 Notion에 남겨 "Load Failed"를 막는다.
+   * Notion page_count/pdf_folder_url이 있으면 맞춰 둔다.
+   * 뷰어는 public_id → Cloudinary pages 폴더 목록이 기준이라, 속성이 없어도 업로드는 유효하다.
    */
   async function linkNotePages(folderUrl, pageCount, { required = true } = {}) {
-    if (!noteId || !folderUrl || !Number.isFinite(pageCount) || pageCount < 1) {
+    if (!noteId || !Number.isFinite(pageCount) || pageCount < 1) {
       if (required) {
         throw new Error('노트 페이지 정보를 갱신할 수 없습니다');
       }
       return null;
     }
+    if (!folderUrl && required) {
+      throw new Error('노트 페이지 정보를 갱신할 수 없습니다');
+    }
+    if (!folderUrl) return null;
     const attempts = required ? 3 : 1;
     let lastError = null;
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -432,8 +436,9 @@ export async function openAddPageModal(options = {}) {
     updateUploadEnabled();
 
     const total = pages.length;
+    const usePublicIdFolder = Boolean(notePublicId);
     let folderUrl = existingFolder;
-    let folderPath = existingFolder;
+    let folderPath = canonicalFolder || existingFolder;
     let uploadedCount = 0;
     let linkedCount = existingCount;
     let updated = null;
@@ -474,55 +479,37 @@ export async function openAddPageModal(options = {}) {
           file: pages[i].dataUrl,
           noteName,
           pageNumber,
-          folder: folderPath || canonicalFolder || undefined,
-          publicId: notePublicId || undefined
+          publicId: notePublicId || undefined,
+          folder: notePublicId ? undefined : folderPath || undefined
         });
-        if (!folderUrl && result.folderUrl) folderUrl = result.folderUrl;
+        if (result.folderUrl) folderUrl = result.folderUrl;
         if (result.folder) folderPath = result.folder;
         uploadedCount += 1;
-
-        /* 첫 장부터 Notion에 폴더 URL을 심어 부분 실패 시에도 뷰어가 열리게 한다 */
-        if (folderUrl) {
-          const runningCount = existingCount + uploadedCount;
-          const isFirstLink = linkedCount === existingCount && existingCount === 0;
-          const linking = isFirstLink || i === pages.length - 1;
-          if (linking) {
-            stage = 'link';
-            showUploadingOverlay({
-              message: '노트 정보를 갱신하는 중…',
-              current: i + 1,
-              total
-            });
-          } else {
-            showUploadingOverlay({
-              message: `페이지 업로드 중… ${i + 1}/${total}`,
-              current: i + 1,
-              total
-            });
-          }
-          const linkResult = await linkNotePages(folderUrl, runningCount, {
-            required: linking
-          });
-          if (linkResult) {
-            updated = linkResult;
-            linkedCount = runningCount;
-          }
-        }
       }
 
-      if (!folderUrl) {
+      if (!usePublicIdFolder && !folderUrl) {
         throw new Error('업로드된 페이지 폴더 URL을 확인하지 못했습니다');
       }
 
       const newPageCount = existingCount + uploadedCount;
-      if (linkedCount !== newPageCount) {
+      const linkFolder = folderUrl || folderPath || canonicalFolder;
+      if (linkFolder) {
         stage = 'link';
         showUploadingOverlay({
           message: '노트 정보를 갱신하는 중…',
           current: total,
           total
         });
-        updated = await linkNotePages(folderUrl, newPageCount, { required: true });
+        const linkResult = await linkNotePages(linkFolder, newPageCount, {
+          required: !usePublicIdFolder
+        });
+        if (linkResult) {
+          updated = linkResult;
+          linkedCount = newPageCount;
+        } else if (usePublicIdFolder) {
+          linkedCount = newPageCount;
+        }
+      } else if (usePublicIdFolder) {
         linkedCount = newPageCount;
       }
 
@@ -533,7 +520,8 @@ export async function openAddPageModal(options = {}) {
         options.onDone?.({
           ...(updated || {}),
           id: noteId,
-          pdfFolderUrl: folderUrl,
+          publicId: notePublicId,
+          pdfFolderUrl: folderUrl || canonicalFolder,
           pageCount: linkedCount,
           insertAfterPage,
           insertedCount: uploadedCount
@@ -549,7 +537,8 @@ export async function openAddPageModal(options = {}) {
         options.onDone?.({
           ...(updated || {}),
           id: noteId,
-          pdfFolderUrl: folderUrl,
+          publicId: notePublicId,
+          pdfFolderUrl: folderUrl || canonicalFolder,
           pageCount: linkedCount,
           insertAfterPage,
           insertedCount: uploadedCount
@@ -557,15 +546,17 @@ export async function openAddPageModal(options = {}) {
       }
     } catch (err) {
       console.error('[AddPage] upload', err);
-      /* Cloudinary까지 올라간 장수가 있으면 Notion에 부분 반영 시도 */
-      if (folderUrl && uploadedCount > 0 && linkedCount < existingCount + uploadedCount) {
+      const savedCount = existingCount + uploadedCount;
+      if (uploadedCount > 0 && (folderUrl || canonicalFolder)) {
         try {
-          updated = await linkNotePages(folderUrl, existingCount + uploadedCount, {
+          updated = await linkNotePages(folderUrl || canonicalFolder, savedCount, {
             required: false
           });
-          if (updated) linkedCount = existingCount + uploadedCount;
+          if (updated) linkedCount = savedCount;
+          else if (usePublicIdFolder) linkedCount = savedCount;
         } catch (linkErr) {
           console.warn('[AddPage] partial Notion link failed', linkErr);
+          if (usePublicIdFolder) linkedCount = savedCount;
         }
       }
       hideUploadingOverlay();
@@ -577,14 +568,15 @@ export async function openAddPageModal(options = {}) {
         fromNewNote,
         error: err
       });
-      const savedSome = folderUrl && uploadedCount > 0 && linkedCount > existingCount;
+      const savedSome = uploadedCount > 0 && linkedCount > existingCount;
       if (savedSome) {
         if (noteId) markNoteUnseen(noteId);
         clearNotesCaches();
         options.onDone?.({
           ...(updated || {}),
           id: noteId,
-          pdfFolderUrl: folderUrl,
+          publicId: notePublicId,
+          pdfFolderUrl: folderUrl || canonicalFolder,
           pageCount: linkedCount,
           insertAfterPage,
           insertedCount: linkedCount - existingCount,
