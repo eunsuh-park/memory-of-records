@@ -4,6 +4,7 @@
  * 폼 스텝:
  * 1) 이름·앞뒤표지·크기·색상 (이름·표지 필수)
  * 2) 종류·시기·사용 시작/종료일·보유/공개 체크 (종류·시작일 필수)
+ *    시작일은 종료일보다 앞. 시작일이 오늘이면 종료일 비우고 아직 사용 중.
  * 3) 메모
  *
  * 제출 후:
@@ -63,6 +64,22 @@ const NOTES_PLACEHOLDER = '이 노트는 무슨 용도로 사용하고 있나요
 /** 노션 description 속성 · 정보 패널과 동일 (공백 포함) */
 const NOTES_MAX_CHARS = 70;
 const FORM_STEPS = 3;
+
+/** 로컬 달력 기준 YYYY-MM-DD (UTC toISOString은 자정 전후가 어긋남) */
+function localIsoDate(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** @param {string} iso @param {number} days */
+function addDaysIso(iso, days) {
+  const parts = String(iso || '').split('-').map(Number);
+  if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return '';
+  const [y, m, d] = parts;
+  return localIsoDate(new Date(y, m - 1, d + days));
+}
 
 function datalistHtml(id, values) {
   return `<datalist id="${escapeHtml(id)}">${values
@@ -374,6 +391,7 @@ export async function openAddNoteModal(options = {}) {
   const colorChips = form?.querySelector('.field__swatches');
   const sizeInput = form?.querySelector('input[name="size"]');
   const sizeList = form?.querySelector('#add-note-size-list');
+  const periodStartInput = form?.querySelector('input[name="periodStart"]');
   const periodEndInput = form?.querySelector('input[name="periodEnd"]');
   const stillInUseInput = form?.querySelector('input[name="stillInUse"]');
 
@@ -435,12 +453,18 @@ export async function openAddNoteModal(options = {}) {
     if (step === 2) {
       const notebookType = String(fd.get('notebookType') || '').trim();
       const periodStart = String(fd.get('periodStart') || '').trim();
+      const stillInUse = Boolean(fd.get('stillInUse'));
+      const periodEnd = stillInUse ? '' : String(fd.get('periodEnd') || '').trim();
       if (!notebookType) {
         setStatus('노트 종류는 필수입니다.', true);
         return false;
       }
       if (!periodStart) {
         setStatus('사용 시작일은 필수입니다.', true);
+        return false;
+      }
+      if (periodEnd && periodEnd <= periodStart) {
+        setStatus('종료일은 시작일보다 뒤여야 합니다.', true);
         return false;
       }
       return true;
@@ -453,17 +477,57 @@ export async function openAddNoteModal(options = {}) {
     setStep(currentStep + 1);
   };
 
-  const syncStillInUse = () => {
-    if (!periodEndInput || !stillInUseInput) return;
-    if (stillInUseInput.checked) {
+  const markStillInUseIfStartedToday = () => {
+    if (!periodStartInput || !stillInUseInput || !periodEndInput) return;
+    if (periodStartInput.value === localIsoDate()) {
+      stillInUseInput.checked = true;
       periodEndInput.value = '';
-      periodEndInput.disabled = true;
-    } else {
-      periodEndInput.disabled = false;
     }
   };
-  stillInUseInput?.addEventListener('change', syncStillInUse);
-  syncStillInUse();
+
+  const syncUsageDates = () => {
+    if (!periodStartInput || !periodEndInput || !stillInUseInput) return;
+    const start = periodStartInput.value || '';
+    const end = periodEndInput.value || '';
+    const stillInUse = stillInUseInput.checked;
+
+    if (stillInUse) {
+      periodEndInput.value = '';
+      periodEndInput.disabled = true;
+      periodEndInput.removeAttribute('min');
+      periodStartInput.removeAttribute('max');
+      return;
+    }
+
+    periodEndInput.disabled = false;
+    if (start) {
+      const minEnd = addDaysIso(start, 1);
+      if (minEnd) periodEndInput.min = minEnd;
+      else periodEndInput.removeAttribute('min');
+      if (end && minEnd && end < minEnd) periodEndInput.value = '';
+    } else {
+      periodEndInput.removeAttribute('min');
+    }
+
+    const nextEnd = periodEndInput.value || '';
+    if (nextEnd) {
+      const maxStart = addDaysIso(nextEnd, -1);
+      if (maxStart) periodStartInput.max = maxStart;
+      else periodStartInput.removeAttribute('max');
+      if (start && maxStart && start > maxStart) periodStartInput.value = maxStart;
+    } else {
+      periodStartInput.removeAttribute('max');
+    }
+  };
+
+  periodStartInput?.addEventListener('change', () => {
+    markStillInUseIfStartedToday();
+    syncUsageDates();
+  });
+  periodEndInput?.addEventListener('change', syncUsageDates);
+  stillInUseInput?.addEventListener('change', syncUsageDates);
+  markStillInUseIfStartedToday();
+  syncUsageDates();
 
   const notesInput = form?.querySelector('textarea[name="notes"]');
   const notesCount = form?.querySelector('[data-notes-count]');
