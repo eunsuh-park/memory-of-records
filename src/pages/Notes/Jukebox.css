@@ -770,7 +770,15 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     flex: 0 0 auto;
     flex-shrink: 0;
     width: 100%;
-    min-height: var(--jukebox-focus-info-min-h);
+    /*
+     * border-box라 padding이 min-height를 깎는다.
+     * 패널 본문 + 패널 margin-bottom + 슬롯 padding-bottom을 한 번에 확보한다.
+     */
+    min-height: calc(
+      var(--jukebox-focus-info-min-h)
+      + var(--space-3)
+      + max(var(--space-4), env(safe-area-inset-bottom, 0px))
+    );
     padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
   }
 }
