@@ -37,6 +37,7 @@ import {
 } from '../../utils/demoNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { copyNoteShareUrl } from '../../utils/noteSlug.js';
+import { optimizeThumbnailUrl } from '../../utils/optimizeImageUrl.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -522,8 +523,9 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   }
   const itemsHtml = allNotes
     .map((note) => {
-      const coverSrc = note.coverFrontUrl || TRANSPARENT_PIXEL;
-      const backCoverSrc = note.coverBackUrl || TRANSPARENT_PIXEL;
+      // 표지 이미지 썸네일 최적화 (갤러리용 최대 600px)
+      const coverSrc = optimizeThumbnailUrl(note.coverFrontUrl, 600) || note.coverFrontUrl || TRANSPARENT_PIXEL;
+      const backCoverSrc = optimizeThumbnailUrl(note.coverBackUrl, 600) || note.coverBackUrl || TRANSPARENT_PIXEL;
       const title = escapeHtml(note.title);
       const noteId = escapeHtml(note.id || '');
       const showBadge = Boolean(

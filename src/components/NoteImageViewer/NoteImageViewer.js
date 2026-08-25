@@ -23,6 +23,7 @@ import { fetchNoteCovers } from '../../services/noteCovers.js';
 import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
 import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
 import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bookmarkedPages.js';
+import { optimizeImageUrl } from '../../utils/optimizeImageUrl.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
 import {
@@ -272,12 +273,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       const entry = albumEntry(num);
       if (!entry) return '';
       if (entry.url) return withMediaVersion(entry.url);
-      return withMediaVersion(buildPageImageUrl(entry.folderUrl, entry.pageNumber));
+      const rawUrl = buildPageImageUrl(entry.folderUrl, entry.pageNumber);
+      return withMediaVersion(optimizeImageUrl(rawUrl) || rawUrl);
     }
     const mapped = pageUrlByNumber.get(num);
     if (mapped) return withMediaVersion(mapped);
     if (!folderUrl) return '';
-    return withMediaVersion(buildPageImageUrl(folderUrl, num));
+    const rawUrl = buildPageImageUrl(folderUrl, num);
+    return withMediaVersion(optimizeImageUrl(rawUrl) || rawUrl);
   }
 
   function storedPagesForViewer() {
