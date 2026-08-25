@@ -227,7 +227,10 @@
   --color-shadow-lg: rgba(20, 28, 36, 0.12);
   --color-drop-shadow: drop-shadow(0 3px 8px rgba(20, 28, 36, 0.12));
 
-  --color-reflect: none;
+  /* none이면 마스크가 빠져 전체 반사가 보인다. 투명 그라데이션으로 끈다. */
+  --color-reflect: linear-gradient(transparent, transparent);
+  --color-reflect-mid: linear-gradient(transparent, transparent);
+  --color-reflect-far: linear-gradient(transparent, transparent);
   --color-fade-edge: linear-gradient(90deg, var(--grey-light-4), transparent);
 
   --color-on-light: var(--grey-light-12);

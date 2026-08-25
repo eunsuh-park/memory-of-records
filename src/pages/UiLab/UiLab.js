@@ -175,7 +175,7 @@ const RESPONSIVE_MATRIX = [
     ],
     desktop: [
       '갤러리 padding 40vh 0 · top 50% · perspective 60em · scroll-snap x mandatory',
-      '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
+      '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on(다크). 라이트는 반사·하단 그라데이션 없음',
       '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]

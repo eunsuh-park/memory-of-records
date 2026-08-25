@@ -170,8 +170,8 @@ function updateCardAngles(gallery) {
       card.style.zIndex = String(zIndex);
     }
 
-    /* 바닥 반사: 데스크톱만. 모바일에서는 클래스/반사 미적용 */
-    if (!isMobileJukebox()) {
+    /* 바닥 반사: 데스크톱 다크만. 모바일·라이트는 클래스/반사 미적용 */
+    if (!shouldSkipJukeboxReflection()) {
       const distFromCenter = Math.abs(i - closestIdx);
       const reflectLevel = distFromCenter <= REFLECTION_MAX_DISTANCE ? distFromCenter : -1;
       if (reflectLevel !== m.lastReflectLevel) {
@@ -254,13 +254,19 @@ function enableCenterPerspective(gallery) {
   }
   gallery._jukeboxPerspectiveEnabled = true;
   let rafId = null;
+  let themeObserver = null;
+
+  const stopPerspective = () => {
+    window.removeEventListener('resize', onResize);
+    themeObserver?.disconnect();
+  };
 
   const onScroll = () => {
     if (rafId !== null) return;
     rafId = requestAnimationFrame(() => {
       rafId = null;
       if (!gallery.isConnected) {
-        window.removeEventListener('resize', onResize);
+        stopPerspective();
         return;
       }
       updateCardAngles(gallery);
@@ -269,7 +275,7 @@ function enableCenterPerspective(gallery) {
 
   const onResize = () => {
     if (!gallery.isConnected) {
-      window.removeEventListener('resize', onResize);
+      stopPerspective();
       return;
     }
     refreshCardMetrics(gallery);
@@ -278,6 +284,24 @@ function enableCenterPerspective(gallery) {
 
   gallery.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onResize);
+
+  const onThemeChange = () => {
+    if (!gallery.isConnected) {
+      stopPerspective();
+      return;
+    }
+    const metrics = galleryMetricsCache.get(gallery);
+    metrics?.forEach((m) => {
+      m.lastReflectLevel = null;
+    });
+    updateCardAngles(gallery);
+  };
+  themeObserver = new MutationObserver(onThemeChange);
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme']
+  });
+
   updateCardAngles(gallery);
 }
 
@@ -796,6 +820,18 @@ function isMobileJukebox() {
     typeof window !== 'undefined' &&
     window.matchMedia('(max-width: 1024px), (max-height: 768px)').matches
   );
+}
+
+function isLightTheme() {
+  return (
+    typeof document !== 'undefined' &&
+    document.documentElement.getAttribute('data-theme') === 'light'
+  );
+}
+
+/** 모바일·낮은 화면·라이트 모드: 바닥 반사 없음 */
+function shouldSkipJukeboxReflection() {
+  return isMobileJukebox() || isLightTheme();
 }
 
 /**

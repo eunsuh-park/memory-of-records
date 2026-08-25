@@ -475,11 +475,21 @@ body.jukebox-active.loading-active #sub-menu {
   -webkit-box-reflect: below 0.5em var(--color-reflect-far);
 }
 
-/* 라이트 모드: 바닥 반사 제거 */
+/* 라이트 모드: 바닥 반사·하단 스테이지 그라데이션 제거 */
+[data-theme='light'] .jukebox-fullscreen {
+  background: var(--color-bg);
+}
+
+/*
+ * `none`은 마스크만 지워 below 오프셋 반사가 그대로 남는다.
+ * initial로 속성 전체를 리셋해야 바닥 반사가 꺼진다.
+ */
+[data-theme='light'] .jukebox-gallery > div.jukebox-card,
+[data-theme='light'] .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
 [data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
 [data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
 [data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
-  -webkit-box-reflect: none;
+  -webkit-box-reflect: initial !important;
 }
 
 /* 첫 카드가 왼쪽으로 밀려 2번째 카드가 먼저 중앙 포커스되는 현상 방지 */
