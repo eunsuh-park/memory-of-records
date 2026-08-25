@@ -770,6 +770,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     flex: 0 0 auto;
     flex-shrink: 0;
     width: 100%;
+    align-items: stretch;
     /*
      * border-box라 padding이 min-height를 깎는다.
      * 패널 본문 + 패널 margin-bottom + 슬롯 padding-bottom을 한 번에 확보한다.
