@@ -4,6 +4,109 @@
  *  파일 선택 → FileUploadPreview 로 옮겼다)
  */
 
+.add-note-progress {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.add-note-progress li {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-dim);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.add-note-progress li.is-current {
+  color: var(--color-text);
+  font-weight: var(--font-semibold);
+}
+
+.add-note-progress li.is-done {
+  color: var(--color-text-muted);
+}
+
+.add-note-progress__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.add-note-progress li.is-current .add-note-progress__index {
+  color: var(--color-primary-on);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.add-note-progress li.is-done .add-note-progress__index {
+  color: var(--color-text);
+  background: var(--color-surface-selected);
+  border-color: var(--color-border);
+}
+
+.add-note-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.add-note-step[hidden] {
+  display: none;
+}
+
+.add-note-nav {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--space-2);
+}
+
+.add-note-nav.is-step-1 {
+  grid-template-columns: 1fr;
+}
+
+.add-note-nav .btn--solid,
+.add-note-nav .btn--text.btn--block {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: 0;
+}
+
+.add-note-nav .btn svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+.add-note-nav__next-icon {
+  display: inline-flex;
+}
+
+.add-note-nav__next-icon svg {
+  transform: scaleX(-1);
+}
+
+.add-note-nav.is-step-1 .add-note-back,
+.add-note-nav.is-step-1 .add-note-submit,
+.add-note-nav.is-step-2 .add-note-submit,
+.add-note-nav.is-step-3 .add-note-next {
+  display: none;
+}
+
 .add-note-covers {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -50,6 +153,10 @@
 
 @media (max-width: 640px) {
   .add-note-covers {
+    grid-template-columns: 1fr;
+  }
+
+  .add-note-nav {
     grid-template-columns: 1fr;
   }
 }

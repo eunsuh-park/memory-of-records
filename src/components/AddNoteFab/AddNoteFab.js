@@ -1,10 +1,14 @@
 /**
  * 새 노트 추가 / 노트 정보 수정 모달
  *
- * 흐름:
- * 1) 폼 작성 (이름·앞뒤표지·타입·사용 시작일 필수, is_kept/visible 기본 true)
- * 2) 뒷표지를 앞표지 크기에 맞춰 크롭 → Cloudinary 업로드 (Front/Back 폴더, 파일명=노트명)
- * 3) Notion DB에 페이지 생성 또는 기존 페이지 PATCH
+ * 폼 스텝:
+ * 1) 이름·앞뒤표지·크기·색상 (이름·표지 필수)
+ * 2) 종류·시기·사용 시작/종료일·보유/공개 체크 (종류·시작일 필수)
+ * 3) 메모
+ *
+ * 제출 후:
+ * - 생성: 뒷표지를 앞표지 크기에 맞춰 크롭 → Cloudinary 업로드 → Notion 페이지 생성
+ * - 수정: Notion 페이지 PATCH (표지는 변경하지 않음)
  */
 
 import { render as renderButton } from '../Button/Button.js';
@@ -40,6 +44,7 @@ import {
 } from '../AddPageModal/AddPageModal.js';
 import { requireAuth } from '../../services/auth.js';
 import { NOTE_COLOR_PAINT, LIGHT_NOTE_COLORS, NOTE_COLOR_NAMES } from '../../utils/noteColorMap.js';
+import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { hideUploadingOverlay, showUploadingOverlay } from './uploadOverlay.js';
 import './AddNoteFab.css';
 
@@ -54,10 +59,10 @@ const COLOR_CHIP_HEX = NOTE_COLOR_PAINT;
 /** 스와치가 배경에 묻히는 밝은 색 (테두리 보정) */
 const LIGHT_COLOR_NAMES = [...LIGHT_NOTE_COLORS];
 
-const NOTES_PLACEHOLDER =
-  '이 노트는 무슨 용도로 사용하고 있나요? 어떤 애착이 있나요? 주로 언제 쓰나요? 이 노트가 당신에게 어떤 영감을 주나요?';
+const NOTES_PLACEHOLDER = '이 노트는 무슨 용도로 사용하고 있나요?';
 /** 노션 description 속성 · 정보 패널과 동일 (공백 포함) */
 const NOTES_MAX_CHARS = 70;
+const FORM_STEPS = 3;
 
 function datalistHtml(id, values) {
   return `<datalist id="${escapeHtml(id)}">${values
@@ -150,111 +155,147 @@ export async function openAddNoteModal(options = {}) {
 
   const formHtml = `
       <form class="form add-note-form" novalidate>
-        ${renderField({
-          label: '이름',
-          name: 'name',
-          required: true,
-          placeholder: '예: 2026_업무노트',
-          value: seed?.name || ''
-        })}
+        <ol class="add-note-progress" aria-label="노트 작성 단계">
+          <li data-progress="1" class="is-current" aria-current="step">
+            <span class="add-note-progress__index">1</span>표지
+          </li>
+          <li data-progress="2">
+            <span class="add-note-progress__index">2</span>사용
+          </li>
+          <li data-progress="3">
+            <span class="add-note-progress__index">3</span>메모
+          </li>
+        </ol>
 
-        <div class="add-note-covers${isEdit ? ' add-note-covers--readonly' : ''}"${
-          isEdit ? ' aria-label="표지 (수정 불가)"' : ''
-        }>
-          ${coverFieldHtml('front', true)}
-          ${coverFieldHtml('back', true)}
-        </div>
-
-        <div class="form-row form-row--2">
+        <div class="add-note-step" data-step="1">
           ${renderField({
-            type: 'select',
-            label: '노트 종류',
-            name: 'notebookType',
+            label: '이름',
+            name: 'name',
             required: true,
-            placeholder: '선택',
-            options: typeOptionsList,
-            value: initialType
+            placeholder: '예: 2026_업무노트',
+            value: seed?.name || ''
           })}
+
+          <div class="add-note-covers${isEdit ? ' add-note-covers--readonly' : ''}"${
+            isEdit ? ' aria-label="표지 (수정 불가)"' : ''
+          }>
+            ${coverFieldHtml('front', true)}
+            ${coverFieldHtml('back', true)}
+          </div>
+
           ${renderField({
-            type: 'select',
-            label: '시기',
-            name: 'periodName',
-            placeholder: '선택 (선택사항)',
-            options: periodOptionsList,
-            value: initialPeriod
+            label: '크기',
+            name: 'size',
+            placeholder: '예: A5 또는 직접 입력',
+            value: initialSize,
+            list: 'add-note-size-list',
+            extra: datalistHtml('add-note-size-list', sizeOptions)
+          })}
+
+          ${renderField({
+            type: 'colorRadioGroup',
+            label: '색상',
+            name: 'color',
+            value: initialColor,
+            colors: colorOptions,
+            colorMap: COLOR_CHIP_HEX,
+            lightNames: LIGHT_COLOR_NAMES
           })}
         </div>
 
-        ${renderField({
-          type: 'colorRadioGroup',
-          label: '색상',
-          name: 'color',
-          value: initialColor,
-          colors: colorOptions,
-          colorMap: COLOR_CHIP_HEX,
-          lightNames: LIGHT_COLOR_NAMES
-        })}
+        <div class="add-note-step" data-step="2" hidden>
+          <div class="form-row form-row--2">
+            ${renderField({
+              type: 'select',
+              label: '노트 종류',
+              name: 'notebookType',
+              required: true,
+              placeholder: '선택',
+              options: typeOptionsList,
+              value: initialType
+            })}
+            ${renderField({
+              type: 'select',
+              label: '시기',
+              name: 'periodName',
+              placeholder: '선택 (선택사항)',
+              options: periodOptionsList,
+              value: initialPeriod
+            })}
+          </div>
 
-        ${renderField({
-          label: '크기',
-          name: 'size',
-          placeholder: '예: A5 또는 직접 입력',
-          value: initialSize,
-          list: 'add-note-size-list',
-          extra: datalistHtml('add-note-size-list', sizeOptions)
-        })}
+          <div class="form-row form-row--2">
+            ${renderField({
+              type: 'date',
+              label: '사용 시작일',
+              name: 'periodStart',
+              required: true,
+              value: seed?.periodStart || ''
+            })}
+            ${renderField({
+              type: 'custom',
+              label: '사용 종료일',
+              children: `
+                <input class="field__input" type="date" name="periodEnd" value="${escapeHtml(
+                  seed?.periodEnd || ''
+                )}" autocomplete="off" />
+                <label class="form-check form-check--inline">
+                  <input type="checkbox" name="stillInUse" ${seed?.stillInUse ? 'checked' : ''} />
+                  <span>아직 사용 중</span>
+                </label>`
+            })}
+          </div>
 
-        <div class="form-row form-row--2">
-          ${renderField({
-            type: 'date',
-            label: '사용 시작일',
-            name: 'periodStart',
-            required: true,
-            value: seed?.periodStart || ''
-          })}
-          ${renderField({
-            type: 'custom',
-            label: '사용 종료일',
-            children: `
-              <input class="field__input" type="date" name="periodEnd" value="${escapeHtml(
-                seed?.periodEnd || ''
-              )}" autocomplete="off" />
-              <label class="form-check form-check--inline">
-                <input type="checkbox" name="stillInUse" ${seed?.stillInUse ? 'checked' : ''} />
-                <span>아직 사용 중</span>
-              </label>`
-          })}
+          <label class="form-check">
+            <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
+            <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
+          </label>
+
+          <label class="form-check">
+            <input type="checkbox" name="visible" ${!seed || seed.visible ? 'checked' : ''} />
+            <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
+          </label>
         </div>
 
-        ${renderField({
-          type: 'textarea',
-          label: '메모',
-          name: 'notes',
-          rows: 4,
-          maxLength: NOTES_MAX_CHARS,
-          placeholder: NOTES_PLACEHOLDER,
-          value: (seed?.notes || '').slice(0, NOTES_MAX_CHARS),
-          extra: `<span class="add-note-notes-count" data-notes-count>0/${NOTES_MAX_CHARS}</span>`
-        })}
-
-        <label class="form-check">
-          <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
-          <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
-        </label>
-
-        <label class="form-check">
-          <input type="checkbox" name="visible" ${!seed || seed.visible ? 'checked' : ''} />
-          <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
-        </label>
+        <div class="add-note-step" data-step="3" hidden>
+          ${renderField({
+            type: 'textarea',
+            label: '메모',
+            name: 'notes',
+            rows: 4,
+            maxLength: NOTES_MAX_CHARS,
+            placeholder: NOTES_PLACEHOLDER,
+            value: (seed?.notes || '').slice(0, NOTES_MAX_CHARS),
+            extra: `<span class="add-note-notes-count" data-notes-count>0/${NOTES_MAX_CHARS}</span>`
+          })}
+        </div>
 
         <p class="form-status add-note-status" hidden></p>
 
-        ${renderButton({
-          shape: 'solid',
-          type: 'submit',
-          content: isEdit ? '노트 수정하기' : '+ 노트 만들기',
-          className: 'add-note-submit'
-        })}
+        <div class="add-note-nav is-step-1">
+          ${renderButton({
+            shape: 'text',
+            block: true,
+            content: `${MINGCUTE.leftLine}<span>이전</span>`,
+            className: 'add-note-back',
+            dataset: { action: 'back' }
+          })}
+          ${renderButton({
+            shape: 'solid',
+            type: 'button',
+            content: `<span>다음</span><span class="add-note-nav__next-icon">${MINGCUTE.leftLine}</span>`,
+            className: 'add-note-next',
+            dataset: { action: 'next' }
+          })}
+          ${renderButton({
+            shape: 'solid',
+            type: 'submit',
+            content: isEdit
+              ? `${MINGCUTE.edit2Fill}<span>노트 수정하기</span>`
+              : `${MINGCUTE.addFill}<span>노트 만들기</span>`,
+            className: 'add-note-submit'
+          })}
+        </div>
       </form>
   `;
 
@@ -269,6 +310,9 @@ export async function openAddNoteModal(options = {}) {
   const form = overlay.querySelector('.add-note-form');
   const statusEl = overlay.querySelector('.add-note-status');
   const submitBtn = overlay.querySelector('.add-note-submit');
+  const nextBtn = overlay.querySelector('.add-note-next');
+  const backBtn = overlay.querySelector('.add-note-back');
+  const navEl = overlay.querySelector('.add-note-nav');
   const typeSelect = form?.querySelector('select[name="notebookType"]');
   const periodSelect = form?.querySelector('select[name="periodName"]');
   const colorChips = form?.querySelector('.field__swatches');
@@ -276,6 +320,79 @@ export async function openAddNoteModal(options = {}) {
   const sizeList = form?.querySelector('#add-note-size-list');
   const periodEndInput = form?.querySelector('input[name="periodEnd"]');
   const stillInUseInput = form?.querySelector('input[name="stillInUse"]');
+
+  let currentStep = 1;
+
+  const setStatus = (message, isError = false) => {
+    setFormStatus(statusEl, message, isError);
+  };
+
+  const focusStepField = (step) => {
+    const target =
+      step === 1
+        ? form?.querySelector('input[name="name"]')
+        : step === 2
+          ? form?.querySelector('select[name="notebookType"]')
+          : form?.querySelector('textarea[name="notes"]');
+    target?.focus();
+  };
+
+  const setStep = (step, { clearStatus = true } = {}) => {
+    currentStep = Math.min(FORM_STEPS, Math.max(1, step));
+    form?.querySelectorAll('.add-note-step').forEach((el) => {
+      const n = Number(el.dataset.step);
+      el.hidden = n !== currentStep;
+    });
+    form?.querySelectorAll('[data-progress]').forEach((el) => {
+      const n = Number(el.dataset.progress);
+      el.classList.toggle('is-current', n === currentStep);
+      el.classList.toggle('is-done', n < currentStep);
+      if (n === currentStep) el.setAttribute('aria-current', 'step');
+      else el.removeAttribute('aria-current');
+    });
+    navEl?.classList.remove('is-step-1', 'is-step-2', 'is-step-3');
+    navEl?.classList.add(`is-step-${currentStep}`);
+    if (clearStatus) setStatus('', false);
+    focusStepField(currentStep);
+  };
+
+  const validateStep = (step) => {
+    if (!form) return false;
+    const fd = new FormData(form);
+    if (step === 1) {
+      const name = String(fd.get('name') || '').trim();
+      const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
+      const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
+      if (!name) {
+        setStatus('이름은 필수입니다.', true);
+        return false;
+      }
+      if (!isEdit && (!frontFile || !backFile)) {
+        setStatus('앞·뒤 표지를 모두 선택해 주세요.', true);
+        return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      const notebookType = String(fd.get('notebookType') || '').trim();
+      const periodStart = String(fd.get('periodStart') || '').trim();
+      if (!notebookType) {
+        setStatus('노트 종류는 필수입니다.', true);
+        return false;
+      }
+      if (!periodStart) {
+        setStatus('사용 시작일은 필수입니다.', true);
+        return false;
+      }
+      return true;
+    }
+    return true;
+  };
+
+  const goNext = () => {
+    if (!validateStep(currentStep)) return;
+    setStep(currentStep + 1);
+  };
 
   const syncStillInUse = () => {
     if (!periodEndInput || !stillInUseInput) return;
@@ -342,9 +459,12 @@ export async function openAddNoteModal(options = {}) {
       console.warn('[AddNote] form meta fallback:', err);
     });
 
-  const setStatus = (message, isError = false) => {
-    setFormStatus(statusEl, message, isError);
-  };
+  backBtn?.addEventListener('click', () => {
+    setStep(currentStep - 1);
+  });
+  nextBtn?.addEventListener('click', () => {
+    goNext();
+  });
 
   const closeModal = dialog.close;
 
@@ -384,6 +504,11 @@ export async function openAddNoteModal(options = {}) {
     e.preventDefault();
     if (!form || !submitBtn) return;
 
+    if (currentStep < FORM_STEPS) {
+      goNext();
+      return;
+    }
+
     const fd = new FormData(form);
     const name = String(fd.get('name') || '').trim();
     const notebookType = String(fd.get('notebookType') || '').trim();
@@ -399,17 +524,11 @@ export async function openAddNoteModal(options = {}) {
     const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
     const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
 
-    if (!name || !notebookType) {
-      setStatus('이름과 노트 종류는 필수입니다.', true);
-      return;
-    }
-    if (!periodStart) {
-      setStatus('사용 시작일은 필수입니다.', true);
-      return;
-    }
-    if (!isEdit && (!frontFile || !backFile)) {
-      setStatus('이름, 앞·뒤 표지, 노트 종류는 필수입니다.', true);
-      return;
+    for (let step = 1; step <= 2; step += 1) {
+      if (!validateStep(step)) {
+        setStep(step, { clearStatus: false });
+        return;
+      }
     }
 
     submitBtn.disabled = true;
