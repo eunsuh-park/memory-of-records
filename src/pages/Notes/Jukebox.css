@@ -12,7 +12,8 @@
 #main-content.jukebox-active,
 .app-main.jukebox-active {
   height: var(--app-height);
-  min-height: var(--app-min-height);
+  /* 768px 최저를 갤러리 쪽에 두면 하단 정보 패널이 잘린다. 높이는 --app-height만. */
+  min-height: 0;
   max-height: none;
   overflow: hidden;
   box-sizing: border-box;
@@ -23,7 +24,7 @@ body.jukebox-active {
   margin: 0;
   padding: 0;
   min-width: var(--app-min-width);
-  min-height: var(--app-min-height);
+  min-height: 0;
   user-select: none;
   overflow: hidden;
   position: relative;
@@ -303,7 +304,8 @@ body.jukebox-active.loading-active #sub-menu {
     var(--color-bg) 100%
   );
   min-width: var(--app-min-width);
-  min-height: var(--app-min-height);
+  /* 갤러리 최저 높이로 쓰지 않는다. 정보 패널(--jukebox-focus-info-min-h)이 먼저 확보된다. */
+  min-height: 0;
   height: var(--app-height);
   width: 100%;
   display: flex;
@@ -311,6 +313,7 @@ body.jukebox-active.loading-active #sub-menu {
 }
 
 .jukebox-gallery-wrap {
+  /* flex-basis 0 + min-height 0: 정보 패널 남는 높이만 쓰고, 모자라면 갤러리가 먼저 줄어든다 */
   flex: 1 1 0;
   min-height: 0;
   position: relative;
@@ -700,6 +703,9 @@ body.jukebox-active.loading-active #sub-menu {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  min-height: var(--jukebox-focus-info-min-h);
 }
 
 /* 포커스 노트 정보 패널 스타일은 NoteInfoPanel 컴포넌트에 있음 */
@@ -742,13 +748,13 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 @media (max-height: 768px), (max-width: 1024px) {
   /*
    * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
-   * 아이패드 세로(≤1024px)와 낮은 화면은 데스크톱 하단 고정 오버레이를 쓰지 않는다.
-   * 전체 최저 크기는 --app-min-height / --app-min-width.
+   * 정보 패널 min-height를 먼저 잡고, 갤러리는 남는 높이만 쓴다(min-height: 0).
    * info가 하단에 따로 잡히므로 갤러리 세로 기준점을 60%로 내린다.
    */
   .jukebox-gallery-wrap {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-height: 0;
+    overflow: hidden;
   }
 
   .jukebox-gallery.centerized {
@@ -762,7 +768,9 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     /* 카드 z-index(최대 100)보다 위에 둬 잘림·겹침 때 제목이 가려지지 않게 */
     z-index: 110;
     flex: 0 0 auto;
+    flex-shrink: 0;
     width: 100%;
+    min-height: var(--jukebox-focus-info-min-h);
     padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
   }
 }

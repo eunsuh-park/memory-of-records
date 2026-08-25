@@ -160,12 +160,14 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
-      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%(info가 하단에 따로 잡힘). 앱 전체 360×768',
+      '포커스 정보 min-height(--jukebox-focus-info-min-h)를 먼저 잡고, 갤러리 wrap은 min-height 0으로 남는 높이만 쓴다',
+      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%. 앱 높이 100dvh',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
     tablet: [
       '너비 769–1024px이면 모바일과 같이 갤러리·정보 패널을 세로로 쌓고 메모를 숨긴다',
+      '정보 패널 min-height가 갤러리보다 우선. 갤러리 wrap min-height 0 · overflow hidden',
       '바닥 반사 off, 카드 min(34vh, 360px)·이미지 min(38vw, 280px)·스케일 ×0.92',
       '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지',
       '.notes-container padding-top 90px',

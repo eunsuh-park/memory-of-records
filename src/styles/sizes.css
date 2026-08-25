@@ -43,6 +43,14 @@
   --app-height: max(100vh, var(--app-min-height));
   --app-height: max(100dvh, var(--app-min-height));
 
+  /*
+   * 주크박스 포커스 정보(제목 1줄 + gap + 도구모음 32px).
+   * 갤러리 min-height보다 먼저 확보한다. 갤러리는 남는 높이만 쓴다.
+   */
+  --jukebox-focus-info-min-h: calc(
+    (var(--text-xl) * 1.2) + var(--space-4) + 32px
+  );
+
   /* ===== Shadow ===== */
   --shadow-sm: 0 2px 8px var(--color-shadow-sm);
   --shadow-md: 0 4px 16px var(--color-shadow);
