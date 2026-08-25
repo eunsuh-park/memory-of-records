@@ -273,14 +273,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       const entry = albumEntry(num);
       if (!entry) return '';
       if (entry.url) return withMediaVersion(entry.url);
-      const rawUrl = buildPageImageUrl(entry.folderUrl, entry.pageNumber);
-      return withMediaVersion(optimizeImageUrl(rawUrl) || rawUrl);
+      // folderUrl이 전체 URL이 아니므로 buildPageImageUrl만 사용
+      return withMediaVersion(buildPageImageUrl(entry.folderUrl, entry.pageNumber));
     }
+    // fetchNotePages에서 가져온 URL은 이미 optimizeImageUrl 적용됨
     const mapped = pageUrlByNumber.get(num);
     if (mapped) return withMediaVersion(mapped);
     if (!folderUrl) return '';
-    const rawUrl = buildPageImageUrl(folderUrl, num);
-    return withMediaVersion(optimizeImageUrl(rawUrl) || rawUrl);
+    // folderUrl이 경로만 있는 경우 buildPageImageUrl만 사용 (API에서 받은 URL 사용 권장)
+    return withMediaVersion(buildPageImageUrl(folderUrl, num));
   }
 
   function storedPagesForViewer() {

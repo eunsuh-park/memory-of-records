@@ -48,8 +48,12 @@ export function optimizeImageUrl(url, options = {}) {
 
   const [, prefix, rest] = cloudinaryUploadMatch;
 
-  // 이미 변환 파라미터가 있으면 그대로 반환 (중복 적용 방지)
-  if (/f_auto|q_auto|w_\d+|dpr_auto/i.test(rest)) return trimmed;
+  // 이미 우리가 추가한 transformation이 있으면 그대로 반환
+  // w_숫자,c_limit,f_auto,q_auto:good,dpr_auto 패턴 체크
+  if (/w_\d+,c_limit,f_auto,q_auto:[^,/]+,dpr_auto/i.test(rest)) return trimmed;
+
+  // 기존 f_auto,q_auto만 있는 경우도 그대로 반환 (이전 버전과 호환)
+  if (/^f_auto,q_auto\//i.test(rest)) return trimmed;
 
   // 화면 크기별 최적 너비 설정
   const maxWidth = options.maxWidth || (() => {
