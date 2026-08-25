@@ -53,7 +53,7 @@ export function createBookmarksNote(overrides = {}) {
     pdfUrl: null,
     pageCount,
     size: null,
-    description: '모든 유저에게 제공되는 기본 북마크 노트',
+    description: '이곳에서 북마크한 페이지들을 모아볼 수 있습니다.',
     type: 'Bookmarks',
     notebookType: 'Bookmarks',
     color: null,
