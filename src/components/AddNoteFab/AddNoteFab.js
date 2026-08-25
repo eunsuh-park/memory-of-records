@@ -360,7 +360,8 @@ export async function openAddNoteModal(options = {}) {
             type: 'button',
             content: '다음',
             className: 'add-note-next',
-            dataset: { action: 'next' }
+            dataset: { action: 'next' },
+            disabled: true
           })}
           ${renderButton({
             shape: 'solid',
@@ -430,7 +431,36 @@ export async function openAddNoteModal(options = {}) {
     navEl?.classList.remove('is-step-1', 'is-step-2', 'is-step-3');
     navEl?.classList.add(`is-step-${currentStep}`);
     if (clearStatus) setStatus('', false);
+    syncNextEnabled();
     focusStepField(currentStep);
+  };
+
+  const isStepReady = (step) => {
+    if (!form) return false;
+    if (step === 1) {
+      const name = String(form.querySelector('input[name="name"]')?.value || '').trim();
+      if (!name) return false;
+      if (!isEdit) {
+        const frontFile = form.querySelector('input[name="coverFront"]')?.files?.[0] || null;
+        const backFile = form.querySelector('input[name="coverBack"]')?.files?.[0] || null;
+        if (!frontFile || !backFile) return false;
+      }
+      return true;
+    }
+    if (step === 2) {
+      const notebookType = String(form.querySelector('select[name="notebookType"]')?.value || '').trim();
+      const periodStart = String(form.querySelector('input[name="periodStart"]')?.value || '').trim();
+      if (!notebookType || !periodStart) return false;
+      const stillInUse = Boolean(stillInUseInput?.checked);
+      const periodEnd = stillInUse ? '' : String(periodEndInput?.value || '').trim();
+      if (periodEnd && periodEnd <= periodStart) return false;
+      return true;
+    }
+    return true;
+  };
+
+  const syncNextEnabled = () => {
+    if (nextBtn) nextBtn.disabled = !isStepReady(currentStep);
   };
 
   const validateStep = (step) => {
@@ -473,7 +503,7 @@ export async function openAddNoteModal(options = {}) {
   };
 
   const goNext = () => {
-    if (!validateStep(currentStep)) return;
+    if (!isStepReady(currentStep) || !validateStep(currentStep)) return;
     setStep(currentStep + 1);
   };
 
@@ -520,12 +550,21 @@ export async function openAddNoteModal(options = {}) {
     }
   };
 
-  periodStartInput?.addEventListener('change', () => {
+  const onUsageDateChange = () => {
     markStillInUseIfStartedToday();
     syncUsageDates();
+    syncNextEnabled();
+  };
+
+  periodStartInput?.addEventListener('change', onUsageDateChange);
+  periodEndInput?.addEventListener('change', () => {
+    syncUsageDates();
+    syncNextEnabled();
   });
-  periodEndInput?.addEventListener('change', syncUsageDates);
-  stillInUseInput?.addEventListener('change', syncUsageDates);
+  stillInUseInput?.addEventListener('change', () => {
+    syncUsageDates();
+    syncNextEnabled();
+  });
   markStillInUseIfStartedToday();
   syncUsageDates();
 
@@ -577,10 +616,15 @@ export async function openAddNoteModal(options = {}) {
           sizeInput.placeholder = '목록에서 고르거나 직접 입력';
         }
       }
+      syncNextEnabled();
     })
     .catch((err) => {
       console.warn('[AddNote] form meta fallback:', err);
     });
+
+  form?.addEventListener('input', syncNextEnabled);
+  form?.addEventListener('change', syncNextEnabled);
+  syncNextEnabled();
 
   backBtn?.addEventListener('click', () => {
     setStep(currentStep - 1);
