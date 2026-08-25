@@ -161,7 +161,7 @@ const RESPONSIVE_MATRIX = [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '포커스 정보 min-height(--jukebox-focus-info-min-h)를 먼저 잡고, 갤러리 wrap은 min-height 0으로 남는 높이만 쓴다',
-      '바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%. 앱 높이 100dvh',
+      '페이지 스크롤 없음(html/body 100svh · overflow hidden). 바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],

@@ -8,13 +8,28 @@
    전역 (주크박스 활성 시)
    ============================================================================= */
 
+/*
+ * 주크박스는 페이지 스크롤이 없다.
+ * --app-height 의 max(100dvh, 768px)는 짧은 타블렛(미니 가로 744 등)에서
+ * 문서가 뷰포트보다 커져 스크롤이 생긴다. 보이는 화면(svh)에 고정한다.
+ */
+html:has(body.jukebox-active) {
+  --app-height: 100vh;
+  --app-height: 100dvh;
+  --app-height: 100svh;
+  min-height: 0;
+  height: var(--app-height);
+  max-height: var(--app-height);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
 .app-main.jukebox-active {
   height: var(--app-height);
-  /* 768px 최저를 갤러리 쪽에 두면 하단 정보 패널이 잘린다. 높이는 --app-height만. */
+  max-height: var(--app-height);
   min-height: 0;
-  max-height: none;
   overflow: hidden;
   box-sizing: border-box;
   padding-top: 0;
@@ -25,18 +40,27 @@ body.jukebox-active {
   padding: 0;
   min-width: var(--app-min-width);
   min-height: 0;
+  max-height: var(--app-height);
   user-select: none;
   overflow: hidden;
+  overscroll-behavior: none;
   position: relative;
   height: var(--app-height);
   background: var(--color-bg);
 }
 
+body.jukebox-active #app,
+body.jukebox-active .app {
+  min-height: 0;
+  height: var(--app-height);
+  max-height: var(--app-height);
+  overflow: hidden;
+}
+
 @media (max-height: 768px), (max-width: 360px) {
-  html,
-  body,
+  html:has(body.jukebox-active),
   body.jukebox-active {
-    overflow: auto;
+    overflow: hidden;
   }
 }
 
@@ -304,12 +328,13 @@ body.jukebox-active.loading-active #sub-menu {
     var(--color-bg) 100%
   );
   min-width: var(--app-min-width);
-  /* 갤러리 최저 높이로 쓰지 않는다. 정보 패널(--jukebox-focus-info-min-h)이 먼저 확보된다. */
   min-height: 0;
   height: var(--app-height);
+  max-height: var(--app-height);
   width: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .jukebox-gallery-wrap {
@@ -350,6 +375,8 @@ body.jukebox-active.loading-active #sub-menu {
   white-space: nowrap;
   overflow: hidden;
   overflow-x: auto;
+  overscroll-behavior: none;
+  touch-action: pan-x;
   perspective: 60em;
   perspective-origin: 50% 50%;
   scroll-snap-type: x mandatory;
