@@ -44,7 +44,7 @@ import {
 } from '../AddPageModal/AddPageModal.js';
 import { requireAuth } from '../../services/auth.js';
 import { NOTE_COLOR_PAINT, LIGHT_NOTE_COLORS, NOTE_COLOR_NAMES } from '../../utils/noteColorMap.js';
-import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { jukeboxPathForNote, requestJukeboxFocus } from '../../utils/jukeboxFocus.js';
 import { hideUploadingOverlay, showUploadingOverlay } from './uploadOverlay.js';
 import './AddNoteFab.css';
 
@@ -68,6 +68,64 @@ function datalistHtml(id, values) {
   return `<datalist id="${escapeHtml(id)}">${values
     .map((v) => `<option value="${escapeHtml(v)}"></option>`)
     .join('')}</datalist>`;
+}
+
+function openViewCreatedNoteDialog(options = {}) {
+  if (document.querySelector('.add-note-view-dialog')) {
+    options.onCancel?.();
+    return;
+  }
+
+  let confirmed = false;
+  const dialog = openDialog({
+    title: '추가한 노트를 확인하시겠습니까?',
+    titleId: 'add-note-view-title',
+    className: 'add-note-view-dialog',
+    panelClassName: 'dialog__panel--narrow',
+    showClose: false,
+    bodyHtml: `
+      <div class="dialog-actions">
+        ${renderButton({
+          shape: 'text',
+          block: true,
+          content: '취소',
+          className: 'add-note-view-cancel',
+          dataset: { choice: 'cancel' }
+        })}
+        ${renderButton({
+          shape: 'solid',
+          content: '확인',
+          className: 'add-note-view-ok',
+          dataset: { choice: 'confirm' }
+        })}
+      </div>`,
+    onClose: () => {
+      if (confirmed) options.onConfirm?.();
+      else options.onCancel?.();
+    }
+  });
+
+  dialog.overlay.addEventListener('click', (e) => {
+    const btn = e.target?.closest?.('[data-choice]');
+    if (!btn) return;
+    confirmed = btn.getAttribute('data-choice') === 'confirm';
+    dialog.close();
+  });
+}
+
+async function goToCreatedNoteInJukebox(created, meta) {
+  const id = created?.id || '';
+  if (!id) return;
+  requestJukeboxFocus(id);
+  const dest = jukeboxPathForNote({
+    periodName: meta?.periodName,
+    type: meta?.notebookType,
+    notebookType: meta?.notebookType
+  });
+  const { router } = await import('../../router.js');
+  const current = router.getActualPath(window.location.pathname);
+  if (current === dest) router.handleRoute();
+  else router.navigate(dest);
 }
 
 function coverPreviewHtml(kind, existingUrl) {
@@ -167,7 +225,8 @@ export async function openAddNoteModal(options = {}) {
           </li>
         </ol>
 
-        <div class="add-note-step" data-step="1">
+        <div class="add-note-steps">
+        <div class="add-note-step is-active" data-step="1">
           ${renderField({
             label: '이름',
             name: 'name',
@@ -203,26 +262,24 @@ export async function openAddNoteModal(options = {}) {
           })}
         </div>
 
-        <div class="add-note-step" data-step="2" hidden>
-          <div class="form-row form-row--2">
-            ${renderField({
-              type: 'select',
-              label: '노트 종류',
-              name: 'notebookType',
-              required: true,
-              placeholder: '선택',
-              options: typeOptionsList,
-              value: initialType
-            })}
-            ${renderField({
-              type: 'select',
-              label: '시기',
-              name: 'periodName',
-              placeholder: '선택 (선택사항)',
-              options: periodOptionsList,
-              value: initialPeriod
-            })}
-          </div>
+        <div class="add-note-step" data-step="2" inert aria-hidden="true">
+          ${renderField({
+            type: 'select',
+            label: '노트 종류',
+            name: 'notebookType',
+            required: true,
+            placeholder: '선택',
+            options: typeOptionsList,
+            value: initialType
+          })}
+          ${renderField({
+            type: 'select',
+            label: '시기',
+            name: 'periodName',
+            placeholder: '선택 (선택사항)',
+            options: periodOptionsList,
+            value: initialPeriod
+          })}
 
           <div class="form-row form-row--2">
             ${renderField({
@@ -257,7 +314,7 @@ export async function openAddNoteModal(options = {}) {
           </label>
         </div>
 
-        <div class="add-note-step" data-step="3" hidden>
+        <div class="add-note-step" data-step="3" inert aria-hidden="true">
           ${renderField({
             type: 'textarea',
             label: '메모',
@@ -269,6 +326,7 @@ export async function openAddNoteModal(options = {}) {
             extra: `<span class="add-note-notes-count" data-notes-count>0/${NOTES_MAX_CHARS}</span>`
           })}
         </div>
+        </div>
 
         <p class="form-status add-note-status" hidden></p>
 
@@ -276,23 +334,21 @@ export async function openAddNoteModal(options = {}) {
           ${renderButton({
             shape: 'text',
             block: true,
-            content: `${MINGCUTE.leftLine}<span>이전</span>`,
+            content: '이전',
             className: 'add-note-back',
             dataset: { action: 'back' }
           })}
           ${renderButton({
             shape: 'solid',
             type: 'button',
-            content: `<span>다음</span><span class="add-note-nav__next-icon">${MINGCUTE.leftLine}</span>`,
+            content: '다음',
             className: 'add-note-next',
             dataset: { action: 'next' }
           })}
           ${renderButton({
             shape: 'solid',
             type: 'submit',
-            content: isEdit
-              ? `${MINGCUTE.edit2Fill}<span>노트 수정하기</span>`
-              : `${MINGCUTE.addFill}<span>노트 만들기</span>`,
+            content: isEdit ? '노트 수정하기' : '새 노트 올리기',
             className: 'add-note-submit'
           })}
         </div>
@@ -341,7 +397,10 @@ export async function openAddNoteModal(options = {}) {
     currentStep = Math.min(FORM_STEPS, Math.max(1, step));
     form?.querySelectorAll('.add-note-step').forEach((el) => {
       const n = Number(el.dataset.step);
-      el.hidden = n !== currentStep;
+      const active = n === currentStep;
+      el.classList.toggle('is-active', active);
+      el.toggleAttribute('inert', !active);
+      el.setAttribute('aria-hidden', active ? 'false' : 'true');
     });
     form?.querySelectorAll('[data-progress]').forEach((el) => {
       const n = Number(el.dataset.progress);
@@ -656,10 +715,17 @@ export async function openAddNoteModal(options = {}) {
         pageCount: 0
       };
       if (createdNote.id) {
+        const askToViewCreatedNote = () => {
+          openViewCreatedNoteDialog({
+            onConfirm: () => {
+              void goToCreatedNoteInJukebox(created, metaPayload);
+            }
+          });
+        };
         openAddPagesConfirmDialog({
           note: createdNote,
           onConfirm: () => {
-            openAddPageModal({
+            void openAddPageModal({
               note: createdNote,
               fromNewNote: true,
               onDone: (result) => {
@@ -671,9 +737,11 @@ export async function openAddNoteModal(options = {}) {
                   pdfFolderUrl: result?.pdfFolderUrl || '',
                   pageCount: result?.pageCount || 0
                 });
-              }
+              },
+              onSettled: askToViewCreatedNote
             });
-          }
+          },
+          onCancel: askToViewCreatedNote
         });
       }
     } catch (err) {

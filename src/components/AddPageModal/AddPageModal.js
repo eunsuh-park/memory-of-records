@@ -94,12 +94,19 @@ function describePageUploadFailure(info) {
  *   note: { id?: string, title?: string, name?: string, publicId?: string, pdfFolderUrl?: string, pageCount?: number },
  *   insertAfterPage?: number,
  *   fromNewNote?: boolean,
- *   onDone?: (result?: object) => void
+ *   onDone?: (result?: object) => void,
+ *   onSettled?: () => void
  * }} [options]
  */
 export async function openAddPageModal(options = {}) {
-  if (document.querySelector('.add-page-dialog')) return;
-  if (!(await requireAuth())) return;
+  if (document.querySelector('.add-page-dialog')) {
+    options.onSettled?.();
+    return;
+  }
+  if (!(await requireAuth())) {
+    options.onSettled?.();
+    return;
+  }
 
   const note = options.note || {};
   const noteId = String(note.id || '').trim();
@@ -120,6 +127,7 @@ export async function openAddPageModal(options = {}) {
 
   if (!noteId || !noteName) {
     showToast('노트 정보가 없어 페이지를 추가할 수 없습니다.');
+    options.onSettled?.();
     return;
   }
 
@@ -128,6 +136,14 @@ export async function openAddPageModal(options = {}) {
   /** @type {{ id: string, dataUrl: string, label: string }[]} */
   let pages = [];
   let busy = false;
+  let uploadStarted = false;
+  let settled = false;
+
+  const settle = () => {
+    if (settled) return;
+    settled = true;
+    options.onSettled?.();
+  };
 
   const dialog = openDialog({
     title: '페이지 추가',
@@ -135,7 +151,10 @@ export async function openAddPageModal(options = {}) {
     className: 'add-page-dialog',
     panelClassName: 'add-page-panel',
     canClose: () => !busy,
-    bodyHtml: '<div class="add-page-body"></div>'
+    bodyHtml: '<div class="add-page-body"></div>',
+    onClose: () => {
+      if (!uploadStarted) settle();
+    }
   });
   const overlay = dialog.overlay;
   const closeModal = dialog.close;
@@ -407,6 +426,7 @@ export async function openAddPageModal(options = {}) {
 
   async function handleUpload() {
     if (!pages.length || busy) return;
+    uploadStarted = true;
     closeModal();
     busy = true;
     updateUploadEnabled();
@@ -509,20 +529,32 @@ export async function openAddPageModal(options = {}) {
       if (noteId) markNoteUnseen(noteId);
       clearNotesCaches();
       hideUploadingOverlay();
-      openUploadResultDialog({
-        title: '업로드 완료',
-        message: needsShift
-          ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다.`
-          : `${uploadedCount}페이지가 추가되었습니다.`
-      });
-      options.onDone?.({
-        ...(updated || {}),
-        id: noteId,
-        pdfFolderUrl: folderUrl,
-        pageCount: linkedCount,
-        insertAfterPage,
-        insertedCount: uploadedCount
-      });
+      if (fromNewNote) {
+        options.onDone?.({
+          ...(updated || {}),
+          id: noteId,
+          pdfFolderUrl: folderUrl,
+          pageCount: linkedCount,
+          insertAfterPage,
+          insertedCount: uploadedCount
+        });
+        settle();
+      } else {
+        openUploadResultDialog({
+          title: '업로드 완료',
+          message: needsShift
+            ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다.`
+            : `${uploadedCount}페이지가 추가되었습니다.`
+        });
+        options.onDone?.({
+          ...(updated || {}),
+          id: noteId,
+          pdfFolderUrl: folderUrl,
+          pageCount: linkedCount,
+          insertAfterPage,
+          insertedCount: uploadedCount
+        });
+      }
     } catch (err) {
       console.error('[AddPage] upload', err);
       /* Cloudinary까지 올라간 장수가 있으면 Notion에 부분 반영 시도 */
@@ -559,7 +591,10 @@ export async function openAddPageModal(options = {}) {
           partial: true
         });
       }
-      openUploadResultDialog(result);
+      openUploadResultDialog({
+        ...result,
+        onClose: fromNewNote ? settle : undefined
+      });
     } finally {
       busy = false;
     }
