@@ -1068,6 +1068,7 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">AddNoteFab · AddPageModal · PageMetaModal</h2>
           <p class="ui-lab__section-desc">
             노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
+            생성 시 폼 입력으로 public_id를 배정한 뒤 Cloudinary 폴더명으로 쓰고 Notion DB에도 기록합니다.
             실제 Cloudinary·Notion 호출이 있으므로 Lab에서는 진입 경로만 안내합니다.
           </p>
           <p class="ui-lab__files">

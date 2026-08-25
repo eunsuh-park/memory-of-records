@@ -4,9 +4,10 @@
  *
  * Body:
  * {
- *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart,  // required
+ *   name, coverFrontUrl, coverBackUrl, notebookType, periodStart, publicId,  // required
  *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
+ * publicId는 op=allocatePublicId로 먼저 배정한 값. Notion public_id와 Cloudinary 폴더명에 그대로 쓴다.
  * notes는 Notion description(text/rich_text)에 공백 포함 70자로 저장
  */
 import {
@@ -17,6 +18,15 @@ import {
   findTitleProperty,
   notionFetch
 } from '../notionDb.js';
+import {
+  buildPublicIdPropertyPayload,
+  findPublicIdProperty,
+  isPublicIdFormat,
+  parsePublicId,
+  publicIdAlreadyUsed,
+  publicIdPrefix,
+  publicIdYear
+} from '../publicId.js';
 
 function trimOrEmpty(value) {
   if (value == null) return '';
@@ -47,11 +57,18 @@ export async function handleCreateNote(req, res) {
     const coverBackUrl = trimOrEmpty(body.coverBackUrl);
     const notebookType = trimOrEmpty(body.notebookType);
     const periodStart = trimOrEmpty(body.periodStart);
+    const publicId = trimOrEmpty(body.publicId);
 
     if (!name || !coverFrontUrl || !coverBackUrl || !notebookType || !periodStart) {
       return res.status(400).json({
         error: 'Validation failed',
         message: '이름, 앞·뒤 표지 URL, 노트 종류, 사용 시작일은 필수입니다'
+      });
+    }
+    if (!isPublicIdFormat(publicId)) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'public_id가 없습니다. 표지 업로드 전에 배정해 주세요'
       });
     }
 
@@ -66,10 +83,40 @@ export async function handleCreateNote(req, res) {
       });
     }
 
+    const publicIdProp = findPublicIdProperty(schema);
+    const publicIdPayload = buildPublicIdPropertyPayload(publicIdProp, publicId);
+    if (!publicIdProp || !publicIdPayload) {
+      return res.status(500).json({
+        error: 'Schema error',
+        message: 'Notion DB에 기록 가능한 public_id(rich_text) 속성이 없습니다'
+      });
+    }
+
+    const parsed = parsePublicId(publicId);
+    const expectedPrefix = publicIdPrefix({
+      notebookType,
+      name,
+      notes: trimOrEmpty(body.notes)
+    });
+    const expectedYear = publicIdYear(periodStart, trimOrEmpty(body.periodEnd));
+    if (!parsed || parsed.prefix !== expectedPrefix || parsed.year !== expectedYear) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'public_id가 노트 종류·사용 기간과 맞지 않습니다. 다시 배정해 주세요'
+      });
+    }
+    if (await publicIdAlreadyUsed(publicIdProp, publicId)) {
+      return res.status(409).json({
+        error: 'Conflict',
+        message: '이미 쓰인 public_id입니다. 다시 배정해 주세요'
+      });
+    }
+
     const properties = {
       [titleProp.key]: {
         title: [{ type: 'text', text: { content: name.slice(0, 2000) } }]
-      }
+      },
+      [publicIdProp.key]: publicIdPayload
     };
 
     const frontProp = findSchemaProperty(
@@ -244,7 +291,8 @@ export async function handleCreateNote(req, res) {
     return res.status(200).json({
       ok: true,
       id: page.id,
-      url: page.url
+      url: page.url,
+      publicId
     });
   } catch (error) {
     return res.status(error.status || 500).json({

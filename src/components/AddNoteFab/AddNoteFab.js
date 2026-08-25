@@ -8,7 +8,7 @@
  * 3) 메모
  *
  * 제출 후:
- * - 생성: 뒷표지를 앞표지 크기에 맞춰 크롭 → Cloudinary 업로드 → Notion 페이지 생성
+ * - 생성: public_id 배정 → 표지를 notebooks/{public_id}에 업로드 → Notion에 public_id와 함께 생성
  * - 수정: Notion 페이지 PATCH (표지는 변경하지 않음)
  */
 
@@ -25,6 +25,7 @@ import { showToast } from '../Toast/Toast.js';
 import { typeOptions } from '../../data/typeOptions.js';
 import { periodOptions } from '../../data/periodOptions.js';
 import {
+  allocateNotePublicId,
   createNotionNote,
   cropImageDataUrlToSize,
   fetchNoteFormMeta,
@@ -759,10 +760,23 @@ export async function openAddNoteModal(options = {}) {
       return;
     }
 
-    showUploadingOverlay('표지를 업로드하는 중…');
+    showUploadingOverlay('노트 ID를 배정하는 중…');
 
     let coversUploaded = false;
+    let publicIdAssigned = false;
     try {
+      const allocated = await allocateNotePublicId({
+        name: metaPayload.name,
+        notebookType: metaPayload.notebookType,
+        periodStart: metaPayload.periodStart,
+        periodEnd: metaPayload.periodEnd,
+        notes: metaPayload.notes
+      });
+      const publicId = String(allocated?.publicId || '').trim();
+      if (!publicId) throw new Error('public_id를 배정하지 못했습니다');
+      publicIdAssigned = true;
+
+      showUploadingOverlay('표지를 업로드하는 중…');
       const [frontDataUrl, backDataUrlRaw] = await Promise.all([
         readFileAsDataUrl(frontFile),
         readFileAsDataUrl(backFile)
@@ -781,33 +795,37 @@ export async function openAddNoteModal(options = {}) {
           filename: metaPayload.name,
           kind: 'front',
           noteName: metaPayload.name,
-          publicId: seed?.publicId
+          publicId
         }),
         uploadCoverImage({
           file: backDataUrl,
           filename: metaPayload.name,
           kind: 'back',
           noteName: metaPayload.name,
-          publicId: seed?.publicId
+          publicId
         })
       ]);
       coversUploaded = true;
 
       showUploadingOverlay('노트를 만드는 중…');
-      const created = await createNotionNote({
-        name: metaPayload.name,
-        coverFrontUrl: frontUpload.url,
-        coverBackUrl: backUpload.url,
-        notebookType: metaPayload.notebookType,
-        periodName: metaPayload.periodName,
-        color: metaPayload.color,
-        size: metaPayload.size,
-        periodStart: metaPayload.periodStart,
-        periodEnd: metaPayload.periodEnd,
-        notes: metaPayload.notes,
-        isKept: metaPayload.isKept,
-        visible: metaPayload.visible
-      });
+      const created = {
+        ...(await createNotionNote({
+          name: metaPayload.name,
+          coverFrontUrl: frontUpload.url,
+          coverBackUrl: backUpload.url,
+          notebookType: metaPayload.notebookType,
+          periodName: metaPayload.periodName,
+          color: metaPayload.color,
+          size: metaPayload.size,
+          periodStart: metaPayload.periodStart,
+          periodEnd: metaPayload.periodEnd,
+          notes: metaPayload.notes,
+          isKept: metaPayload.isKept,
+          visible: metaPayload.visible,
+          publicId
+        })),
+        publicId
+      };
 
       if (created?.id) markNoteUnseen(created.id);
 
@@ -817,6 +835,7 @@ export async function openAddNoteModal(options = {}) {
 
       const createdNote = {
         id: created?.id || '',
+        publicId: created?.publicId || publicId,
         title: metaPayload.name,
         name: metaPayload.name,
         pdfFolderUrl: '',
@@ -842,6 +861,7 @@ export async function openAddNoteModal(options = {}) {
                   ...created,
                   ...(result || {}),
                   id: created?.id || result?.id,
+                  publicId: created?.publicId || publicId,
                   pdfFolderUrl: result?.pdfFolderUrl || '',
                   pageCount: result?.pageCount || 0
                 });
@@ -859,7 +879,9 @@ export async function openAddNoteModal(options = {}) {
         title: '노트 추가 실패',
         message: coversUploaded
           ? '표지 파일은 올렸지만 노트 정보를 만들지 못했습니다.'
-          : '표지 업로드에 실패했습니다.',
+          : publicIdAssigned
+            ? '표지 업로드에 실패했습니다.'
+            : '노트 ID(public_id) 배정에 실패했습니다.',
         detail: shortUploadError(err)
       });
     }

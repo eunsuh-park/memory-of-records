@@ -8,15 +8,16 @@
  *   "filename": "노트명",
  *   "kind": "front" | "back",
  *   "noteName": "노트명",
- *   "publicId": "DIRY-2024-0001"  // 있으면 폴더명으로 사용
+ *   "publicId": "DIRY-2024-0001"  // 필수. Cloudinary 폴더명
  * }
  *
  * 업로드 위치:
- *   notebooks/{publicId 또는 노트명}/cover_front
- *   notebooks/{publicId 또는 노트명}/cover_back
+ *   notebooks/{publicId}/cover_front
+ *   notebooks/{publicId}/cover_back
  */
 import crypto from 'crypto';
 import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
+import { isPublicIdFormat } from './_lib/publicId.js';
 
 const NOTEBOOKS_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
 const MAX_BYTES = 8 * 1024 * 1024; /* ~8MB raw (base64는 더 큼) */
@@ -54,8 +55,10 @@ function sanitizePublicIdStem(name) {
 }
 
 function coverUploadTarget(kind, body) {
+  const notePublicId = String(body.publicId || '').trim();
+  if (!isPublicIdFormat(notePublicId)) return null;
   const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
-  const stem = sanitizePublicIdStem(body.publicId || body.noteName || body.filename || `cover-${kind}`);
+  const stem = sanitizePublicIdStem(notePublicId);
   const fileId = kind === 'back' ? 'cover_back' : 'cover_front';
   return {
     folder: `${root}/${stem}`,
@@ -94,7 +97,14 @@ export default async function handler(req, res) {
 
     const kind = body.kind === 'back' ? 'back' : 'front';
     const ext = extensionFromMime(parsed.mime);
-    const { folder, publicId, displayName } = coverUploadTarget(kind, body);
+    const target = coverUploadTarget(kind, body);
+    if (!target) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: '표지는 notebooks/{public_id} 폴더에 올리므로 publicId(PREFIX-YEAR-SEQ)가 필요합니다'
+      });
+    }
+    const { folder, publicId, displayName } = target;
     const timestamp = Math.floor(Date.now() / 1000);
 
     const paramsToSign = {
