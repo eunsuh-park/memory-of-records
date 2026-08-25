@@ -20,6 +20,7 @@ import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotesCaches } from '../../utils/notesCatalog.js';
+import { consumeJukeboxFocus } from '../../utils/jukeboxFocus.js';
 import { escapeHtml } from '../../utils/html.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
 import { isAuthenticated, onAuthChange } from '../../services/auth.js';
@@ -589,8 +590,26 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   enableCenterPerspective(gallery);
   enableGalleryScroll(gallery, prevBtn, nextBtn, state);
 
-  /* 첫 카드를 정확히 중앙에 (양쪽 스페이서 50vw 덕분에 첫/끝 카드 모두 중앙 도달 가능) */
-  const centerFirstCard = () => {
+  const focusId = consumeJukeboxFocus();
+  const focusCard = focusId
+    ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(focusId)}"]`)
+    : null;
+
+  /* 첫 카드(또는 포커스 요청 카드)를 정확히 중앙에 */
+  const centerCard = (card) => {
+    if (!card) return;
+    const metrics = refreshCardMetrics(gallery);
+    const m = metrics.find((item) => item.el === card);
+    const center = m ? m.center : card.offsetLeft + card.offsetWidth / 2;
+    gallery.scrollLeft = Math.max(0, center - gallery.clientWidth / 2);
+    updateCardAngles(gallery);
+  };
+
+  const centerInitialCard = () => {
+    if (focusCard) {
+      centerCard(focusCard);
+      return;
+    }
     const metrics = refreshCardMetrics(gallery);
     if (metrics.length === 0) return;
     gallery.scrollLeft = Math.max(0, metrics[0].center - gallery.clientWidth / 2);
@@ -604,7 +623,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       () => {
         if (!gallery.isConnected) return;
         refreshCardMetrics(gallery);
-        if (!state.userScrolled) centerFirstCard();
+        if (!state.userScrolled) centerInitialCard();
         else updateCardAngles(gallery);
       },
       { once: true }
@@ -612,14 +631,14 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   });
 
   /*
-   * 초기 배치: scroll-snap을 잠시 끄고 첫 카드를 정확히 중앙에 둔 뒤 snap 복원.
+   * 초기 배치: scroll-snap을 잠시 끄고 대상 카드를 정확히 중앙에 둔 뒤 snap 복원.
    * (복원 시점의 scrollLeft가 정확한 snap 지점이므로 튀지 않음)
    */
   gallery.style.scrollSnapType = 'none';
-  centerFirstCard();
+  centerInitialCard();
   requestAnimationFrame(() => {
     if (!gallery.isConnected) return;
-    if (!state.userScrolled) centerFirstCard();
+    if (!state.userScrolled) centerInitialCard();
     gallery.style.removeProperty('scroll-snap-type');
     updateJukeboxNavButtons(gallery);
   });

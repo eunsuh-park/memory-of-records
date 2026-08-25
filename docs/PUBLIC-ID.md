@@ -1,6 +1,6 @@
 # Public ID 규칙
 
-Notion 노트북 `public_id` 정책. 앱 코드는 이 값을 생성하지 않는다. DB에 직접 넣는다.
+Notion 노트북 `public_id` 정책. 새 노트 업로드 시 서버가 폼 입력(종류·기간·이름·메모)과 기존 DB 값을 보고 배정하고, Cloudinary 폴더명(`notebooks/{public_id}`)에도 그대로 쓴다.
 
 형식: `{PREFIX}-{YEAR}-{SEQ}`  
 예: `DIRY-2024-0001`

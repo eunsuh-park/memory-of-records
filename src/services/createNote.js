@@ -76,10 +76,37 @@ export async function uploadCoverImage(payload) {
 
 /**
  * @param {{
+ *   notebookType: string,
+ *   periodStart: string,
+ *   periodEnd?: string,
+ *   name?: string,
+ *   notes?: string
+ * }} payload
+ * @returns {Promise<{ ok: boolean, publicId: string, prefix: string, year: number, seq: number }>}
+ */
+export async function allocateNotePublicId(payload) {
+  const response = await fetch('/api/writeNotebooks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ op: 'allocatePublicId', ...payload })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.details?.message || data?.error || 'public_id 배정에 실패했습니다'
+    );
+  }
+  if (!data?.publicId) throw new Error('public_id 배정 응답이 없습니다');
+  return data;
+}
+
+/**
+ * @param {{
  *   name: string,
  *   coverFrontUrl: string,
  *   coverBackUrl: string,
  *   notebookType: string,
+ *   publicId: string,
  *   periodName?: string,
  *   color?: string,
  *   size?: string,

@@ -209,12 +209,14 @@ const RESPONSIVE_MATRIX = [
     points: '640px (주크박스 한정 768px)',
     mobile: [
       '≤640px 패널 padding 1rem',
-      '커버·입력 행 그리드가 모두 1열로 스택'
+      '커버·입력 행·스텝 푸터가 모두 1열로 스택'
     ],
     tablet: ['데스크톱과 동일'],
     desktop: [
       '패널 min(600px, 100%) · max-height min(92vh, 920px)',
-      '커버 2열, 입력 행 2~3열 그리드'
+      '3스텝 동일 높이: 표지 → 사용 정보 → 메모',
+      '표지 미리보기 축소 · 종류/시기는 각 1행',
+      '이전/다음/제출 버튼 동일 너비'
     ]
   },
   {
@@ -1065,7 +1067,8 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="note-forms">
           <h2 class="ui-lab__section-title">AddNoteFab · AddPageModal · PageMetaModal</h2>
           <p class="ui-lab__section-desc">
-            노트 추가/수정 모달, 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
+            노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
+            생성 시 폼 입력으로 public_id를 배정한 뒤 Cloudinary 폴더명으로 쓰고 Notion DB에도 기록합니다.
             실제 Cloudinary·Notion 호출이 있으므로 Lab에서는 진입 경로만 안내합니다.
           </p>
           <p class="ui-lab__files">
@@ -1077,7 +1080,7 @@ export function renderUiLab() {
             <code>src/components/AddPageModal/PageMetaModal.js</code>
           </p>
           <ul class="ui-lab__list">
-            <li>노트 추가/수정: 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
+            <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
