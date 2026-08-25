@@ -771,8 +771,12 @@ function sortNotes(notes, sortKey) {
   return list;
 }
 
+/** 모바일·타블렛(≤1024px) 또는 낮은 화면: 바닥 반사 없음 */
 function isMobileJukebox() {
-  return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(max-width: 1024px), (max-height: 768px)').matches
+  );
 }
 
 /**

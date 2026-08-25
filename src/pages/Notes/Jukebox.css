@@ -607,15 +607,17 @@ body.jukebox-active.loading-active #sub-menu {
   display: none;
 }
 
-/* 반응형 */
-@media (max-width: 768px) {
+/* 반응형
+ * 아이패드 미니 세로(744×1133)는 너비 ≤768이라 모바일 규칙을 탄다.
+ * 아이패드 에어/프로 세로(834–1024)는 예전엔 데스크톱 오버레이라
+ * 고정 하단 패널이 카드·Safari 툴바에 가려 제목만 살짝 보였다.
+ */
+@media (max-width: 1024px) {
   .jukebox-gallery {
-    /* 헤더·포커스 정보 영역을 피하도록 패딩 축소 + 카드가 잘리지 않게 */
-    padding: 16vh 0 20vh;
+    padding: 18vh 0 22vh;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 모바일: 바닥 반사 완전 제거 */
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
   .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
@@ -625,6 +627,32 @@ body.jukebox-active.loading-active #sub-menu {
     box-reflect: none !important;
   }
 
+  .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+    max-height: min(34vh, 360px);
+    max-width: min(38vw, 280px);
+  }
+
+  .jukebox-gallery > div.jukebox-card {
+    margin-left: -2.5vw;
+  }
+
+  /* transform에 transition을 두면 스크롤 중 JS가 매 프레임 갱신하는
+   * rotateY/scale과 싸워 카드가 흔들린다 → 트랜지션 없음(담백한 스냅). */
+  .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+    transform:
+      translate3d(0, 0, var(--jukebox-translate-z, 0))
+      rotateY(var(--jukebox-rotate-y, 0deg))
+      scale(calc(var(--jukebox-scale, 1) * 0.92));
+  }
+}
+
+@media (max-width: 768px) {
+  .jukebox-gallery {
+    /* 헤더·포커스 정보 영역을 피하도록 패딩 축소 + 카드가 잘리지 않게 */
+    padding: 16vh 0 20vh;
+  }
+
   /* 현재 표시 사이즈의 80% */
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
@@ -632,13 +660,6 @@ body.jukebox-active.loading-active #sub-menu {
     max-width: min(44.8vw, 176px);
   }
 
-  .jukebox-gallery > div.jukebox-card {
-    margin-left: -2.5vw;
-  }
-
-  /* 모바일에서 중앙 확대 스케일을 살짝 낮춰 잘림 완화.
-   * transform에 transition을 두면 스크롤 중 JS가 매 프레임 갱신하는
-   * rotateY/scale과 싸워 카드가 흔들린다 → 트랜지션 없음(담백한 스냅). */
   .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
     transform:
       translate3d(0, 0, var(--jukebox-translate-z, 0))
@@ -718,9 +739,10 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   }
 }
 
-@media (max-height: 768px), (max-width: 768px) {
+@media (max-height: 768px), (max-width: 1024px) {
   /*
    * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
+   * 아이패드 세로(≤1024px)와 낮은 화면은 데스크톱 하단 고정 오버레이를 쓰지 않는다.
    * 전체 최저 크기는 --app-min-height / --app-min-width.
    * info가 하단에 따로 잡히므로 갤러리 세로 기준점을 60%로 내린다.
    */
@@ -737,8 +759,10 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     position: relative;
     left: auto;
     bottom: auto;
-    z-index: 2;
+    /* 카드 z-index(최대 100)보다 위에 둬 잘림·겹침 때 제목이 가려지지 않게 */
+    z-index: 110;
     flex: 0 0 auto;
     width: 100%;
+    padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
   }
 }

@@ -36,9 +36,12 @@
   /*
    * 지정 크기. min-height만 두면 height:100vh 자식이 최저값을 무시하고
    * overflow:hidden이 나머지를 잘라 최저 높이가 안 먹힌 것처럼 보인다.
+   * 100vh는 iOS Safari에서 주소창·하단 툴바 뒤까지 포함하므로,
+   * 주크박스 하단 정보 패널이 아이패드에서 잘린다. 지원 브라우저는 100dvh.
    */
   --app-width: max(100%, var(--app-min-width));
   --app-height: max(100vh, var(--app-min-height));
+  --app-height: max(100dvh, var(--app-min-height));
 
   /* ===== Shadow ===== */
   --shadow-sm: 0 2px 8px var(--color-shadow-sm);
