@@ -103,10 +103,10 @@ export function renderList(items = [], config = {}) {
       const isLast = index === items.length - 1;
       const coverHtml = [
         isFirst && showFirst
-          ? coverCheckHtml('firstPageIsCover', firstChecked, '첫 장은 표지입니다')
+          ? coverCheckHtml('firstPageIsCover', firstChecked, '표지')
           : '',
         isLast && showLast
-          ? coverCheckHtml('lastPageIsCover', lastChecked, '마지막 장은 표지입니다')
+          ? coverCheckHtml('lastPageIsCover', lastChecked, '표지')
           : ''
       ].join('');
 
