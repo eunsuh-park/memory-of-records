@@ -20,12 +20,9 @@
     + var(--space-2)
   );
   /*
-   * 모바일 최소 높이: 제목 1줄(~1.8rem) + 패널 gap + 도구모음 32px.
-   * 메모는 모바일에서 숨기므로 접힘/펼침 예비 높이는 두지 않는다.
+   * 모바일·타블렛 최소 높이: sizes.css --jukebox-focus-info-min-h
+   * (제목 1줄 + 패널 gap + 도구모음 32px). 갤러리보다 먼저 확보한다.
    */
-  --jukebox-focus-info-min-h: calc(
-    (var(--text-xl) * 1.2) + var(--space-4) + 32px
-  );
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,7 +114,7 @@
   padding-bottom: 0.2em;
 }
 
-@media (max-height: 768px), (max-width: 768px) {
+@media (max-height: 768px), (max-width: 1024px) {
   .jukebox-focus-info {
     height: auto;
     min-height: var(--jukebox-focus-info-min-h);
@@ -127,7 +124,7 @@
     flex-shrink: 0;
   }
 
-  /* 모바일·낮은 화면 메모 위치는 미정 — 도구모음만 기본 노출 */
+  /* 모바일·타블렛·낮은 화면 메모 위치는 미정 — 도구모음만 기본 노출 */
   .jukebox-focus-info__memo {
     display: none;
   }

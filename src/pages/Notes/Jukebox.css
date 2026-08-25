@@ -8,12 +8,28 @@
    전역 (주크박스 활성 시)
    ============================================================================= */
 
+/*
+ * 주크박스는 페이지 스크롤이 없다.
+ * --app-height 의 max(100dvh, 768px)는 짧은 타블렛(미니 가로 744 등)에서
+ * 문서가 뷰포트보다 커져 스크롤이 생긴다. 보이는 화면(svh)에 고정한다.
+ */
+html:has(body.jukebox-active) {
+  --app-height: 100vh;
+  --app-height: 100dvh;
+  --app-height: 100svh;
+  min-height: 0;
+  height: var(--app-height);
+  max-height: var(--app-height);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .main-wrapper.jukebox-active,
 #main-content.jukebox-active,
 .app-main.jukebox-active {
   height: var(--app-height);
-  min-height: var(--app-min-height);
-  max-height: none;
+  max-height: var(--app-height);
+  min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
   padding-top: 0;
@@ -23,19 +39,28 @@ body.jukebox-active {
   margin: 0;
   padding: 0;
   min-width: var(--app-min-width);
-  min-height: var(--app-min-height);
+  min-height: 0;
+  max-height: var(--app-height);
   user-select: none;
   overflow: hidden;
+  overscroll-behavior: none;
   position: relative;
   height: var(--app-height);
   background: var(--color-bg);
 }
 
+body.jukebox-active #app,
+body.jukebox-active .app {
+  min-height: 0;
+  height: var(--app-height);
+  max-height: var(--app-height);
+  overflow: hidden;
+}
+
 @media (max-height: 768px), (max-width: 360px) {
-  html,
-  body,
+  html:has(body.jukebox-active),
   body.jukebox-active {
-    overflow: auto;
+    overflow: hidden;
   }
 }
 
@@ -303,14 +328,17 @@ body.jukebox-active.loading-active #sub-menu {
     var(--color-bg) 100%
   );
   min-width: var(--app-min-width);
-  min-height: var(--app-min-height);
+  min-height: 0;
   height: var(--app-height);
+  max-height: var(--app-height);
   width: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .jukebox-gallery-wrap {
+  /* flex-basis 0 + min-height 0: 정보 패널 남는 높이만 쓰고, 모자라면 갤러리가 먼저 줄어든다 */
   flex: 1 1 0;
   min-height: 0;
   position: relative;
@@ -347,6 +375,8 @@ body.jukebox-active.loading-active #sub-menu {
   white-space: nowrap;
   overflow: hidden;
   overflow-x: auto;
+  overscroll-behavior: none;
+  touch-action: pan-x;
   perspective: 60em;
   perspective-origin: 50% 50%;
   scroll-snap-type: x mandatory;
@@ -607,15 +637,17 @@ body.jukebox-active.loading-active #sub-menu {
   display: none;
 }
 
-/* 반응형 */
-@media (max-width: 768px) {
+/* 반응형
+ * 아이패드 미니 세로(744×1133)는 너비 ≤768이라 모바일 규칙을 탄다.
+ * 아이패드 에어/프로 세로(834–1024)는 예전엔 데스크톱 오버레이라
+ * 고정 하단 패널이 카드·Safari 툴바에 가려 제목만 살짝 보였다.
+ */
+@media (max-width: 1024px) {
   .jukebox-gallery {
-    /* 헤더·포커스 정보 영역을 피하도록 패딩 축소 + 카드가 잘리지 않게 */
-    padding: 16vh 0 20vh;
+    padding: 18vh 0 22vh;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* 모바일: 바닥 반사 완전 제거 */
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
   .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
@@ -625,6 +657,32 @@ body.jukebox-active.loading-active #sub-menu {
     box-reflect: none !important;
   }
 
+  .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+    max-height: min(34vh, 360px);
+    max-width: min(38vw, 280px);
+  }
+
+  .jukebox-gallery > div.jukebox-card {
+    margin-left: -2.5vw;
+  }
+
+  /* transform에 transition을 두면 스크롤 중 JS가 매 프레임 갱신하는
+   * rotateY/scale과 싸워 카드가 흔들린다 → 트랜지션 없음(담백한 스냅). */
+  .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+    transform:
+      translate3d(0, 0, var(--jukebox-translate-z, 0))
+      rotateY(var(--jukebox-rotate-y, 0deg))
+      scale(calc(var(--jukebox-scale, 1) * 0.92));
+  }
+}
+
+@media (max-width: 768px) {
+  .jukebox-gallery {
+    /* 헤더·포커스 정보 영역을 피하도록 패딩 축소 + 카드가 잘리지 않게 */
+    padding: 16vh 0 20vh;
+  }
+
   /* 현재 표시 사이즈의 80% */
   .jukebox-gallery > div.jukebox-card,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
@@ -632,13 +690,6 @@ body.jukebox-active.loading-active #sub-menu {
     max-width: min(44.8vw, 176px);
   }
 
-  .jukebox-gallery > div.jukebox-card {
-    margin-left: -2.5vw;
-  }
-
-  /* 모바일에서 중앙 확대 스케일을 살짝 낮춰 잘림 완화.
-   * transform에 transition을 두면 스크롤 중 JS가 매 프레임 갱신하는
-   * rotateY/scale과 싸워 카드가 흔들린다 → 트랜지션 없음(담백한 스냅). */
   .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
     transform:
       translate3d(0, 0, var(--jukebox-translate-z, 0))
@@ -679,6 +730,9 @@ body.jukebox-active.loading-active #sub-menu {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  min-height: var(--jukebox-focus-info-min-h);
 }
 
 /* 포커스 노트 정보 패널 스타일은 NoteInfoPanel 컴포넌트에 있음 */
@@ -718,15 +772,16 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   }
 }
 
-@media (max-height: 768px), (max-width: 768px) {
+@media (max-height: 768px), (max-width: 1024px) {
   /*
    * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
-   * 전체 최저 크기는 --app-min-height / --app-min-width.
+   * 정보 패널 min-height를 먼저 잡고, 갤러리는 남는 높이만 쓴다(min-height: 0).
    * info가 하단에 따로 잡히므로 갤러리 세로 기준점을 60%로 내린다.
    */
   .jukebox-gallery-wrap {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-height: 0;
+    overflow: hidden;
   }
 
   .jukebox-gallery.centerized {
@@ -737,8 +792,21 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
     position: relative;
     left: auto;
     bottom: auto;
-    z-index: 2;
+    /* 카드 z-index(최대 100)보다 위에 둬 잘림·겹침 때 제목이 가려지지 않게 */
+    z-index: 110;
     flex: 0 0 auto;
+    flex-shrink: 0;
     width: 100%;
+    align-items: stretch;
+    /*
+     * border-box라 padding이 min-height를 깎는다.
+     * 패널 본문 + 패널 margin-bottom + 슬롯 padding-bottom을 한 번에 확보한다.
+     */
+    min-height: calc(
+      var(--jukebox-focus-info-min-h)
+      + var(--space-3)
+      + max(var(--space-4), env(safe-area-inset-bottom, 0px))
+    );
+    padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
   }
 }

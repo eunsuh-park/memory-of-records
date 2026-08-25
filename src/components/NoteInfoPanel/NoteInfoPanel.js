@@ -3,7 +3,7 @@
  *
  * Jukebox 중앙 카드(포커스된 노트)의 정보 표시영역.
  * 노트명 · Icon Button 5개(공유/즐겨찾기/수정/페이지 추가/삭제) · 메모.
- * 모바일에서는 도구모음을 기본으로 보여 주고, 메모는 CSS로 숨긴다(위치는 Backlog).
+ * 모바일·타블렛에서는 도구모음을 기본으로 보여 주고, 메모는 CSS로 숨긴다(위치는 Backlog).
  */
 
 import { renderIconButton, render as renderButton } from '../Button/Button.js';
