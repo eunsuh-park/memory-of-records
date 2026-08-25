@@ -136,8 +136,8 @@ export { MAX_IMAGE_COUNT };
 
 /**
  * 페이지 이미지 URL 조립
- * `{pdf_folder_url}/page-{6자리 zero-padded 페이지 번호}.jpg`
- * @param {string} folderUrl - Cloudinary 폴더 base URL
+ * `{folder}/page-{6자리 zero-padded 페이지 번호}.jpg`
+ * @param {string} folderUrl - Cloudinary 폴더 base URL 또는 폴더 경로
  * @param {number} pageNumber - 1부터 시작하는 페이지 번호
  * @returns {string}
  */
@@ -240,24 +240,6 @@ export async function uploadPageImage(payload) {
 }
 
 /**
- * @param {{ id: string, pdfFolderUrl: string, pageCount: number }} payload
- */
-export async function updateNotionNotePages(payload) {
-  const response = await fetch('/api/writePages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ op: 'updateNote', ...payload })
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(
-      data?.message || data?.details?.message || data?.error || '페이지 정보 갱신에 실패했습니다'
-    );
-  }
-  return data;
-}
-
-/**
  * afterPage 이후 페이지들의 Cloudinary public_id를 shiftBy만큼 뒤로 밀어 번호 충돌을 피함
  * @param {{
  *   folder: string,
@@ -285,11 +267,10 @@ export async function shiftPagesAfter(payload) {
 }
 
 /**
- * 특정 페이지 삭제 후 뒤 페이지 번호를 앞으로 당기고 Notion page_count 갱신
+ * 특정 페이지 삭제 후 뒤 페이지 번호를 앞으로 당긴다
  * @param {{
- *   noteId: string,
- *   folder: string,
- *   pdfFolderUrl?: string,
+ *   publicId?: string,
+ *   folder?: string,
  *   pageNumber: number,
  *   pageCount: number
  * }} payload

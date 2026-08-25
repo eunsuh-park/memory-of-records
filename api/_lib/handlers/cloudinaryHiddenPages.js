@@ -1,5 +1,5 @@
 /**
- * GET /api/readPages?op=hidden&folder={pdf_folder_url 또는 public_id prefix}
+ * GET /api/readPages?op=hidden&folder={folder 또는 public_id prefix}
  * Cloudinary Admin API로 해당 폴더의 리소스 metadata/context를 읽어
  * visible이 false로 표시된 페이지 번호 목록을 반환합니다.
  * 응답 예: { "hiddenPages": [3, 12] }  (page-000003.jpg, page-000012.jpg 숨김)

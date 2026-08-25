@@ -7,7 +7,7 @@
 | `GET`/`POST /api/auth` | 로그인·로그아웃·세션 | `src/services/auth.js` |
 | `POST /api/writeNotebooks` | 노트 public_id 배정·만들기·수정·휴지통·즐겨찾기 (`op`: `allocatePublicId` \| `create` \| `update` \| `trash` \| `favorite`) | `src/services/createNote.js` |
 | `GET /api/readNotebooks` | 시기/타입 목록·폼 옵션·표지 (`view`: `period` \| `type` \| `formMeta` \| `covers`, period/type은 `visibility`) | `src/services/notionNotebooks.js` · `notionByType.js` · `createNote.js` · `noteCovers.js` |
-| `POST /api/writePages` | 장 업로드·메타·폴더 이름·번호 이동·삭제 (`op`: `upload` \| `updateNote` \| `updateMeta` \| `renameFolder` \| `shiftPages` \| `deletePage`) | `src/services/pages.js` |
+| `POST /api/writePages` | 장 업로드·메타·폴더 이름·번호 이동·삭제 (`op`: `upload` \| `updateMeta` \| `renameFolder` \| `shiftPages` \| `deletePage`) | `src/services/pages.js` |
 | `GET /api/readPages` | 장 목록·메타·숨긴 장·북마크된 장 (`op`: `list` \| `meta` \| `hidden` \| `bookmarked`, list는 `note`) | `src/services/notePages.js` · `pages.js` · `bookmarkedPages.js` · `NoteImageViewer.js` |
 | `POST /api/writeCovers` | 표지 앞·뒤 Cloudinary 업로드 (`notebooks/{publicId}/cover_front\|cover_back`) | `src/services/createNote.js` |
 
