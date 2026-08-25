@@ -6,9 +6,9 @@
 
 .jukebox-focus-info {
   /*
-   * PC 고정 높이: 제목 1줄 + 패널 gap + 도구모음 32px + details gap + 메모 3줄.
+   * PC 고정 높이: 제목 1줄 + 패널 gap + 도구모음 32px + details gap + 메모 3줄 + 하단 여유.
    * 예전 139px는 제목 line-height와 메모 3줄을 덜 잡아 overflow:hidden이 마지막 줄을 잘랐다.
-   * 2px는 rem 합의 서브픽셀·line-clamp 디센더 여유.
+   * --space-2는 서브픽셀·Pretendard 디센더가 line-clamp overflow에 닿지 않게 하는 여백.
    */
   --jukebox-focus-info-h: calc(
     (var(--text-xl) * 1.2)
@@ -16,7 +16,8 @@
     + 32px
     + var(--space-4)
     + (var(--text-xs) * 1.5 * 3)
-    + 2px
+    + (var(--text-xs) * 0.2)
+    + var(--space-2)
   );
   /*
    * 모바일 최소 높이: 제목 1줄(~1.8rem) + 패널 gap + 도구모음 32px.
@@ -112,6 +113,8 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex-shrink: 0;
+  /* line-clamp overflow가 마지막 줄 디센더를 자르지 않게 */
+  padding-bottom: 0.2em;
 }
 
 @media (max-height: 768px), (max-width: 768px) {
