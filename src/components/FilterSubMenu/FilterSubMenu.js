@@ -24,6 +24,25 @@ const SORT_OPTIONS = [
 ];
 
 /**
+ * By type: 노트가 한 권도 없는 유형은 칩을 숨긴다.
+ * 카운트가 아직 없거나 전 유형이 0이면(로딩·로컬 실패) 목록을 그대로 둔다.
+ * Timeline 시기는 빈 항목도 보여 준다.
+ *
+ * @param {Array<{value: string}>} filterOptions
+ * @param {Record<string, number>} countsByFilter
+ * @param {{ current?: string }|null} viewModeToggle
+ * @returns {Array<{value: string}>}
+ */
+function optionsForFilterList(filterOptions, countsByFilter, viewModeToggle) {
+  if (!Array.isArray(filterOptions)) return [];
+  if (viewModeToggle?.current !== 'type') return filterOptions;
+  const counts = countsByFilter || {};
+  const hasAnyNotes = Object.values(counts).some((n) => Number(n) > 0);
+  if (!hasAnyNotes) return filterOptions;
+  return filterOptions.filter((opt) => (counts[opt.value] ?? 0) > 0);
+}
+
+/**
  * #sub-menu.gallery-filter 컨테이너에 필터 링크 목록을 그립니다.
  *
  * @param {string} selectedValue - 현재 선택된 값 (opt.value)
@@ -80,11 +99,12 @@ export function renderFilterSubMenu(
   `
     : '';
 
+  const visibleOptions = optionsForFilterList(filterOptions, countsByFilter, viewModeToggle);
   const filterListHtml =
-    Array.isArray(filterOptions) && filterOptions.length > 0
+    visibleOptions.length > 0
       ? `
         <ul class="filter-list">
-          ${filterOptions
+          ${visibleOptions
             .map(
               (opt) => `
               <li class="filter-item">

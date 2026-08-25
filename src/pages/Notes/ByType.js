@@ -13,9 +13,8 @@ import { renderJukeboxWithFilter } from './Jukebox.js';
 import './Jukebox.css';
 
 /**
- * 타입별 노트 개수 집계 (사이드 메뉴 카운트 표시용)
+ * 타입별 노트 개수 집계 (사이드 메뉴 카운트·빈 유형 숨김용)
  * resolveTypeKey가 null인 노트는 counts에 포함되지 않음 (미분류)
- * 값이 0이어도 0 그대로 표시됨
  */
 function getNotesCountByType(notes) {
   // 각 typeOption.value를 0으로 초기화
