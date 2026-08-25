@@ -168,7 +168,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       '갤러리 padding 40vh 0 · top 50% · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on',
-      '데스크톱 포커스 정보 블록 표시(높이 139px · 노트명 · Icon Button 5 · 메모)',
+      '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
     ]
   },
@@ -955,7 +955,7 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
           <p class="ui-lab__section-desc">
             주크박스 하단 정보 패널입니다. 노트명, Icon Button 다섯 개(공유 · 즐겨찾기 · 수정 · 페이지 추가 · 삭제),
-            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 139px로 고정되고 내용은 상단부터 쌓입니다.
+            노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 제목 1줄·도구모음·메모 3줄이 잘리지 않게 고정되고 내용은 상단부터 쌓입니다.
             모바일에서는 + 토글 없이 도구모음을 기본으로 보여 주고, 메모는 숨깁니다(표시 위치는 Backlog).
             패널 최소 높이는 제목+도구모음이며 그 아래로 줄지 않습니다. 패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
           </p>
