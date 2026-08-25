@@ -6,7 +6,7 @@
  *
  * - Timeline: filterOptions = periodOptions (시기별)
  * - By Type:  filterOptions = typeOptions  (노트 타입별)
- * - viewModeToggle: Timeline|By Type|Favorites 뷰 모드 토글
+ * - viewModeToggle: Timeline|By Type|Favorites|Page Scrap 뷰 모드 토글
  * - controls: 정렬
  * - 모바일: 헤더 아래 (탭 목록 가로 스크롤)
  */
@@ -14,6 +14,7 @@
 import { render as renderChip } from '../FilterChip/FilterChip.js';
 import { render as renderDropdown, bind as bindDropdown } from '../DropdownMenu/DropdownMenu.js';
 import { FAVORITES_PATH } from '../../utils/noteFavorites.js';
+import { PAGE_SCRAP_PATH } from '../../utils/bookmarksNote.js';
 import './FilterSubMenu.css';
 
 const SORT_OPTIONS = [
@@ -46,10 +47,10 @@ function optionsForFilterList(filterOptions, countsByFilter, viewModeToggle) {
  * #sub-menu.gallery-filter 컨테이너에 필터 링크 목록을 그립니다.
  *
  * @param {string} selectedValue - 현재 선택된 값 (opt.value)
- * @param {string} basePath - 링크 prefix. '/timeline' 또는 '/by-type'
+ * @param {string} basePath - 링크 prefix. '/timeline' | '/by-type' | '/favorites' | '/page-scrap'
  * @param {Array<{value: string, label: string}>} filterOptions - 표시할 필터 옵션 배열
  * @param {Record<string, number>} [countsByFilter] - 옵션별 노트 개수 (메뉴에 숫자 표시)
- * @param {{ current: 'timeline'|'type'|'favorites' }} [viewModeToggle] - 뷰 모드 토글
+ * @param {{ current: 'timeline'|'type'|'favorites'|'scrap' }} [viewModeToggle] - 뷰 모드 토글
  * @param {{
  *   sortKey?: string,
  *   onSortChange?: (value: string) => void
@@ -73,12 +74,14 @@ export function renderFilterSubMenu(
   const byTypeHref =
     viewModeToggle?.current === 'type' && selectedValue ? `/by-type/${selectedValue}` : '/by-type';
   const favoritesHref = FAVORITES_PATH;
+  const pageScrapHref = PAGE_SCRAP_PATH;
   const viewToggleHtml = viewModeToggle
     ? `
     <div class="view-mode-toggle">
       <a href="${timelineHref}" class="view-mode-link ${viewModeToggle.current === 'timeline' ? 'active' : ''}" data-link>Timeline</a>
       <a href="${byTypeHref}" class="view-mode-link ${viewModeToggle.current === 'type' ? 'active' : ''}" data-link>By type</a>
       <a href="${favoritesHref}" class="view-mode-link ${viewModeToggle.current === 'favorites' ? 'active' : ''}" data-link>Favorites</a>
+      <a href="${pageScrapHref}" class="view-mode-link ${viewModeToggle.current === 'scrap' ? 'active' : ''}" data-link>Page Scrap</a>
     </div>
   `
     : '';

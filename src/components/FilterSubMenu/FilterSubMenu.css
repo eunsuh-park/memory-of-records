@@ -33,6 +33,8 @@ body.jukebox-filter-empty .gallery-filter {
 /* 뷰 모드 토글 (Timeline | By type) - 통합 노트 페이지에서 사용 */
 .view-mode-toggle {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-1);
   margin-bottom: var(--space-3);
   padding: var(--space-1);
@@ -192,7 +194,7 @@ body.jukebox-filter-empty .gallery-filter {
   }
 
   /*
-   * Timeline / By type / Favorite는 우측 드로어 Notes 하위로 옮긴다.
+   * Timeline / By type / Favorite / Page Scrap는 우측 드로어 Notes 하위로 옮긴다.
    */
   body.jukebox-active .view-mode-toggle {
     display: none;
