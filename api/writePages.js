@@ -1,8 +1,8 @@
 /**
  * POST /api/writePages
- * 장(Content) 쓰기: 업로드 · Notion 장수 · 메타 · 폴더 이름 · 번호 이동 · 삭제
+ * 장 쓰기: 업로드 · 메타 · 폴더 이름 · 번호 이동 · 삭제
  *
- * POST { op: 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage', ... }
+ * POST { op: 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage', ... }
  */
 import crypto from 'crypto';
 import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
@@ -85,31 +85,6 @@ function parseFolderParam(folder) {
     cloudName: deliveryMatch[1],
     folderPath: segments.map(decodePathSegment).join('/')
   };
-}
-
-function pagesFolderForNote(body) {
-  const publicId = sanitizeNotePublicId(body.publicId);
-  if (publicId) return cloudinaryPagesFolder(publicId);
-  const root = String(NOTEBOOKS_ROOT || 'notebooks').replace(/\/+$/, '');
-  const stem = sanitizePublicIdStem(body.noteName || body.filename || 'untitled');
-  return `${root}/${stem}/pages`;
-}
-
-/**
- * 페이지 JPEG는 notebooks/{public_id}/pages 에 둔다.
- * public_id가 있으면 예전 pdf_folder_url·노트명 경로는 쓰지 않는다.
- */
-function resolveUploadFolder(body) {
-  const publicId = sanitizeNotePublicId(body.publicId);
-  if (publicId) return cloudinaryPagesFolder(publicId);
-  const explicit = String(body.folder || '').trim().replace(/\/+$/, '');
-  if (explicit) {
-    if (/^https?:\/\//i.test(explicit)) {
-      return folderPathFromDeliveryUrl(explicit) || explicit;
-    }
-    return explicit;
-  }
-  return pagesFolderForNote(body);
 }
 
 function buildFolderBaseUrl(secureUrl) {
@@ -342,7 +317,14 @@ async function handleUpload(req, res, body) {
   }
 
   const pageNumber = Math.max(1, Math.floor(Number(body.pageNumber) || 1));
-  const folder = resolveUploadFolder(body);
+  const notePublicId = sanitizeNotePublicId(body.publicId);
+  if (!notePublicId) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      message: 'publicId가 필요합니다'
+    });
+  }
+  const folder = cloudinaryPagesFolder(notePublicId);
   const publicId = pageStem(pageNumber);
   const timestamp = Math.floor(Date.now() / 1000);
   const metadata = 'visible=true';
@@ -398,73 +380,6 @@ async function handleUpload(req, res, body) {
     pageNumber,
     folder,
     folderUrl: buildFolderBaseUrl(secureUrl)
-  });
-}
-
-async function handleUpdateNote(req, res, body) {
-  const id = trimOrEmpty(body.id).replace(/-/g, '');
-  const pdfFolderUrl = trimOrEmpty(body.pdfFolderUrl);
-  const pageCount = Number(body.pageCount);
-  const hasFolderUrl = Boolean(pdfFolderUrl);
-  const hasPageCount = Number.isFinite(pageCount) && pageCount >= 1;
-
-  if (!id) {
-    return res.status(400).json({ error: 'Validation failed', message: 'id는 필수입니다' });
-  }
-  if (!hasFolderUrl && !hasPageCount) {
-    return res.status(400).json({
-      error: 'Validation failed',
-      message: 'pdfFolderUrl 또는 pageCount가 필요합니다'
-    });
-  }
-
-  const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
-  const schema = database?.properties || {};
-  const folderUrlProp = findSchemaProperty(
-    schema,
-    'pdf_folder_url',
-    'PDF Folder URL',
-    'pdf folder url'
-  );
-  const pageCountProp = findSchemaProperty(schema, 'page_count', 'Page Count', 'page count');
-
-  const properties = {};
-  if (
-    hasFolderUrl &&
-    folderUrlProp &&
-    ['url', 'rich_text'].includes(folderUrlProp.type)
-  ) {
-    const folderPayload = buildNotionPropertyPayload(folderUrlProp, pdfFolderUrl);
-    if (folderPayload) properties[folderUrlProp.key] = folderPayload;
-  }
-  if (hasPageCount && pageCountProp && ['number', 'rich_text'].includes(pageCountProp.type)) {
-    const countPayload = buildNotionPropertyPayload(pageCountProp, pageCount);
-    if (countPayload) properties[pageCountProp.key] = countPayload;
-  }
-
-  /* 뷰어는 public_id → notebooks/{id}/pages 목록이 기준이라,
-   * pdf_folder_url/page_count 컬럼이 없어도 Cloudinary 업로드는 유효하다. */
-  if (!Object.keys(properties).length) {
-    return res.status(200).json({
-      ok: true,
-      skipped: true,
-      id,
-      pdfFolderUrl: pdfFolderUrl || '',
-      pageCount: hasPageCount ? pageCount : null
-    });
-  }
-
-  const page = await notionFetch(`/pages/${id}`, {
-    method: 'PATCH',
-    body: { properties }
-  });
-
-  return res.status(200).json({
-    ok: true,
-    id: page.id,
-    url: page.url,
-    pdfFolderUrl: pdfFolderUrl || '',
-    pageCount: hasPageCount ? pageCount : null
   });
 }
 
@@ -682,39 +597,13 @@ async function handleRenameFolder(req, res, body) {
     }
   }
 
-  /* 3) Notion URL 필드 갱신 */
+  /* 3) Notion 표지 URL 갱신 */
   const noteId = trimOrEmpty(body.noteId).replace(/-/g, '');
-  const pageCount = Number(body.pageCount);
   const notionPatch = {};
 
   if (noteId) {
     const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
     const schema = database?.properties || {};
-
-    if (newFolderUrl) {
-      const folderUrlProp = findSchemaProperty(
-        schema,
-        'pdf_folder_url',
-        'PDF Folder URL',
-        'pdf folder url'
-      );
-      if (folderUrlProp && ['url', 'rich_text'].includes(folderUrlProp.type)) {
-        const folderPayload = buildNotionPropertyPayload(folderUrlProp, newFolderUrl);
-        if (folderPayload) notionPatch[folderUrlProp.key] = folderPayload;
-      }
-      if (Number.isFinite(pageCount) && pageCount >= 1) {
-        const pageCountProp = findSchemaProperty(
-          schema,
-          'page_count',
-          'Page Count',
-          'page count'
-        );
-        if (pageCountProp && ['number', 'rich_text'].includes(pageCountProp.type)) {
-          const countPayload = buildNotionPropertyPayload(pageCountProp, pageCount);
-          if (countPayload) notionPatch[pageCountProp.key] = countPayload;
-        }
-      }
-    }
 
     if (coverFrontUrl) {
       const frontProp = findSchemaProperty(
@@ -773,11 +662,11 @@ async function handleDeletePage(req, res, body) {
 
   const pageNumber = Math.max(1, Math.floor(Number(body.pageNumber) || 0));
   const pageCount = Math.max(0, Math.floor(Number(body.pageCount) || 0));
-  const noteId = trimOrEmpty(body.noteId || body.id).replace(/-/g, '');
-  const pdfFolderUrl = trimOrEmpty(body.pdfFolderUrl || body.folder);
+  const notePublicId = sanitizeNotePublicId(body.publicId);
   const folder =
-    folderPathFromDeliveryUrl(body.folder || pdfFolderUrl) ||
-    parseFolderParam(body.folder || pdfFolderUrl).folderPath ||
+    (notePublicId && cloudinaryPagesFolder(notePublicId)) ||
+    folderPathFromDeliveryUrl(body.folder) ||
+    parseFolderParam(body.folder).folderPath ||
     trimOrEmpty(body.folder).replace(/\/+$/, '');
 
   if (!folder) {
@@ -833,43 +722,13 @@ async function handleDeletePage(req, res, body) {
   }
 
   const nextCount = pageCount - 1;
-  let notion = null;
-  if (noteId && pdfFolderUrl) {
-    const database = await notionFetch(`/databases/${NOTEBOOK_DB_ID}`);
-    const schema = database?.properties || {};
-    const folderUrlProp = findSchemaProperty(
-      schema,
-      'pdf_folder_url',
-      'PDF Folder URL',
-      'pdf folder url'
-    );
-    const pageCountProp = findSchemaProperty(schema, 'page_count', 'Page Count', 'page count');
-    const properties = {};
-    if (folderUrlProp && ['url', 'rich_text'].includes(folderUrlProp.type)) {
-      const folderPayload = buildNotionPropertyPayload(folderUrlProp, pdfFolderUrl);
-      if (folderPayload) properties[folderUrlProp.key] = folderPayload;
-    }
-    if (pageCountProp && ['number', 'rich_text'].includes(pageCountProp.type)) {
-      const countPayload = buildNotionPropertyPayload(pageCountProp, nextCount);
-      if (countPayload) properties[pageCountProp.key] = countPayload;
-    }
-    if (Object.keys(properties).length) {
-      const page = await notionFetch(`/pages/${noteId}`, {
-        method: 'PATCH',
-        body: { properties }
-      });
-      notion = { ok: true, id: page.id, pageCount: nextCount };
-    }
-  }
 
   return res.status(200).json({
     ok: true,
     folder,
     deletedPage: pageNumber,
     pageCount: nextCount,
-    pdfFolderUrl: pdfFolderUrl || '',
-    shiftResults,
-    notion
+    shiftResults
   });
 }
 
@@ -953,7 +812,6 @@ export default async function handler(req, res) {
     const op = String(body.op || '').trim();
 
     if (op === 'upload') return await handleUpload(req, res, body);
-    if (op === 'updateNote') return await handleUpdateNote(req, res, body);
     if (op === 'updateMeta') return await handleUpdateMeta(req, res, body);
     if (op === 'renameFolder') return await handleRenameFolder(req, res, body);
     if (op === 'shiftPages') return await handleShiftPages(req, res, body);
@@ -962,7 +820,7 @@ export default async function handler(req, res) {
     return res.status(400).json({
       error: 'Validation failed',
       message:
-        "op은 'upload' | 'updateNote' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' 중 하나여야 합니다"
+        "op은 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' 중 하나여야 합니다"
     });
   } catch (error) {
     return res.status(error.status || 500).json({

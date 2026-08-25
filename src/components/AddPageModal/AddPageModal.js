@@ -28,14 +28,13 @@ import {
   MAX_PDF_BYTES,
   readFileAsDataUrl,
   shiftPagesAfter,
-  updateNotionNotePages,
   uploadPageImage,
   validateImageFiles,
   validatePdfFile
 } from '../../services/pages.js';
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
 import { requireAuth } from '../../services/auth.js';
-import { notePagesFolder } from '../../services/notePages.js';
+import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
 import { clearNotesCaches } from '../../utils/notesCatalog.js';
 import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
@@ -44,7 +43,7 @@ import './AddPageModal.css';
  * @param {{
  *   uploadedCount: number,
  *   total: number,
- *   stage: 'shift' | 'pages' | 'link',
+ *   stage: 'shift' | 'pages',
  *   failedPageIndex: number,
  *   fromNewNote: boolean,
  *   error: unknown
@@ -83,15 +82,17 @@ function describePageUploadFailure(info) {
   }
 
   return {
-    title: '일부만 저장됨',
-    message: `${coverPrefix}이미지는 올렸지만 노트 장수 정보를 저장하지 못했습니다.`,
+    title: '페이지 업로드 실패',
+    message: info.fromNewNote
+      ? '표지는 저장됐지만 본문 페이지 처리 중 오류가 났습니다.'
+      : '페이지 처리 중 오류가 났습니다.',
     detail: reason
   };
 }
 
 /**
  * @param {{
- *   note: { id?: string, title?: string, name?: string, publicId?: string, pdfFolderUrl?: string, pageCount?: number },
+ *   note: { id?: string, title?: string, name?: string, publicId?: string, pageCount?: number },
  *   insertAfterPage?: number,
  *   fromNewNote?: boolean,
  *   onDone?: (result?: object) => void,
@@ -113,9 +114,27 @@ export async function openAddPageModal(options = {}) {
   const noteName = String(note.title || note.name || '').trim();
   const notePublicId = String(note.publicId || '').trim();
   const canonicalFolder = notePublicId ? notePagesFolder(notePublicId) : '';
-  const existingFolder = canonicalFolder || String(note.pdfFolderUrl || '').trim();
-  const existingCount = Math.max(0, Math.floor(Number(note.pageCount) || 0));
   const fromNewNote = Boolean(options.fromNewNote);
+
+  if (!noteId || !noteName || !notePublicId) {
+    showToast('노트 정보가 없어 페이지를 추가할 수 없습니다.');
+    options.onSettled?.();
+    return;
+  }
+
+  let existingCount = 0;
+  if (!fromNewNote) {
+    try {
+      const listed = await fetchNotePages(notePublicId);
+      existingCount = Math.max(0, Math.floor(Number(listed.pageCount) || 0));
+    } catch (err) {
+      console.error('[AddPage] list pages', err);
+      showToast(err?.message || '기존 페이지 목록을 확인하지 못했습니다.');
+      options.onSettled?.();
+      return;
+    }
+  }
+
   /* null이면 맨 뒤에 추가. 값이 있으면 해당 페이지 다음에 삽입 */
   const insertAfterRaw = options.insertAfterPage;
   const insertAfterPage =
@@ -124,12 +143,6 @@ export async function openAddPageModal(options = {}) {
       : Math.max(0, Math.min(existingCount, Math.floor(Number(insertAfterRaw) || 0)));
   const startPage = insertAfterPage != null ? insertAfterPage + 1 : existingCount + 1;
   const needsShift = insertAfterPage != null && insertAfterPage < existingCount;
-
-  if (!noteId || !noteName) {
-    showToast('노트 정보가 없어 페이지를 추가할 수 없습니다.');
-    options.onSettled?.();
-    return;
-  }
 
   /** @type {'pick'|'pdf'|'images'} */
   let step = 'pick';
@@ -392,42 +405,6 @@ export async function openAddPageModal(options = {}) {
     }
   }
 
-  /**
-   * Notion page_count/pdf_folder_url이 있으면 맞춰 둔다.
-   * 뷰어는 public_id → Cloudinary pages 폴더 목록이 기준이라, 속성이 없어도 업로드는 유효하다.
-   */
-  async function linkNotePages(folderUrl, pageCount, { required = true } = {}) {
-    if (!noteId || !Number.isFinite(pageCount) || pageCount < 1) {
-      if (required) {
-        throw new Error('노트 페이지 정보를 갱신할 수 없습니다');
-      }
-      return null;
-    }
-    if (!folderUrl && required) {
-      throw new Error('노트 페이지 정보를 갱신할 수 없습니다');
-    }
-    if (!folderUrl) return null;
-    const attempts = required ? 3 : 1;
-    let lastError = null;
-    for (let attempt = 1; attempt <= attempts; attempt += 1) {
-      try {
-        return await updateNotionNotePages({
-          id: noteId,
-          pdfFolderUrl: folderUrl,
-          pageCount
-        });
-      } catch (err) {
-        lastError = err;
-        console.warn(`[AddPage] Notion link attempt ${attempt}/${attempts}`, err);
-        if (attempt < attempts) {
-          await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
-        }
-      }
-    }
-    if (required) throw lastError || new Error('노트 페이지 정보 갱신에 실패했습니다');
-    return null;
-  }
-
   async function handleUpload() {
     if (!pages.length || busy) return;
     uploadStarted = true;
@@ -436,12 +413,7 @@ export async function openAddPageModal(options = {}) {
     updateUploadEnabled();
 
     const total = pages.length;
-    const usePublicIdFolder = Boolean(notePublicId);
-    let folderUrl = existingFolder;
-    let folderPath = canonicalFolder || existingFolder;
     let uploadedCount = 0;
-    let linkedCount = existingCount;
-    let updated = null;
     let stage = needsShift ? 'shift' : 'pages';
     let failedPageIndex = -1;
 
@@ -453,12 +425,9 @@ export async function openAddPageModal(options = {}) {
 
     try {
       if (needsShift) {
-        if (!existingFolder) {
-          throw new Error('기존 페이지 폴더를 확인할 수 없어 중간에 삽입할 수 없습니다');
-        }
         showUploadingOverlay('뒤 페이지 번호를 갱신하는 중…');
         await shiftPagesAfter({
-          folder: existingFolder,
+          folder: canonicalFolder,
           afterPage: insertAfterPage,
           shiftBy: total,
           pageCount: existingCount
@@ -475,57 +444,28 @@ export async function openAddPageModal(options = {}) {
           current: i + 1,
           total
         });
-        const result = await uploadPageImage({
+        await uploadPageImage({
           file: pages[i].dataUrl,
           noteName,
           pageNumber,
-          publicId: notePublicId || undefined,
-          folder: notePublicId ? undefined : folderPath || undefined
+          publicId: notePublicId
         });
-        if (result.folderUrl) folderUrl = result.folderUrl;
-        if (result.folder) folderPath = result.folder;
         uploadedCount += 1;
       }
 
-      if (!usePublicIdFolder && !folderUrl) {
-        throw new Error('업로드된 페이지 폴더 URL을 확인하지 못했습니다');
-      }
-
       const newPageCount = existingCount + uploadedCount;
-      const linkFolder = folderUrl || folderPath || canonicalFolder;
-      if (linkFolder) {
-        stage = 'link';
-        showUploadingOverlay({
-          message: '노트 정보를 갱신하는 중…',
-          current: total,
-          total
-        });
-        const linkResult = await linkNotePages(linkFolder, newPageCount, {
-          required: !usePublicIdFolder
-        });
-        if (linkResult) {
-          updated = linkResult;
-          linkedCount = newPageCount;
-        } else if (usePublicIdFolder) {
-          linkedCount = newPageCount;
-        }
-      } else if (usePublicIdFolder) {
-        linkedCount = newPageCount;
-      }
-
       if (noteId) markNoteUnseen(noteId);
       clearNotesCaches();
       hideUploadingOverlay();
+      const donePayload = {
+        id: noteId,
+        publicId: notePublicId,
+        pageCount: newPageCount,
+        insertAfterPage,
+        insertedCount: uploadedCount
+      };
       if (fromNewNote) {
-        options.onDone?.({
-          ...(updated || {}),
-          id: noteId,
-          publicId: notePublicId,
-          pdfFolderUrl: folderUrl || canonicalFolder,
-          pageCount: linkedCount,
-          insertAfterPage,
-          insertedCount: uploadedCount
-        });
+        options.onDone?.(donePayload);
         settle();
       } else {
         openUploadResultDialog({
@@ -534,31 +474,10 @@ export async function openAddPageModal(options = {}) {
             ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다.`
             : `${uploadedCount}페이지가 추가되었습니다.`
         });
-        options.onDone?.({
-          ...(updated || {}),
-          id: noteId,
-          publicId: notePublicId,
-          pdfFolderUrl: folderUrl || canonicalFolder,
-          pageCount: linkedCount,
-          insertAfterPage,
-          insertedCount: uploadedCount
-        });
+        options.onDone?.(donePayload);
       }
     } catch (err) {
       console.error('[AddPage] upload', err);
-      const savedCount = existingCount + uploadedCount;
-      if (uploadedCount > 0 && (folderUrl || canonicalFolder)) {
-        try {
-          updated = await linkNotePages(folderUrl || canonicalFolder, savedCount, {
-            required: false
-          });
-          if (updated) linkedCount = savedCount;
-          else if (usePublicIdFolder) linkedCount = savedCount;
-        } catch (linkErr) {
-          console.warn('[AddPage] partial Notion link failed', linkErr);
-          if (usePublicIdFolder) linkedCount = savedCount;
-        }
-      }
       hideUploadingOverlay();
       const result = describePageUploadFailure({
         uploadedCount,
@@ -568,18 +487,15 @@ export async function openAddPageModal(options = {}) {
         fromNewNote,
         error: err
       });
-      const savedSome = uploadedCount > 0 && linkedCount > existingCount;
-      if (savedSome) {
+      if (uploadedCount > 0) {
         if (noteId) markNoteUnseen(noteId);
         clearNotesCaches();
         options.onDone?.({
-          ...(updated || {}),
           id: noteId,
           publicId: notePublicId,
-          pdfFolderUrl: folderUrl || canonicalFolder,
-          pageCount: linkedCount,
+          pageCount: existingCount + uploadedCount,
           insertAfterPage,
-          insertedCount: linkedCount - existingCount,
+          insertedCount: uploadedCount,
           partial: true
         });
       }

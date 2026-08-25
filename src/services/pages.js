@@ -135,9 +135,8 @@ export function validatePdfFile(file) {
 export { MAX_IMAGE_COUNT };
 
 /**
- * 페이지 이미지 URL 조립 (레거시 pdf_folder_url 경로)
+ * 페이지 이미지 URL 조립
  * `{folder}/page-{6자리 zero-padded 페이지 번호}.jpg`
- * public_id가 있는 노트는 `fetchNotePages`가 Cloudinary 목록을 쓴다.
  * @param {string} folderUrl - Cloudinary 폴더 base URL 또는 폴더 경로
  * @param {number} pageNumber - 1부터 시작하는 페이지 번호
  * @returns {string}
@@ -220,7 +219,6 @@ export async function convertPdfFileToJpegDataUrls(file, options = {}) {
  *   folder?: string,
  *   publicId?: string
  * }} payload
- * publicId가 있으면 notebooks/{publicId}/pages/page-000001.jpg 로 올린다.
  */
 export async function uploadPageImage(payload) {
   const response = await fetch('/api/writePages', {
@@ -238,25 +236,6 @@ export async function uploadPageImage(payload) {
     );
   }
   if (!data?.url) throw new Error('업로드 응답에 URL이 없습니다');
-  return data;
-}
-
-/**
- * @param {{ id: string, pdfFolderUrl?: string, pageCount: number }} payload
- * Notion에 pdf_folder_url/page_count가 있으면 갱신한다. 없으면 서버가 skip한다.
- */
-export async function updateNotionNotePages(payload) {
-  const response = await fetch('/api/writePages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ op: 'updateNote', ...payload })
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(
-      data?.message || data?.details?.message || data?.error || '페이지 정보 갱신에 실패했습니다'
-    );
-  }
   return data;
 }
 
@@ -288,11 +267,10 @@ export async function shiftPagesAfter(payload) {
 }
 
 /**
- * 특정 페이지 삭제 후 뒤 페이지 번호를 앞으로 당기고 Notion page_count 갱신
+ * 특정 페이지 삭제 후 뒤 페이지 번호를 앞으로 당긴다
  * @param {{
- *   noteId: string,
- *   folder: string,
- *   pdfFolderUrl?: string,
+ *   publicId?: string,
+ *   folder?: string,
  *   pageNumber: number,
  *   pageCount: number
  * }} payload

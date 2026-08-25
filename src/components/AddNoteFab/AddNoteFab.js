@@ -838,7 +838,6 @@ export async function openAddNoteModal(options = {}) {
         publicId: created?.publicId || publicId,
         title: metaPayload.name,
         name: metaPayload.name,
-        pdfFolderUrl: '',
         pageCount: 0
       };
       if (createdNote.id) {
@@ -856,13 +855,11 @@ export async function openAddNoteModal(options = {}) {
               note: createdNote,
               fromNewNote: true,
               onDone: (result) => {
-                /* 페이지 업로드 결과(pdfFolderUrl·pageCount)를 넘기고 목록을 다시 불러온다 */
                 options.onCreated?.({
                   ...created,
                   ...(result || {}),
                   id: created?.id || result?.id,
                   publicId: created?.publicId || publicId,
-                  pdfFolderUrl: result?.pdfFolderUrl || '',
                   pageCount: result?.pageCount || 0
                 });
               },
