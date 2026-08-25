@@ -30,6 +30,13 @@
   color: var(--color-text-dim);
 }
 
+.add-page-cover-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--color-text-dim);
+}
+
 .add-page-source-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

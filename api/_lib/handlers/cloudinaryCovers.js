@@ -63,7 +63,8 @@ async function searchCoverResources({ cloudName, authHeader }) {
   do {
     const body = {
       expression,
-      max_results: 500
+      max_results: 500,
+      with_field: ['context']
     };
     if (nextCursor) body.next_cursor = nextCursor;
     const data = await fetchJson(
@@ -82,6 +83,33 @@ async function searchCoverResources({ cloudName, authHeader }) {
   return resources;
 }
 
+function parseCoverPageFlag(value) {
+  if (value === true || value === 1) return true;
+  if (value === false || value === 0) return false;
+  const s = String(value ?? '').trim().toLowerCase();
+  if (!s) return null;
+  if (['true', 'yes', '1', 'on'].includes(s)) return true;
+  if (['false', 'no', '0', 'off'].includes(s)) return false;
+  return null;
+}
+
+function readContextValue(resource, key) {
+  const context = resource?.context?.custom || resource?.context || {};
+  if (!context || typeof context !== 'object') return undefined;
+  const wanted = String(key || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, '');
+  for (const [name, value] of Object.entries(context)) {
+    const normalized = String(name || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_-]+/g, '');
+    if (normalized === wanted) return value;
+  }
+  return undefined;
+}
+
 function buildCoversMap(resources) {
   const covers = {};
   for (const resource of resources || []) {
@@ -89,9 +117,25 @@ function buildCoversMap(resources) {
     if (!parsed?.noteId) continue;
     const url = String(resource?.secure_url || resource?.url || '').trim();
     if (!url) continue;
-    const entry = covers[parsed.noteId] || (covers[parsed.noteId] = { front: null, back: null });
-    if (parsed.kind === 'back') entry.back = url;
-    else entry.front = url;
+    const entry =
+      covers[parsed.noteId] ||
+      (covers[parsed.noteId] = {
+        front: null,
+        back: null,
+        firstPageIsCover: null,
+        lastPageIsCover: null
+      });
+    if (parsed.kind === 'back') {
+      entry.back = url;
+      const lastFlag = parseCoverPageFlag(readContextValue(resource, 'last_page_is_cover'));
+      if (lastFlag != null && entry.lastPageIsCover == null) entry.lastPageIsCover = lastFlag;
+    } else {
+      entry.front = url;
+      const firstFlag = parseCoverPageFlag(readContextValue(resource, 'first_page_is_cover'));
+      const lastFlag = parseCoverPageFlag(readContextValue(resource, 'last_page_is_cover'));
+      if (firstFlag != null) entry.firstPageIsCover = firstFlag;
+      if (lastFlag != null) entry.lastPageIsCover = lastFlag;
+    }
   }
   return covers;
 }

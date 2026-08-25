@@ -17,6 +17,7 @@ import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrom
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
+import { renderList as renderUploadList } from '../../components/FileUploadPreview/FileUploadPreview.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import {
@@ -24,8 +25,11 @@ import {
   demoNoteViewerOptions,
   isLocalDemoEnabled
 } from '../../utils/demoNote.js';
+import bookmarksCoverFront from '../../assets/bookmarks-cover-front.png';
+import bookmarksCoverBack from '../../assets/bookmarks-cover-back.png';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
+import '../../components/FileUploadPreview/FileUploadPreview.css';
 import './UiLab.css';
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -1087,13 +1091,32 @@ export function renderUiLab() {
             <code>src/components/AddNoteFab/AddNoteFab.css</code>,
             <code>src/components/AddPageModal/AddPageModal.js</code>,
             <code>src/components/AddPageModal/AddPageModal.css</code>,
-            <code>src/components/AddPageModal/PageMetaModal.js</code>
+            <code>src/components/AddPageModal/PageMetaModal.js</code>,
+            <code>src/components/FileUploadPreview/FileUploadPreview.js</code>
           </p>
           <ul class="ui-lab__list">
             <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
-            <li>페이지 추가: 뷰어 하단 시트의 + 버튼</li>
+            <li>페이지 추가: 뷰어 하단 시트의 + 버튼 · PDF/이미지 미리보기에서 첫·마지막 장이 표지인지 체크</li>
+            <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
+          ${renderVariantRow(
+            '페이지 미리보기 · 첫/마지막 장 표지 체크',
+            `<ul class="upload-list">${renderUploadList(
+              [
+                { id: 'lab-first', dataUrl: bookmarksCoverFront, label: '첫 장' },
+                { id: 'lab-last', dataUrl: bookmarksCoverBack, label: '마지막 장' }
+              ],
+              {
+                coverChecks: {
+                  showFirst: true,
+                  showLast: true,
+                  firstChecked: true,
+                  lastChecked: false
+                }
+              }
+            )}</ul>`
+          )}
           ${renderVariantRow(
             '업로드 결과 Dialog — 성공 / 일부만 저장 / 실패(표지만 됨)',
             [
@@ -1123,6 +1146,7 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteImageViewer · PdfModal</h2>
           <p class="ui-lab__section-desc">
             페이지 이미지 뷰어와 PDF 폴백 뷰어입니다. 모달·전체 페이지 모드, 하단 시트, 줌/패닝이 여기에 있습니다.
+            PDF 첫/마지막 장이 표지가 아니면 노트 표지 이미지를 뷰어 양 끝에 넣습니다.
             버튼 구성은 위 <a href="#viewer-chrome">뷰어 크롬</a> 데모에서 확인할 수 있습니다.
           </p>
           <p class="ui-lab__files">
