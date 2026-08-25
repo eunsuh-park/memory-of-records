@@ -838,7 +838,7 @@ function shouldSkipJukeboxReflection() {
  * Jukebox 페이지 + 필터 (Timeline: 기간별, By Type: 타입별)
  *
  * Timeline: filterOptions = periodOptions (period_name 1:1)
- * By Type:  filterOptions = typeOptions  (notebook_type 5개 태그 1:1)
+ * By Type:  filterOptions = typeOptions  (notebook_type 11개 태그 1:1)
  *
  * @param {Object} options
  * @param {'period'|'type'|'favorites'} options.filterMode

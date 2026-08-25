@@ -2,33 +2,15 @@
  * By Type 페이지 = Jukebox + notebook_type 필터
  *
  * Notion DB notebook_type 태그와 1:1 매칭:
- *   다이어리(일기장), 스케줄러, 수첩/메모지, 스케치북, 줄공책
+ *   다이어리, 플래너, 메모장, 스케치북, 학습/공부 노트, 업무용 노트,
+ *   일반 노트, 여행 기록, 스크랩, 컬렉션, 기타
  * @see typeOptions (src/data/typeOptions.js)
  */
 
-import { typeOptions } from '../../data/typeOptions.js';
+import { typeOptions, resolveTypeKey } from '../../data/typeOptions.js';
 import { getNotionTypeItems } from '../../services/notionByType.js';
 import { renderJukeboxWithFilter } from './Jukebox.js';
 import './Jukebox.css';
-
-/**
- * Notion notebook_type 값 → typeOptions.value 매핑 (1:1)
- * - Notion Select/Multi-select에서 올 수 있는 값(label 또는 value)을 정규화 후 매칭
- * - multi_select인 경우 첫 번째 값 사용
- * @param {string|string[]} notebookType - notionByType에서 오는 type
- * @returns {string|null} typeOptions.value 또는 매칭 실패 시 null
- */
-function resolveTypeKey(notebookType) {
-  let raw = notebookType;
-  if (Array.isArray(raw)) raw = raw[0] ?? '';
-  const normalized = String(raw || '').trim().toLowerCase();
-  const match = typeOptions.find(
-    (opt) =>
-      opt.value.toLowerCase() === normalized ||
-      (opt.labelKr || opt.label || '').toLowerCase() === normalized
-  );
-  return match?.value ?? null;
-}
 
 /**
  * 타입별 노트 개수 집계 (사이드 메뉴 카운트 표시용)

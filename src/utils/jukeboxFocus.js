@@ -5,7 +5,7 @@
  */
 
 import { periodOptions } from '../data/periodOptions.js';
-import { typeOptions } from '../data/typeOptions.js';
+import { resolveTypeKey } from '../data/typeOptions.js';
 
 const FOCUS_KEY = 'mor-jukebox-focus-note';
 
@@ -60,11 +60,7 @@ export function jukeboxPathForNote(note = {}) {
     'value',
     'label'
   ]);
-  const typeKey = matchOption(note.type || note.notebookType, typeOptions, [
-    'value',
-    'label',
-    'labelKr'
-  ]);
+  const typeKey = resolveTypeKey(note.type || note.notebookType);
   const path = typeof window !== 'undefined' ? window.location.pathname : '';
 
   if (path.includes('/by-type') && typeKey) return `/by-type/${typeKey}`;

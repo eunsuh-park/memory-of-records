@@ -9,9 +9,11 @@ export const PUBLIC_ID_PATTERN = /^([A-Z]+)-(\d{4})-(\d+)$/;
 
 const TYPE_PREFIX = [
   { test: /다이어리|일기|diary|journal/i, prefix: 'DIRY' },
-  { test: /스케줄러|scheduler|planner/i, prefix: 'PLNR' },
+  { test: /플래너|스케줄러|scheduler|planner/i, prefix: 'PLNR' },
   { test: /수첩|메모|handy|memo/i, prefix: 'MEMO' },
-  { test: /스케치|sketch/i, prefix: 'SKTC' }
+  { test: /스케치|sketch/i, prefix: 'SKTC' },
+  { test: /학습|공부|study/i, prefix: 'STDY' },
+  { test: /업무|work/i, prefix: 'WORK' }
 ];
 
 const LINED_TYPE = /줄공책|lined/i;
@@ -149,8 +151,9 @@ export function publicIdYear(periodStart, periodEnd) {
 }
 
 /**
- * 종류 선택값 + (줄공책이면) 이름·메모 힌트로 PREFIX를 고른다.
- * 줄공책: 업무 → WORK, 학습/독서 등 → STDY, 그 외 → NOTE
+ * 종류 선택값으로 PREFIX를 고른다.
+ * 다이어리→DIRY, 플래너→PLNR, 메모장→MEMO, 스케치북→SKTC,
+ * 학습/공부 노트→STDY, 업무용 노트→WORK. 그 외·옛 줄공책은 이름 힌트 또는 NOTE.
  */
 export function publicIdPrefix({ notebookType, name, notes } = {}) {
   const type = String(notebookType || '').trim();

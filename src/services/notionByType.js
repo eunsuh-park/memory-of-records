@@ -76,7 +76,7 @@ export function convertNotionPageToTypeItem(page) {
   const title =
     parseNotionProperty(getProperty(properties, '이름', 'Name', 'title', 'Title')) ||
     '제목 없음';
-  /* notebook_type: typeOptions와 1:1 매칭 (다이어리(일기장), 스케줄러, 수첩/메모지, 스케치북, 줄공책) */
+  /* notebook_type: typeOptions와 1:1 매칭 (다이어리, 플래너, 메모장, 스케치북, 학습/공부 노트 등) */
   const type =
     parseNotionProperty(
       getProperty(

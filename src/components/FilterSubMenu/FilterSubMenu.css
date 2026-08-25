@@ -87,6 +87,7 @@ body.jukebox-filter-empty .gallery-filter {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  max-width: 100%;
 }
 
 /* 탭 목록: 가로 flex, Timeline 시기 또는 By Type 타입 옵션 나열 */
@@ -97,6 +98,10 @@ body.jukebox-filter-empty .gallery-filter {
   display: flex;
   gap: var(--space-2);
   align-items: center;
+  max-width: 100%;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: thin;
 }
 
 /* 탭 한 칸 (각 시기/타입 항목) */
