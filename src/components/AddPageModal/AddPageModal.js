@@ -35,6 +35,7 @@ import {
 import { markNoteUnseen } from '../../utils/unseenNotes.js';
 import { requireAuth } from '../../services/auth.js';
 import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
+import { updateCoverPageFlags } from '../../services/noteCovers.js';
 import { clearNotesCaches } from '../../utils/notesCatalog.js';
 import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
@@ -151,6 +152,10 @@ export async function openAddPageModal(options = {}) {
   let busy = false;
   let uploadStarted = false;
   let settled = false;
+  let firstPageIsCover = note.firstPageIsCover !== false;
+  let lastPageIsCover = note.lastPageIsCover !== false;
+  const showFirstCoverCheck = startPage === 1;
+  const showLastCoverCheck = insertAfterPage == null || existingCount === 0;
 
   const settle = () => {
     if (settled) return;
@@ -179,7 +184,18 @@ export async function openAddPageModal(options = {}) {
   function renderPreviewList() {
     const list = overlay.querySelector('.upload-list');
     if (!list) return;
-    list.innerHTML = renderUploadList(pages, { startPage });
+    list.innerHTML = renderUploadList(pages, {
+      startPage,
+      coverChecks:
+        pages.length && (showFirstCoverCheck || showLastCoverCheck)
+          ? {
+              showFirst: showFirstCoverCheck,
+              showLast: showLastCoverCheck,
+              firstChecked: firstPageIsCover,
+              lastChecked: lastPageIsCover
+            }
+          : null
+    });
   }
 
   function renderBody() {
@@ -231,6 +247,11 @@ export async function openAddPageModal(options = {}) {
           })
         })}
         <ul class="upload-list"></ul>
+        ${
+          showFirstCoverCheck || showLastCoverCheck
+            ? `<p class="add-page-cover-hint">첫·마지막 장이 표지가 아니면, 노트에 올린 표지 이미지가 뷰어의 첫/마지막 페이지로 들어갑니다.</p>`
+            : ''
+        }
         <p class="form-status add-page-status" role="status"></p>
         <div class="add-page-footer">
           ${renderButton({
@@ -276,6 +297,11 @@ export async function openAddPageModal(options = {}) {
         })
       })}
       <ul class="upload-list"></ul>
+      ${
+        showFirstCoverCheck || showLastCoverCheck
+          ? `<p class="add-page-cover-hint">첫·마지막 장이 표지가 아니면, 노트에 올린 표지 이미지가 뷰어의 첫/마지막 페이지로 들어갑니다.</p>`
+          : ''
+      }
       <p class="form-status add-page-status" role="status"></p>
       <div class="add-page-footer">
         ${renderButton({
@@ -405,6 +431,23 @@ export async function openAddPageModal(options = {}) {
     }
   }
 
+  async function saveCoverFlagsIfNeeded() {
+    const coverFlags = {};
+    if (showFirstCoverCheck) coverFlags.firstPageIsCover = firstPageIsCover;
+    if (showLastCoverCheck) coverFlags.lastPageIsCover = lastPageIsCover;
+    if (!Object.keys(coverFlags).length) return coverFlags;
+    try {
+      await updateCoverPageFlags({
+        publicId: notePublicId,
+        ...coverFlags
+      });
+    } catch (flagErr) {
+      console.warn('[AddPage] cover flags', flagErr);
+      showToast(flagErr?.message || '표지 페이지 설정은 저장하지 못했습니다');
+    }
+    return coverFlags;
+  }
+
   async function handleUpload() {
     if (!pages.length || busy) return;
     uploadStarted = true;
@@ -456,13 +499,16 @@ export async function openAddPageModal(options = {}) {
       const newPageCount = existingCount + uploadedCount;
       if (noteId) markNoteUnseen(noteId);
       clearNotesCaches();
+      const coverFlags = await saveCoverFlagsIfNeeded();
+
       hideUploadingOverlay();
       const donePayload = {
         id: noteId,
         publicId: notePublicId,
         pageCount: newPageCount,
         insertAfterPage,
-        insertedCount: uploadedCount
+        insertedCount: uploadedCount,
+        ...coverFlags
       };
       if (fromNewNote) {
         options.onDone?.(donePayload);
@@ -490,13 +536,15 @@ export async function openAddPageModal(options = {}) {
       if (uploadedCount > 0) {
         if (noteId) markNoteUnseen(noteId);
         clearNotesCaches();
+        const coverFlags = await saveCoverFlagsIfNeeded();
         options.onDone?.({
           id: noteId,
           publicId: notePublicId,
           pageCount: existingCount + uploadedCount,
           insertAfterPage,
           insertedCount: uploadedCount,
-          partial: true
+          partial: true,
+          ...coverFlags
         });
       }
       openUploadResultDialog({
@@ -540,7 +588,13 @@ export async function openAddPageModal(options = {}) {
 
   overlay.addEventListener('change', (e) => {
     const input = e.target;
-    if (!(input instanceof HTMLInputElement) || input.type !== 'file') return;
+    if (!(input instanceof HTMLInputElement)) return;
+    if (input.type === 'checkbox') {
+      if (input.name === 'firstPageIsCover') firstPageIsCover = input.checked;
+      if (input.name === 'lastPageIsCover') lastPageIsCover = input.checked;
+      return;
+    }
+    if (input.type !== 'file') return;
     if (input.name === 'pdfFile') {
       handlePdfSelected(input.files?.[0] || null);
     } else if (input.name === 'imageFiles') {

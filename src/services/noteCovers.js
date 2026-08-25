@@ -3,10 +3,11 @@
  * Notion cover_*_url 대신 GET /api/readNotebooks?view=covers 결과를 쓴다.
  */
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
+import { parseCoverPageFlag } from '../utils/viewerPages.js';
 import { isBookmarksNoteId } from '../utils/bookmarksNote.js';
 import { isDemoNoteId } from '../utils/demoNote.js';
 
-/** @type {{ data: Record<string, {front?: string|null, back?: string|null}>|null, loaded: boolean, promise: Promise<unknown>|null }} */
+/** @type {{ data: Record<string, {front?: string|null, back?: string|null, firstPageIsCover?: boolean|null, lastPageIsCover?: boolean|null}>|null, loaded: boolean, promise: Promise<unknown>|null }} */
 const cachedCovers = { data: null, loaded: false, promise: null };
 
 function normalizeCoverKey(value) {
@@ -20,7 +21,7 @@ function optimizeCoverUrl(url) {
 }
 
 /**
- * @returns {Promise<{ loaded: boolean, covers: Record<string, {front?: string|null, back?: string|null}> }>}
+ * @returns {Promise<{ loaded: boolean, covers: Record<string, {front?: string|null, back?: string|null, firstPageIsCover?: boolean|null, lastPageIsCover?: boolean|null}> }>}
  */
 export async function fetchNoteCovers() {
   if (cachedCovers.loaded && cachedCovers.data) {
@@ -45,7 +46,9 @@ export async function fetchNoteCovers() {
         if (!key) continue;
         covers[key] = {
           front: urls?.front || null,
-          back: urls?.back || null
+          back: urls?.back || null,
+          firstPageIsCover: parseCoverPageFlag(urls?.firstPageIsCover),
+          lastPageIsCover: parseCoverPageFlag(urls?.lastPageIsCover)
         };
       }
       cachedCovers.data = covers;
@@ -92,7 +95,9 @@ export function attachNoteCovers(notes, coversResult) {
     return {
       ...note,
       coverFrontUrl: hit?.front ? optimizeCoverUrl(hit.front) : null,
-      coverBackUrl: hit?.back ? optimizeCoverUrl(hit.back) : null
+      coverBackUrl: hit?.back ? optimizeCoverUrl(hit.back) : null,
+      firstPageIsCover: hit?.firstPageIsCover ?? null,
+      lastPageIsCover: hit?.lastPageIsCover ?? null
     };
   });
 }
@@ -101,4 +106,40 @@ export function clearNoteCoversCache() {
   cachedCovers.data = null;
   cachedCovers.loaded = false;
   cachedCovers.promise = null;
+}
+
+/**
+ * PDF 첫/마지막 장이 표지인지 앞표지 context에 저장한다.
+ * @param {{
+ *   publicId: string,
+ *   firstPageIsCover?: boolean,
+ *   lastPageIsCover?: boolean
+ * }} payload
+ */
+export async function updateCoverPageFlags(payload) {
+  const publicId = String(payload?.publicId || '').trim();
+  if (!publicId) {
+    throw new Error('publicId가 필요합니다');
+  }
+  const body = { op: 'coverFlags', publicId };
+  if (typeof payload.firstPageIsCover === 'boolean') {
+    body.firstPageIsCover = payload.firstPageIsCover;
+  }
+  if (typeof payload.lastPageIsCover === 'boolean') {
+    body.lastPageIsCover = payload.lastPageIsCover;
+  }
+
+  const response = await fetch('/api/writeCovers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.message || data?.error || '표지 페이지 설정을 저장하지 못했습니다'
+    );
+  }
+  clearNoteCoversCache();
+  return data;
 }

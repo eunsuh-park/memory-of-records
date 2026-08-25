@@ -57,16 +57,34 @@ function itemActionButton({ action, id, label, icon, extraClass = '', disabled =
   });
 }
 
+function coverCheckHtml(name, checked, label) {
+  return `
+    <label class="form-check upload-item__cover-check">
+      <input type="checkbox" name="${escapeHtml(name)}" ${checked ? 'checked' : ''} />
+      <span>${escapeHtml(label)}</span>
+    </label>`;
+}
+
 /**
  * 미리보기 항목들
  * @param {Array<{ id: string, dataUrl: string, label?: string }>} items
- * @param {{ startPage?: number, emptyText?: string }} [config]
+ * @param {{
+ *   startPage?: number,
+ *   emptyText?: string,
+ *   coverChecks?: {
+ *     showFirst?: boolean,
+ *     showLast?: boolean,
+ *     firstChecked?: boolean,
+ *     lastChecked?: boolean
+ *   }|null
+ * }} [config]
  * @returns {string}
  */
 export function renderList(items = [], config = {}) {
   const {
     startPage = 1,
-    emptyText = '선택된 페이지가 없습니다. 이미지를 선택하면 미리보기가 표시됩니다.'
+    emptyText = '선택된 페이지가 없습니다. 이미지를 선택하면 미리보기가 표시됩니다.',
+    coverChecks = null
   } = config;
 
   if (!items.length) {
@@ -74,10 +92,26 @@ export function renderList(items = [], config = {}) {
     return `<li class="upload-list__empty">${escapeHtml(emptyText)}</li>`;
   }
 
+  const showFirst = Boolean(coverChecks?.showFirst);
+  const showLast = Boolean(coverChecks?.showLast);
+  const firstChecked = coverChecks?.firstChecked !== false;
+  const lastChecked = coverChecks?.lastChecked !== false;
+
   return items
-    .map(
-      (item, index) => `
-      <li class="upload-item" data-id="${escapeHtml(item.id)}">
+    .map((item, index) => {
+      const isFirst = index === 0;
+      const isLast = index === items.length - 1;
+      const coverHtml = [
+        isFirst && showFirst
+          ? coverCheckHtml('firstPageIsCover', firstChecked, '첫 장은 표지입니다')
+          : '',
+        isLast && showLast
+          ? coverCheckHtml('lastPageIsCover', lastChecked, '마지막 장은 표지입니다')
+          : ''
+      ].join('');
+
+      return `
+      <li class="upload-item${coverHtml ? ' upload-item--cover-check' : ''}" data-id="${escapeHtml(item.id)}">
         <div class="upload-item__num">page-${String(startPage + index).padStart(6, '0')}</div>
         <img src="${escapeHtml(item.dataUrl)}" alt="" />
         <div class="upload-item__meta">
@@ -107,8 +141,9 @@ export function renderList(items = [], config = {}) {
               extraClass: 'upload-item__btn--danger'
             })}
           </div>
+          ${coverHtml}
         </div>
-      </li>`
-    )
+      </li>`;
+    })
     .join('');
 }

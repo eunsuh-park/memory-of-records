@@ -838,7 +838,9 @@ export async function openAddNoteModal(options = {}) {
         publicId: created?.publicId || publicId,
         title: metaPayload.name,
         name: metaPayload.name,
-        pageCount: 0
+        pageCount: 0,
+        coverFrontUrl: frontUpload.url,
+        coverBackUrl: backUpload.url
       };
       if (createdNote.id) {
         const askToViewCreatedNote = () => {
