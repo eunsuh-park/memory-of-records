@@ -26,7 +26,6 @@ import { updateNoteFavorite } from '../../services/createNote.js';
 import { isAuthenticated, onAuthChange } from '../../services/auth.js';
 import { getBookmarkedPages } from '../../services/bookmarkedPages.js';
 import {
-  createBookmarksNote,
   ensureBookmarkNoteCovers,
   isBookmarksNoteId
 } from '../../utils/bookmarksNote.js';
@@ -838,11 +837,11 @@ function shouldSkipJukeboxReflection() {
  * Jukebox 페이지 + 필터 (Timeline: 기간별, By Type: 타입별)
  *
  * Timeline: filterOptions = periodOptions (period_name 1:1)
- * By Type:  filterOptions = typeOptions  (notebook_type 5개 태그 1:1)
+ * By Type:  filterOptions = typeOptions  (notebook_type 11개 태그 1:1)
  *
  * @param {Object} options
- * @param {'period'|'type'|'favorites'} options.filterMode
- * @param {string} options.basePath - '/timeline' | '/by-type' | '/favorites'
+ * @param {'period'|'type'|'favorites'|'scrap'} options.filterMode
+ * @param {string} options.basePath - '/timeline' | '/by-type' | '/favorites' | '/page-scrap'
  * @param {string} options.selectedValue - 현재 선택된 필터 값
  * @param {Array<{value: string, label: string}>} options.filterOptions
  * @param {() => Promise<Array>} options.loadNotes
@@ -877,7 +876,7 @@ export function renderJukeboxWithFilter(options) {
   document.body.classList.add('jukebox-active');
   document.body.classList.toggle(
     'jukebox-filter-empty',
-    !Array.isArray(filterOptions) || filterOptions.length === 0
+    !viewModeToggle && (!Array.isArray(filterOptions) || filterOptions.length === 0)
   );
 
   mainContent.innerHTML = `
@@ -1136,12 +1135,11 @@ export function renderJukeboxWithFilter(options) {
       (note) => resolveFilterKey(note) === selectedValue
     );
     const sorted = sortNotes(byPeriodOrType, sortKey);
-    /* Timeline/By type만 가상 노트를 맨 앞에 붙인다. Favorites는 즐겨찾기 노트만.
-     * 로컬 개발은 Demo Note만, 그 외는 Bookmark Note만. */
+    /* Timeline/By type만 로컬 Demo Note를 맨 앞에 붙인다.
+     * Bookmark Note는 Page Scrap 페이지에만 둔다. */
     const extras = [];
-    if (filterMode !== 'favorites') {
-      if (isLocalDemoEnabled()) extras.push(createDemoNote());
-      else extras.push(createBookmarksNote());
+    if ((filterMode === 'period' || filterMode === 'type') && isLocalDemoEnabled()) {
+      extras.push(createDemoNote());
     }
     const galleryNotes = extras.length ? [...extras, ...sorted] : sorted;
     bindGallery(galleryNotes);

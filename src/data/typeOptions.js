@@ -2,34 +2,45 @@
  * By Type 사이드 메뉴용 타입 옵션 정의
  *
  * Notion DB notebook_type 태그와 1:1 매칭 (순서 동일):
- *   1. 다이어리(일기장)
- *   2. 스케줄러
- *   3. 수첩/메모지
+ *   1. 다이어리
+ *   2. 플래너
+ *   3. 메모장
  *   4. 스케치북
- *   5. 줄공책
+ *   5. 학습/공부 노트
+ *   6. 업무용 노트
+ *   7. 일반 노트
+ *   8. 여행 기록
+ *   9. 스크랩
+ *  10. 컬렉션
+ *  11. 기타
  *
  * - value: URL 경로용 슬러그 (/by-type/:value)
- * - labelKr: 사이드 메뉴 표시 텍스트 한글 (Notion 태그명과 동일)
- * - labelMobile: 모바일 짧은 라벨 (영문, label과 동일)
+ * - label: 사이드 메뉴 표시 텍스트 (영문)
+ * - labelKr: Notion 태그명과 동일
+ * - labelMobile: 모바일 짧은 라벨 (영문)
+ * - aliases: 개편 전 태그·슬러그 (옛 URL·잔여 값 매칭)
  */
 export const typeOptions = [
   {
     value: 'diary',
-    label: 'Diary & Journal',
-    labelKr: '다이어리(일기장)',
-    labelMobile: 'Diary & Journal'
+    label: 'Diary',
+    labelKr: '다이어리',
+    labelMobile: 'Diary',
+    aliases: ['다이어리(일기장)', 'Diary & Journal']
   },
   {
-    value: 'scheduler',
-    label: 'Scheduler',
-    labelKr: '스케줄러',
-    labelMobile: 'Scheduler'
+    value: 'planner',
+    label: 'Planner',
+    labelKr: '플래너',
+    labelMobile: 'Planner',
+    aliases: ['scheduler', '스케줄러', 'Scheduler']
   },
   {
-    value: 'notebook-memo',
-    label: 'Handy Notebook',
-    labelKr: '수첩/메모지',
-    labelMobile: 'Handy Notebook'
+    value: 'memo',
+    label: 'Memo',
+    labelKr: '메모장',
+    labelMobile: 'Memo',
+    aliases: ['notebook-memo', '수첩/메모지', 'Handy Notebook']
   },
   {
     value: 'sketchbook',
@@ -38,24 +49,63 @@ export const typeOptions = [
     labelMobile: 'Sketchbook'
   },
   {
-    value: 'lined-notebook',
-    label: 'Lined-notebook',
-    labelKr: '줄공책',
-    labelMobile: 'Lined-notebook'
+    value: 'study',
+    label: 'Study',
+    labelKr: '학습/공부 노트',
+    labelMobile: 'Study'
+  },
+  {
+    value: 'work',
+    label: 'Work',
+    labelKr: '업무용 노트',
+    labelMobile: 'Work'
+  },
+  {
+    value: 'general',
+    label: 'General',
+    labelKr: '일반 노트',
+    labelMobile: 'General',
+    aliases: ['lined-notebook', '줄공책', 'Lined-notebook']
+  },
+  {
+    value: 'travel',
+    label: 'Travel',
+    labelKr: '여행 기록',
+    labelMobile: 'Travel'
+  },
+  {
+    value: 'scrap',
+    label: 'Scrap',
+    labelKr: '스크랩',
+    labelMobile: 'Scrap'
+  },
+  {
+    value: 'collection',
+    label: 'Collection',
+    labelKr: '컬렉션',
+    labelMobile: 'Collection'
+  },
+  {
+    value: 'others',
+    label: 'Others',
+    labelKr: '기타',
+    labelMobile: 'Others'
   }
 ];
 
-/*
- * listTitle, listBody: 타입별 리스트 왼쪽 설명 영역 (현재 미사용. 리스트 뷰 추가 시 사용)
- *
- * diary:      listTitle: '매일의 기록, 다이어리',
- *             listBody: '다이어리는 줄노트나 그리드...'
- * scheduler:  listTitle: '시간 관리를 위한 기록 도구, 스케줄러',
- *             listBody: '포켓에 들어가는 슬림한 사이즈의 주간 스케줄러를 씁니다...'
- * notebook-memo: listTitle: '기록의 부담을 덜어주는 작은 기록 도구, 수첩',
- *             listBody: '일기, 메모, 독서노트, 주간/일간 계획 등...'
- * sketchbook: listTitle: '그림을 그리는 데 특화된 기록 도구, 스케치북',
- *             listBody: '스케치북은 수채화가 가능한 것, 그렇지 않은 것으로...'
- * lined-notebook: listTitle: '공부와 연구를 위한 기록 도구, 줄공책',
- *             listBody: '줄공책은 가장 오래, 가장 많이 소비한 노트라고...'
+/**
+ * Notion notebook_type · URL 슬러그 → typeOptions.value
+ * @param {string|string[]} notebookType
+ * @returns {string|null}
  */
+export function resolveTypeKey(notebookType) {
+  let raw = notebookType;
+  if (Array.isArray(raw)) raw = raw[0] ?? '';
+  const normalized = String(raw || '').trim().toLowerCase();
+  if (!normalized) return null;
+  const match = typeOptions.find((opt) => {
+    const keys = [opt.value, opt.label, opt.labelKr, opt.labelMobile, ...(opt.aliases || [])];
+    return keys.some((key) => String(key || '').toLowerCase() === normalized);
+  });
+  return match?.value ?? null;
+}

@@ -25,11 +25,14 @@ export async function getBookmarkedPages({ force = false } = {}) {
     cache: force ? 'no-store' : 'default'
   })
     .then(async (response) => {
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await response.json().catch(() => null)
+        : null;
+      if (!response.ok || !data) {
         throw new Error(data?.message || data?.error || '북마크 페이지를 불러오지 못했습니다');
       }
-      return response.json();
+      return data;
     })
     .then((data) => {
       const pages = Array.isArray(data?.pages) ? data.pages : [];

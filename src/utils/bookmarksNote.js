@@ -10,6 +10,7 @@ import bookmarksCoverBackFallback from '../assets/bookmarks-cover-back.png';
 
 export const BOOKMARKS_NOTE_ID = 'virtual:bookmarks';
 export const BOOKMARKS_NOTE_TITLE = 'Bookmark Note';
+export const PAGE_SCRAP_PATH = '/page-scrap';
 
 const localCovers = {
   title: BOOKMARKS_NOTE_TITLE,
@@ -52,7 +53,7 @@ export function createBookmarksNote(overrides = {}) {
     pdfUrl: null,
     pageCount,
     size: null,
-    description: '모든 유저에게 제공되는 기본 북마크 노트',
+    description: '이곳에서 북마크한 페이지들을 모아볼 수 있습니다.',
     type: 'Bookmarks',
     notebookType: 'Bookmarks',
     color: null,
@@ -61,4 +62,13 @@ export function createBookmarksNote(overrides = {}) {
     isVirtualBookmarks: true,
     pages
   };
+}
+
+/**
+ * Page Scrap 전용: Bookmark Note만 한 권 반환한다.
+ * @returns {Promise<Array>}
+ */
+export async function getPageScrapNotes() {
+  await ensureBookmarkNoteCovers().catch(() => null);
+  return [createBookmarksNote()];
 }

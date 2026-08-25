@@ -70,7 +70,7 @@ export function createDemoNote() {
     pageCount: DEMO_PAGE_COUNT,
     size: 'A5',
     description: '로컬 뷰어 테스트용 데모 노트 · 본문 9페이지',
-    type: '다이어리(일기장)',
+    type: '다이어리',
     notebookType: 'Elementary School',
     color: null,
     favorites: false,

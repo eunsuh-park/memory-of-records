@@ -115,7 +115,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
       '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
-      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite), Intro, Logout 아래 테마 토글',
+      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite·Page Scrap), Intro, Logout 아래 테마 토글',
       '높이 ≤768px에서도 동일(햄버거 + 우측 드로어)'
     ],
     tablet: [
@@ -1063,12 +1063,14 @@ export function renderUiLab() {
             Timeline / By type 필터 탭과 정렬 UI입니다. Notes 갤러리 페이지에서만
             <code>#sub-menu.gallery-filter</code>에 주입됩니다. 데스크톱은 화면 상단 중앙(top 16px),
             모바일(너비 ≤768px)과 낮은 화면(높이 ≤768px)에서는 page-header(로고·햄버거) 바로 아래에 고정됩니다.
-            Timeline / By type / Favorite 전환은 모바일 우측 드로어 Notes 하위에 있습니다.
+            Timeline / By type / Favorite / Page Scrap 전환은 모바일 우측 드로어 Notes 하위에 있습니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/FilterSubMenu/FilterSubMenu.js</code>, <code>src/components/FilterSubMenu/FilterSubMenu.css</code></p>
           <ul class="ui-lab__list">
             <li><a href="/timeline" data-link>Timeline에서 필터 확인</a></li>
             <li><a href="/by-type" data-link>By type에서 필터 확인</a></li>
+            <li><a href="/favorites" data-link>Favorites에서 서브메뉴 확인</a></li>
+            <li><a href="/page-scrap" data-link>Page Scrap에서 북마크 노트 확인</a></li>
           </ul>
         </section>
 
@@ -1150,7 +1152,7 @@ export function renderUiLab() {
         <section class="ui-lab__section" id="pages">
           <h2 class="ui-lab__section-title">Pages · composition</h2>
           <p class="ui-lab__section-desc">
-            라우트 단위 페이지는 위 컴포넌트를 조합합니다. Jukebox는 Timeline/By type의 갤러리 본체이고, Story는 카드 레이아웃 정적 페이지입니다.
+            라우트 단위 페이지는 위 컴포넌트를 조합합니다. Jukebox는 Timeline/By type/Favorites/Page Scrap의 갤러리 본체이고, Story는 카드 레이아웃 정적 페이지입니다.
           </p>
           <p class="ui-lab__files">
             참조:
@@ -1158,6 +1160,8 @@ export function renderUiLab() {
             <code>src/pages/Notes/Jukebox.css</code>,
             <code>src/pages/Notes/Timeline.js</code>,
             <code>src/pages/Notes/ByType.js</code>,
+            <code>src/pages/Notes/Favorites.js</code>,
+            <code>src/pages/Notes/PageScrap.js</code>,
             <code>src/pages/Story/Story.js</code>,
             <code>src/pages/Story/Story.css</code>,
             <code>src/router.js</code>

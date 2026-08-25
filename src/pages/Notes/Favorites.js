@@ -1,7 +1,7 @@
 /**
  * Favorites 페이지 = Jukebox + favorites === true 노트만
  *
- * 2차 필터 칩은 없음 (뷰 토글의 Favorites로 충분). 정렬만 노출.
+ * 2차 필터 칩은 없음. Timeline/By type과 같은 서브메뉴 탭·정렬은 그대로 둔다.
  */
 
 import { getFavoriteNotes } from '../../services/favoriteNotes.js';
