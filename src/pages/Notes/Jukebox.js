@@ -523,9 +523,10 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   }
   const itemsHtml = allNotes
     .map((note, index) => {
-      // 표지 이미지 썸네일 최적화 (갤러리용 최대 600px)
-      const optimizedFront = optimizeThumbnailUrl(note.coverFrontUrl, 600);
-      const optimizedBack = optimizeThumbnailUrl(note.coverBackUrl, 600);
+      // 표지 이미지 썸네일 최적화 (갤러리용 최대 800px)
+      // 모바일에서도 선명하게 보이도록 여유있게 설정
+      const optimizedFront = optimizeThumbnailUrl(note.coverFrontUrl, 800);
+      const optimizedBack = optimizeThumbnailUrl(note.coverBackUrl, 800);
       const coverSrc = optimizedFront || note.coverFrontUrl || TRANSPARENT_PIXEL;
       const backCoverSrc = optimizedBack || note.coverBackUrl || TRANSPARENT_PIXEL;
       

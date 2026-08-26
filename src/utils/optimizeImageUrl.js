@@ -71,9 +71,12 @@ export function optimizeImageUrl(url, options = {}) {
   }
 
   // 화면 크기별 최적 너비 설정
+  // 모바일과 데스크톱을 더 명확하게 구분하고, 중간 크기 통합
   const maxWidth = options.maxWidth || (() => {
-    if (isMobileDevice()) return 800;
-    if (isTabletDevice()) return 1200;
+    // 모바일: 1000px (더 여유있게)
+    // 데스크톱: 1600px
+    // 중간 크기는 1000px로 통일 → 캐시 효율 증가
+    if (window.innerWidth <= 1024) return 1000;
     return 1600;
   })();
 
