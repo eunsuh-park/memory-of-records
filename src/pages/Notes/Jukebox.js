@@ -561,11 +561,23 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
           }
           <div class="jukebox-card-3d">
             <div class="jukebox-card-inner">
-              <div class="jukebox-card-face jukebox-card-face--front">
-                <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+              <div class="jukebox-card-face jukebox-card-face--front jukebox-image-loading">
+                <div class="jukebox-image-skeleton">
+                  <div class="jukebox-skeleton-text">Loading...</div>
+                </div>
+                <div class="jukebox-image-error" hidden>
+                  ${MINGCUTE.image2Line}
+                </div>
+                <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" data-image-state="loading" />
               </div>
-              <div class="jukebox-card-face jukebox-card-face--back">
-                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+              <div class="jukebox-card-face jukebox-card-face--back jukebox-image-loading">
+                <div class="jukebox-image-skeleton">
+                  <div class="jukebox-skeleton-text">Loading...</div>
+                </div>
+                <div class="jukebox-image-error" hidden>
+                  ${MINGCUTE.image2Line}
+                </div>
+                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" data-image-state="loading" />
               </div>
             </div>
           </div>
@@ -579,8 +591,38 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     itemsHtml +
     '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
 
-  gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
-    img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
+  // 이미지 로딩 상태 추적
+  gallery.querySelectorAll('.jukebox-card-face img').forEach((img) => {
+    const container = img.closest('.jukebox-card-face');
+    const skeleton = container?.querySelector('.jukebox-image-skeleton');
+    const errorIcon = container?.querySelector('.jukebox-image-error');
+    
+    img.addEventListener('load', () => {
+      img.setAttribute('data-image-state', 'loaded');
+      container?.classList.remove('jukebox-image-loading');
+      container?.classList.add('jukebox-image-loaded');
+      if (skeleton) skeleton.hidden = true;
+      console.debug('[Jukebox] Image loaded:', img.src.substring(0, 80));
+    }, { once: true });
+    
+    img.addEventListener('error', () => {
+      img.setAttribute('data-image-state', 'error');
+      img.classList.add('jukebox-cover-image--error');
+      container?.classList.remove('jukebox-image-loading');
+      container?.classList.add('jukebox-image-error-state');
+      if (skeleton) skeleton.hidden = true;
+      if (errorIcon) errorIcon.hidden = false;
+      console.error('[Jukebox] Image failed:', img.src.substring(0, 80));
+    }, { once: true });
+    
+    // 이미 로드된 경우 (캐시)
+    if (img.complete) {
+      if (img.naturalWidth > 0) {
+        img.dispatchEvent(new Event('load'));
+      } else {
+        img.dispatchEvent(new Event('error'));
+      }
+    }
   });
 
   /*

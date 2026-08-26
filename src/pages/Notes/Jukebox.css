@@ -73,6 +73,87 @@ body.jukebox-active.period-after-school {
 }
 
 /* =============================================================================
+   이미지 로딩 상태 (스켈레톤 + 에러)
+   ============================================================================= */
+
+.jukebox-card-face {
+  position: relative;
+}
+
+/* 스켈레톤 배경 */
+.jukebox-image-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+.jukebox-skeleton-text {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 에러 아이콘 */
+.jukebox-image-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  z-index: 1;
+}
+
+.jukebox-image-error svg {
+  width: 3rem;
+  height: 3rem;
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+}
+
+/* 로딩 완료 시 스켈레톤 숨김 */
+.jukebox-image-loaded .jukebox-image-skeleton {
+  display: none;
+}
+
+/* 이미지가 로드되면 표시 */
+.jukebox-card-face img {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.jukebox-image-loaded img {
+  opacity: 1;
+}
+
+/* 에러 상태에서는 이미지 완전히 숨김 */
+.jukebox-image-error-state img {
+  display: none;
+}
+
+/* =============================================================================
    로딩 UI (Timeline/Jukebox 공통 - 접두어 없이 통일)
    ============================================================================= */
 
