@@ -522,10 +522,22 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     return;
   }
   const itemsHtml = allNotes
-    .map((note) => {
+    .map((note, index) => {
       // 표지 이미지 썸네일 최적화 (갤러리용 최대 600px)
-      const coverSrc = optimizeThumbnailUrl(note.coverFrontUrl, 600) || note.coverFrontUrl || TRANSPARENT_PIXEL;
-      const backCoverSrc = optimizeThumbnailUrl(note.coverBackUrl, 600) || note.coverBackUrl || TRANSPARENT_PIXEL;
+      const optimizedFront = optimizeThumbnailUrl(note.coverFrontUrl, 600);
+      const optimizedBack = optimizeThumbnailUrl(note.coverBackUrl, 600);
+      const coverSrc = optimizedFront || note.coverFrontUrl || TRANSPARENT_PIXEL;
+      const backCoverSrc = optimizedBack || note.coverBackUrl || TRANSPARENT_PIXEL;
+      
+      if (index === 0) {
+        console.debug('[Jukebox] First note:', {
+          title: note.title,
+          originalFront: note.coverFrontUrl?.substring(0, 80),
+          optimizedFront: optimizedFront?.substring(0, 80),
+          finalCoverSrc: coverSrc?.substring(0, 80)
+        });
+      }
+      
       const title = escapeHtml(note.title);
       const noteId = escapeHtml(note.id || '');
       const showBadge = Boolean(
@@ -1132,10 +1144,18 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function applyFiltersAndRender() {
-    if (!allNotesCache) return;
+    if (!allNotesCache) {
+      console.debug('[Jukebox] applyFiltersAndRender: allNotesCache is null');
+      return;
+    }
     const byPeriodOrType = (allNotesCache || []).filter(
       (note) => resolveFilterKey(note) === selectedValue
     );
+    console.debug('[Jukebox] Filtered notes:', {
+      selectedValue,
+      totalNotes: allNotesCache.length,
+      filteredCount: byPeriodOrType.length
+    });
     const sorted = sortNotes(byPeriodOrType, sortKey);
     /* Timeline/By type만 로컬 Demo Note를 맨 앞에 붙인다.
      * Bookmark Note는 Page Scrap 페이지에만 둔다. */
@@ -1167,6 +1187,11 @@ export function renderJukeboxWithFilter(options) {
 
   Promise.all([loadNotes(), ensureBookmarkNoteCovers().catch(() => null)])
     .then(([allNotes]) => {
+      console.debug('[Jukebox] Notes loaded:', {
+        count: allNotes?.length,
+        firstNote: allNotes?.[0]?.title,
+        hasCoverUrl: Boolean(allNotes?.[0]?.coverFrontUrl)
+      });
       allNotesCache = allNotes || [];
       applyFiltersAndRender();
     })
