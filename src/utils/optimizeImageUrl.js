@@ -36,24 +36,39 @@ function isTabletDevice() {
  * @returns {string|null} 최적화된 URL 또는 원본
  */
 export function optimizeImageUrl(url, options = {}) {
-  if (!url || typeof url !== 'string') return null;
+  if (!url || typeof url !== 'string') {
+    console.debug('[optimizeImageUrl] Invalid input:', url);
+    return null;
+  }
   const trimmed = url.trim();
-  if (!trimmed) return null;
+  if (!trimmed) {
+    console.debug('[optimizeImageUrl] Empty URL');
+    return null;
+  }
 
   // Cloudinary delivery URL (image/upload/...) 만 처리
   const cloudinaryUploadMatch = trimmed.match(
     /^(https?:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(.+)$/i
   );
-  if (!cloudinaryUploadMatch) return trimmed;
+  if (!cloudinaryUploadMatch) {
+    console.debug('[optimizeImageUrl] Not a Cloudinary URL:', trimmed.substring(0, 100));
+    return trimmed;
+  }
 
   const [, prefix, rest] = cloudinaryUploadMatch;
 
   // 이미 우리가 추가한 transformation이 있으면 그대로 반환
   // w_숫자,c_limit,f_auto,q_auto:good,dpr_auto 패턴 체크
-  if (/w_\d+,c_limit,f_auto,q_auto:[^,/]+,dpr_auto/i.test(rest)) return trimmed;
+  if (/w_\d+,c_limit,f_auto,q_auto:[^,/]+,dpr_auto/i.test(rest)) {
+    console.debug('[optimizeImageUrl] Already optimized (full):', trimmed.substring(0, 100));
+    return trimmed;
+  }
 
   // 기존 f_auto,q_auto만 있는 경우도 그대로 반환 (이전 버전과 호환)
-  if (/^f_auto,q_auto\//i.test(rest)) return trimmed;
+  if (/^f_auto,q_auto\//i.test(rest)) {
+    console.debug('[optimizeImageUrl] Already optimized (basic):', trimmed.substring(0, 100));
+    return trimmed;
+  }
 
   // 화면 크기별 최적 너비 설정
   const maxWidth = options.maxWidth || (() => {
@@ -74,7 +89,9 @@ export function optimizeImageUrl(url, options = {}) {
     'dpr_auto'
   ].join(',');
 
-  return `${prefix}${transformations}/${rest}`;
+  const optimized = `${prefix}${transformations}/${rest}`;
+  console.debug('[optimizeImageUrl] Applied:', { original: trimmed.substring(0, 80), maxWidth, quality });
+  return optimized;
 }
 
 /**
