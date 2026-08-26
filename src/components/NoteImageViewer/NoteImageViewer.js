@@ -23,6 +23,7 @@ import { fetchNoteCovers } from '../../services/noteCovers.js';
 import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services/pages.js';
 import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
 import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bookmarkedPages.js';
+import { optimizeImageUrl } from '../../utils/optimizeImageUrl.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
 import {
@@ -272,11 +273,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       const entry = albumEntry(num);
       if (!entry) return '';
       if (entry.url) return withMediaVersion(entry.url);
+      // folderUrl이 전체 URL이 아니므로 buildPageImageUrl만 사용
       return withMediaVersion(buildPageImageUrl(entry.folderUrl, entry.pageNumber));
     }
+    // fetchNotePages에서 가져온 URL은 이미 optimizeImageUrl 적용됨
     const mapped = pageUrlByNumber.get(num);
     if (mapped) return withMediaVersion(mapped);
     if (!folderUrl) return '';
+    // folderUrl이 경로만 있는 경우 buildPageImageUrl만 사용 (API에서 받은 URL 사용 권장)
     return withMediaVersion(buildPageImageUrl(folderUrl, num));
   }
 
