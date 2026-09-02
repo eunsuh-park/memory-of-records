@@ -11,7 +11,8 @@
  * 여기서는 시트 안에서 쓸 크기·상태만 덮는다.
  *
  * 색: 이 화면은 항상 어두운 배경 위에 스캔 이미지를 올리므로
- * 테마 무관 크롬 토큰(--color-chrome*)을 쓴다 (라이트 모드에서도 동일).
+ * 컨트롤은 테마 무관 크롬 토큰(--color-chrome*)을 쓴다 (라이트 모드에서도 동일).
+ * 하단 시트 배경만 다크에서 --color-surface-active, 라이트는 --color-chrome-glass.
  */
 
 .niv-image-container {
@@ -108,10 +109,11 @@
   transform: translateX(-50%);
   z-index: 5;
   display: grid;
-  grid-template-columns: auto auto auto auto 1fr auto;
+  grid-template-columns: auto auto auto auto auto auto;
   align-items: center;
   gap: var(--space-1);
-  width: min(420px, calc(100% - var(--space-6)));
+  width: fit-content;
+  max-width: calc(100% - var(--space-6));
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-pill);
   background: var(--color-chrome-glass);
@@ -121,6 +123,11 @@
   box-sizing: border-box;
   pointer-events: auto;
   color: var(--color-chrome-on);
+}
+
+[data-theme='dark'] .niv-bottom-sheet {
+  background: var(--color-surface-active);
+  background-color: var(--color-surface-active);
 }
 
 .note-image-viewer .btn.niv-sheet-btn,
@@ -303,9 +310,9 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
 
   .niv-bottom-sheet {
     bottom: max(6px, env(safe-area-inset-bottom));
-    width: min(380px, calc(100% - var(--space-5)));
+    width: fit-content;
+    max-width: calc(100% - var(--space-5));
     padding: var(--space-1);
-    background: var(--color-chrome-glass);
     border: none;
     backdrop-filter: blur(16px) saturate(1.1);
     -webkit-backdrop-filter: blur(16px) saturate(1.1);
