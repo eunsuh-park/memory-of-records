@@ -196,7 +196,7 @@ const RESPONSIVE_MATRIX = [
     tablet: ['데스크톱과 동일'],
     desktop: [
       '이미지 컨테이너 padding 8px 8px 72px',
-      '하단 시트 fit-content · 가운데 정렬 · 다크 배경 surface-active · 시트 버튼 2.35rem · 처음/마지막 1.85rem',
+      '하단 시트 fit-content · 가운데 정렬 · 다크에서 시트·좌우 이동·닫기·FAB 배경 surface-active · 시트 버튼 2.35rem · 처음/마지막 1.85rem',
       'spread FAB 2.2rem'
     ]
   },
@@ -1019,7 +1019,7 @@ export function renderUiLab() {
             ${renderViewerChrome()}
           </div>
           <ul class="ui-lab__list">
-            <li>하단 시트: 페이지 정보 · 페이지 추가 · 북마크 · 현재 페이지 링크 복사 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구. 너비는 fit-content로 아이콘에 맞추고 가운데 정렬. 다크 모드 배경은 <code>--color-surface-active</code></li>
+            <li>하단 시트: 페이지 정보 · 페이지 추가 · 북마크 · 현재 페이지 링크 복사 · (처음 · 현재/전체 · 마지막) · 뷰 원상복구. 너비는 fit-content로 아이콘에 맞추고 가운데 정렬. 다크 모드에서 시트·좌우 이동·닫기·양면/북마크 FAB 배경은 <code>--color-surface-active</code></li>
             <li>모바일 북마크는 양면 토글 위 FAB로 표시되고, 시트 안 북마크는 숨깁니다</li>
             <li>북마크는 Cloudinary <code>is_bookmarked</code>와 연결되며, 변경 시 토스트를 띄웁니다</li>
             <li>양면 토글(2페이지로 보기)을 누르면 3D 책장(BookFlip3D)으로 바뀝니다. 기본은 1페이지 보기이고, WebGL을 쓸 수 없으면 기존 2D 양면 붙이기를 씁니다</li>

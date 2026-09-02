@@ -221,6 +221,14 @@ body.pdf-modal-open {
   -webkit-backdrop-filter: blur(10px);
 }
 
+[data-theme='dark'] .pdf-canvas-wrap .btn--nav,
+[data-theme='dark'] .pdf-canvas-wrap .btn--nav:disabled:active,
+[data-theme='dark'] .pdf-canvas-wrap .btn--nav.is-at-end:active,
+[data-theme='dark'] .pdf-canvas-wrap .btn--nav[aria-disabled='true']:active {
+  background: var(--color-surface-active);
+  background-color: var(--color-surface-active);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .pdf-canvas-wrap .btn--nav:hover {
     background: var(--white);
@@ -241,6 +249,13 @@ body.pdf-modal-open {
   .pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover {
     background: var(--color-chrome);
     color: var(--color-chrome-on);
+  }
+
+  [data-theme='dark'] .pdf-canvas-wrap .btn--nav:disabled:hover,
+  [data-theme='dark'] .pdf-canvas-wrap .btn--nav.is-at-end:hover,
+  [data-theme='dark'] .pdf-canvas-wrap .btn--nav[aria-disabled='true']:hover {
+    background: var(--color-surface-active);
+    background-color: var(--color-surface-active);
   }
 }
 
@@ -267,6 +282,12 @@ body.pdf-modal-open {
   -webkit-backdrop-filter: blur(10px);
   color: var(--color-chrome-on);
   font-size: var(--text-lg);
+}
+
+[data-theme='dark'] .pdf-modal-close.btn--circle.btn--ghost,
+[data-theme='dark'] .pdf-modal-close {
+  background: var(--color-surface-active);
+  background-color: var(--color-surface-active);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -374,6 +395,14 @@ body.pdf-modal-open {
   background: var(--color-chrome);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+
+[data-theme='dark'] .pdf-page-indicator,
+[data-theme='dark'] .pdf-zoom-controls,
+[data-theme='dark'] .pdf-zoom-controls .btn--toolbar,
+[data-theme='dark'] .pdf-page-indicator .btn--toolbar {
+  background: var(--color-surface-active);
+  background-color: var(--color-surface-active);
 }
 
 .pdf-page-indicator #pdf-current-page {

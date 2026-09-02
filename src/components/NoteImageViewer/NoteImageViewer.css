@@ -12,7 +12,7 @@
  *
  * 색: 이 화면은 항상 어두운 배경 위에 스캔 이미지를 올리므로
  * 컨트롤은 테마 무관 크롬 토큰(--color-chrome*)을 쓴다 (라이트 모드에서도 동일).
- * 하단 시트 배경만 다크에서 --color-surface-active, 라이트는 --color-chrome-glass.
+ * 다크 모드만 하단 시트·떠 있는 아이콘 버튼 배경을 --color-surface-active로 둔다.
  */
 
 .niv-image-container {
@@ -125,7 +125,9 @@
   color: var(--color-chrome-on);
 }
 
-[data-theme='dark'] .niv-bottom-sheet {
+[data-theme='dark'] .niv-bottom-sheet,
+[data-theme='dark'] .note-image-viewer .btn.niv-spread-fab,
+[data-theme='dark'] .note-image-viewer .btn.niv-bookmark-fab {
   background: var(--color-surface-active);
   background-color: var(--color-surface-active);
 }
@@ -241,6 +243,11 @@
   background-color: var(--color-chrome-strong);
 }
 
+[data-theme='dark'] .note-image-viewer .btn.niv-spread-fab[aria-pressed='true'] {
+  background: var(--color-surface-selected);
+  background-color: var(--color-surface-selected);
+}
+
 /* 북마크: favorites와 동일 — off=muted/chrome-on, on=primary */
 button.niv-bookmark.btn {
   color: var(--color-chrome-on);
@@ -298,6 +305,12 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
 .note-image-viewer .btn.niv-bookmark-fab[aria-pressed='true'] {
   background: var(--color-chrome-strong);
   background-color: var(--color-chrome-strong);
+}
+
+[data-theme='dark'] .note-image-viewer .btn.niv-bookmark-fab.is-bookmarked,
+[data-theme='dark'] .note-image-viewer .btn.niv-bookmark-fab[aria-pressed='true'] {
+  background: var(--color-surface-selected);
+  background-color: var(--color-surface-selected);
 }
 
 @media (max-width: 768px) {
