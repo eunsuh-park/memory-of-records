@@ -516,9 +516,10 @@
     gap: var(--space-2);
   }
 
-  .nav-drawer__theme {
+  /* ThemeSwitch `margin: 0`보다 구체적이어야 드로어 좌측 20px이 먹는다 */
+  button.theme-switch.nav-drawer__theme[role='switch'] {
     align-self: flex-start;
-    margin: 0 var(--space-5) var(--space-2);
+    margin: 0 var(--space-5) var(--space-2) var(--space-5);
   }
 }
 
