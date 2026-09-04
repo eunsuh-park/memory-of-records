@@ -4,7 +4,11 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { injectShareMeta, renderShareMetaBlock, siteDefaults } from './shareMeta.js';
-import { formatNoteShareDescription, formatNoteShareTitle, SITE_NAME, SITE_TAGLINE } from '../../src/data/siteMeta.js';
+import { formatNoteShareDescription, formatNoteShareTitle, SITE_NAME, SITE_TAGLINE, defaultOgImageUrl } from '../../src/data/siteMeta.js';
+
+test('defaultOgImageUrl은 https 절대경로다', () => {
+  assert.match(defaultOgImageUrl(), /^https:\/\/memory-of-records\.vercel\.app\/og-default\.jpg\?v=2$/);
+});
 
 test('formatNoteShareTitle은 노트명과 페이지를 붙인다', () => {
   assert.equal(formatNoteShareTitle('2024 일기장'), `2024 일기장 · ${SITE_NAME}`);
@@ -41,12 +45,12 @@ test('injectShareMeta는 share-meta 구간의 제목·이미지를 바꾼다', (
 test('siteDefaults는 절대 경로 기본 이미지를 만든다', () => {
   const meta = siteDefaults('https://example.com');
   assert.equal(meta.title, SITE_NAME);
-  assert.equal(meta.image, 'https://example.com/og-default.jpg');
+  assert.equal(meta.image, defaultOgImageUrl());
   assert.equal(meta.url, 'https://example.com/');
   assert.equal(meta.ogDescription, SITE_TAGLINE);
   const block = renderShareMetaBlock(meta);
   assert.match(block, /og:site_name/);
-  assert.match(block, /property="og:image" content="https:\/\/example.com\/og-default.jpg"/);
+  assert.match(block, /property="og:image" content="https:\/\/memory-of-records\.vercel\.app\/og-default\.jpg\?v=2"/);
   assert.match(block, /property="og:image:secure_url"/);
 });
 
