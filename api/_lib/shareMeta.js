@@ -7,10 +7,10 @@ import { NOTEBOOK_DB_ID, notionFetch } from './notionDb.js';
 import { toOgImageUrl } from './ogImage.js';
 import { parseShareNotebook } from './shareNotebook.js';
 import {
-  DEFAULT_OG_IMAGE_PATH,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_TAGLINE,
+  defaultOgImageUrl,
   formatNoteShareDescription,
   formatNoteShareTitle
 } from '../../src/data/siteMeta.js';
@@ -63,7 +63,7 @@ export function siteDefaults(origin) {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
     ogDescription: SITE_TAGLINE,
-    image: absoluteUrl(origin, DEFAULT_OG_IMAGE_PATH),
+    image: defaultOgImageUrl(),
     imageAlt: SITE_NAME,
     url
   };
