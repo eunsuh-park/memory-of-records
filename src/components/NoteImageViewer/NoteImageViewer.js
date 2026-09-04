@@ -44,6 +44,7 @@ import {
   normalizeSharePage,
   parseSharePageParam
 } from '../../utils/noteSlug.js';
+import { setNoteDocumentTitle, resetDocumentTitle } from '../../utils/documentMeta.js';
 import { buildViewerPageList } from '../../utils/viewerPages.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 /* 뷰어 레이아웃(.pdf-viewer/.pdf-canvas-wrap/.pdf-overlay 등) 스타일 재사용 */
@@ -397,6 +398,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   let requestedPage =
     normalizeSharePage(options.initialPage) ||
     (isModal ? null : parseSharePageParam());
+  if (!isModal && noteTitle) {
+    setNoteDocumentTitle(noteTitle, requestedPage);
+  }
   let lastSyncedShareHref = '';
   let ready = false;
   let isSpreadMode = false;
@@ -1401,6 +1405,16 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     return normalizeSharePage(item.pageNumber);
   }
 
+  function syncDocumentTitle() {
+    if (isModal) return;
+    if (isBookmarksAlbum || isDemoNote || isAlbumMode) {
+      setNoteDocumentTitle(noteTitle);
+      return;
+    }
+    const page = ready ? sharePageNumber() : requestedPage;
+    setNoteDocumentTitle(noteTitle, page);
+  }
+
   async function copyShareLink() {
     if (isBookmarksAlbum || isAlbumMode || isDemoNote) {
       showToast('이 모아보기는 공유할 수 없습니다.');
@@ -1432,6 +1446,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   function syncShareUrl() {
+    if (!isModal) syncDocumentTitle();
     if (isAlbumMode || isBookmarksAlbum || isDemoNote || !shareNote?.id || !ready) return;
     const page = sharePageNumber();
     const href = noteHref(shareNote, page);
@@ -1459,6 +1474,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     shareNote = note;
     noteId = note.id || noteId;
     if (!noteTitle) noteTitle = String(note.title || note.name || '').trim();
+    if (!isModal) syncDocumentTitle();
     if (note.publicId && !folderUrl) folderUrl = notePagesFolder(note.publicId);
     if (totalPages === null && note.pageCount) {
       storedPageCount = Math.floor(Number(note.pageCount));
@@ -1489,6 +1505,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         totalPages = albumPages.length;
         storedPageCount = albumPages.length;
         noteTitle = noteTitle || BOOKMARKS_NOTE_TITLE;
+        if (!isModal) syncDocumentTitle();
         hiddenPages = new Set();
         if (!albumPages.length) {
           ready = false;
@@ -1752,6 +1769,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
   function cleanup() {
     unmountDetailPage?.();
+    if (!isModal) resetDocumentTitle();
     document.removeEventListener('keydown', handleKeydown);
     window.removeEventListener('resize', handleResize);
     clearTimeout(resizeTimer);

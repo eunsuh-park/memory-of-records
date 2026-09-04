@@ -107,7 +107,7 @@ export function notePath(note, page) {
  */
 export function noteHref(note, page) {
   const path = notePath(note, page);
-  const base = import.meta.env.BASE_URL || '/';
+  const base = import.meta.env?.BASE_URL || '/';
   const prefix = base === '/' ? '' : base.replace(/\/$/, '');
   return `${prefix}${path}`;
 }

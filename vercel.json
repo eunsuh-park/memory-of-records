@@ -10,12 +10,19 @@
     },
     "api/writeCovers.js": {
       "maxDuration": 30
+    },
+    "api/shareHtml.js": {
+      "includeFiles": "dist/index.html"
     }
   },
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
+    },
+    {
+      "source": "/note/:slug",
+      "destination": "/api/shareHtml?slug=:slug"
     },
     {
       "source": "/(.*)",
