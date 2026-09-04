@@ -21,11 +21,15 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/",
+      "destination": "/api/shareHtml"
+    },
+    {
       "source": "/note/:slug",
       "destination": "/api/shareHtml?slug=:slug"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.).*)",
       "destination": "/index.html"
     }
   ],
@@ -62,6 +66,19 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/og-default.jpg",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/jpeg"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
         }
       ]
     }

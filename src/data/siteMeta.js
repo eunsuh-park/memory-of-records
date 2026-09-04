@@ -5,12 +5,11 @@
 
 export const SITE_NAME = 'Memory of Records';
 
-/** 짧은 한 줄. 노트 메모가 없을 때 미리보기 설명으로 쓴다. */
-export const SITE_TAGLINE = '창작의 씨앗인 아날로그 기록들을 아카이브하는 공간';
+/** 공유 미리보기·검색용 한 줄 소개 */
+export const SITE_TAGLINE = '아날로그 기록의 아카이브 공간.';
 
-/** 홈·검색용 조금 더 긴 설명 */
-export const SITE_DESCRIPTION =
-  '2005년부터 사용해 온 아날로그 노트를 시기별·유형별로 정리한 개인 아카이브입니다.';
+/** 홈·검색 meta description. 미리보기와 같은 문구를 쓴다. */
+export const SITE_DESCRIPTION = SITE_TAGLINE;
 
 /** public/ 아래 기본 OG 이미지 (1200×630) */
 export const DEFAULT_OG_IMAGE_PATH = '/og-default.jpg';
