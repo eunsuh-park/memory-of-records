@@ -5,7 +5,8 @@
 
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from '../../src/data/siteMeta.js';
 
-const OG_TRANSFORM = `c_fill,g_auto,w_${OG_IMAGE_WIDTH},h_${OG_IMAGE_HEIGHT},f_jpg,q_auto:good`;
+/* g_auto는 AI 애드온이 없으면 400이 나 카톡 섬네일이 회색이 된다. 표지는 세로라 pad가 안전하다. */
+const OG_TRANSFORM = `c_pad,b_rgb:111111,w_${OG_IMAGE_WIDTH},h_${OG_IMAGE_HEIGHT},f_jpg,q_80`;
 
 function isTransformSegment(segment) {
   const seg = String(segment || '');

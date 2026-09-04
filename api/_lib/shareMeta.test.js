@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { injectShareMeta, renderShareMetaBlock, siteDefaults } from './shareMeta.js';
-import { formatNoteShareDescription, formatNoteShareTitle, SITE_NAME } from '../../src/data/siteMeta.js';
+import { formatNoteShareDescription, formatNoteShareTitle, SITE_NAME, SITE_TAGLINE } from '../../src/data/siteMeta.js';
 
 test('formatNoteShareTitle은 노트명과 페이지를 붙인다', () => {
   assert.equal(formatNoteShareTitle('2024 일기장'), `2024 일기장 · ${SITE_NAME}`);
@@ -12,7 +12,7 @@ test('formatNoteShareTitle은 노트명과 페이지를 붙인다', () => {
 });
 
 test('formatNoteShareDescription은 메모가 없으면 사이트 소개를 쓴다', () => {
-  assert.match(formatNoteShareDescription(''), /아날로그/);
+  assert.equal(formatNoteShareDescription(''), SITE_TAGLINE);
   assert.equal(formatNoteShareDescription('  여름 기록  '), '여름 기록');
 });
 
@@ -43,7 +43,11 @@ test('siteDefaults는 절대 경로 기본 이미지를 만든다', () => {
   assert.equal(meta.title, SITE_NAME);
   assert.equal(meta.image, 'https://example.com/og-default.jpg');
   assert.equal(meta.url, 'https://example.com/');
-  assert.match(renderShareMetaBlock(meta), /og:site_name/);
+  assert.equal(meta.ogDescription, SITE_TAGLINE);
+  const block = renderShareMetaBlock(meta);
+  assert.match(block, /og:site_name/);
+  assert.match(block, /property="og:image" content="https:\/\/example.com\/og-default.jpg"/);
+  assert.match(block, /property="og:image:secure_url"/);
 });
 
 test('프로젝트 index.html 마커에 노트 메타를 끼워 넣을 수 있다', () => {
