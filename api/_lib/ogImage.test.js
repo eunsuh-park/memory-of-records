@@ -68,9 +68,9 @@ test('coverOgCandidateUrls는 public_id 표지를 죽은 파일 URL보다 앞에
   assert.equal(urls[2], 'https://example.com/og-default.jpg');
 });
 
-test('noteOgImageProxyUrl은 같은 출처 /api/ogImage 를 가리킨다', () => {
+test('noteOgImageProxyUrl은 같은 출처 /og/{slug}.jpg 를 가리킨다', () => {
   assert.equal(
     noteOgImageProxyUrl('https://memory-of-records.vercel.app', '2005받아쓰기-316c337e'),
-    'https://memory-of-records.vercel.app/api/ogImage?slug=2005%EB%B0%9B%EC%95%84%EC%93%B0%EA%B8%B0-316c337e&v=3'
+    'https://memory-of-records.vercel.app/og/2005%EB%B0%9B%EC%95%84%EC%93%B0%EA%B8%B0-316c337e.jpg?v=3'
   );
 });

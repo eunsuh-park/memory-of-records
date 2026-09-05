@@ -13,6 +13,24 @@ import { defaultOgImageUrl, siteOrigin } from '../src/data/siteMeta.js';
 const OG_JPEG_TYPE = 'image/jpeg';
 const FETCH_TIMEOUT_MS = 5000;
 
+function firstQuery(value) {
+  if (Array.isArray(value)) return String(value[0] || '').trim();
+  return String(value || '').trim();
+}
+
+function slugFromOgRequest(req) {
+  const direct = firstQuery(req?.query?.slug);
+  if (direct) return direct;
+  const raw = String(req?.url || '');
+  const fromPretty = raw.match(/\/og\/([^/?#]+)\.jpe?g/i);
+  if (!fromPretty) return '';
+  try {
+    return decodeURIComponent(fromPretty[1]);
+  } catch {
+    return fromPretty[1];
+  }
+}
+
 function resolveCloudName(coverUrl) {
   return cloudNameFromUrl(coverUrl) || getCloudinaryCredentials()?.cloudName || '';
 }
@@ -63,7 +81,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const slug = String(req.query?.slug || '').trim();
+  const slug = slugFromOgRequest(req);
   const origin = requestOrigin(req);
   let body = null;
 
