@@ -149,11 +149,17 @@ export async function openAddPageModal(options = {}) {
   let step = 'pick';
   /** @type {{ id: string, dataUrl: string, label: string }[]} */
   let pages = [];
+  /** PDF 전체 페이지 수 (첫/마지막만 미리보기로 보여줄 때) */
+  let totalPdfPages = 0;
+  /** PDF 전체 페이지 dataUrl (업로드용) */
+  let allPdfPages = [];
   let busy = false;
   let uploadStarted = false;
   let settled = false;
   let firstPageIsCover = note.firstPageIsCover !== false;
   let lastPageIsCover = note.lastPageIsCover !== false;
+  /** 기존 페이지가 있을 때, 제일 뒤에 붙이기 옵션 */
+  let appendToEnd = true;
   const showFirstCoverCheck = startPage === 1;
   const showLastCoverCheck = insertAfterPage == null || existingCount === 0;
 
@@ -246,6 +252,14 @@ export async function openAddPageModal(options = {}) {
             statusAttr: 'data-pdf-name'
           })
         })}
+        ${
+          existingCount > 0
+            ? `<label class="form-check add-page-append-check">
+                <input type="checkbox" name="appendToEnd" ${appendToEnd ? 'checked' : ''} />
+                <span>이 페이지들을 제일 뒤에 붙이기</span>
+              </label>`
+            : ''
+        }
         <ul class="upload-list"></ul>
         ${
           showFirstCoverCheck || showLastCoverCheck
@@ -379,16 +393,46 @@ export async function openAddPageModal(options = {}) {
       const dataUrls = await convertPdfFileToJpegDataUrls(file, {
         onProgress: (done, total) => setStatus(`PDF 변환 중… ${done}/${total}`)
       });
-      pages = dataUrls.map((dataUrl, i) => ({
-        id: `pdf-${Date.now()}-${i}`,
-        dataUrl,
-        label: `p.${i + 1}`
-      }));
+      totalPdfPages = dataUrls.length;
+      allPdfPages = dataUrls;
+      
+      if (totalPdfPages === 0) {
+        throw new Error('PDF에 페이지가 없습니다');
+      }
+      
+      // 첫 장과 마지막 장만 미리보기로 표시
+      if (totalPdfPages === 1) {
+        pages = [{
+          id: `pdf-${Date.now()}-0`,
+          dataUrl: dataUrls[0],
+          label: 'p.1'
+        }];
+      } else {
+        pages = [
+          {
+            id: `pdf-${Date.now()}-0`,
+            dataUrl: dataUrls[0],
+            label: 'p.1 (첫 장)'
+          },
+          {
+            id: `pdf-${Date.now()}-${totalPdfPages - 1}`,
+            dataUrl: dataUrls[totalPdfPages - 1],
+            label: `p.${totalPdfPages} (마지막 장)`
+          }
+        ];
+      }
+      
       renderPreviewList();
-      setStatus(`${pages.length}페이지 변환 완료 · 순서 조정 후 업로드하세요`);
+      setStatus(
+        totalPdfPages === 1
+          ? '1페이지 변환 완료'
+          : `${totalPdfPages}페이지 변환 완료 · 첫 장과 마지막 장 미리보기`
+      );
     } catch (err) {
       console.error('[AddPage] PDF convert', err);
       pages = [];
+      totalPdfPages = 0;
+      allPdfPages = [];
       renderPreviewList();
       setStatus(err?.message || 'PDF 변환에 실패했습니다', true);
     } finally {
@@ -450,14 +494,27 @@ export async function openAddPageModal(options = {}) {
 
   async function handleUpload() {
     if (!pages.length || busy) return;
+    
+    // PDF 업로드인 경우와 이미지 업로드인 경우를 구분
+    const isPdfUpload = allPdfPages.length > 0;
+    const uploadPages = isPdfUpload ? allPdfPages : pages.map(p => p.dataUrl);
+    
+    // appendToEnd 체크박스 상태 확인 (PDF step에서만 표시됨)
+    const actualInsertAfterPage = 
+      existingCount > 0 && !appendToEnd ? insertAfterPage : null;
+    const actualStartPage = 
+      actualInsertAfterPage != null ? actualInsertAfterPage + 1 : existingCount + 1;
+    const actualNeedsShift = 
+      actualInsertAfterPage != null && actualInsertAfterPage < existingCount;
+    
     uploadStarted = true;
     closeModal();
     busy = true;
     updateUploadEnabled();
 
-    const total = pages.length;
+    const total = uploadPages.length;
     let uploadedCount = 0;
-    let stage = needsShift ? 'shift' : 'pages';
+    let stage = actualNeedsShift ? 'shift' : 'pages';
     let failedPageIndex = -1;
 
     showUploadingOverlay({
@@ -467,19 +524,19 @@ export async function openAddPageModal(options = {}) {
     });
 
     try {
-      if (needsShift) {
+      if (actualNeedsShift) {
         showUploadingOverlay('뒤 페이지 번호를 갱신하는 중…');
         await shiftPagesAfter({
           folder: canonicalFolder,
-          afterPage: insertAfterPage,
+          afterPage: actualInsertAfterPage,
           shiftBy: total,
           pageCount: existingCount
         });
         stage = 'pages';
       }
 
-      for (let i = 0; i < pages.length; i += 1) {
-        const pageNumber = startPage + i;
+      for (let i = 0; i < uploadPages.length; i += 1) {
+        const pageNumber = actualStartPage + i;
         stage = 'pages';
         failedPageIndex = i;
         showUploadingOverlay({
@@ -488,7 +545,7 @@ export async function openAddPageModal(options = {}) {
           total
         });
         await uploadPageImage({
-          file: pages[i].dataUrl,
+          file: uploadPages[i],
           noteName,
           pageNumber,
           publicId: notePublicId
@@ -506,7 +563,7 @@ export async function openAddPageModal(options = {}) {
         id: noteId,
         publicId: notePublicId,
         pageCount: newPageCount,
-        insertAfterPage,
+        insertAfterPage: actualInsertAfterPage,
         insertedCount: uploadedCount,
         ...coverFlags
       };
@@ -516,8 +573,8 @@ export async function openAddPageModal(options = {}) {
       } else {
         openUploadResultDialog({
           title: '업로드 완료',
-          message: needsShift
-            ? `${uploadedCount}페이지를 ${insertAfterPage}페이지 다음에 추가했습니다.`
+          message: actualNeedsShift
+            ? `${uploadedCount}페이지를 ${actualInsertAfterPage}페이지 다음에 추가했습니다.`
             : `${uploadedCount}페이지가 추가되었습니다.`
         });
         options.onDone?.(donePayload);
@@ -541,7 +598,7 @@ export async function openAddPageModal(options = {}) {
           id: noteId,
           publicId: notePublicId,
           pageCount: existingCount + uploadedCount,
-          insertAfterPage,
+          insertAfterPage: actualInsertAfterPage,
           insertedCount: uploadedCount,
           partial: true,
           ...coverFlags
@@ -574,6 +631,8 @@ export async function openAddPageModal(options = {}) {
     if (action === 'back') {
       step = 'pick';
       pages = [];
+      totalPdfPages = 0;
+      allPdfPages = [];
       renderBody();
       return;
     }
@@ -592,6 +651,7 @@ export async function openAddPageModal(options = {}) {
     if (input.type === 'checkbox') {
       if (input.name === 'firstPageIsCover') firstPageIsCover = input.checked;
       if (input.name === 'lastPageIsCover') lastPageIsCover = input.checked;
+      if (input.name === 'appendToEnd') appendToEnd = input.checked;
       return;
     }
     if (input.type !== 'file') return;
