@@ -10,6 +10,7 @@ test('parseShareNotebook은 제목·메모·표지 URL을 읽는다', () => {
       이름: { type: 'title', title: [{ plain_text: '2024 일기장' }] },
       description: { type: 'rich_text', rich_text: [{ plain_text: '여름 기록' }] },
       cover_front_url: { type: 'url', url: 'https://res.cloudinary.com/demo/image/upload/v1/cover_front.png' },
+      public_id: { type: 'rich_text', rich_text: [{ plain_text: 'DIRY-2024-0001' }] },
       visible: { type: 'checkbox', checkbox: true }
     }
   };
@@ -17,6 +18,7 @@ test('parseShareNotebook은 제목·메모·표지 URL을 읽는다', () => {
   assert.equal(note.title, '2024 일기장');
   assert.equal(note.description, '여름 기록');
   assert.equal(note.coverFrontUrl, 'https://res.cloudinary.com/demo/image/upload/v1/cover_front.png');
+  assert.equal(note.publicId, 'DIRY-2024-0001');
   assert.equal(note.visible, true);
 });
 

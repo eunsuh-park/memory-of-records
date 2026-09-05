@@ -4,7 +4,7 @@
  */
 
 import { NOTEBOOK_DB_ID, notionFetch } from './notionDb.js';
-import { toOgImageUrl } from './ogImage.js';
+import { noteOgImageProxyUrl } from './ogImage.js';
 import { parseShareNotebook } from './shareNotebook.js';
 import {
   SITE_DESCRIPTION,
@@ -93,6 +93,18 @@ async function fetchShareNotes() {
   return notes;
 }
 
+/**
+ * 공개 노트만 slug/UUID로 찾는다.
+ * @param {string} slug
+ */
+export async function findShareNoteBySlug(slug) {
+  const raw = String(slug || '').trim();
+  if (!raw) return null;
+  const notes = await fetchShareNotes();
+  const publicNotes = notes.filter((note) => note.visible !== false);
+  return findNoteByRouteParam(publicNotes, raw) || null;
+}
+
 function slugFromRequest(req) {
   const direct = firstQuery(req?.query?.slug);
   if (direct) return direct;
@@ -115,24 +127,22 @@ export async function resolveShareMeta(req) {
 
   if (!slug) return defaults;
 
-  let notes = [];
+  let note = null;
   try {
-    notes = await fetchShareNotes();
+    note = await findShareNoteBySlug(slug);
   } catch (err) {
     console.warn('shareMeta: Notion lookup failed', err);
     return defaults;
   }
-
-  const publicNotes = notes.filter((note) => note.visible !== false);
-  const note = findNoteByRouteParam(publicNotes, slug);
   if (!note) return defaults;
 
   const path = notePath(note, page);
+  const proxyImage = noteOgImageProxyUrl(origin, slug);
   return {
     title: formatNoteShareTitle(note.title, page),
     description: formatNoteShareDescription(note.description),
     ogDescription: formatNoteShareDescription(note.description),
-    image: toOgImageUrl(note.coverFrontUrl, defaults.image),
+    image: proxyImage || defaults.image,
     imageAlt: String(note.title || SITE_NAME),
     url: absoluteUrl(origin, path)
   };
