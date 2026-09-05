@@ -13,6 +13,9 @@
     },
     "api/shareHtml.js": {
       "includeFiles": "dist/index.html"
+    },
+    "api/ogImage.js": {
+      "includeFiles": "public/og-default.jpg"
     }
   },
   "rewrites": [

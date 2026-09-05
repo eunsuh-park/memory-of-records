@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { injectShareMeta, renderShareMetaBlock, siteDefaults } from './shareMeta.js';
+import { noteOgImageProxyUrl } from './ogImage.js';
 import { formatNoteShareDescription, formatNoteShareTitle, SITE_NAME, SITE_TAGLINE, defaultOgImageUrl } from '../../src/data/siteMeta.js';
 
 test('defaultOgImageUrl은 https 절대경로다', () => {
@@ -40,6 +41,20 @@ test('injectShareMeta는 share-meta 구간의 제목·이미지를 바꾼다', (
   assert.match(injected, /property="og:image" content="https:\/\/res\.cloudinary\.com\/demo/);
   assert.match(injected, /rel="canonical" href="https:\/\/example.com\/note\/summer-abcd1234"/);
   assert.doesNotMatch(injected, /<title>Memory of Records<\/title>/);
+});
+
+test('노트 og:image는 같은 출처 프록시 URL이다', () => {
+  const image = noteOgImageProxyUrl('https://memory-of-records.vercel.app', '2005받아쓰기-316c337e');
+  const block = renderShareMetaBlock({
+    title: '2005받아쓰기 · Memory of Records',
+    description: '아날로그 기록의 아카이브 공간.',
+    ogDescription: '아날로그 기록의 아카이브 공간.',
+    image,
+    imageAlt: '2005받아쓰기',
+    url: 'https://memory-of-records.vercel.app/note/2005받아쓰기-316c337e'
+  });
+  assert.match(block, /property="og:image" content="https:\/\/memory-of-records\.vercel\.app\/api\/ogImage\?slug=/);
+  assert.doesNotMatch(block, /res\.cloudinary\.com/);
 });
 
 test('siteDefaults는 절대 경로 기본 이미지를 만든다', () => {

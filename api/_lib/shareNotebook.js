@@ -3,6 +3,7 @@
  * 클라이언트 convertNotionPageToNotebook과 같은 속성 이름을 쓴다.
  */
 
+import { parsePublicIdFromProperty } from './publicId.js';
 import { isNotionPageVisible } from './visibility.js';
 
 function normalizePropertyKey(name) {
@@ -73,13 +74,16 @@ function extractPageCoverUrl(page) {
 
 /**
  * @param {object} page - Notion databases/query 결과 항목
- * @returns {{ id: string, title: string, description: string|null, coverFrontUrl: string|null, visible: boolean }|null}
+ * @returns {{ id: string, title: string, description: string|null, coverFrontUrl: string|null, publicId: string, visible: boolean }|null}
  */
 export function parseShareNotebook(page) {
   if (!page?.id) return null;
   const properties = page.properties || {};
   const title =
     parsePlain(getProperty(properties, '이름', 'Name', 'title', 'Title')) || '제목 없음';
+  const publicId = parsePublicIdFromProperty(
+    getProperty(properties, 'public_id', 'Public_ID', 'Public ID', 'publicId', 'Public id')
+  );
   const description =
     parsePlain(
       getProperty(
@@ -121,6 +125,7 @@ export function parseShareNotebook(page) {
     description:
       description != null && String(description).trim() ? String(description).trim() : null,
     coverFrontUrl: rawFront,
+    publicId,
     visible: isNotionPageVisible(page)
   };
 }
