@@ -12,7 +12,8 @@ import {
   SITE_TAGLINE,
   defaultOgImageUrl,
   formatNoteShareDescription,
-  formatNoteShareTitle
+  formatNoteShareTitle,
+  siteOrigin
 } from '../../src/data/siteMeta.js';
 import { escapeHtml } from '../../src/utils/html.js';
 import {
@@ -137,7 +138,7 @@ export async function resolveShareMeta(req) {
   if (!note) return defaults;
 
   const path = notePath(note, page);
-  const proxyImage = noteOgImageProxyUrl(origin, slug);
+  const proxyImage = noteOgImageProxyUrl(siteOrigin() || origin, slug);
   return {
     title: formatNoteShareTitle(note.title, page),
     description: formatNoteShareDescription(note.description),
