@@ -3,8 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { injectShareMeta, renderShareMetaBlock, siteDefaults } from './shareMeta.js';
-import { noteOgImageProxyUrl } from './ogImage.js';
+import { buildNoteShareMeta, injectShareMeta, renderShareMetaBlock, siteDefaults } from './shareMeta.js';
 import { formatNoteShareDescription, formatNoteShareTitle, SITE_NAME, SITE_TAGLINE, defaultOgImageUrl } from '../../src/data/siteMeta.js';
 
 test('defaultOgImageUrl은 https 절대경로다', () => {
@@ -43,17 +42,27 @@ test('injectShareMeta는 share-meta 구간의 제목·이미지를 바꾼다', (
   assert.doesNotMatch(injected, /<title>Memory of Records<\/title>/);
 });
 
-test('노트 og:image는 같은 출처 프록시 URL이다', () => {
-  const image = noteOgImageProxyUrl('https://memory-of-records.vercel.app', '2005받아쓰기-316c337e');
-  const block = renderShareMetaBlock({
-    title: '2005받아쓰기 · Memory of Records',
-    description: '아날로그 기록의 아카이브 공간.',
-    ogDescription: '아날로그 기록의 아카이브 공간.',
-    image,
-    imageAlt: '2005받아쓰기',
-    url: 'https://memory-of-records.vercel.app/note/2005받아쓰기-316c337e'
-  });
-  assert.match(block, /property="og:image" content="https:\/\/memory-of-records\.vercel\.app\/api\/ogImage\?slug=/);
+test('노트 공유 메타는 title·description·image·url을 노트마다 채운다', () => {
+  const meta = buildNoteShareMeta(
+    {
+      id: '316c337e-aaaa-bbbb-cccc-dddddddddddd',
+      title: '2005받아쓰기',
+      description: '받아쓰기 연습'
+    },
+    { slug: '2005받아쓰기-316c337e' }
+  );
+  assert.equal(meta.title, `2005받아쓰기 · ${SITE_NAME}`);
+  assert.equal(meta.description, '받아쓰기 연습');
+  assert.equal(
+    meta.image,
+    'https://memory-of-records.vercel.app/og/2005%EB%B0%9B%EC%95%84%EC%93%B0%EA%B8%B0-316c337e.jpg?v=3'
+  );
+  assert.equal(meta.url, 'https://memory-of-records.vercel.app/note/2005%EB%B0%9B%EC%95%84%EC%93%B0%EA%B8%B0-316c337e');
+  const block = renderShareMetaBlock(meta);
+  assert.match(block, /property="og:title" content="2005받아쓰기 · Memory of Records"/);
+  assert.match(block, /property="og:description" content="받아쓰기 연습"/);
+  assert.match(block, /property="og:image" content="https:\/\/memory-of-records\.vercel\.app\/og\//);
+  assert.match(block, /property="og:url" content="https:\/\/memory-of-records\.vercel\.app\/note\//);
   assert.doesNotMatch(block, /res\.cloudinary\.com/);
 });
 
@@ -72,6 +81,7 @@ test('siteDefaults는 절대 경로 기본 이미지를 만든다', () => {
 test('프로젝트 index.html 마커에 노트 메타를 끼워 넣을 수 있다', () => {
   const html = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../index.html'), 'utf8');
   assert.match(html, /<!--share-meta-->/);
+  assert.match(html, /property="og:url" content="__OG_PAGE_URL__"/);
   const injected = injectShareMeta(html, {
     title: '테스트 노트 · Memory of Records',
     description: '메모',

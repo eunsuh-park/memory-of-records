@@ -18,6 +18,7 @@ import {
 import { escapeHtml } from '../../src/utils/html.js';
 import {
   SHARE_PAGE_QUERY,
+  buildNoteSlug,
   findNoteByRouteParam,
   notePath,
   normalizeSharePage
@@ -116,6 +117,28 @@ function slugFromRequest(req) {
 }
 
 /**
+ * 노트 한 권의 OG 네 값: title · description · image(앞표지) · url
+ * @param {{ title?: string, description?: string|null, id?: string, slug?: string }|null|undefined} note
+ * @param {{ page?: number|null, origin?: string, slug?: string }} [opts]
+ */
+export function buildNoteShareMeta(note, opts = {}) {
+  const origin = String(opts.origin || siteOrigin()).replace(/\/$/, '');
+  const defaults = siteDefaults(origin);
+  if (!note) return defaults;
+  const page = opts.page ?? null;
+  const slug = String(opts.slug || buildNoteSlug(note) || '').trim();
+  const image = noteOgImageProxyUrl(siteOrigin() || origin, slug);
+  return {
+    title: formatNoteShareTitle(note.title, page),
+    description: formatNoteShareDescription(note.description),
+    ogDescription: formatNoteShareDescription(note.description),
+    image: image || defaults.image,
+    imageAlt: String(note.title || SITE_NAME),
+    url: absoluteUrl(siteOrigin() || origin, notePath(note, page))
+  };
+}
+
+/**
  * @param {import('@vercel/node').VercelRequest} req
  */
 export async function resolveShareMeta(req) {
@@ -136,17 +159,7 @@ export async function resolveShareMeta(req) {
     return defaults;
   }
   if (!note) return defaults;
-
-  const path = notePath(note, page);
-  const proxyImage = noteOgImageProxyUrl(siteOrigin() || origin, slug);
-  return {
-    title: formatNoteShareTitle(note.title, page),
-    description: formatNoteShareDescription(note.description),
-    ogDescription: formatNoteShareDescription(note.description),
-    image: proxyImage || defaults.image,
-    imageAlt: String(note.title || SITE_NAME),
-    url: absoluteUrl(origin, path)
-  };
+  return buildNoteShareMeta(note, { page, origin, slug });
 }
 
 /**

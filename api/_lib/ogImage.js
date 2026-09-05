@@ -101,8 +101,8 @@ export function coverOgCandidateUrls(note, fallbackAbsolute = '', cloudName = ''
 }
 
 /**
- * 카톡은 우리 도메인의 이미지는 받고 Cloudinary 404는 회색으로 그린다.
- * 노트 og:image는 같은 출처 프록시를 가리킨다.
+ * 노트 앞표지 JPG. 카톡은 우리 도메인 이미지는 받고 Cloudinary 404는 회색으로 그린다.
+ * `/og/{slug}.jpg` → api/ogImage 가 notebooks/{public_id}/cover_front 를 내려 준다.
  * @param {string} origin
  * @param {string} slug
  */
@@ -110,6 +110,5 @@ export function noteOgImageProxyUrl(origin, slug) {
   const base = String(origin || siteOrigin()).replace(/\/$/, '');
   const safeSlug = String(slug || '').trim();
   if (!base || !safeSlug) return '';
-  const query = new URLSearchParams({ slug: safeSlug, v: NOTE_OG_IMAGE_CACHE });
-  return `${base}/api/ogImage?${query}`;
+  return `${base}/og/${encodeURIComponent(safeSlug)}.jpg?v=${NOTE_OG_IMAGE_CACHE}`;
 }

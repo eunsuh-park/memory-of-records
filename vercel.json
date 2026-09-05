@@ -32,6 +32,10 @@
       "destination": "/api/shareHtml?slug=:slug"
     },
     {
+      "source": "/og/:slug.jpg",
+      "destination": "/api/ogImage?slug=:slug"
+    },
+    {
       "source": "/((?!.*\\.).*)",
       "destination": "/index.html"
     }
