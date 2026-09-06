@@ -160,6 +160,8 @@ export async function openAddPageModal(options = {}) {
   let lastPageIsCover = note.lastPageIsCover !== false;
   /** 기존 페이지가 있을 때, 제일 뒤에 붙이기 옵션 */
   let appendToEnd = true;
+  /** 모든 페이지를 비공개로 설정 */
+  let allPagesPrivate = false;
   const showFirstCoverCheck = startPage === 1;
   const showLastCoverCheck = insertAfterPage == null || existingCount === 0;
 
@@ -260,6 +262,10 @@ export async function openAddPageModal(options = {}) {
               </label>`
             : ''
         }
+        <label class="form-check add-page-private-check">
+          <input type="checkbox" name="allPagesPrivate" ${allPagesPrivate ? 'checked' : ''} />
+          <span>모든 페이지를 비공개로 설정</span>
+        </label>
         <ul class="upload-list"></ul>
         ${
           showFirstCoverCheck || showLastCoverCheck
@@ -310,6 +316,10 @@ export async function openAddPageModal(options = {}) {
           statusAttr: 'data-image-name'
         })
       })}
+      <label class="form-check add-page-private-check">
+        <input type="checkbox" name="allPagesPrivate" ${allPagesPrivate ? 'checked' : ''} />
+        <span>모든 페이지를 비공개로 설정</span>
+      </label>
       <ul class="upload-list"></ul>
       ${
         showFirstCoverCheck || showLastCoverCheck
@@ -548,7 +558,8 @@ export async function openAddPageModal(options = {}) {
           file: uploadPages[i],
           noteName,
           pageNumber,
-          publicId: notePublicId
+          publicId: notePublicId,
+          visible: !allPagesPrivate
         });
         uploadedCount += 1;
       }
@@ -652,6 +663,7 @@ export async function openAddPageModal(options = {}) {
       if (input.name === 'firstPageIsCover') firstPageIsCover = input.checked;
       if (input.name === 'lastPageIsCover') lastPageIsCover = input.checked;
       if (input.name === 'appendToEnd') appendToEnd = input.checked;
+      if (input.name === 'allPagesPrivate') allPagesPrivate = input.checked;
       return;
     }
     if (input.type !== 'file') return;
