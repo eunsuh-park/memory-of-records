@@ -742,6 +742,16 @@ function openNoteModal(note) {
   }
 
   const noteId = note?.id || '';
+  console.debug('[Jukebox] openNoteModal:', {
+    noteId,
+    title: note?.title,
+    publicId: note?.publicId,
+    pdfFolderUrl: note?.pdfFolderUrl,
+    pageCount: note?.pageCount,
+    hasCoverFrontUrl: Boolean(note?.coverFrontUrl),
+    hasCoverBackUrl: Boolean(note?.coverBackUrl)
+  });
+  
   if (!noteId) {
     showToast('노트 상세 이미지가 없습니다.');
     return;
@@ -1191,7 +1201,15 @@ export function renderJukeboxWithFilter(options) {
       console.debug('[Jukebox] Notes loaded:', {
         count: allNotes?.length,
         firstNote: allNotes?.[0]?.title,
-        hasCoverUrl: Boolean(allNotes?.[0]?.coverFrontUrl)
+        firstNotePublicId: allNotes?.[0]?.publicId,
+        hasCoverUrl: Boolean(allNotes?.[0]?.coverFrontUrl),
+        firstNoteFull: allNotes?.[0] ? {
+          id: allNotes[0].id,
+          publicId: allNotes[0].publicId,
+          title: allNotes[0].title,
+          pageCount: allNotes[0].pageCount,
+          pdfFolderUrl: allNotes[0].pdfFolderUrl
+        } : null
       });
       allNotesCache = allNotes || [];
       applyFiltersAndRender();
