@@ -327,7 +327,8 @@ async function handleUpload(req, res, body) {
   const folder = cloudinaryPagesFolder(notePublicId);
   const publicId = pageStem(pageNumber);
   const timestamp = Math.floor(Date.now() / 1000);
-  const metadata = 'visible=true';
+  const visibleFlag = body.visible !== undefined ? toMetaBoolFlag(body.visible) : true;
+  const metadata = `visible=${visibleFlag ? 'true' : 'false'}`;
 
   const paramsToSign = {
     folder,
