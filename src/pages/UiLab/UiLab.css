@@ -470,6 +470,8 @@
 }
 
 .ui-lab__skeleton-frame {
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
   overflow: hidden;
   border-radius: var(--radius-sm);
   background: var(--color-bg);

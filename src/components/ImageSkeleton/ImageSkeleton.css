@@ -8,7 +8,7 @@
   width: 100%;
   overflow: hidden;
   border-radius: var(--radius-sm);
-  background: var(--color-bg-alt);
+  background: var(--color-border);
 }
 
 .image-skeleton::after {
@@ -18,7 +18,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--color-surface-hover) 46%,
+    var(--color-surface-selected) 46%,
     transparent 100%
   );
   content: '';
