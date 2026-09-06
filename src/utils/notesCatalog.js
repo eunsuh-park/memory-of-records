@@ -11,6 +11,7 @@ import {
   getNotionTypeItems,
   clearNotionTypeItemsCache
 } from '../services/notionByType.js';
+import { clearNotePagesCache } from '../services/notePages.js';
 
 /**
  * @param {{ visibility?: 'public'|'private'|'all' }} [options]
@@ -33,4 +34,5 @@ export async function loadAllNotes(options = {}) {
 export function clearNotesCaches() {
   clearNotionNotebooksCache();
   clearNotionTypeItemsCache();
+  clearNotePagesCache();
 }

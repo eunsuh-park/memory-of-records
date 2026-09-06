@@ -469,6 +469,12 @@
   }
 }
 
+.ui-lab__skeleton-frame {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
 .ui-lab__filter-demo {
   padding: var(--space-3);
   border-radius: var(--radius-lg);

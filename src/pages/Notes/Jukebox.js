@@ -37,7 +37,9 @@ import {
 } from '../../utils/demoNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { copyNoteShareUrl } from '../../utils/noteSlug.js';
-import { optimizeThumbnailUrl } from '../../utils/optimizeImageUrl.js';
+import { optimizePlaceholderUrl, optimizeThumbnailUrl } from '../../utils/optimizeImageUrl.js';
+import { parseNoteSize } from '../../utils/noteSize.js';
+import { render as renderImageSkeleton } from '../../components/ImageSkeleton/ImageSkeleton.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -521,14 +523,23 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     updateJukeboxNavButtons(gallery);
     return;
   }
+  const focusId = consumeJukeboxFocus();
+  const thumbWidth = typeof window !== 'undefined' && window.innerWidth <= 768 ? 480 : 640;
   const itemsHtml = allNotes
     .map((note, index) => {
-      // 표지 이미지 썸네일 최적화 (갤러리용 최대 800px)
-      // 모바일에서도 선명하게 보이도록 여유있게 설정
-      const optimizedFront = optimizeThumbnailUrl(note.coverFrontUrl, 800);
-      const optimizedBack = optimizeThumbnailUrl(note.coverBackUrl, 800);
+      const aspect = parseNoteSize(note.size)?.aspectRatio || 0.72;
+      const optimizedFront = optimizeThumbnailUrl(note.coverFrontUrl, thumbWidth);
+      const optimizedBack = optimizeThumbnailUrl(note.coverBackUrl, thumbWidth);
+      const lqipFront = optimizePlaceholderUrl(note.coverFrontUrl);
       const coverSrc = optimizedFront || note.coverFrontUrl || TRANSPARENT_PIXEL;
       const backCoverSrc = optimizedBack || note.coverBackUrl || TRANSPARENT_PIXEL;
+      const isPriority = focusId ? note.id === focusId : index === 0;
+      const loading = isPriority ? 'eager' : 'lazy';
+      const fetchpriority = isPriority ? 'high' : 'low';
+      const lqipSafe = String(lqipFront || '').replace(/[)('"\\]/g, '');
+      const frameStyle = `--jukebox-cover-aspect: ${aspect}${
+        lqipSafe ? `; --jukebox-cover-lqip: url("${lqipSafe}")` : ''
+      }`;
       
       if (index === 0) {
         console.debug('[Jukebox] First note:', {
@@ -553,7 +564,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
        * .jukebox-card-inner: 호버 플립 + 그림자
        */
       return `
-        <div class="jukebox-card" data-note-id="${noteId}">
+        <div class="jukebox-card" data-note-id="${noteId}" style="${frameStyle}">
           ${
             showBadge
               ? `<button type="button" class="jukebox-new-badge" aria-label="새 노트 표시 지우기" title="새 노트"></button>`
@@ -562,10 +573,16 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
           <div class="jukebox-card-3d">
             <div class="jukebox-card-inner">
               <div class="jukebox-card-face jukebox-card-face--front">
-                <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+                <div class="jukebox-cover-frame">
+                  ${renderImageSkeleton({ aspectRatio: aspect, className: 'jukebox-cover-skeleton' })}
+                  <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="${loading}" fetchpriority="${fetchpriority}" decoding="async" referrerpolicy="no-referrer" />
+                </div>
               </div>
               <div class="jukebox-card-face jukebox-card-face--back">
-                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+                <div class="jukebox-cover-frame jukebox-cover-frame--back">
+                  ${renderImageSkeleton({ aspectRatio: aspect, className: 'jukebox-cover-skeleton' })}
+                  <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" decoding="async" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+                </div>
               </div>
             </div>
           </div>
@@ -579,7 +596,7 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     itemsHtml +
     '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
 
-  gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
+  gallery.querySelectorAll('.jukebox-cover-frame img').forEach((img) => {
     img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
   });
 
@@ -628,7 +645,6 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   enableCenterPerspective(gallery);
   enableGalleryScroll(gallery, prevBtn, nextBtn, state);
 
-  const focusId = consumeJukeboxFocus();
   const focusCard = focusId
     ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(focusId)}"]`)
     : null;
@@ -654,18 +670,22 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     updateCardAngles(gallery);
   };
 
-  /* 이미지가 로드되면 카드 폭이 확정되므로 좌표 캐시를 갱신 */
-  gallery.querySelectorAll('.jukebox-card-face--front img').forEach((img) => {
-    img.addEventListener(
-      'load',
-      () => {
-        if (!gallery.isConnected) return;
-        refreshCardMetrics(gallery);
-        if (!state.userScrolled) centerInitialCard();
-        else updateCardAngles(gallery);
-      },
-      { once: true }
-    );
+  /* 이미지가 로드되면 스켈레톤을 걷고 카드 폭이 확정되므로 좌표 캐시를 갱신 */
+  const markCoverReady = (img) => {
+    if (!img || img.naturalWidth <= 0) return;
+    img.classList.add('is-loaded');
+    img.closest('.jukebox-cover-frame')?.classList.add('is-loaded');
+    if (!gallery.isConnected) return;
+    refreshCardMetrics(gallery);
+    if (!state.userScrolled) centerInitialCard();
+    else updateCardAngles(gallery);
+  };
+  gallery.querySelectorAll('.jukebox-cover-frame img').forEach((img) => {
+    if (img.complete && img.naturalWidth > 0) {
+      markCoverReady(img);
+      return;
+    }
+    img.addEventListener('load', () => markCoverReady(img), { once: true });
   });
 
   /*

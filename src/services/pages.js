@@ -1,6 +1,7 @@
 /**
  * 페이지 추가·메타 편집 클라이언트 서비스
  */
+import { clearNotePagesCache } from './notePages.js';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const PDFJS_WORKER_CDN =
@@ -236,6 +237,7 @@ export async function uploadPageImage(payload) {
     );
   }
   if (!data?.url) throw new Error('업로드 응답에 URL이 없습니다');
+  clearNotePagesCache(payload?.publicId);
   return data;
 }
 
@@ -263,6 +265,7 @@ export async function shiftPagesAfter(payload) {
         '페이지 번호 갱신에 실패했습니다'
     );
   }
+  clearNotePagesCache();
   return data;
 }
 
@@ -290,6 +293,7 @@ export async function deletePage(payload) {
         '페이지 삭제에 실패했습니다'
     );
   }
+  clearNotePagesCache(payload?.publicId);
   return data;
 }
 
@@ -369,5 +373,6 @@ export async function renameNoteContentFolder(payload) {
         '노트 관련 Cloudinary 이름 변경에 실패했습니다'
     );
   }
+  clearNotePagesCache(payload?.publicId);
   return data;
 }

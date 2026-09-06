@@ -24,6 +24,7 @@ import { buildPageImageUrl, fetchPageMeta, updatePageMeta } from '../../services
 import { fetchNotePages, notePagesFolder } from '../../services/notePages.js';
 import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bookmarkedPages.js';
 import { optimizeImageUrl } from '../../utils/optimizeImageUrl.js';
+import { render as renderImageSkeleton } from '../ImageSkeleton/ImageSkeleton.js';
 import { openAddPageModal } from '../AddPageModal/AddPageModal.js';
 import { openPageMetaModal } from '../AddPageModal/PageMetaModal.js';
 import {
@@ -162,6 +163,12 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         <div class="niv-image-container">
           <div class="niv-zoom-stage">
             <canvas class="niv-bookflip-canvas" hidden aria-label="3D 노트 책장"></canvas>
+            <div class="niv-page-skeleton" hidden>
+              ${renderImageSkeleton({
+                className: 'niv-page-skeleton-block',
+                aspectRatio: parseNoteSize(options.size)?.aspectRatio || 0.72
+              })}
+            </div>
             <img class="niv-page-image niv-page-image--left" alt="" draggable="false" referrerpolicy="no-referrer" />
             <img class="niv-page-image niv-page-image--right" alt="" draggable="false" referrerpolicy="no-referrer" />
           </div>
@@ -186,6 +193,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const overlayText = targetEl.querySelector('.niv-overlay-text');
   const imageLeft = targetEl.querySelector('.niv-page-image--left');
   const imageRight = targetEl.querySelector('.niv-page-image--right');
+  const pageSkeleton = targetEl.querySelector('.niv-page-skeleton');
   const prevBtn = targetEl.querySelector('.niv-nav-prev');
   const nextBtn = targetEl.querySelector('.niv-nav-next');
   const firstBtn = targetEl.querySelector('.niv-nav-first');
@@ -633,6 +641,20 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     overlay?.classList.remove('show');
   }
 
+  function showPageLoading(message) {
+    if (pageSkeleton) pageSkeleton.hidden = false;
+    if (!ready) {
+      showOverlay(message);
+      return;
+    }
+    hideOverlay();
+  }
+
+  function hidePageLoading() {
+    hideOverlay();
+    if (pageSkeleton) pageSkeleton.hidden = true;
+  }
+
   /** 양면 모드라도 스캔본·짝 없음이면 파일 1장씩 이동 */
   function navigationStep() {
     return isSpreadMode && isPairing ? 2 : 1;
@@ -921,7 +943,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
 
     imageLeft.style.opacity = '0.3';
     clearRightImage();
-    showOverlay(
+    showPageLoading(
       isCoverDisplay(num) ? `${displayLabel(num)} 불러오는 중...` : `${num}페이지 불러오는 중...`
     );
 
@@ -960,7 +982,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       viewerEl?.classList.toggle('spread-mode', isPairing);
 
       if (isPairing) {
-        showOverlay(`${num}-${rightNum}페이지 불러오는 중...`);
+        showPageLoading(`${num}-${rightNum}페이지 불러오는 중...`);
       }
 
       imageLeft.src = preLeft.src;
@@ -982,7 +1004,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         clearRightImage();
       }
 
-      hideOverlay();
+      hidePageLoading();
       updateControls();
       /* 레이아웃·패딩 반영 후 한 번 더 맞춤 — 초기 확대/잘림 방지 */
       requestAnimationFrame(() => {
@@ -1004,6 +1026,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           return;
         }
       }
+      if (pageSkeleton) pageSkeleton.hidden = true;
       showOverlay('페이지 이미지를 불러올 수 없습니다.');
       console.error('Note page image load error:', pageImageSrc(num));
     }
@@ -1136,7 +1159,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const publicId = String(shareNote?.publicId || options.note?.publicId || '').trim();
     if (publicId) {
       try {
-        const listed = await fetchNotePages(publicId);
+        const listed = await fetchNotePages(publicId, { force: true });
         pageUrlByNumber.clear();
         for (const page of listed.pages) {
           pageUrlByNumber.set(page.pageNumber, page.url);

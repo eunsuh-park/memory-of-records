@@ -127,7 +127,7 @@ export async function handleNotePages(req, res) {
     pages.sort((a, b) => a.pageNumber - b.pageNumber);
 
     const maxPage = pages.reduce((max, page) => Math.max(max, page.pageNumber), 0);
-    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Cache-Control', 'private, max-age=60, stale-while-revalidate=300');
     return res.status(200).json({
       folder,
       pageCount: maxPage,

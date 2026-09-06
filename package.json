@@ -10,7 +10,7 @@
     "vercel:dev": "vercel dev",
     "icons": "node scripts/generate-mingcute-icons.mjs",
     "og-image": "node scripts/generate-og-default.mjs",
-    "test": "node --test api/_lib/*.test.js",
+    "test": "node --test api/_lib/*.test.js src/utils/*.test.js",
     "bookmarks:upload-covers": "node scripts/upload-bookmark-covers.mjs",
     "migrate:cloudinary": "node scripts/cloudinary-notion-migrate.mjs"
   },

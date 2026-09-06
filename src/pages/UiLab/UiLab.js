@@ -20,6 +20,7 @@ import { openUploadResultDialog } from '../../components/Dialog/uploadResultDial
 import { renderList as renderUploadList } from '../../components/FileUploadPreview/FileUploadPreview.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
+import { render as renderImageSkeleton } from '../../components/ImageSkeleton/ImageSkeleton.js';
 import {
   DEMO_NOTE_ID,
   demoNoteViewerOptions,
@@ -28,6 +29,7 @@ import {
 import bookmarksCoverFront from '../../assets/bookmarks-cover-front.png';
 import bookmarksCoverBack from '../../assets/bookmarks-cover-back.png';
 import '../../components/NoteInfoPanel/NoteInfoPanel.css';
+import '../../components/ImageSkeleton/ImageSkeleton.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
 import '../../components/FileUploadPreview/FileUploadPreview.css';
 import './UiLab.css';
@@ -270,6 +272,14 @@ const RESPONSIVE_MATRIX = [
     ],
     tablet: ['데스크톱과 동일'],
     desktop: ['back 48×48px fixed · 아이콘 24px', 'nav padding 12px 원형', 'toolbar 32×32px · 아이콘 16px']
+  },
+  {
+    name: 'ImageSkeleton',
+    files: 'src/components/ImageSkeleton/ImageSkeleton.js · ImageSkeleton.css',
+    points: '—',
+    mobile: ['주크박스 카드·뷰어 페이지에서 이미지 자리에 같은 스켈레톤'],
+    tablet: ['동일'],
+    desktop: ['A5 비율 기본, 노트 size가 있으면 그 비율']
   },
   {
     name: 'FilterChip',
@@ -843,6 +853,23 @@ export function renderUiLab() {
                 content: MINGCUTE.leftLine,
                 className: 'is-at-end'
               })
+            ].join('')
+          )}
+        </section>
+
+        <section class="ui-lab__section" id="image-skeleton">
+          <h2 class="ui-lab__section-title">ImageSkeleton</h2>
+          <p class="ui-lab__section-desc">
+            표지·페이지 이미지가 오기 전에 자리를 지키는 임시 면입니다.
+            주크박스 카드와 노트 뷰어가 이 컴포넌트를 쓰고, 비율은 노트 <code>size</code>가 있으면 그걸, 없으면 A5에 가까운 0.72를 씁니다.
+          </p>
+          <p class="ui-lab__files">참조: <code>src/components/ImageSkeleton/ImageSkeleton.js</code>, <code>src/components/ImageSkeleton/ImageSkeleton.css</code></p>
+          ${renderVariantRow(
+            '비율 — A5(0.72) / A4(0.707) / 정사각',
+            [
+              `<div class="ui-lab__skeleton-frame" style="width: 120px">${renderImageSkeleton({ aspectRatio: 0.72 })}</div>`,
+              `<div class="ui-lab__skeleton-frame" style="width: 120px">${renderImageSkeleton({ aspectRatio: 210 / 297 })}</div>`,
+              `<div class="ui-lab__skeleton-frame" style="width: 120px">${renderImageSkeleton({ aspectRatio: 1 })}</div>`
             ].join('')
           )}
         </section>

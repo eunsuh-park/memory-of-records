@@ -41,6 +41,27 @@
   max-height: 100%;
 }
 
+.niv-page-skeleton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(42vh, 280px);
+  max-width: 70%;
+}
+
+.niv-page-skeleton[hidden] {
+  display: none;
+}
+
+.niv-page-skeleton-block {
+  width: 100%;
+}
+
+.note-image-viewer.bookflip-mode .niv-page-skeleton {
+  display: none;
+}
+
 .niv-page-image {
   display: block;
   object-fit: contain;

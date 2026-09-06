@@ -540,6 +540,44 @@ body.jukebox-active.loading-active #sub-menu {
   transform-style: preserve-3d;
 }
 
+.jukebox-gallery > div.jukebox-card .jukebox-cover-frame {
+  position: relative;
+  display: block;
+  max-height: 38vh;
+  max-width: 28vw;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-cover-frame:not(.is-loaded) {
+  width: min(28vw, calc(38vh * var(--jukebox-cover-aspect, 0.72)));
+  aspect-ratio: var(--jukebox-cover-aspect, 0.72);
+  background-color: var(--color-bg-alt);
+  background-image: var(--jukebox-cover-lqip, none);
+  background-position: center;
+  background-size: cover;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-cover-frame--back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-cover-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-cover-frame.is-loaded .jukebox-cover-skeleton {
+  display: none;
+}
+
 .jukebox-gallery > div.jukebox-card .jukebox-card-face--back {
   position: absolute;
   inset: 0;
@@ -558,6 +596,7 @@ body.jukebox-active.loading-active #sub-menu {
   height: 100%;
   max-width: none;
   max-height: none;
+  opacity: 0;
   object-fit: contain;
   object-position: center;
   /* 그림자 세기는 JS가 카드별로 --jukebox-shadow-* 에 넣는다 (아래 앞면과 동일) */
@@ -576,6 +615,7 @@ body.jukebox-active.loading-active #sub-menu {
   width: auto;
   max-height: 38vh;
   max-width: 28vw;
+  opacity: 0;
   object-fit: contain;
   /*
    * brightness(다크 디밍) + drop-shadow(이미지 알파 실루엣 그림자)
@@ -588,8 +628,12 @@ body.jukebox-active.loading-active #sub-menu {
       0 6px var(--jukebox-shadow-blur, 16px)
       rgba(0, 0, 0, var(--jukebox-shadow-opacity, 0.16))
     );
-  transition: filter 0.2s ease-out;
+  transition: filter 0.2s ease-out, opacity 0.2s ease-out;
   will-change: filter;
+}
+
+.jukebox-gallery > div.jukebox-card .jukebox-cover-frame.is-loaded img {
+  opacity: 1;
 }
 
 /* 라이트 모드: 비포커스 노트를 어둡게 하지 않고 배경색으로 허옇게 페이드 */
@@ -668,9 +712,14 @@ body.jukebox-active.loading-active #sub-menu {
   }
 
   .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card .jukebox-cover-frame,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
     max-height: min(34vh, 360px);
     max-width: min(38vw, 280px);
+  }
+
+  .jukebox-gallery > div.jukebox-card .jukebox-cover-frame:not(.is-loaded) {
+    width: min(38vw, 280px, calc(min(34vh, 360px) * var(--jukebox-cover-aspect, 0.72)));
   }
 
   .jukebox-gallery > div.jukebox-card {
@@ -695,9 +744,14 @@ body.jukebox-active.loading-active #sub-menu {
 
   /* 현재 표시 사이즈의 80% */
   .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card .jukebox-cover-frame,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
     max-height: min(33.6vh, 256px);
     max-width: min(44.8vw, 176px);
+  }
+
+  .jukebox-gallery > div.jukebox-card .jukebox-cover-frame:not(.is-loaded) {
+    width: min(44.8vw, 176px, calc(min(33.6vh, 256px) * var(--jukebox-cover-aspect, 0.72)));
   }
 
   .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
@@ -715,9 +769,14 @@ body.jukebox-active.loading-active #sub-menu {
 
   /* 현재 표시 사이즈의 80% */
   .jukebox-gallery > div.jukebox-card,
+  .jukebox-gallery > div.jukebox-card .jukebox-cover-frame,
   .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
     max-height: min(36.8vh, 272px);
     max-width: min(49.6vw, 192px);
+  }
+
+  .jukebox-gallery > div.jukebox-card .jukebox-cover-frame:not(.is-loaded) {
+    width: min(49.6vw, 192px, calc(min(36.8vh, 272px) * var(--jukebox-cover-aspect, 0.72)));
   }
 
   .jukebox-gallery > div.jukebox-card {

@@ -1,0 +1,38 @@
+/**
+ * 이미지 자리 스켈레톤.
+ * 색은 semantic만 쓴다. 버튼 규칙을 넣지 않는다.
+ */
+.image-skeleton {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-alt);
+}
+
+.image-skeleton::after {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-surface-hover) 46%,
+    transparent 100%
+  );
+  content: '';
+  animation: image-skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes image-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-skeleton::after {
+    animation: none;
+  }
+}
