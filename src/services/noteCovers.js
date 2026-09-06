@@ -87,7 +87,18 @@ export function attachNoteCovers(notes, coversResult) {
   if (!coversResult?.loaded) return list;
 
   const covers = coversResult.covers || {};
-  return list.map((note) => {
+  console.debug('[noteCovers] attachNoteCovers:', {
+    notesCount: list.length,
+    coversCount: Object.keys(covers).length,
+    firstNote: list[0] ? {
+      id: list[0].id,
+      publicId: list[0].publicId,
+      title: list[0].title,
+      hasOriginalCover: Boolean(list[0].coverFrontUrl)
+    } : null
+  });
+  
+  return list.map((note, index) => {
     if (!note || isBookmarksNoteId(note.id) || note.isVirtualBookmarks || isDemoNoteId(note.id)) {
       return note;
     }
@@ -100,6 +111,15 @@ export function attachNoteCovers(notes, coversResult) {
     const backUrl = hit?.back 
       ? optimizeCoverUrl(hit.back) 
       : (note.coverBackUrl || null);
+    
+    if (index === 0) {
+      console.debug('[noteCovers] First note cover:', {
+        hitFound: Boolean(hit),
+        hitFront: hit?.front?.substring(0, 80),
+        originalFront: note.coverFrontUrl?.substring(0, 80),
+        finalFront: frontUrl?.substring(0, 80)
+      });
+    }
     
     return {
       ...note,

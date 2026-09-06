@@ -120,67 +120,13 @@ export function convertNotionPageToTypeItem(page) {
       'Note'
     )
   );
-  const coverFrontProperty = getProperty(
-    properties,
-    'cover_front_url',
-    'cover front url',
-    'Cover Front URL',
-    'cover_front',
-    'Cover Front',
-    'front_cover_url',
-    'Front Cover URL',
-    'front cover url',
-    'cover',
-    'Cover',
-    'cover_url',
-    'Cover URL',
-    'cover image',
-    'Cover Image',
-    'image',
-    'Image',
-    'image_url',
-    'Image URL',
-    'thumbnail',
-    'Thumbnail',
-    '대표 이미지',
-    '대표이미지',
-    '썸네일',
-    '표지',
-    '표지 앞',
-    '앞표지',
-    '전면 표지',
-    '커버',
-    '커버 이미지'
-  );
-  const coverBackProperty = getProperty(
-    properties,
-    'cover_back_url',
-    'cover back url',
-    'Cover Back URL',
-    'cover_back',
-    'Cover Back',
-    'back_cover_url',
-    'Back Cover URL',
-    'back cover url',
-    'back',
-    'Back',
-    '뒷표지',
-    '표지 뒤',
-    '후면 표지',
-    'back cover',
-    'back cover image'
-  );
-  const rawCoverFront = parseNotionProperty(coverFrontProperty);
-  const rawCoverBack = parseNotionProperty(coverBackProperty);
+  
   const rawPublicId = parseNotionProperty(
     getProperty(properties, 'public_id', 'Public ID', 'publicId', 'Public id')
   );
   const publicId =
     rawPublicId != null && String(rawPublicId).trim() ? String(rawPublicId).trim() : null;
-  const rawFront = normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
-  const rawBack = normalizeUrlValue(rawCoverBack);
-  const coverFrontUrl = rawFront ? optimizeImageUrl(rawFront) || rawFront : null;
-  const coverBackUrl = rawBack ? optimizeImageUrl(rawBack) || rawBack : null;
+    
   const pdfUrl = normalizeUrlValue(
     parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'))
   );
@@ -208,8 +154,8 @@ export function convertNotionPageToTypeItem(page) {
     color: color ? String(color).trim() : '',
     isKept,
     description: description != null && String(description).trim() ? String(description).trim() : null,
-    coverFrontUrl,
-    coverBackUrl,
+    coverFrontUrl: null,  // Cloudinary에서만 로드
+    coverBackUrl: null,   // Cloudinary에서만 로드
     pdfUrl,
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,
