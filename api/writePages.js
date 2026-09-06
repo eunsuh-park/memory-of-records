@@ -483,7 +483,7 @@ async function handleUpdateMeta(req, res, body) {
 /**
  * 노트명 변경 시 Content 폴더 + 앞/뒤 표지 public_id를 함께 바꾸고 Notion URL 갱신
  * Body: {
- *   oldNoteName?, newNoteName, pdfFolderUrl?, noteId?, pageCount?,
+ *   oldNoteName?, newNoteName, publicId?, noteId?, pageCount?,
  *   coverFrontUrl?, coverBackUrl?
  * }
  */
@@ -507,18 +507,21 @@ async function handleRenameFolder(req, res, body) {
 
   const oldStem = sanitizePublicIdStem(oldNoteName || 'page');
   const newStem = sanitizePublicIdStem(newNoteName);
-  const pdfFolderUrl = trimOrEmpty(body.pdfFolderUrl);
-  const fromParsed = parseFolderParam(pdfFolderUrl);
-  const fromPath =
-    fromParsed.folderPath || (oldNoteName ? contentFolderForNoteName(oldNoteName) : null);
-  const toPath = contentFolderForNoteName(newNoteName);
+  const publicId = trimOrEmpty(body.publicId);
+  
+  /* publicId가 있으면 notebooks/{publicId}/pages 폴더 사용 */
+  const fromPath = publicId 
+    ? `notebooks/${publicId}/pages`
+    : (oldNoteName ? contentFolderForNoteName(oldNoteName) : null);
+  const toPath = publicId
+    ? `notebooks/${publicId}/pages`
+    : contentFolderForNoteName(newNoteName);
 
-  let newFolderUrl = pdfFolderUrl;
   let contentRenamed = false;
   let contentSkippedReason = '';
 
-  /* 1) Content 폴더 이동 (있을 때만) */
-  if (fromPath && fromPath !== toPath) {
+  /* 1) Content 폴더 이동 (있을 때만, 경로가 다를 때만) */
+  if (fromPath && toPath && fromPath !== toPath) {
     const moveRes = await fetch(
       `https://api.cloudinary.com/v1_1/${credentials.cloudName}/folders/${fromPath
         .split('/')
@@ -538,12 +541,10 @@ async function handleRenameFolder(req, res, body) {
     const moveData = await moveRes.json().catch(() => ({}));
     if (moveRes.ok) {
       contentRenamed = true;
-      newFolderUrl = rewriteFolderBaseUrl(pdfFolderUrl, fromPath, toPath);
     } else {
       const msg = moveData?.error?.message || '';
       if (/not found|does not exist/i.test(msg) || moveRes.status === 404) {
         contentSkippedReason = 'Content 폴더가 아직 없어 이름 변경을 건너뜁니다';
-        newFolderUrl = '';
       } else {
         return res.status(moveRes.status).json({
           error: 'Cloudinary folder rename failed',
@@ -553,7 +554,9 @@ async function handleRenameFolder(req, res, body) {
       }
     }
   } else if (fromPath === toPath) {
-    contentSkippedReason = 'Content 폴더명이 동일합니다';
+    contentSkippedReason = publicId 
+      ? 'publicId 기반 폴더는 이름 변경이 필요 없습니다'
+      : 'Content 폴더명이 동일합니다';
   } else {
     contentSkippedReason = '이동할 Content 폴더가 없습니다';
   }
@@ -645,7 +648,6 @@ async function handleRenameFolder(req, res, body) {
     contentSkippedReason: contentSkippedReason || undefined,
     folderPath: toPath,
     fromPath: fromPath || null,
-    pdfFolderUrl: newFolderUrl || '',
     coverFrontUrl: coverFrontUrl || '',
     coverBackUrl: coverBackUrl || '',
     coverResults

@@ -348,7 +348,7 @@ export async function updatePageMeta(payload) {
  *   noteId: string,
  *   oldNoteName: string,
  *   newNoteName: string,
- *   pdfFolderUrl?: string,
+ *   publicId?: string,
  *   pageCount?: number,
  *   coverFrontUrl?: string,
  *   coverBackUrl?: string

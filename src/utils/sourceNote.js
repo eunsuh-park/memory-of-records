@@ -43,16 +43,6 @@ export function matchSourceNote(notes, page = {}) {
   const noteFolder = String(page.noteFolder || folderStemFromUrl(folderUrl) || '').trim();
   const stem = normalizeStem(noteFolder);
 
-  if (folderUrl) {
-    const byUrl = list.find((n) => {
-      const url = String(n?.pdfFolderUrl || '').trim().replace(/\/+$/, '');
-      return url && url === folderUrl;
-    });
-    if (byUrl) {
-      return { id: byUrl.id, title: byUrl.title || byUrl.name || noteFolder || '원본 노트' };
-    }
-  }
-
   if (!stem) return null;
 
   const byPublicId = list.find((n) => normalizeStem(n?.publicId) === stem);
@@ -64,9 +54,8 @@ export function matchSourceNote(notes, page = {}) {
   }
 
   const byStem = list.find((n) => {
-    const urlStem = normalizeStem(folderStemFromUrl(n?.pdfFolderUrl));
     const titleStem = normalizeStem(n?.title || n?.name);
-    return urlStem === stem || titleStem === stem;
+    return titleStem === stem;
   });
   if (!byStem) return null;
   return { id: byStem.id, title: byStem.title || byStem.name || noteFolder || '원본 노트' };

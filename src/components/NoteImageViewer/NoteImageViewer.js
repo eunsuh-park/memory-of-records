@@ -139,7 +139,7 @@ async function findNoteById(noteId) {
  * 페이지 이미지 뷰어를 targetEl에 렌더링합니다.
  * @param {HTMLElement} targetEl - 렌더 대상
  * @param {string} id - 노트 ID
- * @param {Object} options - { mode, pdfFolderUrl?, pageCount?, size?, pages?, initialPage? }
+ * @param {Object} options - { mode, pageCount?, size?, pages?, initialPage? }
  *   pages가 있으면 폴더 순회 대신 해당 URL 목록을 가상 앨범으로 표시 (북마크 노트)
  *   initialPage가 있으면 해당 장부터 연다. 전체 페이지 모드에서는 주소 `?p=`도 읽는다.
  * @returns {Function} cleanup 함수
@@ -199,7 +199,19 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const currentPageEl = targetEl.querySelector('.niv-current-page');
   const totalPagesEl = targetEl.querySelector('.niv-total-pages');
 
-  let folderUrl = String(options.pdfFolderUrl || '').trim();
+  /* folderUrl은 항상 publicId에서 자동 생성 */
+  let folderUrl = '';
+  const initialPublicId = String(
+    shareNote?.publicId || options.note?.publicId || ''
+  ).trim();
+  if (initialPublicId && !isBookmarksAlbum && !isDemoNote) {
+    folderUrl = notePagesFolder(initialPublicId);
+    console.debug('[NoteImageViewer] Generated folderUrl from publicId:', {
+      publicId: initialPublicId,
+      folderUrl
+    });
+  }
+  
   /** Cloudinary Search가 준 pageNumber → delivery URL */
   const pageUrlByNumber = new Map();
   /** 가상 앨범(북마크): 1-based index → 원본 페이지 엔트리 */
@@ -1108,9 +1120,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   }
 
   async function refreshAfterPageInsert(result) {
-    const nextFolder = String(result?.pdfFolderUrl || folderUrl || '').trim();
     const nextCount = Math.max(0, Math.floor(Number(result?.pageCount) || 0));
-    if (nextFolder) folderUrl = nextFolder;
     if (nextCount > 0) {
       storedPageCount = nextCount;
       totalPages = nextCount;
@@ -1179,7 +1189,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         noteTitle = title;
         if (!shareNote) shareNote = note;
         if (!folderUrl && note.publicId) folderUrl = notePagesFolder(note.publicId);
-        if (!folderUrl && note.pdfFolderUrl) folderUrl = String(note.pdfFolderUrl).trim();
         if (totalPages == null && note.pageCount) {
           storedPageCount = Math.floor(Number(note.pageCount));
           totalPages = storedPageCount;
@@ -1197,7 +1206,6 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         id: noteId,
         title,
         publicId: shareNote?.publicId || '',
-        pdfFolderUrl: folderUrl,
         pageCount: storedPageCount ?? totalPages ?? 0,
         coverFrontUrl,
         coverBackUrl,
@@ -1545,10 +1553,18 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     }
 
     const publicId = String(note?.publicId || options.note?.publicId || '').trim();
+    console.debug('[NoteImageViewer] initViewer publicId:', publicId, 'noteId:', noteId);
     if (publicId) {
       try {
         showOverlay('페이지 불러오는 중...');
+        console.debug('[NoteImageViewer] Fetching pages for:', publicId);
         const listed = await fetchNotePages(publicId);
+        console.debug('[NoteImageViewer] Fetched pages:', {
+          folder: listed.folder,
+          pageCount: listed.pageCount,
+          pagesLength: listed.pages?.length,
+          firstPageUrl: listed.pages?.[0]?.url?.substring(0, 100)
+        });
         pageUrlByNumber.clear();
         for (const page of listed.pages) {
           pageUrlByNumber.set(page.pageNumber, page.url);
@@ -1560,13 +1576,25 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
           hasKnownPageCount = true;
         }
       } catch (err) {
-        console.warn('NoteImageViewer: 페이지 목록 로드 실패', err);
+        console.error('[NoteImageViewer] 페이지 목록 로드 실패:', err, 'publicId:', publicId);
       }
     }
 
     if (!folderUrl && publicId) folderUrl = notePagesFolder(publicId);
 
+    console.debug('[NoteImageViewer] Before starting viewer:', {
+      pageUrlByNumberSize: pageUrlByNumber.size,
+      folderUrl,
+      publicId: note?.publicId,
+      noteTitle: note?.title
+    });
+    
     if (!pageUrlByNumber.size && !folderUrl) {
+      console.error('[NoteImageViewer] No pages or folder URL:', {
+        publicId: note?.publicId,
+        noteTitle: note?.title,
+        optionsNote: options.note
+      });
       showOverlay('노트 페이지 이미지를 찾을 수 없습니다.');
       return;
     }

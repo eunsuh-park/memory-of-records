@@ -722,20 +722,18 @@ export async function openAddNoteModal(options = {}) {
       try {
         const oldName = String(seed?.name || '').trim();
         const nameChanged = Boolean(oldName) && oldName !== name;
-        let renamedFolderUrl = '';
 
         if (nameChanged) {
           showUploadingOverlay('노트명·표지·페이지 폴더를 동기화하는 중…');
-          const renamed = await renameNoteContentFolder({
+          await renameNoteContentFolder({
             noteId: metaPayload.id,
             oldNoteName: oldName,
             newNoteName: name,
-            pdfFolderUrl: options.note?.pdfFolderUrl || '',
+            publicId: options.note?.publicId || '',
             pageCount: options.note?.pageCount,
             coverFrontUrl: options.note?.coverFrontUrl || seed?.coverFrontUrl || '',
             coverBackUrl: options.note?.coverBackUrl || seed?.coverBackUrl || ''
           });
-          renamedFolderUrl = renamed?.pdfFolderUrl || '';
         }
 
         const result = await updateNotionNote(metaPayload);
@@ -748,10 +746,7 @@ export async function openAddNoteModal(options = {}) {
             ? '노트명과 표지·페이지 파일명이 함께 수정되었습니다'
             : '노트가 수정되었습니다'
         );
-        options.onUpdated?.({
-          ...result,
-          pdfFolderUrl: renamedFolderUrl || options.note?.pdfFolderUrl
-        });
+        options.onUpdated?.(result);
       } catch (err) {
         console.error('[EditNote]', err);
         hideUploadingOverlay();
