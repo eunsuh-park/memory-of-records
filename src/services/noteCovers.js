@@ -92,12 +92,21 @@ export function attachNoteCovers(notes, coversResult) {
       return note;
     }
     const hit = lookupCover(covers, note);
+    
+    /* Cloudinary 표지가 있으면 사용, 없으면 Notion 원본 유지 */
+    const frontUrl = hit?.front 
+      ? optimizeCoverUrl(hit.front) 
+      : (note.coverFrontUrl || null);
+    const backUrl = hit?.back 
+      ? optimizeCoverUrl(hit.back) 
+      : (note.coverBackUrl || null);
+    
     return {
       ...note,
-      coverFrontUrl: hit?.front ? optimizeCoverUrl(hit.front) : null,
-      coverBackUrl: hit?.back ? optimizeCoverUrl(hit.back) : null,
-      firstPageIsCover: hit?.firstPageIsCover ?? null,
-      lastPageIsCover: hit?.lastPageIsCover ?? null
+      coverFrontUrl: frontUrl,
+      coverBackUrl: backUrl,
+      firstPageIsCover: hit?.firstPageIsCover ?? note.firstPageIsCover ?? null,
+      lastPageIsCover: hit?.lastPageIsCover ?? note.lastPageIsCover ?? null
     };
   });
 }
