@@ -203,11 +203,7 @@ export function convertNotionPageToNotebook(page) {
   );
   const publicId =
     rawPublicId != null && String(rawPublicId).trim() ? String(rawPublicId).trim() : null;
-  const rawFront =
-    normalizeUrlValue(rawCoverFront) || normalizeUrlValue(extractPageCoverUrl(page));
-  const rawBack = normalizeUrlValue(rawCoverBack);
-  const coverFrontUrl = rawFront ? optimizeImageUrl(rawFront) || rawFront : null;
-  const coverBackUrl = rawBack ? optimizeImageUrl(rawBack) || rawBack : null;
+    
   const pdfUrl = normalizeUrlValue(
     parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'))
   );
@@ -251,8 +247,8 @@ export function convertNotionPageToNotebook(page) {
     periodEnd,
     color: color ? String(color).trim() : '',
     isKept,
-    coverFrontUrl,
-    coverBackUrl,
+    coverFrontUrl: null,  // Cloudinary에서만 로드
+    coverBackUrl: null,   // Cloudinary에서만 로드
     pdfUrl,
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,

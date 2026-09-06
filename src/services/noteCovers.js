@@ -87,17 +87,46 @@ export function attachNoteCovers(notes, coversResult) {
   if (!coversResult?.loaded) return list;
 
   const covers = coversResult.covers || {};
-  return list.map((note) => {
+  console.debug('[noteCovers] attachNoteCovers:', {
+    notesCount: list.length,
+    coversCount: Object.keys(covers).length,
+    firstNote: list[0] ? {
+      id: list[0].id,
+      publicId: list[0].publicId,
+      title: list[0].title,
+      hasOriginalCover: Boolean(list[0].coverFrontUrl)
+    } : null
+  });
+  
+  return list.map((note, index) => {
     if (!note || isBookmarksNoteId(note.id) || note.isVirtualBookmarks || isDemoNoteId(note.id)) {
       return note;
     }
     const hit = lookupCover(covers, note);
+    
+    /* Cloudinary 표지가 있으면 사용, 없으면 Notion 원본 유지 */
+    const frontUrl = hit?.front 
+      ? optimizeCoverUrl(hit.front) 
+      : (note.coverFrontUrl || null);
+    const backUrl = hit?.back 
+      ? optimizeCoverUrl(hit.back) 
+      : (note.coverBackUrl || null);
+    
+    if (index === 0) {
+      console.debug('[noteCovers] First note cover:', {
+        hitFound: Boolean(hit),
+        hitFront: hit?.front?.substring(0, 80),
+        originalFront: note.coverFrontUrl?.substring(0, 80),
+        finalFront: frontUrl?.substring(0, 80)
+      });
+    }
+    
     return {
       ...note,
-      coverFrontUrl: hit?.front ? optimizeCoverUrl(hit.front) : null,
-      coverBackUrl: hit?.back ? optimizeCoverUrl(hit.back) : null,
-      firstPageIsCover: hit?.firstPageIsCover ?? null,
-      lastPageIsCover: hit?.lastPageIsCover ?? null
+      coverFrontUrl: frontUrl,
+      coverBackUrl: backUrl,
+      firstPageIsCover: hit?.firstPageIsCover ?? note.firstPageIsCover ?? null,
+      lastPageIsCover: hit?.lastPageIsCover ?? note.lastPageIsCover ?? null
     };
   });
 }
