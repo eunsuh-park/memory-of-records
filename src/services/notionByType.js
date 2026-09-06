@@ -184,12 +184,6 @@ export function convertNotionPageToTypeItem(page) {
   const pdfUrl = normalizeUrlValue(
     parseNotionProperty(getProperty(properties, 'pdf_url', 'PDF URL', 'pdf url'))
   );
-  /* Cloudinary 페이지별 이미지 폴더 base URL (page-000001.jpg ... 조립용) */
-  const pdfFolderUrl = normalizeUrlValue(
-    parseNotionProperty(
-      getProperty(properties, 'pdf_folder_url', 'PDF Folder URL', 'pdf folder url')
-    )
-  );
   const rawPageCount = Number(
     parseNotionProperty(getProperty(properties, 'page_count', 'Page Count', 'page count'))
   );
@@ -217,7 +211,6 @@ export function convertNotionPageToTypeItem(page) {
     coverFrontUrl,
     coverBackUrl,
     pdfUrl,
-    pdfFolderUrl,
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,
     visible,

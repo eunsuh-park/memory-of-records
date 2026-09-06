@@ -746,7 +746,6 @@ function openNoteModal(note) {
     noteId,
     title: note?.title,
     publicId: note?.publicId,
-    pdfFolderUrl: note?.pdfFolderUrl,
     pageCount: note?.pageCount,
     hasCoverFrontUrl: Boolean(note?.coverFrontUrl),
     hasCoverBackUrl: Boolean(note?.coverBackUrl)
@@ -777,7 +776,6 @@ function openNoteModal(note) {
   const returnUrl = currentLocationHref();
   const cleanupViewer = renderNoteImageViewer(content, noteId, {
     mode: 'modal',
-    pdfFolderUrl: note?.pdfFolderUrl,
     pageCount: note?.pageCount,
     size: note?.size,
     title: note?.title || note?.name || '',
@@ -1207,8 +1205,7 @@ export function renderJukeboxWithFilter(options) {
           id: allNotes[0].id,
           publicId: allNotes[0].publicId,
           title: allNotes[0].title,
-          pageCount: allNotes[0].pageCount,
-          pdfFolderUrl: allNotes[0].pdfFolderUrl
+          pageCount: allNotes[0].pageCount
         } : null
       });
       allNotesCache = allNotes || [];
