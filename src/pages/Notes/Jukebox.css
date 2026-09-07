@@ -404,6 +404,8 @@ body.jukebox-active.loading-active #sub-menu {
   white-space: normal;
   width: auto;
   height: auto;
+  min-width: 4.5rem;
+  min-height: 6.5rem;
   max-height: 38vh;
   overflow: visible;
   display: inline-block;

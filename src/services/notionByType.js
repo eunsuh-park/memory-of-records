@@ -2,7 +2,6 @@
  * Notion 타입별 이미지 데이터 로딩 유틸
  */
 import { parseNotionProperty } from './notion.js';
-import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
 import { parseNotionFavorites } from '../utils/noteFavorites.js';
 import { attachNoteCovers, clearNoteCoversCache, fetchNoteCovers } from './noteCovers.js';
@@ -54,14 +53,6 @@ function normalizeUrlValue(value) {
     const firstToken = trimmed.split(/[,\s]+/).find(Boolean);
     return firstToken || null;
   }
-  return null;
-}
-
-function extractPageCoverUrl(page) {
-  const cover = page?.cover;
-  if (!cover) return null;
-  if (cover.type === 'external') return cover.external?.url || null;
-  if (cover.type === 'file') return cover.file?.url || null;
   return null;
 }
 
@@ -154,8 +145,8 @@ export function convertNotionPageToTypeItem(page) {
     color: color ? String(color).trim() : '',
     isKept,
     description: description != null && String(description).trim() ? String(description).trim() : null,
-    coverFrontUrl: null,  // Cloudinary에서만 로드
-    coverBackUrl: null,   // Cloudinary에서만 로드
+    coverFrontUrl: null,
+    coverBackUrl: null,
     pdfUrl,
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,

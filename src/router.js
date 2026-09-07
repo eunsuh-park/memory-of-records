@@ -125,6 +125,7 @@ class Router {
         'filter-nav-collapsed',
         'filter-nav-open'
       );
+      mainContent._jukeboxSession = null;
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');
     }
