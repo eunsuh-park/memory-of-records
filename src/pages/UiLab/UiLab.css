@@ -171,7 +171,7 @@
   display: block;
   padding: 0;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   background: var(--color-bg);
 }
 
@@ -179,8 +179,13 @@
   position: relative;
   inset: auto;
   z-index: 0;
-  min-height: 32rem;
+  min-height: 0;
+  height: auto;
   padding: var(--space-8) var(--space-5);
+}
+
+.ui-lab__demo-stage--dialog .dialog__panel {
+  max-height: none;
 }
 
 .ui-lab__demo-stage--dialog .add-page-confirm-dialog {
