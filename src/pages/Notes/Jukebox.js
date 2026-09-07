@@ -38,6 +38,7 @@ import {
 import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { copyNoteShareUrl } from '../../utils/noteSlug.js';
 import { optimizeThumbnailUrl } from '../../utils/optimizeImageUrl.js';
+import { resolveNoteCoverUrls } from '../../services/noteCovers.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Jukebox.css';
 
@@ -523,22 +524,15 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   }
   const itemsHtml = allNotes
     .map((note, index) => {
-      // 표지 이미지 썸네일 최적화 (갤러리용 최대 800px)
-      // 모바일에서도 선명하게 보이도록 여유있게 설정
-      const optimizedFront = optimizeThumbnailUrl(note.coverFrontUrl, 800);
-      const optimizedBack = optimizeThumbnailUrl(note.coverBackUrl, 800);
-      const coverSrc = optimizedFront || note.coverFrontUrl || TRANSPARENT_PIXEL;
-      const backCoverSrc = optimizedBack || note.coverBackUrl || TRANSPARENT_PIXEL;
-      
-      if (index === 0) {
-        console.debug('[Jukebox] First note:', {
-          title: note.title,
-          originalFront: note.coverFrontUrl?.substring(0, 80),
-          optimizedFront: optimizedFront?.substring(0, 80),
-          finalCoverSrc: coverSrc?.substring(0, 80)
-        });
-      }
-      
+      /* 필터 전환 후에도 Cloudinary 표지 캐시(publicId)에서 다시 고른다 */
+      const covers = resolveNoteCoverUrls(note);
+      const frontUrl = covers.front || note.coverFrontUrl || '';
+      const backUrl = covers.back || note.coverBackUrl || '';
+      const optimizedFront = optimizeThumbnailUrl(frontUrl, 800);
+      const optimizedBack = optimizeThumbnailUrl(backUrl, 800);
+      const coverSrc = optimizedFront || frontUrl || TRANSPARENT_PIXEL;
+      const backCoverSrc = optimizedBack || backUrl || TRANSPARENT_PIXEL;
+      const eager = index < 4;
       const title = escapeHtml(note.title);
       const noteId = escapeHtml(note.id || '');
       const showBadge = Boolean(
@@ -562,10 +556,10 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
           <div class="jukebox-card-3d">
             <div class="jukebox-card-inner">
               <div class="jukebox-card-face jukebox-card-face--front">
-                <img src="${escapeHtml(coverSrc)}" alt="${title}" loading="lazy" referrerpolicy="no-referrer" />
+                <img src="${escapeHtml(coverSrc)}" alt="${title}" decoding="async"${eager ? ' fetchpriority="high"' : ''} referrerpolicy="no-referrer" />
               </div>
               <div class="jukebox-card-face jukebox-card-face--back">
-                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" loading="lazy" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" decoding="async" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
               </div>
             </div>
           </div>
@@ -742,15 +736,6 @@ function openNoteModal(note) {
   }
 
   const noteId = note?.id || '';
-  console.debug('[Jukebox] openNoteModal:', {
-    noteId,
-    title: note?.title,
-    publicId: note?.publicId,
-    pageCount: note?.pageCount,
-    hasCoverFrontUrl: Boolean(note?.coverFrontUrl),
-    hasCoverBackUrl: Boolean(note?.coverBackUrl)
-  });
-  
   if (!noteId) {
     showToast('노트 상세 이미지가 없습니다.');
     return;
@@ -872,7 +857,22 @@ function shouldSkipJukeboxReflection() {
  * @param {(note: Object) => string|null} options.resolveFilterKey
  */
 export function renderJukeboxWithFilter(options) {
-  const {
+  const mainContent = document.getElementById('main-content');
+  if (!mainContent) return;
+
+  const existing = mainContent._jukeboxSession;
+  if (
+    existing &&
+    existing.filterMode === options.filterMode &&
+    existing.basePath === options.basePath &&
+    typeof existing.apply === 'function' &&
+    existing.isLive?.()
+  ) {
+    existing.apply(options);
+    return;
+  }
+
+  let {
     filterMode,
     basePath,
     selectedValue,
@@ -882,9 +882,6 @@ export function renderJukeboxWithFilter(options) {
     resolveFilterKey,
     viewModeToggle = null
   } = options;
-
-  const mainContent = document.getElementById('main-content');
-  if (!mainContent) return;
 
   const subMenuContainer = document.getElementById('sub-menu');
   if (!subMenuContainer) return;
@@ -1153,18 +1150,10 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function applyFiltersAndRender() {
-    if (!allNotesCache) {
-      console.debug('[Jukebox] applyFiltersAndRender: allNotesCache is null');
-      return;
-    }
+    if (!allNotesCache) return;
     const byPeriodOrType = (allNotesCache || []).filter(
       (note) => resolveFilterKey(note) === selectedValue
     );
-    console.debug('[Jukebox] Filtered notes:', {
-      selectedValue,
-      totalNotes: allNotesCache.length,
-      filteredCount: byPeriodOrType.length
-    });
     const sorted = sortNotes(byPeriodOrType, sortKey);
     /* Timeline/By type만 로컬 Demo Note를 맨 앞에 붙인다.
      * Bookmark Note는 Page Scrap 페이지에만 둔다. */
@@ -1196,18 +1185,6 @@ export function renderJukeboxWithFilter(options) {
 
   Promise.all([loadNotes(), ensureBookmarkNoteCovers().catch(() => null)])
     .then(([allNotes]) => {
-      console.debug('[Jukebox] Notes loaded:', {
-        count: allNotes?.length,
-        firstNote: allNotes?.[0]?.title,
-        firstNotePublicId: allNotes?.[0]?.publicId,
-        hasCoverUrl: Boolean(allNotes?.[0]?.coverFrontUrl),
-        firstNoteFull: allNotes?.[0] ? {
-          id: allNotes[0].id,
-          publicId: allNotes[0].publicId,
-          title: allNotes[0].title,
-          pageCount: allNotes[0].pageCount
-        } : null
-      });
       allNotesCache = allNotes || [];
       applyFiltersAndRender();
     })
@@ -1224,4 +1201,32 @@ export function renderJukeboxWithFilter(options) {
       gallery.innerHTML = '<div class="jukebox-empty">노트를 불러올 수 없습니다.</div>';
       if (focusSlot) focusSlot.innerHTML = renderNoteInfoPanel(null, filterMode);
     });
+
+  mainContent._jukeboxSession = {
+    filterMode,
+    basePath,
+    isLive: () => Boolean(gallery?.isConnected && mainContent.contains(gallery)),
+    apply(next) {
+      selectedValue = next.selectedValue;
+      filterOptions = next.filterOptions;
+      viewModeToggle = next.viewModeToggle || null;
+      if (typeof next.resolveFilterKey === 'function') {
+        resolveFilterKey = next.resolveFilterKey;
+      }
+      if (typeof next.getNotesCount === 'function') {
+        getNotesCount = next.getNotesCount;
+      }
+      if (allNotesCache) {
+        applyFiltersAndRender();
+        return;
+      }
+      renderFilterSubMenu(selectedValue, basePath, filterOptions, {}, viewModeToggle, {
+        sortKey,
+        onSortChange: (value) => {
+          sortKey = value;
+          applyFiltersAndRender();
+        }
+      });
+    }
+  };
 }

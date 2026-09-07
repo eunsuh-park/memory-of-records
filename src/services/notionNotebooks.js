@@ -2,7 +2,6 @@
  * Notion 노트북 데이터 로딩 유틸
  */
 import { parseNotionProperty } from './notion.js';
-import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { isNotionPageVisible } from '../utils/noteVisibility.js';
 import { parseNotionFavorites } from '../utils/noteFavorites.js';
 import { attachNoteCovers, clearNoteCoversCache, fetchNoteCovers } from './noteCovers.js';
@@ -67,20 +66,6 @@ function normalizeUrlValue(value) {
   return null;
 }
 
-function hasMultipleUrls(value) {
-  if (!value || typeof value !== 'string') return false;
-  const matches = value.match(/https?:\/\/[^\s,]+/gi);
-  return Array.isArray(matches) && matches.length > 1;
-}
-
-function extractPageCoverUrl(page) {
-  const cover = page?.cover;
-  if (!cover) return null;
-  if (cover.type === 'external') return cover.external?.url || null;
-  if (cover.type === 'file') return cover.file?.url || null;
-  return null;
-}
-
 export function convertNotionPageToNotebook(page) {
   const properties = page?.properties || {};
   const title =
@@ -117,87 +102,6 @@ export function convertNotionPageToNotebook(page) {
     getProperty(properties, 'is_kept', 'is kept', 'kept', '보관')
   );
   const isKept = isKeptRaw === null || isKeptRaw === undefined ? true : Boolean(isKeptRaw);
-  const coverFrontProperty = getProperty(
-    properties,
-    'cover_front_url',
-    'cover front url',
-    'Cover Front URL',
-    'cover_front',
-    'Cover Front',
-    'front_cover_url',
-    'Front Cover URL',
-    'front cover url',
-    'cover',
-    'Cover',
-    'cover_url',
-    'Cover URL',
-    'cover image',
-    'Cover Image',
-    'image',
-    'Image',
-    'thumbnail',
-    'Thumbnail',
-    '대표 이미지',
-    '대표이미지',
-    '썸네일',
-    '표지',
-    '표지 앞',
-    '앞표지',
-    '전면 표지',
-    '커버',
-    '커버 이미지'
-  );
-  const coverBackProperty = getProperty(
-    properties,
-    'cover_back_url',
-    'cover back url',
-    'Cover Back URL',
-    'cover_back',
-    'Cover Back',
-    'back_cover_url',
-    'Back Cover URL',
-    'back cover url',
-    '뒷표지',
-    '표지 뒤',
-    '후면 표지',
-    'back cover',
-    'back cover image'
-  );
-  const rawCoverFront = parseNotionProperty(coverFrontProperty);
-  const rawCoverBack = parseNotionProperty(coverBackProperty);
-  if (hasMultipleUrls(rawCoverFront)) {
-    console.warn(
-      '[Notion] cover_front_url has multiple URLs:',
-      title,
-      rawCoverFront,
-      coverFrontProperty
-    );
-  }
-  if (hasMultipleUrls(rawCoverBack)) {
-    console.warn(
-      '[Notion] cover_back_url has multiple URLs:',
-      title,
-      rawCoverBack,
-      coverBackProperty
-    );
-  }
-  if (coverFrontProperty?.type && coverFrontProperty.type !== 'url') {
-    console.warn(
-      '[Notion] cover_front_url type mismatch:',
-      title,
-      coverFrontProperty.type,
-      coverFrontProperty
-    );
-  }
-  if (coverBackProperty?.type && coverBackProperty.type !== 'url') {
-    console.warn(
-      '[Notion] cover_back_url type mismatch:',
-      title,
-      coverBackProperty.type,
-      coverBackProperty
-    );
-  }
-
   const rawPublicId = parseNotionProperty(
     getProperty(properties, 'public_id', 'Public ID', 'publicId', 'Public id')
   );
@@ -247,8 +151,8 @@ export function convertNotionPageToNotebook(page) {
     periodEnd,
     color: color ? String(color).trim() : '',
     isKept,
-    coverFrontUrl: null,  // Cloudinary에서만 로드
-    coverBackUrl: null,   // Cloudinary에서만 로드
+    coverFrontUrl: null,
+    coverBackUrl: null,
     pdfUrl,
     pageCount,
     size: size != null && String(size).trim() ? String(size).trim() : null,

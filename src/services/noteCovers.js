@@ -1,6 +1,7 @@
 /**
  * Cloudinary 노트 폴더에서 앞·뒤 표지 URL을 읽어 노트 객체에 붙인다.
- * Notion cover_*_url 대신 GET /api/readNotebooks?view=covers 결과를 쓴다.
+ * GET /api/readNotebooks?view=covers 결과를 publicId로 찾는다.
+ * Notion cover_*_url / 페이지 커버 속성은 쓰지 않는다.
  */
 import { optimizeImageUrl } from '../utils/optimizeImageUrl.js';
 import { parseCoverPageFlag } from '../utils/viewerPages.js';
@@ -18,6 +19,12 @@ function optimizeCoverUrl(url) {
   const raw = String(url || '').trim();
   if (!raw) return null;
   return optimizeImageUrl(raw) || raw;
+}
+
+function isSyntheticNote(note) {
+  return Boolean(
+    !note || isBookmarksNoteId(note.id) || note.isVirtualBookmarks || isDemoNoteId(note.id)
+  );
 }
 
 /**
@@ -67,7 +74,7 @@ export async function fetchNoteCovers() {
   return cachedCovers.promise;
 }
 
-function lookupCover(covers, note) {
+export function lookupCover(covers, note) {
   const candidates = [note?.publicId, note?.title, note?.name];
   for (const value of candidates) {
     const key = normalizeCoverKey(value);
@@ -77,8 +84,37 @@ function lookupCover(covers, note) {
 }
 
 /**
- * Cloudinary 표지 URL을 노트에 덮어쓴다.
- * API가 실패한 경우에는 Notion URL을 그대로 둔다.
+ * 이미 받아 둔 Cloudinary 표지 맵에서 노트 표지 URL을 다시 고른다.
+ * 필터 전환 때 노트 객체에 URL이 비어 있어도 캐시만으로 복구한다.
+ * @param {object|null|undefined} note
+ * @returns {{ front: string|null, back: string|null }}
+ */
+export function resolveNoteCoverUrls(note) {
+  if (!note) return { front: null, back: null };
+  if (isSyntheticNote(note)) {
+    return {
+      front: note.coverFrontUrl || null,
+      back: note.coverBackUrl || null
+    };
+  }
+  if (cachedCovers.loaded && cachedCovers.data) {
+    const hit = lookupCover(cachedCovers.data, note);
+    if (hit) {
+      return {
+        front: hit.front ? optimizeCoverUrl(hit.front) : null,
+        back: hit.back ? optimizeCoverUrl(hit.back) : null
+      };
+    }
+  }
+  return {
+    front: note.coverFrontUrl || null,
+    back: note.coverBackUrl || null
+  };
+}
+
+/**
+ * Cloudinary 표지 URL을 노트에 붙인다.
+ * 검색 결과가 없으면 표지를 비운다. Notion URL로 되돌리지 않는다.
  * @param {Array} notes
  * @param {{ loaded: boolean, covers: Record<string, {front?: string|null, back?: string|null}> }} coversResult
  */
@@ -87,44 +123,13 @@ export function attachNoteCovers(notes, coversResult) {
   if (!coversResult?.loaded) return list;
 
   const covers = coversResult.covers || {};
-  console.debug('[noteCovers] attachNoteCovers:', {
-    notesCount: list.length,
-    coversCount: Object.keys(covers).length,
-    firstNote: list[0] ? {
-      id: list[0].id,
-      publicId: list[0].publicId,
-      title: list[0].title,
-      hasOriginalCover: Boolean(list[0].coverFrontUrl)
-    } : null
-  });
-  
-  return list.map((note, index) => {
-    if (!note || isBookmarksNoteId(note.id) || note.isVirtualBookmarks || isDemoNoteId(note.id)) {
-      return note;
-    }
+  return list.map((note) => {
+    if (isSyntheticNote(note)) return note;
     const hit = lookupCover(covers, note);
-    
-    /* Cloudinary 표지가 있으면 사용, 없으면 Notion 원본 유지 */
-    const frontUrl = hit?.front 
-      ? optimizeCoverUrl(hit.front) 
-      : (note.coverFrontUrl || null);
-    const backUrl = hit?.back 
-      ? optimizeCoverUrl(hit.back) 
-      : (note.coverBackUrl || null);
-    
-    if (index === 0) {
-      console.debug('[noteCovers] First note cover:', {
-        hitFound: Boolean(hit),
-        hitFront: hit?.front?.substring(0, 80),
-        originalFront: note.coverFrontUrl?.substring(0, 80),
-        finalFront: frontUrl?.substring(0, 80)
-      });
-    }
-    
     return {
       ...note,
-      coverFrontUrl: frontUrl,
-      coverBackUrl: backUrl,
+      coverFrontUrl: hit?.front ? optimizeCoverUrl(hit.front) : null,
+      coverBackUrl: hit?.back ? optimizeCoverUrl(hit.back) : null,
       firstPageIsCover: hit?.firstPageIsCover ?? note.firstPageIsCover ?? null,
       lastPageIsCover: hit?.lastPageIsCover ?? note.lastPageIsCover ?? null
     };
