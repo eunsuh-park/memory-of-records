@@ -4,8 +4,8 @@
  * 초기 표시: 컨테이너에 이미지 전체가 들어가도록 contain
  * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
  * 확대/축소·패닝: .niv-zoom-stage transform
- * 하단 시트: 정보 | 페이지 추가 | 북마크 | 프로그레스 | 원상복구
- * 모바일 북마크: 양면 토글 위 떠 있는 FAB
+ * 하단 시트: (2페이지 · 정보 · 추가 · 북마크 · 공유) | 프로그레스 | 원상복구
+ * 모바일 북마크: 시트 위 떠 있는 FAB
  *
  * 버튼은 모두 공통 Button 컴포넌트(circle)로 만들고,
  * 여기서는 시트 안에서 쓸 크기·상태만 덮는다.
@@ -24,7 +24,7 @@
   touch-action: none;
   padding: max(var(--space-2), env(safe-area-inset-top))
     max(var(--space-2), env(safe-area-inset-right))
-    calc(4.5rem + env(safe-area-inset-bottom))
+    calc(14.5rem + env(safe-area-inset-bottom))
     max(var(--space-2), env(safe-area-inset-left));
   box-sizing: border-box;
 }
@@ -107,20 +107,27 @@
   bottom: max(14px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 5;
-  display: grid;
-  grid-template-columns: auto auto auto auto 1fr auto;
-  align-items: center;
+  display: flex;
+  align-items: flex-end;
   gap: var(--space-1);
-  width: min(420px, calc(100% - var(--space-6)));
+  width: auto;
+  max-width: calc(100% - var(--space-6));
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--color-chrome-glass);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-hover);
   border: none;
   backdrop-filter: blur(14px) saturate(1.1);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
   box-sizing: border-box;
   pointer-events: auto;
   color: var(--color-chrome-on);
+}
+
+.niv-sheet-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .note-image-viewer .btn.niv-sheet-btn,
@@ -141,16 +148,17 @@
 
 .note-image-viewer .btn.niv-sheet-btn:focus-visible,
 .note-image-viewer .btn.niv-sheet-nav:focus-visible {
-  background: var(--color-chrome-on-hover);
-  background-color: var(--color-chrome-on-hover);
+  background: var(--color-surface-active);
+  background-color: var(--color-surface-active);
   outline: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .note-image-viewer .btn.niv-sheet-btn:hover,
-  .note-image-viewer .btn.niv-sheet-nav:hover {
-    background: var(--color-chrome-on-hover);
-    background-color: var(--color-chrome-on-hover);
+  .note-image-viewer .btn.niv-sheet-nav:hover,
+  .note-image-viewer .niv-bottom-sheet .btn.btn--circle.btn--ghost:hover {
+    background: var(--color-surface-active);
+    background-color: var(--color-surface-active);
     outline: none;
   }
 }
@@ -207,31 +215,11 @@
   height: 0.95rem;
 }
 
-/* 양면 토글: 하단 시트 위 작은 FAB (시안에 없는 보조 컨트롤) */
-.note-image-viewer .btn.niv-spread-fab {
-  position: absolute;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem);
-  z-index: 4;
-  width: 2.2rem;
-  height: 2.2rem;
-  min-width: 2.2rem;
-  min-height: 2.2rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.note-image-viewer .btn.niv-spread-fab svg {
-  width: 1rem;
-  height: 1rem;
-  display: block;
-}
-
-.note-image-viewer .btn.niv-spread-fab[aria-pressed='true'] {
+.note-image-viewer .btn.niv-toggle-spread[aria-pressed='true'] {
   color: var(--color-chrome-on);
   opacity: 1;
-  background: var(--color-chrome-strong);
-  background-color: var(--color-chrome-strong);
+  background: var(--color-surface-active);
+  background-color: var(--color-surface-active);
 }
 
 /* 북마크: favorites와 동일 — off=muted/chrome-on, on=primary */
@@ -264,12 +252,12 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
   color: var(--color-primary);
 }
 
-/* 모바일 FAB: 양면 토글 바로 위. 데스크톱 시트 버튼은 모바일에서 숨김 */
+/* 모바일 FAB: 시트 위. 데스크톱 시트 버튼은 모바일에서 숨김 */
 .note-image-viewer .btn.niv-bookmark-fab {
   display: none;
   position: absolute;
   right: max(12px, env(safe-area-inset-right));
-  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem + 2.55rem);
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 14.5rem);
   z-index: 4;
   width: 2.2rem;
   height: 2.2rem;
@@ -297,15 +285,16 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
   .niv-image-container {
     padding: max(var(--space-1), env(safe-area-inset-top))
       max(var(--space-1), env(safe-area-inset-right))
-      calc(4.25rem + env(safe-area-inset-bottom))
+      calc(13.5rem + env(safe-area-inset-bottom))
       max(var(--space-1), env(safe-area-inset-left));
   }
 
   .niv-bottom-sheet {
     bottom: max(6px, env(safe-area-inset-bottom));
-    width: min(380px, calc(100% - var(--space-5)));
+    width: auto;
+    max-width: calc(100% - var(--space-5));
     padding: var(--space-1);
-    background: var(--color-chrome-glass);
+    background: var(--color-surface-hover);
     border: none;
     backdrop-filter: blur(16px) saturate(1.1);
     -webkit-backdrop-filter: blur(16px) saturate(1.1);
@@ -329,18 +318,14 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
     font-size: var(--text-sm);
   }
 
-  .note-image-viewer .btn.niv-spread-fab {
-    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem);
-  }
-
-  /* 모바일: 시트 안 북마크 숨기고, 양면 토글 위 FAB만 표시 */
+  /* 모바일: 시트 안 북마크 숨기고, 시트 위 FAB만 표시 */
   .note-image-viewer .btn.niv-bookmark--desktop {
     display: none;
   }
 
   .note-image-viewer .btn.niv-bookmark-fab {
     display: inline-flex;
-    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem + 2.55rem);
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 13.5rem);
   }
 }
 

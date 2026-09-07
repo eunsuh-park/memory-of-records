@@ -235,7 +235,7 @@
 /* 뷰어 크롬 데모: 실제 뷰어처럼 어두운 면 위에 컨트롤을 절대배치로 얹는다 */
 .ui-lab__viewer-stage {
   position: relative;
-  min-height: 14rem;
+  min-height: 22rem;
   border-radius: var(--radius-lg);
   border: 1px dashed var(--color-border);
   background: var(--color-chrome-strong);
@@ -244,7 +244,7 @@
 
 .ui-lab__viewer-page {
   position: absolute;
-  inset: var(--space-3) 60px 4.5rem;
+  inset: var(--space-3) 60px 14.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
