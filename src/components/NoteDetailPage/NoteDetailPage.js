@@ -21,7 +21,7 @@ function isDimClick(target) {
   if (!(target instanceof Element)) return false;
   if (
     target.closest(
-      '.note-detail-close, canvas, .niv-page-image, .niv-bookflip-canvas, .btn, .pdf-page-indicator, .pdf-zoom-controls, .niv-bottom-sheet'
+      '.note-detail-close, canvas, .niv-page-image, .niv-bookflip-canvas, .btn, .pdf-page-indicator, .pdf-zoom-controls, .niv-bottom-sheet, .niv-sheet-actions'
     )
   ) {
     return false;

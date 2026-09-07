@@ -4,8 +4,9 @@
  * 초기 표시: 컨테이너에 이미지 전체가 들어가도록 contain
  * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
  * 확대/축소·패닝: .niv-zoom-stage transform
- * 하단 시트: (2페이지 · 정보 · 추가 · 북마크 · 공유) | 프로그레스 | 원상복구
- * 모바일 북마크: 시트 위 떠 있는 FAB
+ * 하단 시트: 프로그레스 | 원상복구
+ * 우측 액션 열: 정보 · 추가 · 북마크 · 공유 · 2페이지 (기존 FAB 위치)
+ * 모바일 북마크: 액션 열 위 떠 있는 FAB
  *
  * 버튼은 모두 공통 Button 컴포넌트(circle)로 만들고,
  * 여기서는 시트 안에서 쓸 크기·상태만 덮는다.
@@ -24,7 +25,7 @@
   touch-action: none;
   padding: max(var(--space-2), env(safe-area-inset-top))
     max(var(--space-2), env(safe-area-inset-right))
-    calc(14.5rem + env(safe-area-inset-bottom))
+    calc(4.5rem + env(safe-area-inset-bottom))
     max(var(--space-2), env(safe-area-inset-left));
   box-sizing: border-box;
 }
@@ -109,11 +110,11 @@
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   width: auto;
   max-width: calc(100% - var(--space-6));
   padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-pill);
   background: var(--color-surface-hover);
   border: none;
   backdrop-filter: blur(14px) saturate(1.1);
@@ -123,17 +124,24 @@
   color: var(--color-chrome-on);
 }
 
+/* 기존 2페이지 FAB 자리. 시트에서 뺀 앞 버튼 4개와 토글을 세로로 둔다 */
 .niv-sheet-actions {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem);
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-}
-
-.niv-sheet-pager {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-hover);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  pointer-events: auto;
+  color: var(--color-chrome-on);
 }
 
 .note-image-viewer .btn.niv-sheet-btn,
@@ -162,7 +170,8 @@
 @media (hover: hover) and (pointer: fine) {
   .note-image-viewer .btn.niv-sheet-btn:hover,
   .note-image-viewer .btn.niv-sheet-nav:hover,
-  .note-image-viewer .niv-bottom-sheet .btn.btn--circle.btn--ghost:hover {
+  .note-image-viewer .niv-bottom-sheet .btn.btn--circle.btn--ghost:hover,
+  .note-image-viewer .niv-sheet-actions .btn.btn--circle.btn--ghost:hover {
     background: var(--color-surface-active);
     background-color: var(--color-surface-active);
     outline: none;
@@ -258,12 +267,12 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
   color: var(--color-primary);
 }
 
-/* 모바일 FAB: 시트 위. 데스크톱 시트 버튼은 모바일에서 숨김 */
+/* 모바일 FAB: 액션 열 위. 데스크톱 북마크는 모바일에서 숨김 */
 .note-image-viewer .btn.niv-bookmark-fab {
   display: none;
   position: absolute;
   right: max(12px, env(safe-area-inset-right));
-  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 14.5rem);
+  bottom: calc(max(14px, env(safe-area-inset-bottom)) + 3.4rem + 11.5rem);
   z-index: 4;
   width: 2.2rem;
   height: 2.2rem;
@@ -291,7 +300,7 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
   .niv-image-container {
     padding: max(var(--space-1), env(safe-area-inset-top))
       max(var(--space-1), env(safe-area-inset-right))
-      calc(13.5rem + env(safe-area-inset-bottom))
+      calc(4.25rem + env(safe-area-inset-bottom))
       max(var(--space-1), env(safe-area-inset-left));
   }
 
@@ -305,6 +314,10 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
     backdrop-filter: blur(16px) saturate(1.1);
     -webkit-backdrop-filter: blur(16px) saturate(1.1);
     color: var(--color-chrome-on);
+  }
+
+  .niv-sheet-actions {
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem);
   }
 
   .note-image-viewer .btn.niv-sheet-btn,
@@ -324,14 +337,14 @@ button.niv-bookmark--mobile.btn[aria-pressed='true'] {
     font-size: var(--text-sm);
   }
 
-  /* 모바일: 시트 안 북마크 숨기고, 시트 위 FAB만 표시 */
+  /* 모바일: 액션 열 북마크 숨기고, 열 위 FAB만 표시 */
   .note-image-viewer .btn.niv-bookmark--desktop {
     display: none;
   }
 
   .note-image-viewer .btn.niv-bookmark-fab {
     display: inline-flex;
-    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 13.5rem);
+    bottom: calc(max(6px, env(safe-area-inset-bottom)) + 3.6rem + 9.5rem);
   }
 }
 
