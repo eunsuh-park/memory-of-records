@@ -1105,6 +1105,7 @@ export function renderUiLab() {
           </p>
           <ul class="ui-lab__list">
             <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
+            <li>모달 공통: <code>dialog__title</code> 24px(<code>--text-xl</code>) · 푸터 위 상태는 가운데 · 액션은 보조 위·주요 아래 1열</li>
             <li>페이지 추가: 뷰어 하단 시트의 + 버튼 · PDF/이미지 미리보기에서 첫·마지막 장이 표지인지 체크</li>
             <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
@@ -1127,19 +1128,21 @@ export function renderUiLab() {
               className: 'dialog--inline',
               step: 'pdf',
               noteName: LAB_ADD_PAGE_NOTE,
-              existingCount: 12,
-              appendToEnd: true,
+              existingCount: 0,
               allPagesPrivate: true,
               pages: [
-                { id: 'lab-add-page-pdf-1', dataUrl: bookmarksCoverFront, label: 'p.1 (첫 장)' },
-                { id: 'lab-add-page-pdf-2', dataUrl: bookmarksCoverBack, label: 'p.24 (마지막 장)' }
+                { id: 'lab-add-page-pdf-1', dataUrl: bookmarksCoverFront, pageNumber: 1 },
+                { id: 'lab-add-page-pdf-2', dataUrl: bookmarksCoverBack, pageNumber: 11 }
               ],
-              startPage: 13,
+              startPage: 1,
+              showFirstCoverCheck: true,
               showLastCoverCheck: true,
+              firstPageIsCover: true,
               lastPageIsCover: false,
               uploadDisabled: false,
-              status: '24페이지 변환 완료 · 첫 장과 마지막 장 미리보기',
-              pdfStatusText: 'cartoon-practice.pdf'
+              uploadCount: 11,
+              status: '11페이지 변환 완료 · 첫 장과 마지막 장 미리보기',
+              pdfStatusText: 'cartoon-practice.pdf 10.2MB'
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
@@ -1159,7 +1162,8 @@ export function renderUiLab() {
               firstPageIsCover: true,
               lastPageIsCover: false,
               uploadDisabled: false,
-              status: '2장 선택됨 · 순서 조정 후 「이 순서로 업로드」를 누르세요',
+              uploadCount: 2,
+              status: '2장 선택됨 · 순서 조정 후 추가하세요',
               imagePickLabel: '이미지 더 추가',
               imageStatusText: '2장 선택됨 (최대 10)'
             }),

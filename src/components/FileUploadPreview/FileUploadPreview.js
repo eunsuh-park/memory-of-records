@@ -34,13 +34,15 @@ export function renderPicker(config = {}) {
   } = config;
 
   return `
-    <label class="upload-pick">
-      <span ${labelAttr}>${escapeHtml(pickLabel)}</span>
-      <input type="file" ${attr('name', name)}${accept ? ` accept="${escapeHtml(accept)}"` : ''}${
-        multiple ? ' multiple' : ''
-      } hidden />
-    </label>
-    <span class="upload-pick__status" ${statusAttr}>${escapeHtml(statusText)}</span>`;
+    <div class="upload-pick-row">
+      <label class="upload-pick">
+        <span ${labelAttr}>${escapeHtml(pickLabel)}</span>
+        <input type="file" ${attr('name', name)}${accept ? ` accept="${escapeHtml(accept)}"` : ''}${
+          multiple ? ' multiple' : ''
+        } hidden />
+      </label>
+      <span class="upload-pick__status" ${statusAttr}>${escapeHtml(statusText)}</span>
+    </div>`;
 }
 
 function itemActionButton({ action, id, label, icon, extraClass = '', disabled = false }) {
@@ -57,20 +59,24 @@ function itemActionButton({ action, id, label, icon, extraClass = '', disabled =
   });
 }
 
-function coverCheckHtml(name, checked, label) {
+function coverBadgeHtml(name, checked, label) {
   return `
-    <label class="form-check upload-item__cover-check">
+    <label class="upload-item__cover">
       <input type="checkbox" name="${escapeHtml(name)}" ${checked ? 'checked' : ''} />
-      <span>${escapeHtml(label)}</span>
+      <span class="upload-item__cover-badge">
+        ${MINGCUTE.checkLine}
+        <span>${escapeHtml(label)}</span>
+      </span>
     </label>`;
 }
 
 /**
  * 미리보기 항목들
- * @param {Array<{ id: string, dataUrl: string, label?: string }>} items
+ * @param {Array<{ id: string, dataUrl: string, label?: string, pageNumber?: number }>} items
  * @param {{
  *   startPage?: number,
  *   emptyText?: string,
+ *   showActions?: boolean,
  *   coverChecks?: {
  *     showFirst?: boolean,
  *     showLast?: boolean,
@@ -84,6 +90,7 @@ export function renderList(items = [], config = {}) {
   const {
     startPage = 1,
     emptyText = '선택된 페이지가 없습니다. 이미지를 선택하면 미리보기가 표시됩니다.',
+    showActions = true,
     coverChecks = null
   } = config;
 
@@ -101,22 +108,15 @@ export function renderList(items = [], config = {}) {
     .map((item, index) => {
       const isFirst = index === 0;
       const isLast = index === items.length - 1;
+      const pageNumber = Number.isFinite(Number(item.pageNumber))
+        ? Number(item.pageNumber)
+        : startPage + index;
       const coverHtml = [
-        isFirst && showFirst
-          ? coverCheckHtml('firstPageIsCover', firstChecked, '표지')
-          : '',
-        isLast && showLast
-          ? coverCheckHtml('lastPageIsCover', lastChecked, '표지')
-          : ''
+        isFirst && showFirst ? coverBadgeHtml('firstPageIsCover', firstChecked, '표지') : '',
+        isLast && showLast ? coverBadgeHtml('lastPageIsCover', lastChecked, '표지') : ''
       ].join('');
-
-      return `
-      <li class="upload-item${coverHtml ? ' upload-item--cover-check' : ''}" data-id="${escapeHtml(item.id)}">
-        <div class="upload-item__num">page-${String(startPage + index).padStart(6, '0')}</div>
-        <img src="${escapeHtml(item.dataUrl)}" alt="" />
-        <div class="upload-item__meta">
-          <span class="upload-item__label">${escapeHtml(item.label || `${index + 1}`)}</span>
-          <div class="upload-item__actions">
+      const actionsHtml = showActions
+        ? `<div class="upload-item__actions">
             ${itemActionButton({
               action: 'up',
               id: item.id,
@@ -140,9 +140,17 @@ export function renderList(items = [], config = {}) {
               icon: MINGCUTE.closeLine,
               extraClass: 'upload-item__btn--danger'
             })}
-          </div>
+          </div>`
+        : '';
+
+      return `
+      <li class="upload-item${coverHtml ? ' upload-item--cover' : ''}" data-id="${escapeHtml(item.id)}">
+        <div class="upload-item__frame">
           ${coverHtml}
+          <img src="${escapeHtml(item.dataUrl)}" alt="" />
+          <span class="upload-item__page">${escapeHtml(`${pageNumber}p`)}</span>
         </div>
+        ${actionsHtml}
       </li>`;
     })
     .join('');

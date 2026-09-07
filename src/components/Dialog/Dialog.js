@@ -8,6 +8,7 @@
 import { render as renderButton } from '../Button/Button.js';
 import { render as renderDim } from '../Dim/Dim.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
+import { escapeHtml } from '../../utils/html.js';
 import './Dialog.css';
 
 /**
@@ -16,6 +17,8 @@ import './Dialog.css';
  * @param {Object} config
  * @param {string} [config.title] - 헤더 제목. 없으면 헤더를 그리지 않음
  * @param {string} [config.titleId] - aria-labelledby로 연결할 id
+ * @param {string} [config.subtitle] - 제목 아래 보조 문구(이스케이프)
+ * @param {string} [config.subtitleHtml] - 제목 아래 보조 문구(이미 이스케이프된 HTML)
  * @param {string} [config.bodyHtml=''] - 본문 슬롯 HTML
  * @param {string} [config.className] - 오버레이 추가 클래스 (모달별 구분·스타일 오버라이드)
  * @param {string} [config.panelClassName] - 패널 추가 클래스 (너비 등)
@@ -27,6 +30,8 @@ export function render(config = {}) {
   const {
     title = '',
     titleId = '',
+    subtitle = '',
+    subtitleHtml = '',
     bodyHtml = '',
     className = '',
     panelClassName = '',
@@ -35,6 +40,7 @@ export function render(config = {}) {
   } = config;
 
   const labelled = titleId ? ` aria-labelledby="${titleId}"` : '';
+  const subtitleMarkup = subtitleHtml || (subtitle ? escapeHtml(subtitle) : '');
 
   return `
     <div class="${['dialog', className].filter(Boolean).join(' ')}" role="dialog" aria-modal="true"${labelled}>
@@ -56,7 +62,10 @@ export function render(config = {}) {
         ${
           title
             ? `<header class="dialog__header">
-          <h2 class="dialog__title"${titleId ? ` id="${titleId}"` : ''}>${title}</h2>
+          <div class="dialog__heading">
+            <h2 class="dialog__title"${titleId ? ` id="${titleId}"` : ''}>${escapeHtml(title)}</h2>
+            ${subtitleMarkup ? `<p class="dialog__subtitle">${subtitleMarkup}</p>` : ''}
+          </div>
         </header>`
             : ''
         }

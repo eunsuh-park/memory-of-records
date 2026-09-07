@@ -202,7 +202,7 @@ export async function openDeleteNoteDialog(options = {}) {
     bodyHtml: `
       <p class="note-delete-name">${noteName}</p>
       <p class="note-delete-text" id="note-delete-title">이 노트를 정말 삭제할까요?</p>
-      <div class="dialog-actions">
+      <div class="dialog-actions dialog-actions--stack">
         ${renderButton({
           shape: 'text',
           block: true,

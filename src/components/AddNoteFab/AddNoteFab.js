@@ -102,7 +102,7 @@ function openViewCreatedNoteDialog(options = {}) {
     panelClassName: 'dialog__panel--narrow',
     showClose: false,
     bodyHtml: `
-      <div class="dialog-actions">
+      <div class="dialog-actions dialog-actions--stack">
         ${renderButton({
           shape: 'text',
           block: true,
@@ -220,7 +220,8 @@ export async function openAddNoteModal(options = {}) {
       label,
       required: required && !isEdit,
       className: 'add-note-cover-field',
-      hint: isEdit ? '' : `${Math.floor(MAX_COVER_BYTES / (1024 * 1024))}MB 이하 이미지`,
+      hint: isEdit ? '' : `${Math.floor(MAX_COVER_BYTES / (1024 * 1024))}MB 이하`,
+      hintInline: !isEdit,
       children: `
         ${picker}
         <div class="add-note-preview" data-preview="${kind}" aria-hidden="true">
@@ -346,7 +347,7 @@ export async function openAddNoteModal(options = {}) {
         </div>
         </div>
 
-        <p class="form-status add-note-status" hidden></p>
+        <p class="form-status form-status--footer add-note-status" hidden></p>
 
         <div class="add-note-nav is-step-1">
           ${renderButton({

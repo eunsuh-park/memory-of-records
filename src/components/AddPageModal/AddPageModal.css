@@ -10,18 +10,7 @@
 .add-page-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-}
-
-.add-page-note-name {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-
-.add-page-note-name strong {
-  color: var(--color-text);
-  font-weight: var(--font-semibold);
+  gap: var(--space-4);
 }
 
 .add-page-hint {
@@ -45,7 +34,7 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-bg);
   font-size: var(--text-sm);
   color: var(--color-text);
   cursor: pointer;
@@ -63,7 +52,7 @@
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-bg);
   font-size: var(--text-sm);
   color: var(--color-text);
   cursor: pointer;
@@ -114,14 +103,7 @@
 }
 
 .add-page-footer {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: var(--space-2);
-  margin-top: 0;
-}
-
-.add-page-footer .btn--solid {
-  margin-top: 0;
+  margin-top: var(--space-2);
 }
 
 .add-page-submit,
@@ -237,9 +219,9 @@
 /* [hidden] 무력화 방지: 위 .page-meta-ocr-actions와 동일한 이유 */
 .page-meta-actions:not([hidden]) {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-2);
-  margin-top: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .page-meta-actions .btn--solid,
@@ -274,11 +256,6 @@
 
 @media (max-width: 640px) {
   .add-page-source-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .add-page-footer,
-  .page-meta-actions {
     grid-template-columns: 1fr;
   }
 }

@@ -120,5 +120,9 @@ export const MINGCUTE = {
 
   /** 노트 공유 링크 복사 (정보 패널) · mingcute:share-2-fill */
   share2Fill:
-    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M15 5.5a3.5 3.5 0 1 1 1.136 2.581l-4.401 2.308c.172.505.265 1.047.265 1.611c0 .563-.093 1.105-.265 1.61l4.402 2.308a3.5 3.5 0 1 1-1.03 1.719l-4.384-2.299a5 5 0 1 1 0-6.677l4.384-2.298A3.5 3.5 0 0 1 15 5.5' clip-rule='evenodd'/></svg>"
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M15 5.5a3.5 3.5 0 1 1 1.136 2.581l-4.401 2.308c.172.505.265 1.047.265 1.611c0 .563-.093 1.105-.265 1.61l4.402 2.308a3.5 3.5 0 1 1-1.03 1.719l-4.384-2.299a5 5 0 1 1 0-6.677l4.384-2.298A3.5 3.5 0 0 1 15 5.5' clip-rule='evenodd'/></svg>",
+
+  /** 페이지 미리보기 표지 배지 · mingcute:check-line */
+  checkLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m3.514 11.83l5.657 5.656L20.485 6.172'/></svg>"
 };

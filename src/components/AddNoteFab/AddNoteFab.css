@@ -87,8 +87,9 @@
 
 .add-note-nav {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .add-note-nav.is-step-1 {
@@ -120,6 +121,11 @@
 
 .add-note-cover-field {
   gap: var(--space-1);
+}
+
+.add-note-cover-field .upload-pick-row {
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .add-note-preview {
