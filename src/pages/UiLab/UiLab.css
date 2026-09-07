@@ -166,6 +166,35 @@
   flex-shrink: 0;
 }
 
+/* Dialog는 fixed 전체 화면이라 Lab에서는 스테이지 안에 가둔다 */
+.ui-lab__demo-stage--dialog {
+  display: block;
+  padding: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.ui-lab__demo-stage--dialog .dialog {
+  position: relative;
+  inset: auto;
+  z-index: 0;
+  min-height: 32rem;
+  padding: var(--space-8) var(--space-5);
+}
+
+.ui-lab__demo-stage--dialog .add-page-confirm-dialog {
+  min-height: 16rem;
+}
+
+.ui-lab__demo-stage--dialog .upload-pick,
+.ui-lab__demo-stage--dialog .dialog__close,
+.ui-lab__demo-stage--dialog [data-source],
+.ui-lab__demo-stage--dialog [data-action],
+.ui-lab__demo-stage--dialog [data-choice] {
+  pointer-events: none;
+}
+
 /* fixed·absolute로 배치되는 role을 Lab에서는 한 줄로 눕혀 보여준다 */
 .ui-lab__demo-stage--flow .btn--fab,
 .ui-lab__demo-stage--flow .btn--back,

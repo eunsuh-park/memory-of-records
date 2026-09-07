@@ -17,7 +17,10 @@ import { renderViewerChrome } from '../../components/NoteImageViewer/ViewerChrom
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { openUploadResultDialog } from '../../components/Dialog/uploadResultDialog.js';
-import { renderList as renderUploadList } from '../../components/FileUploadPreview/FileUploadPreview.js';
+import {
+  renderAddPageModal,
+  renderAddPagesConfirm
+} from '../../components/AddPageModal/AddPageModal.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import {
@@ -31,6 +34,12 @@ import '../../components/NoteInfoPanel/NoteInfoPanel.css';
 import '../../components/NoteImageViewer/NoteImageViewer.css';
 import '../../components/FileUploadPreview/FileUploadPreview.css';
 import './UiLab.css';
+
+const LAB_ADD_PAGE_NOTE = '03_2024-25_카툰연습장';
+const LAB_ADD_PAGE_PAGES = [
+  { id: 'lab-add-page-1', dataUrl: bookmarksCoverFront, label: 'cover-front.jpg' },
+  { id: 'lab-add-page-2', dataUrl: bookmarksCoverBack, label: 'cover-back.jpg' }
+];
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const STEPS_6 = [1, 2, 3, 4, 5, 6];
@@ -1083,7 +1092,7 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
             생성 시 폼 입력으로 public_id를 배정한 뒤 Cloudinary 폴더명으로 쓰고 Notion DB에도 기록합니다.
-            실제 Cloudinary·Notion 호출이 있으므로 Lab에서는 진입 경로만 안내합니다.
+            아래 AddPageModal은 실제 업로드 없이, 폼을 임시 데이터로 채운 정적 데모입니다.
           </p>
           <p class="ui-lab__files">
             참조:
@@ -1101,21 +1110,69 @@ export function renderUiLab() {
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
           ${renderVariantRow(
-            '페이지 미리보기 · 첫/마지막 장 표지 체크',
-            `<ul class="upload-list">${renderUploadList(
-              [
-                { id: 'lab-first', dataUrl: bookmarksCoverFront, label: '첫 장' },
-                { id: 'lab-last', dataUrl: bookmarksCoverBack, label: '마지막 장' }
+            'AddPageModal · 소스 선택',
+            renderAddPageModal({
+              titleId: 'lab-add-page-pick',
+              className: 'dialog--inline',
+              step: 'pick',
+              noteName: LAB_ADD_PAGE_NOTE,
+              existingCount: 12
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddPageModal · PDF 폼 (파일·미리보기·체크 채움)',
+            renderAddPageModal({
+              titleId: 'lab-add-page-pdf',
+              className: 'dialog--inline',
+              step: 'pdf',
+              noteName: LAB_ADD_PAGE_NOTE,
+              existingCount: 12,
+              appendToEnd: true,
+              allPagesPrivate: true,
+              pages: [
+                { id: 'lab-add-page-pdf-1', dataUrl: bookmarksCoverFront, label: 'p.1 (첫 장)' },
+                { id: 'lab-add-page-pdf-2', dataUrl: bookmarksCoverBack, label: 'p.24 (마지막 장)' }
               ],
-              {
-                coverChecks: {
-                  showFirst: true,
-                  showLast: true,
-                  firstChecked: true,
-                  lastChecked: false
-                }
-              }
-            )}</ul>`
+              startPage: 13,
+              showLastCoverCheck: true,
+              lastPageIsCover: false,
+              uploadDisabled: false,
+              status: '24페이지 변환 완료 · 첫 장과 마지막 장 미리보기',
+              pdfStatusText: 'cartoon-practice.pdf'
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddPageModal · 이미지 폼 (파일·미리보기·체크 채움)',
+            renderAddPageModal({
+              titleId: 'lab-add-page-images',
+              className: 'dialog--inline',
+              step: 'images',
+              noteName: LAB_ADD_PAGE_NOTE,
+              existingCount: 0,
+              allPagesPrivate: true,
+              pages: LAB_ADD_PAGE_PAGES,
+              startPage: 1,
+              showFirstCoverCheck: true,
+              showLastCoverCheck: true,
+              firstPageIsCover: true,
+              lastPageIsCover: false,
+              uploadDisabled: false,
+              status: '2장 선택됨 · 순서 조정 후 「이 순서로 업로드」를 누르세요',
+              imagePickLabel: '이미지 더 추가',
+              imageStatusText: '2장 선택됨 (최대 10)'
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddPageModal · 페이지 추가 확인',
+            renderAddPagesConfirm({
+              titleId: 'lab-add-page-confirm',
+              className: 'dialog--inline',
+              noteName: LAB_ADD_PAGE_NOTE
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
           ${renderVariantRow(
             '업로드 결과 Dialog — 성공 / 일부만 저장 / 실패(표지만 됨)',

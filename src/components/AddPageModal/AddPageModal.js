@@ -5,7 +5,7 @@
  */
 
 import { render as renderButton } from '../Button/Button.js';
-import { open as openDialog } from '../Dialog/Dialog.js';
+import { open as openDialog, render as renderDialog } from '../Dialog/Dialog.js';
 import {
   openUploadResultDialog,
   shortUploadError
@@ -92,6 +92,247 @@ function describePageUploadFailure(info) {
 }
 
 /**
+ * 페이지 추가 모달 본문. openAddPageModal과 /ui-lab 정적 데모가 같은 마크업을 쓴다.
+ *
+ * @param {{
+ *   step?: 'pick'|'pdf'|'images',
+ *   noteName?: string,
+ *   existingCount?: number,
+ *   insertAfterPage?: number|null,
+ *   needsShift?: boolean,
+ *   pages?: { id: string, dataUrl: string, label?: string }[],
+ *   startPage?: number,
+ *   appendToEnd?: boolean,
+ *   allPagesPrivate?: boolean,
+ *   firstPageIsCover?: boolean,
+ *   lastPageIsCover?: boolean,
+ *   showFirstCoverCheck?: boolean,
+ *   showLastCoverCheck?: boolean,
+ *   uploadDisabled?: boolean,
+ *   status?: string,
+ *   statusError?: boolean,
+ *   pdfStatusText?: string,
+ *   imagePickLabel?: string,
+ *   imageStatusText?: string
+ * }} [options]
+ * @returns {string}
+ */
+export function renderAddPageBody(options = {}) {
+  const {
+    step = 'pick',
+    noteName = '',
+    existingCount = 0,
+    insertAfterPage = null,
+    needsShift = false,
+    pages = [],
+    startPage = 1,
+    appendToEnd = true,
+    allPagesPrivate = false,
+    firstPageIsCover = true,
+    lastPageIsCover = true,
+    showFirstCoverCheck = false,
+    showLastCoverCheck = false,
+    uploadDisabled = true,
+    status = '',
+    statusError = false,
+    pdfStatusText = '선택된 파일 없음',
+    imagePickLabel = '이미지 선택',
+    imageStatusText = '아직 선택된 이미지 없음'
+  } = options;
+
+  const statusClass = ['form-status', 'add-page-status', statusError ? 'form-status--error' : '']
+    .filter(Boolean)
+    .join(' ');
+  const statusHtml = `<p class="${statusClass}" role="status">${escapeHtml(status)}</p>`;
+  const coverHint =
+    showFirstCoverCheck || showLastCoverCheck
+      ? `<p class="add-page-cover-hint">첫·마지막 장이 표지가 아니면, 노트에 올린 표지 이미지가 뷰어의 첫/마지막 페이지로 들어갑니다.</p>`
+      : '';
+  const previewList = `<ul class="upload-list">${renderUploadList(pages, {
+    startPage,
+    coverChecks:
+      pages.length && (showFirstCoverCheck || showLastCoverCheck)
+        ? {
+            showFirst: showFirstCoverCheck,
+            showLast: showLastCoverCheck,
+            firstChecked: firstPageIsCover,
+            lastChecked: lastPageIsCover
+          }
+        : null
+  })}</ul>`;
+  const footer = `
+    <div class="add-page-footer">
+      ${renderButton({
+        shape: 'text',
+        block: true,
+        content: '뒤로',
+        className: 'add-page-secondary',
+        dataset: { action: 'back' }
+      })}
+      ${renderButton({
+        shape: 'solid',
+        content: '이 순서로 업로드',
+        className: 'add-page-submit',
+        dataset: { action: 'upload' },
+        disabled: uploadDisabled
+      })}
+    </div>`;
+  const privateCheck = `
+    <label class="form-check add-page-private-check">
+      <input type="checkbox" name="allPagesPrivate" ${allPagesPrivate ? 'checked' : ''} />
+      <span>모든 페이지를 비공개로 설정</span>
+    </label>`;
+
+  if (step === 'pick') {
+    return `
+      <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
+      <p class="add-page-hint">PDF 또는 이미지를 선택하세요.${
+        insertAfterPage != null && needsShift
+          ? ` (현재 ${existingCount}장 · ${insertAfterPage}페이지 다음에 삽입)`
+          : existingCount
+            ? ` (현재 ${existingCount}장 · 이어서 추가)`
+            : ''
+      }</p>
+      <div class="add-page-source-grid">
+        ${renderButton({
+          shape: 'text',
+          className: 'add-page-source-btn',
+          dataset: { source: 'pdf' },
+          content: `<span class="add-page-source-title">PDF</span><span class="add-page-source-desc">자동으로 JPEG로 변환해 업로드</span>`
+        })}
+        ${renderButton({
+          shape: 'text',
+          className: 'add-page-source-btn',
+          dataset: { source: 'images' },
+          content: `<span class="add-page-source-title">이미지</span><span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>`
+        })}
+      </div>
+      ${statusHtml}`;
+  }
+
+  if (step === 'pdf') {
+    return `
+      <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
+      ${renderField({
+        type: 'custom',
+        label: 'PDF 파일',
+        required: true,
+        hint: `권장 ${Math.floor(MAX_PDF_BYTES / (1024 * 1024))}MB 이하 · 페이지별로 자동 변환됩니다`,
+        children: renderFilePicker({
+          name: 'pdfFile',
+          pickLabel: 'PDF 선택',
+          accept: 'application/pdf,.pdf',
+          statusText: pdfStatusText,
+          statusAttr: 'data-pdf-name'
+        })
+      })}
+      ${
+        existingCount > 0
+          ? `<label class="form-check add-page-append-check">
+              <input type="checkbox" name="appendToEnd" ${appendToEnd ? 'checked' : ''} />
+              <span>이 페이지들을 제일 뒤에 붙이기</span>
+            </label>`
+          : ''
+      }
+      ${privateCheck}
+      ${previewList}
+      ${coverHint}
+      ${statusHtml}
+      ${footer}`;
+  }
+
+  return `
+    <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
+    <p class="add-page-hint">이미지를 고른 뒤 미리보기에서 순서·삭제를 조정하고, 필요할 때 더 추가한 다음 업로드하세요.${
+      existingCount
+        ? ` (현재 ${existingCount}장 · ${existingCount + 1}번부터 이어붙임)`
+        : ' (1번부터 순서대로 업로드)'
+    }</p>
+    ${renderField({
+      type: 'custom',
+      label: `이미지 파일`,
+      required: true,
+      hint: `최대 ${MAX_IMAGE_COUNT}장 · 장당 ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB 이하`,
+      children: renderFilePicker({
+        name: 'imageFiles',
+        pickLabel: imagePickLabel,
+        accept: 'image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif',
+        multiple: true,
+        statusText: imageStatusText,
+        labelAttr: 'data-image-pick-label',
+        statusAttr: 'data-image-name'
+      })
+    })}
+    ${privateCheck}
+    ${previewList}
+    ${coverHint}
+    ${statusHtml}
+    ${footer}`;
+}
+
+/**
+ * Dialog 껍데기까지 포함한 페이지 추가 모달 마크업.
+ *
+ * @param {Parameters<typeof renderAddPageBody>[0] & { titleId?: string, className?: string }} [options]
+ * @returns {string}
+ */
+export function renderAddPageModal(options = {}) {
+  return renderDialog({
+    title: '페이지 추가',
+    titleId: options.titleId || 'add-page-title',
+    className: ['add-page-dialog', options.className].filter(Boolean).join(' '),
+    panelClassName: 'add-page-panel',
+    bodyHtml: `<div class="add-page-body">${renderAddPageBody(options)}</div>`
+  });
+}
+
+/**
+ * 「페이지를 추가할까요?」 확인 모달 본문.
+ *
+ * @param {{ noteName?: string }} [options]
+ * @returns {string}
+ */
+export function renderAddPagesConfirmBody(options = {}) {
+  const noteName = String(options.noteName || '').trim();
+  return `
+    <p class="add-page-confirm-text">
+      ${noteName ? `<strong>${escapeHtml(noteName)}</strong> 노트에 ` : ''}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.
+    </p>
+    <div class="dialog-actions">
+      ${renderButton({
+        shape: 'text',
+        block: true,
+        content: '나중에',
+        className: 'add-page-secondary',
+        dataset: { choice: 'later' }
+      })}
+      ${renderButton({
+        shape: 'solid',
+        content: '확인',
+        className: 'add-page-confirm-ok',
+        dataset: { choice: 'confirm' }
+      })}
+    </div>`;
+}
+
+/**
+ * 「페이지를 추가할까요?」 확인 모달 전체 마크업.
+ *
+ * @param {{ noteName?: string, titleId?: string }} [options]
+ * @returns {string}
+ */
+export function renderAddPagesConfirm(options = {}) {
+  return renderDialog({
+    title: '페이지를 추가할까요?',
+    titleId: options.titleId || 'add-page-confirm-title',
+    className: ['add-page-confirm-dialog', options.className].filter(Boolean).join(' '),
+    panelClassName: 'dialog__panel--narrow',
+    showClose: false,
+    bodyHtml: renderAddPagesConfirmBody(options)
+  });
+}
+
+/**
  * @param {{
  *   note: { id?: string, title?: string, name?: string, publicId?: string, pageCount?: number },
  *   insertAfterPage?: number,
@@ -101,7 +342,7 @@ function describePageUploadFailure(info) {
  * }} [options]
  */
 export async function openAddPageModal(options = {}) {
-  if (document.querySelector('.add-page-dialog')) {
+  if (document.body.querySelector(':scope > .add-page-dialog')) {
     options.onSettled?.();
     return;
   }
@@ -209,142 +450,22 @@ export async function openAddPageModal(options = {}) {
   function renderBody() {
     const body = overlay.querySelector('.add-page-body');
     if (!body) return;
-
-    if (step === 'pick') {
-      body.innerHTML = `
-        <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
-        <p class="add-page-hint">PDF 또는 이미지를 선택하세요.${
-          insertAfterPage != null && needsShift
-            ? ` (현재 ${existingCount}장 · ${insertAfterPage}페이지 다음에 삽입)`
-            : existingCount
-              ? ` (현재 ${existingCount}장 · 이어서 추가)`
-              : ''
-        }</p>
-        <div class="add-page-source-grid">
-          ${renderButton({
-            shape: 'text',
-            className: 'add-page-source-btn',
-            dataset: { source: 'pdf' },
-            content: `<span class="add-page-source-title">PDF</span><span class="add-page-source-desc">자동으로 JPEG로 변환해 업로드</span>`
-          })}
-          ${renderButton({
-            shape: 'text',
-            className: 'add-page-source-btn',
-            dataset: { source: 'images' },
-            content: `<span class="add-page-source-title">이미지</span><span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>`
-          })}
-        </div>
-        <p class="form-status add-page-status" role="status"></p>
-      `;
-      return;
-    }
-
-    if (step === 'pdf') {
-      body.innerHTML = `
-        <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
-        ${renderField({
-          type: 'custom',
-          label: 'PDF 파일',
-          required: true,
-          hint: `권장 ${Math.floor(MAX_PDF_BYTES / (1024 * 1024))}MB 이하 · 페이지별로 자동 변환됩니다`,
-          children: renderFilePicker({
-            name: 'pdfFile',
-            pickLabel: 'PDF 선택',
-            accept: 'application/pdf,.pdf',
-            statusAttr: 'data-pdf-name'
-          })
-        })}
-        ${
-          existingCount > 0
-            ? `<label class="form-check add-page-append-check">
-                <input type="checkbox" name="appendToEnd" ${appendToEnd ? 'checked' : ''} />
-                <span>이 페이지들을 제일 뒤에 붙이기</span>
-              </label>`
-            : ''
-        }
-        <label class="form-check add-page-private-check">
-          <input type="checkbox" name="allPagesPrivate" ${allPagesPrivate ? 'checked' : ''} />
-          <span>모든 페이지를 비공개로 설정</span>
-        </label>
-        <ul class="upload-list"></ul>
-        ${
-          showFirstCoverCheck || showLastCoverCheck
-            ? `<p class="add-page-cover-hint">첫·마지막 장이 표지가 아니면, 노트에 올린 표지 이미지가 뷰어의 첫/마지막 페이지로 들어갑니다.</p>`
-            : ''
-        }
-        <p class="form-status add-page-status" role="status"></p>
-        <div class="add-page-footer">
-          ${renderButton({
-            shape: 'text',
-            block: true,
-            content: '뒤로',
-            className: 'add-page-secondary',
-            dataset: { action: 'back' }
-          })}
-          ${renderButton({
-            shape: 'solid',
-            content: '이 순서로 업로드',
-            className: 'add-page-submit',
-            dataset: { action: 'upload' },
-            disabled: true
-          })}
-        </div>
-      `;
-      renderPreviewList();
-      return;
-    }
-
-    body.innerHTML = `
-      <p class="add-page-note-name">노트: <strong>${escapeHtml(noteName)}</strong></p>
-      <p class="add-page-hint">이미지를 고른 뒤 미리보기에서 순서·삭제를 조정하고, 필요할 때 더 추가한 다음 업로드하세요.${
-        existingCount
-          ? ` (현재 ${existingCount}장 · ${existingCount + 1}번부터 이어붙임)`
-          : ' (1번부터 순서대로 업로드)'
-      }</p>
-      ${renderField({
-        type: 'custom',
-        label: `이미지 파일`,
-        required: true,
-        hint: `최대 ${MAX_IMAGE_COUNT}장 · 장당 ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB 이하`,
-        children: renderFilePicker({
-          name: 'imageFiles',
-          pickLabel: '이미지 선택',
-          accept: 'image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif',
-          multiple: true,
-          statusText: '아직 선택된 이미지 없음',
-          labelAttr: 'data-image-pick-label',
-          statusAttr: 'data-image-name'
-        })
-      })}
-      <label class="form-check add-page-private-check">
-        <input type="checkbox" name="allPagesPrivate" ${allPagesPrivate ? 'checked' : ''} />
-        <span>모든 페이지를 비공개로 설정</span>
-      </label>
-      <ul class="upload-list"></ul>
-      ${
-        showFirstCoverCheck || showLastCoverCheck
-          ? `<p class="add-page-cover-hint">첫·마지막 장이 표지가 아니면, 노트에 올린 표지 이미지가 뷰어의 첫/마지막 페이지로 들어갑니다.</p>`
-          : ''
-      }
-      <p class="form-status add-page-status" role="status"></p>
-      <div class="add-page-footer">
-        ${renderButton({
-          shape: 'text',
-          block: true,
-          content: '뒤로',
-          className: 'add-page-secondary',
-          dataset: { action: 'back' }
-        })}
-        ${renderButton({
-          shape: 'solid',
-          content: '이 순서로 업로드',
-          className: 'add-page-submit',
-          dataset: { action: 'upload' },
-          disabled: true
-        })}
-      </div>
-    `;
-    renderPreviewList();
+    body.innerHTML = renderAddPageBody({
+      step,
+      noteName,
+      existingCount,
+      insertAfterPage,
+      needsShift,
+      pages,
+      startPage,
+      appendToEnd,
+      allPagesPrivate,
+      firstPageIsCover,
+      lastPageIsCover,
+      showFirstCoverCheck,
+      showLastCoverCheck,
+      uploadDisabled: pages.length === 0 || busy
+    });
   }
 
   function updateUploadEnabled() {
@@ -686,7 +807,7 @@ export async function openAddPageModal(options = {}) {
  * }} options
  */
 export function openAddPagesConfirmDialog(options = {}) {
-  if (document.querySelector('.add-page-confirm-dialog')) {
+  if (document.body.querySelector(':scope > .add-page-confirm-dialog')) {
     options.onCancel?.();
     return;
   }
@@ -701,25 +822,7 @@ export function openAddPagesConfirmDialog(options = {}) {
     className: 'add-page-confirm-dialog',
     panelClassName: 'dialog__panel--narrow',
     showClose: false,
-    bodyHtml: `
-      <p class="add-page-confirm-text">
-        ${noteName ? `<strong>${escapeHtml(noteName)}</strong> 노트에 ` : ''}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.
-      </p>
-      <div class="dialog-actions">
-        ${renderButton({
-          shape: 'text',
-          block: true,
-          content: '나중에',
-          className: 'add-page-secondary',
-          dataset: { choice: 'later' }
-        })}
-        ${renderButton({
-          shape: 'solid',
-          content: '확인',
-          className: 'add-page-confirm-ok',
-          dataset: { choice: 'confirm' }
-        })}
-      </div>`,
+    bodyHtml: renderAddPagesConfirmBody({ noteName }),
     onClose: () => {
       if (confirmed) options.onConfirm?.();
       else options.onCancel?.();
