@@ -188,7 +188,8 @@
   max-height: none;
 }
 
-.ui-lab__demo-stage--dialog .add-page-confirm-dialog {
+.ui-lab__demo-stage--dialog .add-page-confirm-dialog,
+.ui-lab__demo-stage--dialog .add-note-view-dialog {
   min-height: 16rem;
 }
 
@@ -196,7 +197,8 @@
 .ui-lab__demo-stage--dialog .dialog__close,
 .ui-lab__demo-stage--dialog [data-source],
 .ui-lab__demo-stage--dialog [data-action],
-.ui-lab__demo-stage--dialog [data-choice] {
+.ui-lab__demo-stage--dialog [data-choice],
+.ui-lab__demo-stage--dialog .add-note-submit {
   pointer-events: none;
 }
 

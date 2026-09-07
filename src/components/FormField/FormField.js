@@ -72,7 +72,8 @@ export function renderColorSwatches(colors = [], config = {}) {
  * @param {string} [config.value]
  * @param {boolean} [config.required] - 라벨 옆 * 표시 + required 속성
  * @param {string} [config.placeholder]
- * @param {string} [config.hint] - 입력요소 아래 작은 설명
+ * @param {string} [config.hint] - 라벨 옆(inline) 또는 입력 아래 작은 설명
+ * @param {boolean} [config.hintInline=false] - true면 힌트를 라벨과 같은 줄에 둔다
  * @param {string} [config.className] - 필드 래퍼 추가 클래스
  * @param {string} [config.inputClassName] - 입력요소 추가 클래스
  * @param {boolean} [config.disabled]
@@ -97,6 +98,7 @@ export function render(config = {}) {
     required = false,
     placeholder = '',
     hint = '',
+    hintInline = false,
     className = '',
     inputClassName = '',
     disabled = false,
@@ -113,12 +115,16 @@ export function render(config = {}) {
   } = config;
 
   const wrapperClass = ['field', className].filter(Boolean).join(' ');
-  const labelHtml = label
-    ? `<span class="field__label">${escapeHtml(label)}${
-        required ? ' <em class="field__req">*</em>' : ''
-      }</span>`
+  const labelInner = label
+    ? `${escapeHtml(label)}${required ? ' <em class="field__req">*</em>' : ''}`
     : '';
   const hintHtml = hint ? `<span class="field__hint">${escapeHtml(hint)}</span>` : '';
+  const headHtml = label
+    ? `<div class="field__head"><span class="field__label">${labelInner}</span>${
+        hintInline ? hintHtml : ''
+      }</div>`
+    : '';
+  const belowHintHtml = hintInline ? '' : hintHtml;
 
   if (type === 'colorRadioGroup') {
     return `
@@ -134,9 +140,9 @@ export function render(config = {}) {
   if (type === 'custom') {
     return `
       <div class="${wrapperClass}">
-        ${labelHtml}
+        ${headHtml}
         ${children}
-        ${hintHtml}
+        ${belowHintHtml}
       </div>`;
   }
 
@@ -179,27 +185,27 @@ export function render(config = {}) {
 
   /* date/time류: <label for>로 연결한 형제 구조 (캘린더 재오픈 버그 방지) */
   if (isNativePicker) {
-    const nativeLabelHtml = label
-      ? `<label class="field__label" for="${fieldId}">${escapeHtml(label)}${
-          required ? ' <em class="field__req">*</em>' : ''
-        }</label>`
+    const nativeHead = label
+      ? `<div class="field__head"><label class="field__label" for="${fieldId}">${labelInner}</label>${
+          hintInline ? hintHtml : ''
+        }</div>`
       : '';
     return `
       <div class="${wrapperClass}">
-        ${nativeLabelHtml}
+        ${nativeHead}
         ${control}
         ${extra}
-        ${hintHtml}
+        ${belowHintHtml}
       </div>`;
   }
 
   /* select/textarea/그 외 input은 label로 감싸 클릭 시 포커스가 옮겨가게 한다 */
   return `
     <label class="${wrapperClass}">
-      ${labelHtml}
+      ${headHtml}
       ${control}
       ${extra}
-      ${hintHtml}
+      ${belowHintHtml}
     </label>`;
 }
 

@@ -24,24 +24,23 @@ body.dialog-open {
 }
 
 /*
- * 닫기 버튼은 패널이 아니라 딤 위에 얹힌다(기존 add-note-close와 같은 위치).
- * 딤은 라이트 모드에서도 어두우므로 색은 테마를 따르지 않고 크롬 토큰을 쓴다.
+ * 닫기 버튼은 패널 안 우상단. 패널 텍스트 색을 따라 라이트/다크가 맞는다.
  */
 .dialog__close {
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
   z-index: 2;
-  color: var(--color-chrome-on);
+  color: var(--color-text);
 }
 
 .dialog__close:focus-visible {
-  background: var(--color-chrome-on-hover);
+  background: var(--color-surface-hover);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .dialog__close:hover {
-    background: var(--color-chrome-on-hover);
+  .dialog__panel .dialog__close.btn--ghost:hover {
+    background: var(--color-surface-hover);
   }
 }
 
@@ -55,39 +54,72 @@ body.dialog-open {
   background: var(--color-bg-alt);
   color: var(--color-text);
   box-shadow: var(--shadow-lg);
-  padding: var(--space-5) var(--space-5) var(--space-6);
+  padding: var(--space-6);
 }
 
 .dialog__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  padding-right: var(--space-8);
+}
+
+.dialog__heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .dialog__title {
   margin: 0;
-  font-size: var(--text-md);
+  font-size: var(--text-xl); /* 24px — 모달 헤드 타이틀 */
+  font-weight: var(--font-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.dialog__subtitle {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  word-break: break-word;
+}
+
+.dialog__subtitle strong {
+  color: var(--color-text);
   font-weight: var(--font-semibold);
-  letter-spacing: -0.01em;
 }
 
 .dialog__body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+}
+
+.dialog__body > .form {
+  gap: var(--space-4);
 }
 
 .dialog__panel--narrow {
   width: min(420px, 100%);
 }
 
+/*
+ * 푸터 액션: 보조(text block) 위 · 주요(solid) 아래, 둘 다 전체 너비.
+ * --stack / --one 은 같은 1열. --one 은 버튼이 하나일 때 의미만 구분한다.
+ */
 .dialog-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
+.dialog-actions--stack,
 .dialog-actions--one {
   grid-template-columns: 1fr;
 }
@@ -100,11 +132,7 @@ body.dialog-open {
 
 @media (max-width: 640px) {
   .dialog__panel {
-    padding: var(--space-4);
-  }
-
-  .dialog-actions {
-    grid-template-columns: 1fr;
+    padding: var(--space-5);
   }
 }
 

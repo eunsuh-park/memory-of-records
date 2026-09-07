@@ -34,6 +34,11 @@
   color: var(--color-error-text);
 }
 
+/* 푸터 버튼 바로 위 상태 문구 — 모달 공통 */
+.form-status--footer {
+  text-align: center;
+}
+
 .form-check {
   display: inline-flex;
   align-items: flex-start;
@@ -64,6 +69,13 @@
   flex-direction: column;
   gap: var(--space-1);
   min-width: 0;
+}
+
+.field__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
 }
 
 .field__label {

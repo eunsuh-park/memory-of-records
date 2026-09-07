@@ -21,6 +21,10 @@ import {
   renderAddPageModal,
   renderAddPagesConfirm
 } from '../../components/AddPageModal/AddPageModal.js';
+import {
+  renderAddNoteModal,
+  renderAddNoteViewConfirm
+} from '../../components/AddNoteFab/AddNoteFab.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import {
@@ -36,10 +40,33 @@ import '../../components/FileUploadPreview/FileUploadPreview.css';
 import './UiLab.css';
 
 const LAB_ADD_PAGE_NOTE = '03_2024-25_카툰연습장';
-const LAB_ADD_PAGE_PAGES = [
-  { id: 'lab-add-page-1', dataUrl: bookmarksCoverFront, label: 'cover-front.jpg' },
-  { id: 'lab-add-page-2', dataUrl: bookmarksCoverBack, label: 'cover-back.jpg' }
-];
+const LAB_ADD_NOTE_SEED = {
+  name: LAB_ADD_PAGE_NOTE,
+  notebookType: '스케치북',
+  periodName: 'After School',
+  color: '노랑',
+  size: 'A5',
+  periodStart: '2024-03-01',
+  periodEnd: '',
+  stillInUse: true,
+  notes: '카툰 연습용. 표지부터 뒷장까지 한 권으로 이어 그린다.',
+  isKept: true,
+  visible: true
+};
+
+function renderLabAddNoteModal(overrides = {}) {
+  return renderAddNoteModal({
+    className: 'dialog--inline',
+    mode: 'create',
+    seed: LAB_ADD_NOTE_SEED,
+    coverFrontPreviewUrl: bookmarksCoverFront,
+    coverBackPreviewUrl: bookmarksCoverBack,
+    coverFrontStatus: 'cover-front.jpg',
+    coverBackStatus: 'cover-back.jpg',
+    nextDisabled: false,
+    ...overrides
+  });
+}
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const STEPS_6 = [1, 2, 3, 4, 5, 6];
@@ -240,15 +267,27 @@ const RESPONSIVE_MATRIX = [
     ]
   },
   {
-    name: 'AddPageModal · PageMetaModal',
-    files: 'src/components/AddPageModal/AddPageModal.js · PageMetaModal.js · AddPageModal.css',
+    name: 'Confirm',
+    files: 'src/components/Confirm/Confirm.js · Confirm.css',
     points: '640px',
-    mobile: ['≤640px 소스 선택·푸터·확인 액션이 모두 1열 세로 스택'],
+    mobile: ['좁은 패널 min(420px, 100%) · 설명문 + 보조/주요 액션 1열 스택'],
     tablet: ['데스크톱과 동일'],
     desktop: [
-      '패널 min(560px, 100%)',
-      '소스 선택 2열 · 푸터 1fr 1.4fr · 액션 2열',
-      '미리보기 auto-fill minmax(110px, 1fr)'
+      'Dialog 껍데기(패널 안 우상단 X) + confirm-message + (선택 슬롯) + 나중에/확인',
+      '페이지 추가 소스 선택은 액션 없이 설명 + PDF/이미지 카드만',
+      '추가한 노트 확인은 취소/확인'
+    ]
+  },
+  {
+    name: 'AddPageModal · PageMetaModal',
+    files: 'src/components/AddPageModal/AddPageModal.js · PageMetaModal.js · AddPageModal.css · Confirm.js',
+    points: '640px',
+    mobile: ['≤640px 소스 카드·푸터·확인 액션이 모두 1열 세로 스택'],
+    tablet: ['데스크톱과 동일'],
+    desktop: [
+      '패널 min(560px, 100%) · 닫기 X는 패널 안 우상단',
+      '소스 선택은 Confirm 레이아웃(설명문 + PDF/이미지 2열 카드)',
+      'PDF·이미지 공통 폼 · 파일명 옆 변환중/완료 칩 · 미리보기 첫·마지막 2장'
     ]
   },
   {
@@ -1092,7 +1131,7 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
             생성 시 폼 입력으로 public_id를 배정한 뒤 Cloudinary 폴더명으로 쓰고 Notion DB에도 기록합니다.
-            아래 AddPageModal은 실제 업로드 없이, 폼을 임시 데이터로 채운 정적 데모입니다.
+            아래 AddNoteFab·AddPageModal은 실제 업로드 없이, 폼을 임시 데이터로 채운 정적 데모입니다.
           </p>
           <p class="ui-lab__files">
             참조:
@@ -1101,72 +1140,102 @@ export function renderUiLab() {
             <code>src/components/AddPageModal/AddPageModal.js</code>,
             <code>src/components/AddPageModal/AddPageModal.css</code>,
             <code>src/components/AddPageModal/PageMetaModal.js</code>,
+            <code>src/components/Confirm/Confirm.js</code>,
             <code>src/components/FileUploadPreview/FileUploadPreview.js</code>
           </p>
           <ul class="ui-lab__list">
-            <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
-            <li>페이지 추가: 뷰어 하단 시트의 + 버튼 · PDF/이미지 미리보기에서 첫·마지막 장이 표지인지 체크</li>
+            <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」 · 추가 후 Confirm(취소/확인)</li>
+            <li>모달 공통: <code>dialog__title</code> 24px(<code>--text-xl</code>) · 푸터 위 상태는 가운데 · 액션은 보조 위·주요 아래 1열</li>
+            <li>페이지 추가: 소스 선택은 Confirm 레이아웃(설명 + PDF/이미지) · 폼은 PDF/이미지 공통 · 파일명 옆 변환 칩</li>
             <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
+          ${renderVariantRow(
+            'AddNoteFab · 표지 (이름·파일·미리보기·크기·색상 채움)',
+            renderLabAddNoteModal({
+              titleId: 'lab-add-note-cover',
+              idPrefix: 'lab-add-note-1',
+              step: 1
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddNoteFab · 사용 정보 (종류·시기·날짜·체크 채움)',
+            renderLabAddNoteModal({
+              titleId: 'lab-add-note-usage',
+              idPrefix: 'lab-add-note-2',
+              step: 2
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddNoteFab · 메모',
+            renderLabAddNoteModal({
+              titleId: 'lab-add-note-notes',
+              idPrefix: 'lab-add-note-3',
+              step: 3
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddNoteFab · 추가한 노트 확인',
+            renderAddNoteViewConfirm({
+              titleId: 'lab-add-note-view',
+              className: 'dialog--inline'
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
           ${renderVariantRow(
             'AddPageModal · 소스 선택',
             renderAddPageModal({
               titleId: 'lab-add-page-pick',
               className: 'dialog--inline',
-              step: 'pick',
-              noteName: LAB_ADD_PAGE_NOTE,
-              existingCount: 12
+              step: 'pick'
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
           ${renderVariantRow(
-            'AddPageModal · PDF 폼 (파일·미리보기·체크 채움)',
+            'AddPageModal · 파일 폼 (변환중)',
+            renderAddPageModal({
+              titleId: 'lab-add-page-converting',
+              className: 'dialog--inline',
+              step: 'form',
+              source: 'pdf',
+              fileName: '책 2026년 6월 4일.pdf',
+              fileSize: '10.2MB',
+              fileChip: 'converting',
+              uploadDisabled: true
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddPageModal · 파일 폼 (완료·미리보기)',
             renderAddPageModal({
               titleId: 'lab-add-page-pdf',
               className: 'dialog--inline',
-              step: 'pdf',
-              noteName: LAB_ADD_PAGE_NOTE,
-              existingCount: 12,
-              appendToEnd: true,
-              allPagesPrivate: true,
-              pages: [
-                { id: 'lab-add-page-pdf-1', dataUrl: bookmarksCoverFront, label: 'p.1 (첫 장)' },
-                { id: 'lab-add-page-pdf-2', dataUrl: bookmarksCoverBack, label: 'p.24 (마지막 장)' }
-              ],
-              startPage: 13,
-              showLastCoverCheck: true,
-              lastPageIsCover: false,
-              uploadDisabled: false,
-              status: '24페이지 변환 완료 · 첫 장과 마지막 장 미리보기',
-              pdfStatusText: 'cartoon-practice.pdf'
-            }),
-            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
-          )}
-          ${renderVariantRow(
-            'AddPageModal · 이미지 폼 (파일·미리보기·체크 채움)',
-            renderAddPageModal({
-              titleId: 'lab-add-page-images',
-              className: 'dialog--inline',
-              step: 'images',
-              noteName: LAB_ADD_PAGE_NOTE,
+              step: 'form',
+              source: 'pdf',
               existingCount: 0,
               allPagesPrivate: true,
-              pages: LAB_ADD_PAGE_PAGES,
+              pages: [
+                { id: 'lab-add-page-pdf-1', dataUrl: bookmarksCoverFront, pageNumber: 1 },
+                { id: 'lab-add-page-pdf-2', dataUrl: bookmarksCoverBack, pageNumber: 11 }
+              ],
               startPage: 1,
               showFirstCoverCheck: true,
               showLastCoverCheck: true,
               firstPageIsCover: true,
               lastPageIsCover: false,
               uploadDisabled: false,
-              status: '2장 선택됨 · 순서 조정 후 「이 순서로 업로드」를 누르세요',
-              imagePickLabel: '이미지 더 추가',
-              imageStatusText: '2장 선택됨 (최대 10)'
+              uploadCount: 11,
+              fileName: '책 2026년 6월 4일.pdf',
+              fileSize: '10.2MB',
+              fileChip: 'done'
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
           ${renderVariantRow(
-            'AddPageModal · 페이지 추가 확인',
+            'Confirm · 페이지 추가 확인',
             renderAddPagesConfirm({
               titleId: 'lab-add-page-confirm',
               className: 'dialog--inline',
@@ -1286,6 +1355,10 @@ export function renderUiLab() {
       message: '표지는 저장됐지만 본문 페이지는 올리지 못했습니다.',
       detail: '이미지 저장에 실패했습니다.'
     });
+  });
+
+  root.querySelectorAll('.ui-lab__demo-stage--dialog .add-note-form').forEach((form) => {
+    form.addEventListener('submit', (e) => e.preventDefault());
   });
 
   /* 정적 데모라 실제 페이지 수가 없으니 표시용 값만 채운다 */
