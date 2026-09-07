@@ -1,11 +1,16 @@
 /**
  * 페이지 추가 모달
  * - PDF → JPEG 변환 후 notebooks/{public_id}/pages 에 업로드
- * - 이미지 1~10장 (순서 변경·삭제)
+ * - 이미지도 같은 폼에서 변환·미리보기
  */
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog, render as renderDialog } from '../Dialog/Dialog.js';
+import {
+  render as renderConfirm,
+  renderBody as renderConfirmBody,
+  open as openConfirm
+} from '../Confirm/Confirm.js';
 import {
   openUploadResultDialog,
   shortUploadError
@@ -13,7 +18,8 @@ import {
 import { render as renderField, setStatus as setFormStatus } from '../FormField/FormField.js';
 import {
   renderPicker as renderFilePicker,
-  renderList as renderUploadList
+  renderList as renderUploadList,
+  setPickerMeta
 } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
 import {
@@ -23,9 +29,7 @@ import {
 import {
   convertImageDataUrlToJpeg,
   convertPdfFileToJpegDataUrls,
-  MAX_IMAGE_BYTES,
   MAX_IMAGE_COUNT,
-  MAX_PDF_BYTES,
   readFileAsDataUrl,
   shiftPagesAfter,
   uploadPageImage,
@@ -91,11 +95,6 @@ function describePageUploadFailure(info) {
   };
 }
 
-function noteSubtitleHtml(noteName) {
-  const name = String(noteName || '').trim();
-  return name ? `노트: <strong>${escapeHtml(name)}</strong>` : '';
-}
-
 function uploadActionLabel(count) {
   const n = Math.max(0, Math.floor(Number(count) || 0));
   return n ? `${n}페이지 추가하기` : '페이지 추가하기';
@@ -111,20 +110,31 @@ function formatFileSize(bytes) {
   return `${n}B`;
 }
 
-function fileStatusText(file) {
-  if (!file) return '선택된 파일 없음';
-  const name = String(file.name || '파일').trim() || '파일';
-  return `${name} ${formatFileSize(file.size)}`;
+function sourceOptionsHtml() {
+  return `
+    <div class="add-page-source-grid">
+      ${renderButton({
+        shape: 'text',
+        className: 'add-page-source-btn',
+        dataset: { source: 'pdf' },
+        content: `<span class="add-page-source-title">PDF</span><span class="add-page-source-desc">자동으로 JPEG로 변환해 업로드</span>`
+      })}
+      ${renderButton({
+        shape: 'text',
+        className: 'add-page-source-btn',
+        dataset: { source: 'images' },
+        content: `<span class="add-page-source-title">이미지</span><span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>`
+      })}
+    </div>`;
 }
 
 /**
  * 페이지 추가 모달 본문. openAddPageModal과 /ui-lab 정적 데모가 같은 마크업을 쓴다.
  *
  * @param {{
- *   step?: 'pick'|'pdf'|'images',
+ *   step?: 'pick'|'form',
+ *   source?: 'pdf'|'images',
  *   existingCount?: number,
- *   insertAfterPage?: number|null,
- *   needsShift?: boolean,
  *   pages?: { id: string, dataUrl: string, label?: string, pageNumber?: number }[],
  *   startPage?: number,
  *   appendToEnd?: boolean,
@@ -137,18 +147,17 @@ function fileStatusText(file) {
  *   uploadCount?: number,
  *   status?: string,
  *   statusError?: boolean,
- *   pdfStatusText?: string,
- *   imagePickLabel?: string,
- *   imageStatusText?: string
+ *   fileName?: string,
+ *   fileSize?: string,
+ *   fileChip?: ''|'converting'|'done'
  * }} [options]
  * @returns {string}
  */
 export function renderAddPageBody(options = {}) {
   const {
     step = 'pick',
+    source = 'pdf',
     existingCount = 0,
-    insertAfterPage = null,
-    needsShift = false,
     pages = [],
     startPage = 1,
     appendToEnd = true,
@@ -161,11 +170,20 @@ export function renderAddPageBody(options = {}) {
     uploadCount = 0,
     status = '',
     statusError = false,
-    pdfStatusText = '선택된 파일 없음',
-    imagePickLabel = '이미지 선택',
-    imageStatusText = '아직 선택된 이미지 없음'
+    fileName = '',
+    fileSize = '',
+    fileChip = ''
   } = options;
 
+  if (step === 'pick') {
+    return renderConfirmBody({
+      message: '추가할 파일 유형을 선택하세요.',
+      showActions: false,
+      bodyHtml: sourceOptionsHtml()
+    });
+  }
+
+  const isImages = source === 'images';
   const statusClass = [
     'form-status',
     'form-status--footer',
@@ -188,7 +206,7 @@ export function renderAddPageBody(options = {}) {
     pages.length
       ? renderUploadList(pages, {
           startPage,
-          showActions: step === 'images',
+          showActions: false,
           coverChecks:
             showFirstCoverCheck || showLastCoverCheck
               ? {
@@ -231,79 +249,27 @@ export function renderAddPageBody(options = {}) {
         </label>`
       : '';
 
-  if (step === 'pick') {
-    return `
-      <p class="add-page-hint">PDF 또는 이미지를 선택하세요.${
-        insertAfterPage != null && needsShift
-          ? ` (현재 ${existingCount}장 · ${insertAfterPage}페이지 다음에 삽입)`
-          : existingCount
-            ? ` (현재 ${existingCount}장 · 이어서 추가)`
-            : ''
-      }</p>
-      <div class="add-page-source-grid">
-        ${renderButton({
-          shape: 'text',
-          className: 'add-page-source-btn',
-          dataset: { source: 'pdf' },
-          content: `<span class="add-page-source-title">PDF</span><span class="add-page-source-desc">자동으로 JPEG로 변환해 업로드</span>`
-        })}
-        ${renderButton({
-          shape: 'text',
-          className: 'add-page-source-btn',
-          dataset: { source: 'images' },
-          content: `<span class="add-page-source-title">이미지</span><span class="add-page-source-desc">PNG, JPEG, JPG, GIF · 1~${MAX_IMAGE_COUNT}장</span>`
-        })}
-      </div>
-      ${statusHtml}`;
-  }
-
-  if (step === 'pdf') {
-    return `
-      ${renderField({
-        type: 'custom',
-        label: 'PDF 파일',
-        required: true,
-        hint: `권장 ${Math.floor(MAX_PDF_BYTES / (1024 * 1024))}MB 이하`,
-        hintInline: true,
-        children: renderFilePicker({
-          name: 'pdfFile',
-          pickLabel: '파일 선택',
-          accept: 'application/pdf,.pdf',
-          statusText: pdfStatusText,
-          statusAttr: 'data-pdf-name'
-        })
-      })}
-      ${previewList}
-      ${appendCheck}
-      ${privateCheck}
-      ${coverHint}
-      ${statusHtml}
-      ${footer}`;
-  }
-
   return `
-    <p class="add-page-hint">이미지를 고른 뒤 미리보기에서 순서·삭제를 조정하고, 필요할 때 더 추가한 다음 업로드하세요.${
-      existingCount
-        ? ` (현재 ${existingCount}장 · ${existingCount + 1}번부터 이어붙임)`
-        : ' (1번부터 순서대로 업로드)'
-    }</p>
     ${renderField({
       type: 'custom',
-      label: `이미지 파일`,
+      label: isImages ? '이미지 파일' : 'PDF 파일',
       required: true,
-      hint: `최대 ${MAX_IMAGE_COUNT}장 · 장당 ${Math.floor(MAX_IMAGE_BYTES / (1024 * 1024))}MB 이하`,
+      hint: '50mb 이하',
       hintInline: true,
       children: renderFilePicker({
-        name: 'imageFiles',
-        pickLabel: imagePickLabel,
-        accept: 'image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif',
-        multiple: true,
-        statusText: imageStatusText,
-        labelAttr: 'data-image-pick-label',
-        statusAttr: 'data-image-name'
+        name: 'pageFile',
+        pickLabel: '파일 선택',
+        accept: isImages
+          ? 'image/png,image/jpeg,image/jpg,image/gif,.png,.jpg,.jpeg,.gif'
+          : 'application/pdf,.pdf',
+        multiple: isImages,
+        fileName,
+        fileSize,
+        fileChip
       })
     })}
     ${previewList}
+    ${appendCheck}
     ${privateCheck}
     ${coverHint}
     ${statusHtml}
@@ -317,10 +283,21 @@ export function renderAddPageBody(options = {}) {
  * @returns {string}
  */
 export function renderAddPageModal(options = {}) {
+  const step = options.step || 'pick';
+  if (step === 'pick') {
+    return renderConfirm({
+      title: '페이지 추가',
+      titleId: options.titleId || 'add-page-title',
+      className: ['add-page-dialog', options.className].filter(Boolean).join(' '),
+      panelClassName: 'add-page-panel',
+      showActions: false,
+      message: '추가할 파일 유형을 선택하세요.',
+      bodyHtml: sourceOptionsHtml()
+    });
+  }
   return renderDialog({
     title: '페이지 추가',
     titleId: options.titleId || 'add-page-title',
-    subtitleHtml: noteSubtitleHtml(options.noteName),
     className: ['add-page-dialog', options.className].filter(Boolean).join(' '),
     panelClassName: 'add-page-panel',
     bodyHtml: `<div class="add-page-body">${renderAddPageBody(options)}</div>`
@@ -335,41 +312,30 @@ export function renderAddPageModal(options = {}) {
  */
 export function renderAddPagesConfirmBody(options = {}) {
   const noteName = String(options.noteName || '').trim();
-  return `
-    <p class="add-page-confirm-text">
-      ${noteName ? `<strong>${escapeHtml(noteName)}</strong> 노트에 ` : ''}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.
-    </p>
-    <div class="dialog-actions dialog-actions--stack">
-      ${renderButton({
-        shape: 'text',
-        block: true,
-        content: '나중에',
-        className: 'add-page-secondary',
-        dataset: { choice: 'later' }
-      })}
-      ${renderButton({
-        shape: 'solid',
-        content: '확인',
-        className: 'add-page-confirm-ok',
-        dataset: { choice: 'confirm' }
-      })}
-    </div>`;
+  const nameBit = noteName
+    ? `<strong>${escapeHtml(noteName)}</strong> 노트에 `
+    : '';
+  return renderConfirmBody({
+    messageHtml: `${nameBit}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.`
+  });
 }
 
 /**
  * 「페이지를 추가할까요?」 확인 모달 전체 마크업.
  *
- * @param {{ noteName?: string, titleId?: string }} [options]
+ * @param {{ noteName?: string, titleId?: string, className?: string }} [options]
  * @returns {string}
  */
 export function renderAddPagesConfirm(options = {}) {
-  return renderDialog({
+  const noteName = String(options.noteName || '').trim();
+  const nameBit = noteName
+    ? `<strong>${escapeHtml(noteName)}</strong> 노트에 `
+    : '';
+  return renderConfirm({
     title: '페이지를 추가할까요?',
     titleId: options.titleId || 'add-page-confirm-title',
     className: ['add-page-confirm-dialog', options.className].filter(Boolean).join(' '),
-    panelClassName: 'dialog__panel--narrow',
-    showClose: false,
-    bodyHtml: renderAddPagesConfirmBody(options)
+    messageHtml: `${nameBit}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.`
   });
 }
 
@@ -427,14 +393,18 @@ export async function openAddPageModal(options = {}) {
   const startPage = insertAfterPage != null ? insertAfterPage + 1 : existingCount + 1;
   const needsShift = insertAfterPage != null && insertAfterPage < existingCount;
 
-  /** @type {'pick'|'pdf'|'images'} */
+  /** @type {'pick'|'form'} */
   let step = 'pick';
-  /** @type {{ id: string, dataUrl: string, label: string }[]} */
+  /** @type {'pdf'|'images'} */
+  let source = 'pdf';
+  /** @type {{ id: string, dataUrl: string, label?: string, pageNumber?: number }[]} */
   let pages = [];
-  /** PDF 전체 페이지 수 (첫/마지막만 미리보기로 보여줄 때) */
-  let totalPdfPages = 0;
-  /** PDF 전체 페이지 dataUrl (업로드용) */
+  /** PDF/이미지 전체 페이지 dataUrl (업로드용). PDF는 전 장, 미리보기는 첫·마지막만 */
   let allPdfPages = [];
+  let selectedFileName = '';
+  let selectedFileSize = '';
+  /** @type {''|'converting'|'done'} */
+  let fileChip = '';
   let busy = false;
   let uploadStarted = false;
   let settled = false;
@@ -456,7 +426,6 @@ export async function openAddPageModal(options = {}) {
   const dialog = openDialog({
     title: '페이지 추가',
     titleId: 'add-page-title',
-    subtitleHtml: noteSubtitleHtml(noteName),
     className: 'add-page-dialog',
     panelClassName: 'add-page-panel',
     canClose: () => !busy,
@@ -469,11 +438,42 @@ export async function openAddPageModal(options = {}) {
   const closeModal = dialog.close;
 
   function setStatus(message, isError = false) {
-    setFormStatus(overlay.querySelector('.add-page-status'), message, isError);
+    setFormStatus(overlay.querySelector('.add-page-status'), isError ? message : '', isError);
+  }
+
+  function syncFileRow() {
+    setPickerMeta(overlay, {
+      fileName: selectedFileName,
+      fileSize: selectedFileSize,
+      chip: fileChip
+    });
+    const clearBtn = overlay.querySelector('[data-action="clear-file"]');
+    if (clearBtn) clearBtn.disabled = busy;
   }
 
   function previewCount() {
     return allPdfPages.length || pages.length;
+  }
+
+  function formBodyOptions() {
+    return {
+      step,
+      source,
+      existingCount,
+      pages,
+      startPage,
+      appendToEnd,
+      allPagesPrivate,
+      firstPageIsCover,
+      lastPageIsCover,
+      showFirstCoverCheck,
+      showLastCoverCheck,
+      uploadDisabled: pages.length === 0 || busy,
+      uploadCount: previewCount(),
+      fileName: selectedFileName,
+      fileSize: selectedFileSize,
+      fileChip
+    };
   }
 
   function renderPreviewList() {
@@ -483,7 +483,7 @@ export async function openAddPageModal(options = {}) {
     list.classList.toggle('upload-list--pair', pages.length === 2);
     list.innerHTML = renderUploadList(pages, {
       startPage,
-      showActions: step === 'images',
+      showActions: false,
       coverChecks:
         pages.length && (showFirstCoverCheck || showLastCoverCheck)
           ? {
@@ -499,22 +499,7 @@ export async function openAddPageModal(options = {}) {
   function renderBody() {
     const body = overlay.querySelector('.add-page-body');
     if (!body) return;
-    body.innerHTML = renderAddPageBody({
-      step,
-      existingCount,
-      insertAfterPage,
-      needsShift,
-      pages,
-      startPage,
-      appendToEnd,
-      allPagesPrivate,
-      firstPageIsCover,
-      lastPageIsCover,
-      showFirstCoverCheck,
-      showLastCoverCheck,
-      uploadDisabled: pages.length === 0 || busy,
-      uploadCount: previewCount()
-    });
+    body.innerHTML = renderAddPageBody(formBodyOptions());
   }
 
   function updateUploadEnabled() {
@@ -524,66 +509,45 @@ export async function openAddPageModal(options = {}) {
     btn.textContent = uploadActionLabel(previewCount());
   }
 
-  function movePage(id, direction) {
-    const index = pages.findIndex((p) => p.id === id);
-    if (index < 0) return;
-    const next = index + direction;
-    if (next < 0 || next >= pages.length) return;
-    const tmp = pages[index];
-    pages[index] = pages[next];
-    pages[next] = tmp;
+  function resetSelectedFile() {
+    pages = [];
+    allPdfPages = [];
+    selectedFileName = '';
+    selectedFileSize = '';
+    fileChip = '';
+    const input = overlay.querySelector('input[name="pageFile"]');
+    if (input) input.value = '';
     renderPreviewList();
-  }
-
-  function syncImagePickerLabel() {
-    const label = overlay.querySelector('[data-image-pick-label]');
-    const nameEl = overlay.querySelector('[data-image-name]');
-    if (label) label.textContent = pages.length ? '이미지 더 추가' : '이미지 선택';
-    if (nameEl) {
-      nameEl.textContent = pages.length
-        ? `${pages.length}장 선택됨 (최대 ${MAX_IMAGE_COUNT})`
-        : '아직 선택된 이미지 없음';
-    }
-  }
-
-  function removePage(id) {
-    pages = pages.filter((p) => p.id !== id);
-    renderPreviewList();
-    syncImagePickerLabel();
+    syncFileRow();
     updateUploadEnabled();
-    setStatus(pages.length ? `${pages.length}장 선택됨` : '');
+    setStatus('');
   }
 
   async function handlePdfSelected(file) {
     if (!file) return;
-    const nameEl = overlay.querySelector('[data-pdf-name]');
-    if (nameEl) nameEl.textContent = fileStatusText(file);
+    selectedFileName = String(file.name || 'PDF').trim() || 'PDF';
+    selectedFileSize = formatFileSize(file.size);
+    fileChip = 'converting';
+    syncFileRow();
 
     const validated = validatePdfFile(file);
     if (!validated.ok) {
       setStatus(validated.message, true);
-      const input = overlay.querySelector('input[name="pdfFile"]');
-      if (input) input.value = '';
-      if (nameEl) nameEl.textContent = '선택된 파일 없음';
+      resetSelectedFile();
       return;
     }
 
-    setStatus('PDF를 이미지로 변환하는 중…');
+    setStatus('');
     busy = true;
     updateUploadEnabled();
+    syncFileRow();
     try {
-      const dataUrls = await convertPdfFileToJpegDataUrls(file, {
-        onProgress: (done, total) => setStatus(`PDF 변환 중… ${done}/${total}`)
-      });
-      totalPdfPages = dataUrls.length;
-      allPdfPages = dataUrls;
-      
-      if (totalPdfPages === 0) {
+      const dataUrls = await convertPdfFileToJpegDataUrls(file);
+      if (dataUrls.length === 0) {
         throw new Error('PDF에 페이지가 없습니다');
       }
-      
-      // 첫 장과 마지막 장만 미리보기로 표시
-      if (totalPdfPages === 1) {
+      allPdfPages = dataUrls;
+      if (dataUrls.length === 1) {
         pages = [{
           id: `pdf-${Date.now()}-0`,
           dataUrl: dataUrls[0],
@@ -597,62 +561,74 @@ export async function openAddPageModal(options = {}) {
             pageNumber: 1
           },
           {
-            id: `pdf-${Date.now()}-${totalPdfPages - 1}`,
-            dataUrl: dataUrls[totalPdfPages - 1],
-            pageNumber: totalPdfPages
+            id: `pdf-${Date.now()}-${dataUrls.length - 1}`,
+            dataUrl: dataUrls[dataUrls.length - 1],
+            pageNumber: dataUrls.length
           }
         ];
       }
-      
+      fileChip = 'done';
       renderPreviewList();
-      setStatus(
-        totalPdfPages === 1
-          ? '1페이지 변환 완료'
-          : `${totalPdfPages}페이지 변환 완료 · 첫 장과 마지막 장 미리보기`
-      );
+      syncFileRow();
     } catch (err) {
       console.error('[AddPage] PDF convert', err);
-      pages = [];
-      totalPdfPages = 0;
-      allPdfPages = [];
-      renderPreviewList();
+      resetSelectedFile();
       setStatus(err?.message || 'PDF 변환에 실패했습니다', true);
     } finally {
       busy = false;
       updateUploadEnabled();
+      syncFileRow();
     }
   }
 
   async function handleImagesSelected(fileList) {
-    const remaining = MAX_IMAGE_COUNT - pages.length;
-    const validated = validateImageFiles(fileList, { maxAdditional: remaining });
+    const validated = validateImageFiles(fileList, { maxAdditional: MAX_IMAGE_COUNT });
     if (!validated.ok) {
       setStatus(validated.message, true);
+      const input = overlay.querySelector('input[name="pageFile"]');
+      if (input) input.value = '';
       return;
     }
-    setStatus('이미지를 읽는 중…');
+    const files = validated.files;
+    selectedFileName =
+      files.length === 1
+        ? String(files[0].name || '이미지').trim() || '이미지'
+        : `${files.length}장 선택됨`;
+    selectedFileSize = files.length === 1 ? formatFileSize(files[0].size) : '';
+    fileChip = 'converting';
+    syncFileRow();
+    setStatus('');
     busy = true;
     updateUploadEnabled();
     try {
-      const dataUrls = await Promise.all(validated.files.map((f) => readFileAsDataUrl(f)));
+      const dataUrls = await Promise.all(files.map((f) => readFileAsDataUrl(f)));
       const jpegUrls = await Promise.all(dataUrls.map((url) => convertImageDataUrlToJpeg(url)));
       const stamp = Date.now();
-      const added = jpegUrls.map((dataUrl, i) => ({
-        id: `img-${stamp}-${pages.length + i}`,
-        dataUrl,
-        label: validated.files[i]?.name || `${pages.length + i + 1}`
-      }));
-      pages = [...pages, ...added];
+      allPdfPages = jpegUrls;
+      if (jpegUrls.length === 1) {
+        pages = [{ id: `img-${stamp}-0`, dataUrl: jpegUrls[0], pageNumber: 1 }];
+      } else {
+        pages = [
+          { id: `img-${stamp}-0`, dataUrl: jpegUrls[0], pageNumber: 1 },
+          {
+            id: `img-${stamp}-${jpegUrls.length - 1}`,
+            dataUrl: jpegUrls[jpegUrls.length - 1],
+            pageNumber: jpegUrls.length
+          }
+        ];
+      }
+      fileChip = 'done';
       renderPreviewList();
-      syncImagePickerLabel();
-      setStatus(`${pages.length}장 선택됨 · 순서 조정 후 추가하세요`);
+      syncFileRow();
     } catch (err) {
       console.error('[AddPage] image read', err);
+      resetSelectedFile();
       setStatus(err?.message || '이미지를 읽지 못했습니다', true);
     } finally {
       busy = false;
       updateUploadEnabled();
-      const input = overlay.querySelector('input[name="imageFiles"]');
+      syncFileRow();
+      const input = overlay.querySelector('input[name="pageFile"]');
       if (input) input.value = '';
     }
   }
@@ -799,9 +775,9 @@ export async function openAddPageModal(options = {}) {
   overlay.addEventListener('click', (e) => {
     const sourceBtn = e.target?.closest?.('[data-source]');
     if (sourceBtn) {
-      const source = sourceBtn.getAttribute('data-source');
-      step = source === 'pdf' ? 'pdf' : 'images';
-      pages = [];
+      source = sourceBtn.getAttribute('data-source') === 'pdf' ? 'pdf' : 'images';
+      step = 'form';
+      resetSelectedFile();
       renderBody();
       return;
     }
@@ -809,23 +785,22 @@ export async function openAddPageModal(options = {}) {
     const actionBtn = e.target?.closest?.('[data-action]');
     if (!actionBtn) return;
     const action = actionBtn.getAttribute('data-action');
-    const id = actionBtn.getAttribute('data-id');
 
     if (action === 'back') {
+      if (busy) return;
       step = 'pick';
-      pages = [];
-      totalPdfPages = 0;
-      allPdfPages = [];
+      resetSelectedFile();
       renderBody();
+      return;
+    }
+    if (action === 'clear-file') {
+      if (busy) return;
+      resetSelectedFile();
       return;
     }
     if (action === 'upload') {
       handleUpload();
-      return;
     }
-    if (action === 'up' && id) movePage(id, -1);
-    if (action === 'down' && id) movePage(id, 1);
-    if (action === 'remove' && id) removePage(id);
   });
 
   overlay.addEventListener('change', (e) => {
@@ -839,10 +814,9 @@ export async function openAddPageModal(options = {}) {
       return;
     }
     if (input.type !== 'file') return;
-    if (input.name === 'pdfFile') {
-      handlePdfSelected(input.files?.[0] || null);
-    } else if (input.name === 'imageFiles') {
-      handleImagesSelected(input.files);
+    if (input.name === 'pageFile') {
+      if (source === 'pdf') handlePdfSelected(input.files?.[0] || null);
+      else handleImagesSelected(input.files);
     }
   });
 
@@ -864,26 +838,14 @@ export function openAddPagesConfirmDialog(options = {}) {
   }
 
   const noteName = String(options.note?.title || options.note?.name || '').trim();
-  /* 닫기 경로(딤·ESC)와 「나중에」를 구분하지 않고 취소로 취급 */
-  let confirmed = false;
+  const nameBit = noteName ? `<strong>${escapeHtml(noteName)}</strong> 노트에 ` : '';
 
-  const dialog = openDialog({
+  openConfirm({
     title: '페이지를 추가할까요?',
     titleId: 'add-page-confirm-title',
     className: 'add-page-confirm-dialog',
-    panelClassName: 'dialog__panel--narrow',
-    showClose: false,
-    bodyHtml: renderAddPagesConfirmBody({ noteName }),
-    onClose: () => {
-      if (confirmed) options.onConfirm?.();
-      else options.onCancel?.();
-    }
-  });
-
-  dialog.overlay.addEventListener('click', (e) => {
-    const btn = e.target?.closest?.('[data-choice]');
-    if (!btn) return;
-    confirmed = btn.getAttribute('data-choice') === 'confirm';
-    dialog.close();
+    messageHtml: `${nameBit}본문 페이지(PDF/이미지)를 지금 추가할 수 있습니다.`,
+    onConfirm: () => options.onConfirm?.(),
+    onCancel: () => options.onCancel?.()
   });
 }

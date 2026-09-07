@@ -24,24 +24,23 @@ body.dialog-open {
 }
 
 /*
- * 닫기 버튼은 패널이 아니라 딤 위에 얹힌다(기존 add-note-close와 같은 위치).
- * 딤은 라이트 모드에서도 어두우므로 색은 테마를 따르지 않고 크롬 토큰을 쓴다.
+ * 닫기 버튼은 패널 안 우상단. 패널 텍스트 색을 따라 라이트/다크가 맞는다.
  */
 .dialog__close {
   position: absolute;
   top: var(--space-3);
   right: var(--space-3);
   z-index: 2;
-  color: var(--color-chrome-on);
+  color: var(--color-text);
 }
 
 .dialog__close:focus-visible {
-  background: var(--color-chrome-on-hover);
+  background: var(--color-surface-hover);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .dialog__close:hover {
-    background: var(--color-chrome-on-hover);
+  .dialog__panel .dialog__close.btn--ghost:hover {
+    background: var(--color-surface-hover);
   }
 }
 
@@ -63,6 +62,7 @@ body.dialog-open {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--space-5);
+  padding-right: var(--space-8);
 }
 
 .dialog__heading {

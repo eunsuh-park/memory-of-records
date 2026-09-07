@@ -1,7 +1,7 @@
 /**
- * Dialog — 모달 껍데기 (Dim + panel + header + 닫기 버튼 + 본문 슬롯)
+ * Dialog — 모달 껍데기 (Dim + panel + header + 패널 안 닫기 버튼 + 본문 슬롯)
  *
- * 노트 추가/수정, 페이지 추가, 페이지 추가 확인, 페이지 정보 모달이 모두 이 구조를 쓴다.
+ * 노트 추가/수정, 페이지 추가, 확인(Confirm), 페이지 정보 모달이 모두 이 구조를 쓴다.
  * 패널 너비·애니메이션처럼 모달마다 다른 부분은 className/panelClassName으로 덮는다.
  */
 
@@ -45,20 +45,20 @@ export function render(config = {}) {
   return `
     <div class="${['dialog', className].filter(Boolean).join(' ')}" role="dialog" aria-modal="true"${labelled}>
       ${renderDim({ tone: dimTone, className: 'dialog__dim' })}
-      ${
-        showClose
-          ? renderButton({
-              shape: 'circle',
-              size: 's',
-              role: 'close',
-              tone: 'ghost',
-              ariaLabel: '닫기',
-              content: MINGCUTE.closeLine,
-              className: 'dialog__close'
-            })
-          : ''
-      }
       <div class="dialog__panel${panelClassName ? ` ${panelClassName}` : ''}">
+        ${
+          showClose
+            ? renderButton({
+                shape: 'circle',
+                size: 's',
+                role: 'close',
+                tone: 'ghost',
+                ariaLabel: '닫기',
+                content: MINGCUTE.closeLine,
+                className: 'dialog__close'
+              })
+            : ''
+        }
         ${
           title
             ? `<header class="dialog__header">

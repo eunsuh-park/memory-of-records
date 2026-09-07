@@ -1,0 +1,15 @@
+/**
+ * Confirm — 확인 모달 본문 (제목은 Dialog 헤더, 여기선 설명 + 액션)
+ * .confirm-message + (선택 슬롯) + .dialog-actions
+ */
+
+.confirm-message {
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.confirm-message strong {
+  color: var(--color-text);
+}

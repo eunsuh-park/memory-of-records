@@ -36,10 +36,6 @@ import '../../components/FileUploadPreview/FileUploadPreview.css';
 import './UiLab.css';
 
 const LAB_ADD_PAGE_NOTE = '03_2024-25_카툰연습장';
-const LAB_ADD_PAGE_PAGES = [
-  { id: 'lab-add-page-1', dataUrl: bookmarksCoverFront, label: 'cover-front.jpg' },
-  { id: 'lab-add-page-2', dataUrl: bookmarksCoverBack, label: 'cover-back.jpg' }
-];
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const STEPS_6 = [1, 2, 3, 4, 5, 6];
@@ -1101,12 +1097,13 @@ export function renderUiLab() {
             <code>src/components/AddPageModal/AddPageModal.js</code>,
             <code>src/components/AddPageModal/AddPageModal.css</code>,
             <code>src/components/AddPageModal/PageMetaModal.js</code>,
+            <code>src/components/Confirm/Confirm.js</code>,
             <code>src/components/FileUploadPreview/FileUploadPreview.js</code>
           </p>
           <ul class="ui-lab__list">
             <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」</li>
             <li>모달 공통: <code>dialog__title</code> 24px(<code>--text-xl</code>) · 푸터 위 상태는 가운데 · 액션은 보조 위·주요 아래 1열</li>
-            <li>페이지 추가: 뷰어 하단 시트의 + 버튼 · PDF/이미지 미리보기에서 첫·마지막 장이 표지인지 체크</li>
+            <li>페이지 추가: 소스 선택은 Confirm 레이아웃(설명 + PDF/이미지) · 폼은 PDF/이미지 공통 · 파일명 옆 변환 칩</li>
             <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
@@ -1115,19 +1112,31 @@ export function renderUiLab() {
             renderAddPageModal({
               titleId: 'lab-add-page-pick',
               className: 'dialog--inline',
-              step: 'pick',
-              noteName: LAB_ADD_PAGE_NOTE,
-              existingCount: 12
+              step: 'pick'
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
           ${renderVariantRow(
-            'AddPageModal · PDF 폼 (파일·미리보기·체크 채움)',
+            'AddPageModal · 파일 폼 (변환중)',
+            renderAddPageModal({
+              titleId: 'lab-add-page-converting',
+              className: 'dialog--inline',
+              step: 'form',
+              source: 'pdf',
+              fileName: '책 2026년 6월 4일.pdf',
+              fileSize: '10.2MB',
+              fileChip: 'converting',
+              uploadDisabled: true
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddPageModal · 파일 폼 (완료·미리보기)',
             renderAddPageModal({
               titleId: 'lab-add-page-pdf',
               className: 'dialog--inline',
-              step: 'pdf',
-              noteName: LAB_ADD_PAGE_NOTE,
+              step: 'form',
+              source: 'pdf',
               existingCount: 0,
               allPagesPrivate: true,
               pages: [
@@ -1141,36 +1150,14 @@ export function renderUiLab() {
               lastPageIsCover: false,
               uploadDisabled: false,
               uploadCount: 11,
-              status: '11페이지 변환 완료 · 첫 장과 마지막 장 미리보기',
-              pdfStatusText: 'cartoon-practice.pdf 10.2MB'
+              fileName: '책 2026년 6월 4일.pdf',
+              fileSize: '10.2MB',
+              fileChip: 'done'
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
           ${renderVariantRow(
-            'AddPageModal · 이미지 폼 (파일·미리보기·체크 채움)',
-            renderAddPageModal({
-              titleId: 'lab-add-page-images',
-              className: 'dialog--inline',
-              step: 'images',
-              noteName: LAB_ADD_PAGE_NOTE,
-              existingCount: 0,
-              allPagesPrivate: true,
-              pages: LAB_ADD_PAGE_PAGES,
-              startPage: 1,
-              showFirstCoverCheck: true,
-              showLastCoverCheck: true,
-              firstPageIsCover: true,
-              lastPageIsCover: false,
-              uploadDisabled: false,
-              uploadCount: 2,
-              status: '2장 선택됨 · 순서 조정 후 추가하세요',
-              imagePickLabel: '이미지 더 추가',
-              imageStatusText: '2장 선택됨 (최대 10)'
-            }),
-            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
-          )}
-          ${renderVariantRow(
-            'AddPageModal · 페이지 추가 확인',
+            'Confirm · 페이지 추가 확인',
             renderAddPagesConfirm({
               titleId: 'lab-add-page-confirm',
               className: 'dialog--inline',

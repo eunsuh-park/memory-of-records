@@ -13,12 +13,6 @@
   gap: var(--space-4);
 }
 
-.add-page-hint {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-dim);
-}
-
 .add-page-cover-hint {
   margin: 0;
   font-size: var(--text-xs);
@@ -106,20 +100,8 @@
   margin-top: var(--space-2);
 }
 
-.add-page-submit,
-.add-page-confirm-ok {
+.add-page-submit {
   margin-top: 0;
-}
-
-.add-page-confirm-text {
-  margin: 0 0 var(--space-4);
-  font-size: var(--text-base);
-  line-height: 1.45;
-  color: var(--color-text-muted);
-}
-
-.add-page-confirm-text strong {
-  color: var(--color-text);
 }
 
 /* ===== 페이지 정보 모달 ===== */

@@ -47,6 +47,10 @@
   --grey-dark-11: #bfc2c5;
   --grey-dark-12: #eeeff0;
 
+  /* Status — 완료 칩용 teal (grey/primary 스케일에 없는 상태색) */
+  --teal-400: #2ec4b6;
+  --teal-500: #1a9e92;
+
   /* Primary — yellow (1 밝음 → 6 어두움) */
   --primary-1: #fff4cc;
   --primary-2: #ffe699;
@@ -93,6 +97,9 @@
   --color-primary: var(--primary-2);
   --color-primary-hover: var(--grey-dark-9);
   --color-primary-on: var(--grey-dark-3);
+
+  --color-status-done: var(--teal-400);
+  --color-status-done-on: var(--white);
 
   --color-border: var(--grey-dark-8);
   --color-border-light: rgba(0, 0, 0, 0.12);
@@ -185,6 +192,9 @@
   --color-primary: var(--primary-4);
   --color-primary-hover: var(--grey-light-12);
   --color-primary-on: var(--grey-dark-3);
+
+  --color-status-done: var(--teal-500);
+  --color-status-done-on: var(--white);
 
   --color-border: var(--grey-light-8);
   --color-border-light: rgba(0, 0, 0, 0.08);

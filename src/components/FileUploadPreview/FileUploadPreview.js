@@ -11,15 +11,16 @@ import { attr, escapeHtml } from '../../utils/html.js';
 import './FileUploadPreview.css';
 
 /**
- * 파일 선택 버튼(숨은 input + 라벨) + 선택 상태 텍스트
+ * 파일 선택 버튼(숨은 input + 라벨) + 파일명·용량·상태 칩·지우기
  * @param {Object} config
  * @param {string} config.name - input name
  * @param {string} [config.pickLabel='파일 선택']
  * @param {string} [config.accept]
  * @param {boolean} [config.multiple]
- * @param {string} [config.statusText='선택된 파일 없음']
- * @param {string} [config.labelAttr] - 라벨 span에 붙일 data 속성 (예: 'data-image-pick-label')
- * @param {string} [config.statusAttr] - 상태 span에 붙일 data 속성 (예: 'data-image-name')
+ * @param {string} [config.fileName='']
+ * @param {string} [config.fileSize='']
+ * @param {''|'converting'|'done'} [config.chip='']
+ * @param {string} [config.labelAttr]
  * @returns {string}
  */
 export function renderPicker(config = {}) {
@@ -28,10 +29,16 @@ export function renderPicker(config = {}) {
     pickLabel = '파일 선택',
     accept = '',
     multiple = false,
-    statusText = '선택된 파일 없음',
-    labelAttr = '',
-    statusAttr = ''
+    fileName = '',
+    fileSize = '',
+    chip = '',
+    labelAttr = ''
   } = config;
+
+  const hasFile = Boolean(fileName);
+  const chipKind = chip === 'converting' || chip === 'done' ? chip : '';
+  const chipLabel = chipKind === 'converting' ? '변환중' : chipKind === 'done' ? '완료' : '';
+  const chipClass = chipKind ? ` upload-chip--${chipKind}` : '';
 
   return `
     <div class="upload-pick-row">
@@ -41,8 +48,57 @@ export function renderPicker(config = {}) {
           multiple ? ' multiple' : ''
         } hidden />
       </label>
-      <span class="upload-pick__status" ${statusAttr}>${escapeHtml(statusText)}</span>
+      <div class="upload-pick__meta"${hasFile ? '' : ' hidden'}>
+        <span class="upload-pick__name" data-file-name>${escapeHtml(fileName)}</span>
+        <span class="upload-pick__size" data-file-size${fileSize ? '' : ' hidden'}>${escapeHtml(
+          fileSize
+        )}</span>
+        <span class="upload-chip${chipClass}" data-file-chip role="status"${
+          chipKind ? '' : ' hidden'
+        }>${chipLabel}</span>
+        ${renderButton({
+          shape: 'circle',
+          size: 's',
+          role: 'close',
+          tone: 'ghost',
+          ariaLabel: '선택한 파일 지우기',
+          title: '선택한 파일 지우기',
+          content: MINGCUTE.closeLine,
+          className: 'upload-pick__clear',
+          dataset: { action: 'clear-file' }
+        })}
+      </div>
     </div>`;
+}
+
+const CHIP_LABEL = { converting: '변환중', done: '완료' };
+
+/**
+ * 피커 행의 파일명·용량·칩을 맞춘다.
+ * @param {ParentNode|null} root
+ * @param {{ fileName?: string, fileSize?: string, chip?: ''|'converting'|'done' }} meta
+ */
+export function setPickerMeta(root, meta = {}) {
+  if (!root) return;
+  const wrap = root.querySelector('.upload-pick__meta');
+  const nameEl = root.querySelector('[data-file-name]');
+  const sizeEl = root.querySelector('[data-file-size]');
+  const chipEl = root.querySelector('[data-file-chip]');
+  const fileName = String(meta.fileName || '').trim();
+  const fileSize = String(meta.fileSize || '').trim();
+  const chip = meta.chip === 'converting' || meta.chip === 'done' ? meta.chip : '';
+  if (wrap) wrap.hidden = !fileName;
+  if (nameEl) nameEl.textContent = fileName;
+  if (sizeEl) {
+    sizeEl.textContent = fileSize;
+    sizeEl.hidden = !fileSize;
+  }
+  if (chipEl) {
+    chipEl.hidden = !chip;
+    chipEl.textContent = chip ? CHIP_LABEL[chip] : '';
+    chipEl.classList.toggle('upload-chip--converting', chip === 'converting');
+    chipEl.classList.toggle('upload-chip--done', chip === 'done');
+  }
 }
 
 function itemActionButton({ action, id, label, icon, extraClass = '', disabled = false }) {

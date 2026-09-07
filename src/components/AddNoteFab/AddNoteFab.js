@@ -14,13 +14,14 @@
 
 import { render as renderButton } from '../Button/Button.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
+import { open as openConfirm } from '../Confirm/Confirm.js';
 import {
   openUploadResultDialog,
   shortUploadError
 } from '../Dialog/uploadResultDialog.js';
 import { render as renderField, renderColorSwatches, setStatus as setFormStatus } from '../FormField/FormField.js';
 import { renderOptions as renderSelectOptions } from '../Select/Select.js';
-import { renderPicker as renderFilePicker } from '../FileUploadPreview/FileUploadPreview.js';
+import { renderPicker as renderFilePicker, setPickerMeta } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
 import { typeOptions } from '../../data/typeOptions.js';
 import { periodOptions } from '../../data/periodOptions.js';
@@ -94,40 +95,15 @@ function openViewCreatedNoteDialog(options = {}) {
     return;
   }
 
-  let confirmed = false;
-  const dialog = openDialog({
+  openConfirm({
     title: '추가한 노트를 확인하시겠습니까?',
     titleId: 'add-note-view-title',
     className: 'add-note-view-dialog',
-    panelClassName: 'dialog__panel--narrow',
-    showClose: false,
-    bodyHtml: `
-      <div class="dialog-actions dialog-actions--stack">
-        ${renderButton({
-          shape: 'text',
-          block: true,
-          content: '취소',
-          className: 'add-note-view-cancel',
-          dataset: { choice: 'cancel' }
-        })}
-        ${renderButton({
-          shape: 'solid',
-          content: '확인',
-          className: 'add-note-view-ok',
-          dataset: { choice: 'confirm' }
-        })}
-      </div>`,
-    onClose: () => {
-      if (confirmed) options.onConfirm?.();
-      else options.onCancel?.();
-    }
-  });
-
-  dialog.overlay.addEventListener('click', (e) => {
-    const btn = e.target?.closest?.('[data-choice]');
-    if (!btn) return;
-    confirmed = btn.getAttribute('data-choice') === 'confirm';
-    dialog.close();
+    cancelLabel: '취소',
+    confirmLabel: '확인',
+    cancelChoice: 'cancel',
+    onConfirm: () => options.onConfirm?.(),
+    onCancel: () => options.onCancel?.()
   });
 }
 
@@ -642,25 +618,24 @@ export async function openAddNoteModal(options = {}) {
     overlay.querySelectorAll('input[type="file"]').forEach((input) => {
       input.addEventListener('change', () => {
         const field = input.closest('.add-note-cover-field');
-        const nameEl = field?.querySelector('.upload-pick__status');
         const preview = field?.querySelector('.add-note-preview');
         const kind = preview?.dataset.preview === 'back' ? 'back' : 'front';
         const file = input.files?.[0];
         if (!file) {
-          if (nameEl) nameEl.textContent = '선택된 파일 없음';
+          setPickerMeta(field, { fileName: '' });
           if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
           return;
         }
         const validated = validateCoverImageFile(file);
         if (!validated.ok) {
           input.value = '';
-          if (nameEl) nameEl.textContent = '선택된 파일 없음';
+          setPickerMeta(field, { fileName: '' });
           if (preview) preview.innerHTML = coverPreviewHtml(kind, '');
           setStatus(validated.message, true);
           showToast(validated.message);
           return;
         }
-        if (nameEl) nameEl.textContent = file.name;
+        setPickerMeta(field, { fileName: file.name });
         const url = URL.createObjectURL(file);
         if (preview) {
           preview.innerHTML = `<img src="${url}" alt="" />`;
