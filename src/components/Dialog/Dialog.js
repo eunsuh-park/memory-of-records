@@ -11,7 +11,7 @@ import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import './Dialog.css';
 
 /**
- * 모달을 열고 참조를 돌려준다. 닫기 버튼·딤 클릭·ESC를 Dialog가 처리한다.
+ * 모달 오버레이 마크업. open()과 Lab 정적 데모가 같은 HTML을 쓴다.
  *
  * @param {Object} config
  * @param {string} [config.title] - 헤더 제목. 없으면 헤더를 그리지 않음
@@ -20,6 +20,61 @@ import './Dialog.css';
  * @param {string} [config.className] - 오버레이 추가 클래스 (모달별 구분·스타일 오버라이드)
  * @param {string} [config.panelClassName] - 패널 추가 클래스 (너비 등)
  * @param {boolean} [config.showClose=true] - 닫기 버튼 표시
+ * @param {'solid'|'blur'} [config.dimTone='solid']
+ * @returns {string}
+ */
+export function render(config = {}) {
+  const {
+    title = '',
+    titleId = '',
+    bodyHtml = '',
+    className = '',
+    panelClassName = '',
+    showClose = true,
+    dimTone = 'solid'
+  } = config;
+
+  const labelled = titleId ? ` aria-labelledby="${titleId}"` : '';
+
+  return `
+    <div class="${['dialog', className].filter(Boolean).join(' ')}" role="dialog" aria-modal="true"${labelled}>
+      ${renderDim({ tone: dimTone, className: 'dialog__dim' })}
+      ${
+        showClose
+          ? renderButton({
+              shape: 'circle',
+              size: 's',
+              role: 'close',
+              tone: 'ghost',
+              ariaLabel: '닫기',
+              content: MINGCUTE.closeLine,
+              className: 'dialog__close'
+            })
+          : ''
+      }
+      <div class="dialog__panel${panelClassName ? ` ${panelClassName}` : ''}">
+        ${
+          title
+            ? `<header class="dialog__header">
+          <h2 class="dialog__title"${titleId ? ` id="${titleId}"` : ''}>${title}</h2>
+        </header>`
+            : ''
+        }
+        <div class="dialog__body">${bodyHtml}</div>
+      </div>
+    </div>`;
+}
+
+/**
+ * 모달을 열고 참조를 돌려준다. 닫기 버튼·딤 클릭·ESC를 Dialog가 처리한다.
+ *
+ * @param {Object} config
+ * @param {string} [config.title]
+ * @param {string} [config.titleId]
+ * @param {string} [config.bodyHtml='']
+ * @param {string} [config.className]
+ * @param {string} [config.panelClassName]
+ * @param {boolean} [config.showClose=true]
  * @param {'solid'|'blur'} [config.dimTone='solid']
  * @param {boolean} [config.closeOnBackdrop=true]
  * @param {boolean} [config.closeOnEscape=true]
@@ -30,13 +85,6 @@ import './Dialog.css';
  */
 export function open(config = {}) {
   const {
-    title = '',
-    titleId = '',
-    bodyHtml = '',
-    className = '',
-    panelClassName = '',
-    showClose = true,
-    dimTone = 'solid',
     closeOnBackdrop = true,
     closeOnEscape = true,
     canClose,
@@ -44,38 +92,9 @@ export function open(config = {}) {
     onClose
   } = config;
 
-  const overlay = document.createElement('div');
-  overlay.className = ['dialog', className].filter(Boolean).join(' ');
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  if (titleId) overlay.setAttribute('aria-labelledby', titleId);
-
-  overlay.innerHTML = `
-    ${renderDim({ tone: dimTone, className: 'dialog__dim' })}
-    ${
-      showClose
-        ? renderButton({
-            shape: 'circle',
-            size: 's',
-            role: 'close',
-            tone: 'ghost',
-            ariaLabel: '닫기',
-            content: MINGCUTE.closeLine,
-            className: 'dialog__close'
-          })
-        : ''
-    }
-    <div class="dialog__panel${panelClassName ? ` ${panelClassName}` : ''}">
-      ${
-        title
-          ? `<header class="dialog__header">
-        <h2 class="dialog__title"${titleId ? ` id="${titleId}"` : ''}>${title}</h2>
-      </header>`
-          : ''
-      }
-      <div class="dialog__body">${bodyHtml}</div>
-    </div>
-  `;
+  const holder = document.createElement('div');
+  holder.innerHTML = render(config).trim();
+  const overlay = /** @type {HTMLElement} */ (holder.firstElementChild);
 
   document.body.appendChild(overlay);
   document.body.classList.add('dialog-open');
@@ -86,7 +105,8 @@ export function open(config = {}) {
     if (!allowClose()) return;
     document.removeEventListener('keydown', handleKeydown);
     overlay.remove();
-    if (!document.querySelector('.dialog')) {
+    /* Lab에 박아 둔 인라인 데모(.dialog--inline)는 열린 오버레이로 치지 않는다 */
+    if (!document.body.querySelector(':scope > .dialog')) {
       document.body.classList.remove('dialog-open');
     }
     onClose?.();
