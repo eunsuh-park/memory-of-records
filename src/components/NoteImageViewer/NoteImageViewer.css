@@ -108,8 +108,8 @@
   transform: translateX(-50%);
   z-index: 5;
   display: flex;
-  align-items: flex-end;
-  gap: var(--space-1);
+  align-items: center;
+  gap: var(--space-2);
   width: auto;
   max-width: calc(100% - var(--space-6));
   padding: var(--space-1) var(--space-2);
@@ -126,6 +126,12 @@
 .niv-sheet-actions {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.niv-sheet-pager {
+  display: flex;
   align-items: center;
   gap: var(--space-1);
 }

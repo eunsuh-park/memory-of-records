@@ -103,43 +103,45 @@ export function renderBottomSheet() {
           className: 'niv-sheet-btn niv-share-note'
         })}
       </div>
-      <div class="niv-sheet-progress">
+      <div class="niv-sheet-pager">
+        <div class="niv-sheet-progress">
+          ${renderButton({
+            shape: 'circle',
+            size: 's',
+            role: 'toolbar',
+            tone: 'ghost',
+            ariaLabel: '처음 페이지',
+            title: '처음 페이지',
+            content: MINGCUTE.arrowsLeftLine,
+            className: 'niv-sheet-nav niv-nav-first'
+          })}
+          <span class="niv-sheet-progress__label">
+            <span class="niv-current-page">1</span>
+            <span class="niv-sheet-progress__sep">/</span>
+            <span class="niv-total-pages">-</span>
+          </span>
+          ${renderButton({
+            shape: 'circle',
+            size: 's',
+            role: 'toolbar',
+            tone: 'ghost',
+            ariaLabel: '마지막 페이지',
+            title: '마지막 페이지',
+            content: MINGCUTE.arrowsRightLine,
+            className: 'niv-sheet-nav niv-nav-last'
+          })}
+        </div>
         ${renderButton({
           shape: 'circle',
           size: 's',
           role: 'toolbar',
           tone: 'ghost',
-          ariaLabel: '처음 페이지',
-          title: '처음 페이지',
-          content: MINGCUTE.arrowsLeftLine,
-          className: 'niv-sheet-nav niv-nav-first'
-        })}
-        <span class="niv-sheet-progress__label">
-          <span class="niv-current-page">1</span>
-          <span class="niv-sheet-progress__sep">/</span>
-          <span class="niv-total-pages">-</span>
-        </span>
-        ${renderButton({
-          shape: 'circle',
-          size: 's',
-          role: 'toolbar',
-          tone: 'ghost',
-          ariaLabel: '마지막 페이지',
-          title: '마지막 페이지',
-          content: MINGCUTE.arrowsRightLine,
-          className: 'niv-sheet-nav niv-nav-last'
+          ariaLabel: '뷰 원상복구',
+          title: '처음 크기와 위치로',
+          content: MINGCUTE.refreshLine,
+          className: 'niv-sheet-btn niv-reset-view'
         })}
       </div>
-      ${renderButton({
-        shape: 'circle',
-        size: 's',
-        role: 'toolbar',
-        tone: 'ghost',
-        ariaLabel: '뷰 원상복구',
-        title: '처음 크기와 위치로',
-        content: MINGCUTE.refreshLine,
-        className: 'niv-sheet-btn niv-reset-view'
-      })}
     </div>
   `;
 }
