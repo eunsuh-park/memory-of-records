@@ -236,15 +236,26 @@ const RESPONSIVE_MATRIX = [
     ]
   },
   {
-    name: 'AddPageModal · PageMetaModal',
-    files: 'src/components/AddPageModal/AddPageModal.js · PageMetaModal.js · AddPageModal.css',
+    name: 'Confirm',
+    files: 'src/components/Confirm/Confirm.js · Confirm.css',
     points: '640px',
-    mobile: ['≤640px 소스 선택·푸터·확인 액션이 모두 1열 세로 스택'],
+    mobile: ['좁은 패널 min(420px, 100%) · 설명문 + 보조/주요 액션 1열 스택'],
     tablet: ['데스크톱과 동일'],
     desktop: [
-      '패널 min(560px, 100%)',
-      '소스 선택 2열 · 푸터 1fr 1.4fr · 액션 2열',
-      '미리보기 auto-fill minmax(110px, 1fr)'
+      'Dialog 껍데기(패널 안 우상단 X) + confirm-message + (선택 슬롯) + 나중에/확인',
+      '페이지 추가 소스 선택은 액션 없이 설명 + PDF/이미지 카드만'
+    ]
+  },
+  {
+    name: 'AddPageModal · PageMetaModal',
+    files: 'src/components/AddPageModal/AddPageModal.js · PageMetaModal.js · AddPageModal.css · Confirm.js',
+    points: '640px',
+    mobile: ['≤640px 소스 카드·푸터·확인 액션이 모두 1열 세로 스택'],
+    tablet: ['데스크톱과 동일'],
+    desktop: [
+      '패널 min(560px, 100%) · 닫기 X는 패널 안 우상단',
+      '소스 선택은 Confirm 레이아웃(설명문 + PDF/이미지 2열 카드)',
+      'PDF·이미지 공통 폼 · 파일명 옆 변환중/완료 칩 · 미리보기 첫·마지막 2장'
     ]
   },
   {
