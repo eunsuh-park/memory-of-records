@@ -4,8 +4,9 @@
  * 뷰어 안의 모든 버튼은 공통 Button 컴포넌트(circle)로만 만들고,
  * 아이콘은 공용 MingCute 세트(src/assets/mingcuteIcons.js)에서만 가져온다.
  *  - 좌우 페이지 이동: circle M · role navPrev/navNext
- *  - 하단 시트 버튼  : circle S · role toolbar · tone ghost (유리 시트 위라 배경 없음)
- *  - 2페이지 토글    : circle S · role toolbar (배경 있는 FAB). 켜면 BookFlip3D
+ *  - 하단 시트      : 처음·현재/전체·마지막 · 뷰 원상복구
+ *  - 우측 액션 열   : 정보·추가·북마크·공유 + 2페이지 토글 (기존 FAB 위치)
+ *  - 시트·액션 아이콘: circle S · role toolbar · tone ghost
  *
  * 뷰어와 /ui-lab 예시가 같은 마크업을 쓰도록 여기로 분리했다.
  */
@@ -65,41 +66,10 @@ export function renderBookmarkButton(bookmarked = false, variant = 'desktop') {
   });
 }
 
-/** 하단 시트: 정보 | 페이지 추가 | 북마크 | 처음·현재/전체·마지막 | 뷰 원상복구 */
+/** 하단 시트: 처음·현재/전체·마지막 | 뷰 원상복구 */
 export function renderBottomSheet() {
   return `
     <div class="niv-bottom-sheet" role="toolbar" aria-label="페이지 도구">
-      ${renderButton({
-        shape: 'circle',
-        size: 's',
-        role: 'toolbar',
-        tone: 'ghost',
-        ariaLabel: '페이지 정보(메타데이터) 보기',
-        title: '페이지 정보',
-        content: MINGCUTE.eye2Line,
-        className: 'niv-sheet-btn niv-page-info'
-      })}
-      ${renderButton({
-        shape: 'circle',
-        size: 's',
-        role: 'toolbar',
-        tone: 'ghost',
-        ariaLabel: '현재 페이지 다음에 페이지 추가',
-        title: '페이지 추가',
-        content: MINGCUTE.addFill,
-        className: 'niv-sheet-btn niv-add-page auth-only'
-      })}
-      ${renderBookmarkButton(false, 'desktop')}
-      ${renderButton({
-        shape: 'circle',
-        size: 's',
-        role: 'toolbar',
-        tone: 'ghost',
-        ariaLabel: '현재 페이지 링크 복사',
-        title: '현재 페이지 링크 복사',
-        content: MINGCUTE.share2Line,
-        className: 'niv-sheet-btn niv-share-note'
-      })}
       <div class="niv-sheet-progress">
         ${renderButton({
           shape: 'circle',
@@ -141,17 +111,58 @@ export function renderBottomSheet() {
   `;
 }
 
-/** 하단 시트 위 우측에 뜨는 2페이지 보기 토글 (BookFlip3D) */
+/** 시트에서 뺀 앞 버튼 4개 + 2페이지 토글. 기존 2페이지 FAB 위치에 세로로 둔다 */
+export function renderSheetActions() {
+  return `
+    <div class="niv-sheet-actions" role="toolbar" aria-label="페이지 액션">
+      ${renderButton({
+        shape: 'circle',
+        size: 's',
+        role: 'toolbar',
+        tone: 'ghost',
+        ariaLabel: '페이지 정보(메타데이터) 보기',
+        title: '페이지 정보',
+        content: MINGCUTE.eye2Line,
+        className: 'niv-sheet-btn niv-page-info'
+      })}
+      ${renderButton({
+        shape: 'circle',
+        size: 's',
+        role: 'toolbar',
+        tone: 'ghost',
+        ariaLabel: '현재 페이지 다음에 페이지 추가',
+        title: '페이지 추가',
+        content: MINGCUTE.addFill,
+        className: 'niv-sheet-btn niv-add-page auth-only'
+      })}
+      ${renderBookmarkButton(false, 'desktop')}
+      ${renderButton({
+        shape: 'circle',
+        size: 's',
+        role: 'toolbar',
+        tone: 'ghost',
+        ariaLabel: '현재 페이지 링크 복사',
+        title: '현재 페이지 링크 복사',
+        content: MINGCUTE.share2Line,
+        className: 'niv-sheet-btn niv-share-note'
+      })}
+      ${renderSpreadToggle()}
+    </div>
+  `;
+}
+
+/** 2페이지 보기 토글 (BookFlip3D). 우측 액션 열 맨 아래(기존 FAB 자리) */
 export function renderSpreadToggle() {
   return renderButton({
     shape: 'circle',
     size: 's',
     role: 'toolbar',
+    tone: 'ghost',
     ariaLabel: '2페이지로 보기',
     title: '2페이지로 보기',
     ariaPressed: false,
     content: MINGCUTE.bookOpenLine,
-    className: 'niv-toggle-spread niv-spread-fab'
+    className: 'niv-sheet-btn niv-toggle-spread'
   });
 }
 
@@ -160,7 +171,7 @@ export function renderViewerChrome() {
   return `
     ${renderNavButtons()}
     ${renderBottomSheet()}
+    ${renderSheetActions()}
     ${renderBookmarkButton(false, 'mobile')}
-    ${renderSpreadToggle()}
   `;
 }
