@@ -265,7 +265,7 @@ export function renderAddPageBody(options = {}) {
         multiple: isImages,
         fileName,
         fileSize,
-        fileChip
+        chip: fileChip
       })
     })}
     ${previewList}
