@@ -21,6 +21,10 @@ import {
   renderAddPageModal,
   renderAddPagesConfirm
 } from '../../components/AddPageModal/AddPageModal.js';
+import {
+  renderAddNoteModal,
+  renderAddNoteViewConfirm
+} from '../../components/AddNoteFab/AddNoteFab.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import {
@@ -40,6 +44,33 @@ const LAB_ADD_PAGE_PAGES = [
   { id: 'lab-add-page-1', dataUrl: bookmarksCoverFront, label: 'cover-front.jpg' },
   { id: 'lab-add-page-2', dataUrl: bookmarksCoverBack, label: 'cover-back.jpg' }
 ];
+const LAB_ADD_NOTE_SEED = {
+  name: LAB_ADD_PAGE_NOTE,
+  notebookType: '스케치북',
+  periodName: 'After School',
+  color: '노랑',
+  size: 'A5',
+  periodStart: '2024-03-01',
+  periodEnd: '',
+  stillInUse: true,
+  notes: '카툰 연습용. 표지부터 뒷장까지 한 권으로 이어 그린다.',
+  isKept: true,
+  visible: true
+};
+
+function renderLabAddNoteModal(overrides = {}) {
+  return renderAddNoteModal({
+    className: 'dialog--inline',
+    mode: 'create',
+    seed: LAB_ADD_NOTE_SEED,
+    coverFrontPreviewUrl: bookmarksCoverFront,
+    coverBackPreviewUrl: bookmarksCoverBack,
+    coverFrontStatus: 'cover-front.jpg',
+    coverBackStatus: 'cover-back.jpg',
+    nextDisabled: false,
+    ...overrides
+  });
+}
 
 const STEPS_12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const STEPS_6 = [1, 2, 3, 4, 5, 6];
@@ -1092,7 +1123,7 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
             생성 시 폼 입력으로 public_id를 배정한 뒤 Cloudinary 폴더명으로 쓰고 Notion DB에도 기록합니다.
-            아래 AddPageModal은 실제 업로드 없이, 폼을 임시 데이터로 채운 정적 데모입니다.
+            아래 AddNoteFab·AddPageModal은 실제 업로드 없이, 폼을 임시 데이터로 채운 정적 데모입니다.
           </p>
           <p class="ui-lab__files">
             참조:
@@ -1109,6 +1140,41 @@ export function renderUiLab() {
             <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
             <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
           </ul>
+          ${renderVariantRow(
+            'AddNoteFab · 표지 (이름·파일·미리보기·크기·색상 채움)',
+            renderLabAddNoteModal({
+              titleId: 'lab-add-note-cover',
+              idPrefix: 'lab-add-note-1',
+              step: 1
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddNoteFab · 사용 정보 (종류·시기·날짜·체크 채움)',
+            renderLabAddNoteModal({
+              titleId: 'lab-add-note-usage',
+              idPrefix: 'lab-add-note-2',
+              step: 2
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddNoteFab · 메모',
+            renderLabAddNoteModal({
+              titleId: 'lab-add-note-notes',
+              idPrefix: 'lab-add-note-3',
+              step: 3
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddNoteFab · 추가한 노트 확인',
+            renderAddNoteViewConfirm({
+              titleId: 'lab-add-note-view',
+              className: 'dialog--inline'
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
           ${renderVariantRow(
             'AddPageModal · 소스 선택',
             renderAddPageModal({
@@ -1286,6 +1352,10 @@ export function renderUiLab() {
       message: '표지는 저장됐지만 본문 페이지는 올리지 못했습니다.',
       detail: '이미지 저장에 실패했습니다.'
     });
+  });
+
+  root.querySelectorAll('.ui-lab__demo-stage--dialog .add-note-form').forEach((form) => {
+    form.addEventListener('submit', (e) => e.preventDefault());
   });
 
   /* 정적 데모라 실제 페이지 수가 없으니 표시용 값만 채운다 */

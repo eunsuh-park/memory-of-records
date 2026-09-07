@@ -13,7 +13,7 @@
  */
 
 import { render as renderButton } from '../Button/Button.js';
-import { open as openDialog } from '../Dialog/Dialog.js';
+import { open as openDialog, render as renderDialog } from '../Dialog/Dialog.js';
 import {
   openUploadResultDialog,
   shortUploadError
@@ -88,6 +88,47 @@ function datalistHtml(id, values) {
     .join('')}</datalist>`;
 }
 
+/**
+ * 「추가한 노트를 확인하시겠습니까?」 확인 모달 본문.
+ *
+ * @returns {string}
+ */
+export function renderAddNoteViewConfirmBody() {
+  return `
+    <div class="dialog-actions">
+      ${renderButton({
+        shape: 'text',
+        block: true,
+        content: '취소',
+        className: 'add-note-view-cancel',
+        dataset: { choice: 'cancel' }
+      })}
+      ${renderButton({
+        shape: 'solid',
+        content: '확인',
+        className: 'add-note-view-ok',
+        dataset: { choice: 'confirm' }
+      })}
+    </div>`;
+}
+
+/**
+ * 「추가한 노트를 확인하시겠습니까?」 확인 모달 전체 마크업.
+ *
+ * @param {{ titleId?: string, className?: string }} [options]
+ * @returns {string}
+ */
+export function renderAddNoteViewConfirm(options = {}) {
+  return renderDialog({
+    title: '추가한 노트를 확인하시겠습니까?',
+    titleId: options.titleId || 'add-note-view-title',
+    className: ['add-note-view-dialog', options.className].filter(Boolean).join(' '),
+    panelClassName: 'dialog__panel--narrow',
+    showClose: false,
+    bodyHtml: renderAddNoteViewConfirmBody()
+  });
+}
+
 function openViewCreatedNoteDialog(options = {}) {
   if (document.querySelector('.add-note-view-dialog')) {
     options.onCancel?.();
@@ -101,22 +142,7 @@ function openViewCreatedNoteDialog(options = {}) {
     className: 'add-note-view-dialog',
     panelClassName: 'dialog__panel--narrow',
     showClose: false,
-    bodyHtml: `
-      <div class="dialog-actions">
-        ${renderButton({
-          shape: 'text',
-          block: true,
-          content: '취소',
-          className: 'add-note-view-cancel',
-          dataset: { choice: 'cancel' }
-        })}
-        ${renderButton({
-          shape: 'solid',
-          content: '확인',
-          className: 'add-note-view-ok',
-          dataset: { choice: 'confirm' }
-        })}
-      </div>`,
+    bodyHtml: renderAddNoteViewConfirmBody(),
     onClose: () => {
       if (confirmed) options.onConfirm?.();
       else options.onCancel?.();
@@ -152,6 +178,268 @@ function coverPreviewHtml(kind, existingUrl) {
   }
   const label = kind === 'back' ? '뒷면 미리보기' : '앞면 미리보기';
   return `<span class="add-note-preview-placeholder">${label}</span>`;
+}
+
+/**
+ * 노트 추가/수정 폼 본문. openAddNoteModal과 /ui-lab 정적 데모가 같은 마크업을 쓴다.
+ *
+ * @param {{
+ *   mode?: 'create'|'edit',
+ *   step?: 1|2|3,
+ *   seed?: {
+ *     name?: string,
+ *     notebookType?: string,
+ *     periodName?: string,
+ *     color?: string,
+ *     size?: string,
+ *     periodStart?: string,
+ *     periodEnd?: string,
+ *     stillInUse?: boolean,
+ *     notes?: string,
+ *     isKept?: boolean,
+ *     visible?: boolean,
+ *     coverFrontUrl?: string,
+ *     coverBackUrl?: string
+ *   },
+ *   typeOptionsList?: string[],
+ *   periodOptionsList?: string[],
+ *   colorOptions?: string[],
+ *   sizeOptions?: string[],
+ *   idPrefix?: string,
+ *   coverFrontPreviewUrl?: string,
+ *   coverBackPreviewUrl?: string,
+ *   coverFrontStatus?: string,
+ *   coverBackStatus?: string,
+ *   nextDisabled?: boolean
+ * }} [options]
+ * @returns {string}
+ */
+export function renderAddNoteForm(options = {}) {
+  const isEdit = options.mode === 'edit';
+  const currentStep = Math.min(FORM_STEPS, Math.max(1, Number(options.step) || 1));
+  const seed = options.seed || {};
+  const typeOptionsList = options.typeOptionsList || FALLBACK_TYPES;
+  const periodOptionsList = options.periodOptionsList || FALLBACK_PERIODS;
+  const colorOptions = options.colorOptions || FALLBACK_COLORS;
+  const sizeOptions = options.sizeOptions || FALLBACK_SIZES;
+  const idPrefix = options.idPrefix || 'add-note';
+  const sizeListId = `${idPrefix}-size-list`;
+  const stillInUse = Boolean(seed.stillInUse);
+  const notesValue = String(seed.notes || '').slice(0, NOTES_MAX_CHARS);
+  const nextDisabled = options.nextDisabled !== false;
+  const initialType = seed.notebookType || '';
+  const initialPeriod = seed.periodName || '';
+  const initialColor = seed.color || '';
+  const initialSize = seed.size || '';
+  const initialFrontUrl = seed.coverFrontUrl || '';
+  const initialBackUrl = seed.coverBackUrl || '';
+
+  const progressHtml = [
+    [1, '표지'],
+    [2, '사용'],
+    [3, '메모']
+  ]
+    .map(([n, label]) => {
+      const current = n === currentStep;
+      const done = n < currentStep;
+      const cls = [current ? 'is-current' : '', done ? 'is-done' : ''].filter(Boolean).join(' ');
+      return `
+          <li data-progress="${n}"${cls ? ` class="${cls}"` : ''}${
+            current ? ' aria-current="step"' : ''
+          }>
+            <span class="add-note-progress__index">${n}</span>${label}
+          </li>`;
+    })
+    .join('');
+
+  const stepAttrs = (n) => {
+    const active = n === currentStep;
+    return `class="add-note-step${active ? ' is-active' : ''}" data-step="${n}"${
+      active ? '' : ' inert aria-hidden="true"'
+    }`;
+  };
+
+  const coverFieldHtml = (kind, required) => {
+    const label = kind === 'back' ? '표지 뒷면' : '표지 앞면';
+    const existingUrl = kind === 'back' ? initialBackUrl : initialFrontUrl;
+    const previewUrl =
+      kind === 'back' ? options.coverBackPreviewUrl || '' : options.coverFrontPreviewUrl || '';
+    const inputName = kind === 'back' ? 'coverBack' : 'coverFront';
+    const statusText = kind === 'back' ? options.coverBackStatus : options.coverFrontStatus;
+    const picker = isEdit
+      ? `<span class="upload-pick__status">수정 시 표지는 변경되지 않습니다</span>`
+      : renderFilePicker({
+          name: inputName,
+          accept: 'image/*',
+          pickLabel: '파일 선택',
+          ...(statusText ? { statusText } : {})
+        });
+    return renderField({
+      type: 'custom',
+      label,
+      required: required && !isEdit,
+      className: 'add-note-cover-field',
+      hint: isEdit ? '' : `${Math.floor(MAX_COVER_BYTES / (1024 * 1024))}MB 이하 이미지`,
+      children: `
+        ${picker}
+        <div class="add-note-preview" data-preview="${kind}" aria-hidden="true">
+          ${coverPreviewHtml(kind, isEdit ? existingUrl : previewUrl)}
+        </div>`
+    });
+  };
+
+  return `
+      <form class="form add-note-form" novalidate>
+        <ol class="add-note-progress" aria-label="노트 작성 단계">
+          ${progressHtml}
+        </ol>
+
+        <div class="add-note-steps">
+        <div ${stepAttrs(1)}>
+          ${renderField({
+            label: '이름',
+            name: 'name',
+            required: true,
+            placeholder: '예: 2026_업무노트',
+            value: seed.name || ''
+          })}
+
+          <div class="add-note-covers${isEdit ? ' add-note-covers--readonly' : ''}"${
+            isEdit ? ' aria-label="표지 (수정 불가)"' : ''
+          }>
+            ${coverFieldHtml('front', true)}
+            ${coverFieldHtml('back', true)}
+          </div>
+
+          ${renderField({
+            label: '크기',
+            name: 'size',
+            placeholder: '예: A5 또는 직접 입력',
+            value: initialSize,
+            list: sizeListId,
+            extra: datalistHtml(sizeListId, sizeOptions)
+          })}
+
+          ${renderField({
+            type: 'colorRadioGroup',
+            label: '색상',
+            name: 'color',
+            value: initialColor,
+            colors: colorOptions,
+            colorMap: COLOR_CHIP_HEX,
+            lightNames: LIGHT_COLOR_NAMES
+          })}
+        </div>
+
+        <div ${stepAttrs(2)}>
+          ${renderField({
+            type: 'select',
+            label: '노트 종류',
+            name: 'notebookType',
+            required: true,
+            placeholder: '선택',
+            options: typeOptionsList,
+            value: initialType
+          })}
+          ${renderField({
+            type: 'select',
+            label: '시기',
+            name: 'periodName',
+            placeholder: '선택 (선택사항)',
+            options: periodOptionsList,
+            value: initialPeriod
+          })}
+
+          <div class="form-row form-row--2">
+            ${renderField({
+              type: 'date',
+              label: '사용 시작일',
+              name: 'periodStart',
+              required: true,
+              value: seed.periodStart || ''
+            })}
+            ${renderField({
+              type: 'custom',
+              label: '사용 종료일',
+              children: `
+                <input class="field__input" type="date" name="periodEnd" value="${escapeHtml(
+                  seed.periodEnd || ''
+                )}" autocomplete="off"${stillInUse ? ' disabled' : ''} />
+                <label class="form-check form-check--inline">
+                  <input type="checkbox" name="stillInUse" ${stillInUse ? 'checked' : ''} />
+                  <span>아직 사용 중</span>
+                </label>`
+            })}
+          </div>
+
+          <label class="form-check">
+            <input type="checkbox" name="isKept" ${!options.seed || seed.isKept ? 'checked' : ''} />
+            <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
+          </label>
+
+          <label class="form-check">
+            <input type="checkbox" name="visible" ${!options.seed || seed.visible ? 'checked' : ''} />
+            <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
+          </label>
+        </div>
+
+        <div ${stepAttrs(3)}>
+          ${renderField({
+            type: 'textarea',
+            label: '메모',
+            name: 'notes',
+            rows: 4,
+            maxLength: NOTES_MAX_CHARS,
+            placeholder: NOTES_PLACEHOLDER,
+            value: notesValue,
+            extra: `<span class="add-note-notes-count" data-notes-count>${notesValue.length}/${NOTES_MAX_CHARS}</span>`
+          })}
+        </div>
+        </div>
+
+        <p class="form-status add-note-status" hidden></p>
+
+        <div class="add-note-nav is-step-${currentStep}">
+          ${renderButton({
+            shape: 'text',
+            block: true,
+            content: '이전',
+            className: 'add-note-back',
+            dataset: { action: 'back' }
+          })}
+          ${renderButton({
+            shape: 'solid',
+            type: 'button',
+            content: '다음',
+            className: 'add-note-next',
+            dataset: { action: 'next' },
+            disabled: nextDisabled
+          })}
+          ${renderButton({
+            shape: 'solid',
+            type: 'submit',
+            content: isEdit ? '노트 수정하기' : '새 노트 올리기',
+            className: 'add-note-submit'
+          })}
+        </div>
+      </form>
+  `;
+}
+
+/**
+ * Dialog 껍데기까지 포함한 새 노트 추가/수정 모달 마크업.
+ *
+ * @param {Parameters<typeof renderAddNoteForm>[0] & { titleId?: string, className?: string }} [options]
+ * @returns {string}
+ */
+export function renderAddNoteModal(options = {}) {
+  const isEdit = options.mode === 'edit';
+  return renderDialog({
+    title: isEdit ? '노트 정보 수정' : '새 노트 추가',
+    titleId: options.titleId || 'add-note-title',
+    className: ['add-note-dialog', options.className].filter(Boolean).join(' '),
+    bodyHtml: renderAddNoteForm(options)
+  });
 }
 
 /**
@@ -196,183 +484,17 @@ export async function openAddNoteModal(options = {}) {
   const periodOptionsList = FALLBACK_PERIODS;
   const colorOptions = FALLBACK_COLORS;
   const sizeOptions = FALLBACK_SIZES;
-
   const initialType = seed?.notebookType || '';
   const initialPeriod = seed?.periodName || '';
-  const initialColor = seed?.color || '';
-  const initialSize = seed?.size || '';
-  const initialFrontUrl = seed?.coverFrontUrl || '';
-  const initialBackUrl = seed?.coverBackUrl || '';
 
-  const coverFieldHtml = (kind, required) => {
-    const label = kind === 'back' ? '표지 뒷면' : '표지 앞면';
-    const existingUrl = kind === 'back' ? initialBackUrl : initialFrontUrl;
-    const inputName = kind === 'back' ? 'coverBack' : 'coverFront';
-    const picker = isEdit
-      ? `<span class="upload-pick__status">수정 시 표지는 변경되지 않습니다</span>`
-      : renderFilePicker({
-          name: inputName,
-          accept: 'image/*',
-          pickLabel: '파일 선택'
-        });
-    return renderField({
-      type: 'custom',
-      label,
-      required: required && !isEdit,
-      className: 'add-note-cover-field',
-      hint: isEdit ? '' : `${Math.floor(MAX_COVER_BYTES / (1024 * 1024))}MB 이하 이미지`,
-      children: `
-        ${picker}
-        <div class="add-note-preview" data-preview="${kind}" aria-hidden="true">
-          ${coverPreviewHtml(kind, isEdit ? existingUrl : '')}
-        </div>`
-    });
-  };
-
-  const formHtml = `
-      <form class="form add-note-form" novalidate>
-        <ol class="add-note-progress" aria-label="노트 작성 단계">
-          <li data-progress="1" class="is-current" aria-current="step">
-            <span class="add-note-progress__index">1</span>표지
-          </li>
-          <li data-progress="2">
-            <span class="add-note-progress__index">2</span>사용
-          </li>
-          <li data-progress="3">
-            <span class="add-note-progress__index">3</span>메모
-          </li>
-        </ol>
-
-        <div class="add-note-steps">
-        <div class="add-note-step is-active" data-step="1">
-          ${renderField({
-            label: '이름',
-            name: 'name',
-            required: true,
-            placeholder: '예: 2026_업무노트',
-            value: seed?.name || ''
-          })}
-
-          <div class="add-note-covers${isEdit ? ' add-note-covers--readonly' : ''}"${
-            isEdit ? ' aria-label="표지 (수정 불가)"' : ''
-          }>
-            ${coverFieldHtml('front', true)}
-            ${coverFieldHtml('back', true)}
-          </div>
-
-          ${renderField({
-            label: '크기',
-            name: 'size',
-            placeholder: '예: A5 또는 직접 입력',
-            value: initialSize,
-            list: 'add-note-size-list',
-            extra: datalistHtml('add-note-size-list', sizeOptions)
-          })}
-
-          ${renderField({
-            type: 'colorRadioGroup',
-            label: '색상',
-            name: 'color',
-            value: initialColor,
-            colors: colorOptions,
-            colorMap: COLOR_CHIP_HEX,
-            lightNames: LIGHT_COLOR_NAMES
-          })}
-        </div>
-
-        <div class="add-note-step" data-step="2" inert aria-hidden="true">
-          ${renderField({
-            type: 'select',
-            label: '노트 종류',
-            name: 'notebookType',
-            required: true,
-            placeholder: '선택',
-            options: typeOptionsList,
-            value: initialType
-          })}
-          ${renderField({
-            type: 'select',
-            label: '시기',
-            name: 'periodName',
-            placeholder: '선택 (선택사항)',
-            options: periodOptionsList,
-            value: initialPeriod
-          })}
-
-          <div class="form-row form-row--2">
-            ${renderField({
-              type: 'date',
-              label: '사용 시작일',
-              name: 'periodStart',
-              required: true,
-              value: seed?.periodStart || ''
-            })}
-            ${renderField({
-              type: 'custom',
-              label: '사용 종료일',
-              children: `
-                <input class="field__input" type="date" name="periodEnd" value="${escapeHtml(
-                  seed?.periodEnd || ''
-                )}" autocomplete="off" />
-                <label class="form-check form-check--inline">
-                  <input type="checkbox" name="stillInUse" ${seed?.stillInUse ? 'checked' : ''} />
-                  <span>아직 사용 중</span>
-                </label>`
-            })}
-          </div>
-
-          <label class="form-check">
-            <input type="checkbox" name="isKept" ${!seed || seed.isKept ? 'checked' : ''} />
-            <span>아직 가지고 있어요. 아직 폐기하지 않고 가지고 있어요.</span>
-          </label>
-
-          <label class="form-check">
-            <input type="checkbox" name="visible" ${!seed || seed.visible ? 'checked' : ''} />
-            <span>사이트에 공개 (체크 해제 시 노트가 목록에서 숨겨집니다)</span>
-          </label>
-        </div>
-
-        <div class="add-note-step" data-step="3" inert aria-hidden="true">
-          ${renderField({
-            type: 'textarea',
-            label: '메모',
-            name: 'notes',
-            rows: 4,
-            maxLength: NOTES_MAX_CHARS,
-            placeholder: NOTES_PLACEHOLDER,
-            value: (seed?.notes || '').slice(0, NOTES_MAX_CHARS),
-            extra: `<span class="add-note-notes-count" data-notes-count>0/${NOTES_MAX_CHARS}</span>`
-          })}
-        </div>
-        </div>
-
-        <p class="form-status add-note-status" hidden></p>
-
-        <div class="add-note-nav is-step-1">
-          ${renderButton({
-            shape: 'text',
-            block: true,
-            content: '이전',
-            className: 'add-note-back',
-            dataset: { action: 'back' }
-          })}
-          ${renderButton({
-            shape: 'solid',
-            type: 'button',
-            content: '다음',
-            className: 'add-note-next',
-            dataset: { action: 'next' },
-            disabled: true
-          })}
-          ${renderButton({
-            shape: 'solid',
-            type: 'submit',
-            content: isEdit ? '노트 수정하기' : '새 노트 올리기',
-            className: 'add-note-submit'
-          })}
-        </div>
-      </form>
-  `;
+  const formHtml = renderAddNoteForm({
+    mode: isEdit ? 'edit' : 'create',
+    seed,
+    typeOptionsList,
+    periodOptionsList,
+    colorOptions,
+    sizeOptions
+  });
 
   const dialog = openDialog({
     title: isEdit ? '노트 정보 수정' : '새 노트 추가',
