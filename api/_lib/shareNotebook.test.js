@@ -22,6 +22,26 @@ test('parseShareNotebook은 제목·메모·표지 URL을 읽는다', () => {
   assert.equal(note.visible, true);
 });
 
+test('parseShareNotebook은 cover_front_url이 없으면 페이지 cover를 쓴다', () => {
+  const page = {
+    id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    cover: {
+      type: 'external',
+      external: { url: 'https://res.cloudinary.com/demo/image/upload/v1/notebooks/DIRY-2024-0001/cover_front.png' }
+    },
+    properties: {
+      이름: { type: 'title', title: [{ plain_text: '표지 속성 없는 노트' }] },
+      public_id: { type: 'rich_text', rich_text: [{ plain_text: 'DIRY-2024-0001' }] }
+    }
+  };
+  const note = parseShareNotebook(page);
+  assert.equal(
+    note.coverFrontUrl,
+    'https://res.cloudinary.com/demo/image/upload/v1/notebooks/DIRY-2024-0001/cover_front.png'
+  );
+  assert.equal(note.publicId, 'DIRY-2024-0001');
+});
+
 test('parseShareNotebook은 visible=false를 숨김으로 읽는다', () => {
   const page = {
     id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',

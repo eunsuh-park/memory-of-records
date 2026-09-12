@@ -8,6 +8,8 @@
  *   periodName?, color?, size?, periodEnd?, notes?, isKept?, visible?, favorites?
  * }
  * publicId는 op=allocatePublicId로 먼저 배정한 값. Notion public_id와 Cloudinary 폴더명에 그대로 쓴다.
+ * 표지 URL은 writeCovers가 Cloudinary(notebooks/{publicId}/cover_front|cover_back)에 올린 뒤 넘긴다.
+ * Notion cover_*_url 속성은 쓰지 않는다. 앞표지는 페이지 cover(external)에만 넣는다.
  * notes는 Notion description(text/rich_text)에 공백 포함 70자로 저장
  */
 import {
@@ -119,22 +121,6 @@ export async function handleCreateNote(req, res) {
       [publicIdProp.key]: publicIdPayload
     };
 
-    const frontProp = findSchemaProperty(
-      schema,
-      'cover_front_url',
-      'cover front url',
-      'Cover Front URL',
-      'cover_front',
-      '앞표지'
-    );
-    const backProp = findSchemaProperty(
-      schema,
-      'cover_back_url',
-      'cover back url',
-      'Cover Back URL',
-      'cover_back',
-      '뒷표지'
-    );
     const typeProp = findSchemaProperty(schema, 'notebook_type', 'Notebook Type', 'type', 'Type');
     const periodNameProp = findSchemaProperty(
       schema,
@@ -159,28 +145,6 @@ export async function handleCreateNote(req, res) {
       'Favorite',
       '즐겨찾기'
     );
-
-    if (frontProp?.type === 'url') {
-      properties[frontProp.key] = { url: coverFrontUrl };
-    } else if (frontProp?.type === 'rich_text') {
-      properties[frontProp.key] = buildRichText(coverFrontUrl);
-    } else {
-      return res.status(500).json({
-        error: 'Schema error',
-        message: 'cover_front_url(URL) 속성이 Notion DB에 없습니다'
-      });
-    }
-
-    if (backProp?.type === 'url') {
-      properties[backProp.key] = { url: coverBackUrl };
-    } else if (backProp?.type === 'rich_text') {
-      properties[backProp.key] = buildRichText(coverBackUrl);
-    } else {
-      return res.status(500).json({
-        error: 'Schema error',
-        message: 'cover_back_url(URL) 속성이 Notion DB에 없습니다'
-      });
-    }
 
     if (typeProp?.type === 'select') {
       properties[typeProp.key] = { select: { name: notebookType } };

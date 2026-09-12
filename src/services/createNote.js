@@ -101,6 +101,7 @@ export async function allocateNotePublicId(payload) {
 }
 
 /**
+ * Cloudinary에 올린 표지 URL을 넘긴다. Notion cover_*_url 속성은 쓰지 않는다.
  * @param {{
  *   name: string,
  *   coverFrontUrl: string,

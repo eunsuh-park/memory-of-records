@@ -601,7 +601,7 @@ async function handleRenameFolder(req, res, body) {
     }
   }
 
-  /* 3) Notion 표지 URL 갱신 */
+  /* 3) 예전 cover_*_url 속성이 남아 있으면 URL만 맞춰 둔다. 없으면 건너뛴다. */
   const noteId = trimOrEmpty(body.noteId).replace(/-/g, '');
   const notionPatch = {};
 
