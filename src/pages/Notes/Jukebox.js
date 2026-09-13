@@ -36,6 +36,7 @@ import {
   isLocalDemoEnabled
 } from '../../utils/demoNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
+import { TABLET_OR_SHORT_MQ } from '../../utils/breakpoints.js';
 import { copyNoteShareUrl } from '../../utils/noteSlug.js';
 import { optimizeThumbnailUrl } from '../../utils/optimizeImageUrl.js';
 import { resolveNoteCoverUrls } from '../../services/noteCovers.js';
@@ -821,11 +822,11 @@ function sortNotes(notes, sortKey) {
   return list;
 }
 
-/** 모바일·타블렛(≤1024px) 또는 낮은 화면: 바닥 반사 없음 */
+/** 모바일·타블렛(≤1024px) 또는 낮은 화면(높이 ≤640px): 바닥 반사 없음 */
 function isMobileJukebox() {
   return (
     typeof window !== 'undefined' &&
-    window.matchMedia('(max-width: 1024px), (max-height: 768px)').matches
+    window.matchMedia(TABLET_OR_SHORT_MQ).matches
   );
 }
 

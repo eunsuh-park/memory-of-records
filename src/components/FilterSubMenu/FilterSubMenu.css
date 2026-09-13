@@ -182,7 +182,7 @@ body.jukebox-filter-empty .gallery-filter {
   display: none;
 }
 
-@media (max-height: 768px), (max-width: 768px) {
+@media (max-height: 640px), (max-width: 768px) {
   /*
    * 햄버거 헤더 바로 아래. PageHeader 패딩·로고 행과 같게 맞춰
    * 로고·햄버거와 겹치지 않게 한다.

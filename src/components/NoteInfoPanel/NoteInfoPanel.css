@@ -114,7 +114,7 @@
   padding-bottom: 0.2em;
 }
 
-@media (max-height: 768px), (max-width: 1024px) {
+@media (max-height: 640px), (max-width: 1024px) {
   .jukebox-focus-info {
     height: auto;
     min-height: var(--jukebox-focus-info-min-h);

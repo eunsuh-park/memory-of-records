@@ -784,7 +784,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   }
 }
 
-@media (max-height: 768px), (max-width: 1024px) {
+@media (max-height: 640px), (max-width: 1024px) {
   /*
    * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
    * 정보 패널 min-height를 먼저 잡고, 갤러리는 남는 높이만 쓴다(min-height: 0).
