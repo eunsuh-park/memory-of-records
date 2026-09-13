@@ -656,7 +656,8 @@ body.jukebox-active.loading-active #sub-menu {
  */
 @media (max-width: 1024px) {
   .jukebox-gallery {
-    padding: 18vh 0 22vh;
+    /* 하단은 고정 정보 패널(오버레이)과 겹치지 않게 데스크톱과 비슷한 여유를 둔다 */
+    padding: 18vh 0 36vh;
     -webkit-overflow-scrolling: touch;
   }
 
