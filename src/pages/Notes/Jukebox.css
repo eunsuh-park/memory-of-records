@@ -784,11 +784,11 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   }
 }
 
-@media (max-height: 640px), (max-width: 1024px) {
+@media (max-height: 640px), (max-width: 768px) {
   /*
-   * 갤러리와 포커스 정보 패널을 세로로 쌓아 겹치지 않게 한다.
-   * 정보 패널 min-height를 먼저 잡고, 갤러리는 남는 높이만 쓴다(min-height: 0).
-   * info가 하단에 따로 잡히므로 갤러리 세로 기준점을 60%로 내린다.
+   * 폰·낮은 화면만 갤러리와 정보 패널을 세로로 쌓는다.
+   * 769–1024px는 카드 크기만 타블렛이고, 정보는 데스크톱처럼 하단에 둔다.
+   * (1024에서 스택하면 갤러리 top 60% + 큰 카드가 제목과 겹친다.)
    */
   .jukebox-gallery-wrap {
     flex: 1 1 0;

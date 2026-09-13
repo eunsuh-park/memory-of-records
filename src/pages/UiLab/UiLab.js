@@ -139,7 +139,7 @@ const RESPONSIVE_MATRIX = [
       '전체 최저 360×768. 뷰포트가 더 작으면 페이지 스크롤'
     ],
     tablet: [
-      '셸 높이는 --app-height(100dvh 폴백 100vh). 주크박스 정보 패널은 너비 1024px 또는 높이 640px부터 접는다'
+      '셸 높이는 --app-height(100dvh 폴백 100vh). 주크박스 정보 패널 스택은 너비 768px 또는 높이 640px부터'
     ],
     desktop: [
       '.app-main padding-top 80px',
@@ -206,10 +206,9 @@ const RESPONSIVE_MATRIX = [
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
     tablet: [
-      '너비 769–1024px이면 모바일과 같이 갤러리·정보 패널을 세로로 쌓고 메모를 숨긴다',
-      '정보 패널 min-height가 갤러리보다 우선. 갤러리 wrap min-height 0 · overflow hidden',
+      '너비 769–1024px이면 카드·반사는 타블렛, 정보 패널은 데스크톱처럼 하단 고정',
       '바닥 반사 off, 카드 min(34vh, 360px)·이미지 min(38vw, 280px)·스케일 ×0.92',
-      '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지',
+      '갤러리 top 50% 유지. 좌우 화살표는 유지',
       '.notes-container padding-top 90px',
       '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
