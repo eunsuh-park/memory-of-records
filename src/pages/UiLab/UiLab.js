@@ -1272,7 +1272,8 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteImageViewer · PdfModal</h2>
           <p class="ui-lab__section-desc">
             페이지 이미지 뷰어와 PDF 폴백 뷰어입니다. 모달·전체 페이지 모드, 하단 시트, 줌/패닝이 여기에 있습니다.
-            PDF 첫/마지막 장이 표지가 아니면 노트 표지 이미지를 뷰어 양 끝에 넣습니다.
+            PDF 첫/마지막 장이 표지면 그 장을 표지로 표시하고 본문 번호에서 뺍니다.
+            표지가 아니면 노트 생성 때 올린 표지 이미지를 뷰어 양 끝에 넣습니다.
             버튼 구성은 위 <a href="#viewer-chrome">뷰어 크롬</a> 데모에서 확인할 수 있습니다.
           </p>
           <p class="ui-lab__files">
