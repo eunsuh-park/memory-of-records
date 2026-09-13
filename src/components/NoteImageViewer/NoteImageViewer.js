@@ -229,7 +229,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       : null;
   /** Cloudinary/Notion에 저장된 본문 장수. 뷰어 표시 장수(totalPages)와 다를 수 있다 */
   let storedPageCount = totalPages;
-  /** @type {Array<{ kind: 'page'|'cover-front'|'cover-back', url: string, pageNumber?: number }>} */
+  /** @type {Array<{ kind: 'page'|'cover-front'|'cover-back', url: string, pageNumber?: number, storedPageNumber?: number }>} */
   let displayPages = [];
   let hasKnownPageCount = totalPages !== null || isBookmarksAlbum || isDemoNote;
   let noteSize = options.size || demoNote?.size || null;
@@ -338,7 +338,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       : stored.map((page) => ({
           kind: 'page',
           url: page.url,
-          pageNumber: page.pageNumber
+          pageNumber: page.pageNumber,
+          storedPageNumber: page.pageNumber
         }));
     if (displayPages.length) {
       totalPages = displayPages.length;
@@ -349,6 +350,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   function displayItem(num) {
     if (!Number.isFinite(num) || num < 1) return null;
     return displayPages[num - 1] || null;
+  }
+
+  function storedNumberOf(item) {
+    if (!item) return null;
+    const n = Math.floor(
+      Number(item.storedPageNumber ?? (item.kind === 'page' ? item.pageNumber : 0)) || 0
+    );
+    return n > 0 ? n : null;
   }
 
   function displayIndexForStoredPage(pageNumber) {
@@ -375,15 +384,15 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   function insertAfterStoredPage() {
     const item = displayItem(pageNum);
     if (!item) return pageNum;
-    if (item.kind === 'cover-front') return 0;
-    if (item.kind === 'cover-back') return storedPageCount ?? 0;
-    return item.pageNumber;
+    if (item.kind === 'cover-front') return storedNumberOf(item) ?? 0;
+    if (item.kind === 'cover-back') return storedNumberOf(item) ?? storedPageCount ?? 0;
+    return storedNumberOf(item) ?? 0;
   }
 
   /** 메타/북마크 API용: 앨범이면 원본 folder+page, 아니면 현재 노트 */
   function sourceRef(num = pageNum) {
     const item = displayItem(num);
-    const storedNum = item?.kind === 'page' ? item.pageNumber : item ? null : num;
+    const storedNum = item?.kind === 'page' ? storedNumberOf(item) : item ? null : num;
     if (item && item.kind !== 'page') return null;
     if (isAlbumMode) {
       const entry = albumEntry(storedNum || num);
@@ -586,7 +595,8 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     const item = displayItem(num);
     if (item) {
       if (item.kind !== 'page') return false;
-      return hiddenPages.has(item.pageNumber);
+      const stored = storedNumberOf(item);
+      return stored != null && hiddenPages.has(stored);
     }
     return hiddenPages.has(num);
   }
@@ -605,23 +615,30 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     return null;
   }
 
-  /** 숨김 페이지를 제외한 현재 페이지의 표시 순번 */
-  function visibleOrdinal(num) {
-    let hiddenBefore = 0;
-    for (let i = 1; i <= num; i += 1) {
-      if (isHiddenDisplay(i)) hiddenBefore += 1;
-    }
-    return num - hiddenBefore;
+  function isContentDisplay(num) {
+    const item = displayItem(num);
+    return !item || item.kind === 'page';
   }
 
-  /** 숨김 페이지를 제외한 전체 표시 페이지 수 (page_count 미확정 시 null) */
+  /** 숨김·표지를 제외한 현재 본문 페이지의 표시 순번 */
+  function visibleOrdinal(num) {
+    let count = 0;
+    for (let i = 1; i <= num; i += 1) {
+      if (!isContentDisplay(i) || isHiddenDisplay(i)) continue;
+      count += 1;
+    }
+    return count;
+  }
+
+  /** 숨김·표지를 제외한 본문 페이지 수 (page_count 미확정 시 null) */
   function visibleTotal() {
     if (totalPages === null) return null;
-    let hiddenCount = 0;
+    let count = 0;
     for (let i = 1; i <= totalPages; i += 1) {
-      if (isHiddenDisplay(i)) hiddenCount += 1;
+      if (!isContentDisplay(i) || isHiddenDisplay(i)) continue;
+      count += 1;
     }
-    return totalPages - hiddenCount;
+    return count;
   }
 
   function showOverlay(message) {
@@ -650,7 +667,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       lastBtn.disabled = !ready || (st.bookState === 'closed' && st.closedFace === 'back');
 
       if (st.bookState === 'closed') {
-        currentPageEl.textContent = st.closedFace === 'front' ? '표지' : '뒤표지';
+        currentPageEl.textContent = st.closedFace === 'front' ? '앞표지' : '뒤표지';
       } else if (st.rightPageNumber != null && st.leftPageNumber != null) {
         currentPageEl.textContent = `${visibleOrdinal(displayIndexForStoredPage(st.leftPageNumber) || pageNum)}-${visibleOrdinal(displayIndexForStoredPage(st.rightPageNumber) || pageNum)}`;
       } else {
@@ -922,7 +939,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     imageLeft.style.opacity = '0.3';
     clearRightImage();
     showOverlay(
-      isCoverDisplay(num) ? `${displayLabel(num)} 불러오는 중...` : `${num}페이지 불러오는 중...`
+      isCoverDisplay(num)
+        ? `${displayLabel(num)} 불러오는 중...`
+        : `${displayLabel(num)}페이지 불러오는 중...`
     );
 
     try {
@@ -937,7 +956,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
        */
       let rightNum = null;
       let preRight = null;
-      if (isSpreadMode && !leftIsSpreadAsset) {
+      if (isSpreadMode && !leftIsSpreadAsset && !isCoverDisplay(num)) {
         rightNum = findVisiblePage(num + 1, 1);
         preRight = rightNum !== null ? preloadPage(rightNum) : null;
         if (preRight) {
@@ -960,7 +979,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       viewerEl?.classList.toggle('spread-mode', isPairing);
 
       if (isPairing) {
-        showOverlay(`${num}-${rightNum}페이지 불러오는 중...`);
+        showOverlay(`${displayLabel(num)}-${displayLabel(rightNum)}페이지 불러오는 중...`);
       }
 
       imageLeft.src = preLeft.src;
@@ -1222,7 +1241,11 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   function collectFlipPages() {
     rebuildDisplayPages();
     return displayPages
-      .filter((page) => page.kind === 'page' && page.url && !hiddenPages.has(page.pageNumber))
+      .filter((page) => {
+        if (page.kind !== 'page' || !page.url) return false;
+        const stored = storedNumberOf(page);
+        return stored == null || !hiddenPages.has(stored);
+      })
       .map((page) => ({ pageNumber: page.pageNumber, url: page.url }));
   }
 
@@ -1306,6 +1329,10 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     if (!flipCanvas || !canUseWebGL() || flipPages.length < 1) return false;
 
     const covers = await resolveCoverUrls(flipPages);
+    const frontItem = displayPages.find((page) => page.kind === 'cover-front');
+    const backItem = displayPages.find((page) => page.kind === 'cover-back');
+    if (frontItem?.url) covers.front = String(frontItem.url).trim();
+    if (backItem?.url) covers.back = String(backItem.url).trim();
     if (!covers.front || !covers.back) return false;
 
     showOverlay('책장 불러오는 중...');
@@ -1361,8 +1388,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   function refreshCurrentView(num) {
     if (useBookFlip) {
       void startBookFlip(num).then((ok) => {
-        if (ok && num) bookFlip?.goToPageNumber(num);
-        else if (!ok && num) showPage(num);
+        if (!ok && num) showPage(num);
       });
       return;
     }

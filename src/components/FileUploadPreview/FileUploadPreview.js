@@ -127,6 +127,43 @@ function coverBadgeHtml(name, checked, label) {
 }
 
 /**
+ * 표지로 체크된 장은 본문 번호에서 빼고 앞표지/뒤표지로 표시한다.
+ * @param {{ pageNumber?: number }} item
+ * @param {number} index
+ * @param {unknown[]} items
+ * @param {{
+ *   startPage?: number,
+ *   coverChecks?: {
+ *     showFirst?: boolean,
+ *     showLast?: boolean,
+ *     firstChecked?: boolean,
+ *     lastChecked?: boolean
+ *   }|null
+ * }} config
+ * @returns {string}
+ */
+export function uploadPreviewPageLabel(item, index, items, config = {}) {
+  const startPage = Number(config.startPage) || 1;
+  const coverChecks = config.coverChecks || null;
+  const showFirst = Boolean(coverChecks?.showFirst);
+  const showLast = Boolean(coverChecks?.showLast);
+  const firstChecked = coverChecks?.firstChecked !== false;
+  const lastChecked = coverChecks?.lastChecked !== false;
+  const isFirst = index === 0;
+  const isLast = items.length > 0 && index === items.length - 1;
+
+  if (isFirst && showFirst && firstChecked) return '앞표지';
+  if (isLast && showLast && lastChecked) return '뒤표지';
+
+  const raw = Number.isFinite(Number(item?.pageNumber))
+    ? Number(item.pageNumber)
+    : startPage + index;
+  const dropFront = showFirst && firstChecked && startPage === 1;
+  const pageNumber = dropFront ? raw - 1 : raw;
+  return `${pageNumber}p`;
+}
+
+/**
  * 미리보기 항목들
  * @param {Array<{ id: string, dataUrl: string, label?: string, pageNumber?: number }>} items
  * @param {{
@@ -164,9 +201,10 @@ export function renderList(items = [], config = {}) {
     .map((item, index) => {
       const isFirst = index === 0;
       const isLast = index === items.length - 1;
-      const pageNumber = Number.isFinite(Number(item.pageNumber))
-        ? Number(item.pageNumber)
-        : startPage + index;
+      const pageLabel = uploadPreviewPageLabel(item, index, items, {
+        startPage,
+        coverChecks
+      });
       const coverHtml = [
         isFirst && showFirst ? coverBadgeHtml('firstPageIsCover', firstChecked, '표지') : '',
         isLast && showLast ? coverBadgeHtml('lastPageIsCover', lastChecked, '표지') : ''
@@ -204,7 +242,7 @@ export function renderList(items = [], config = {}) {
         <div class="upload-item__frame">
           ${coverHtml}
           <img src="${escapeHtml(item.dataUrl)}" alt="" />
-          <span class="upload-item__page">${escapeHtml(`${pageNumber}p`)}</span>
+          <span class="upload-item__page">${escapeHtml(pageLabel)}</span>
         </div>
         ${actionsHtml}
       </li>`;

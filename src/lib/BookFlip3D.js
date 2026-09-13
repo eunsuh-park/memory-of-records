@@ -18,7 +18,9 @@
  *
  * 상태:
  * - bookState 'open'   → 스프레드 (왼·오른 페이지)
- * - bookState 'closed' → cover_front | cover_back (중앙 정렬)
+ * - bookState 'closed' → cover_front는 오른쪽, cover_back은 왼쪽
+ *
+ * 표지를 넘기면 왼쪽 페이지가 본문 1부터 시작한다.
  */
 
 function applyTextureColorSpace(THREE, texture) {
@@ -60,7 +62,6 @@ export function createBookFlip3D(THREE, options) {
   const UNDERLAY_Z = -0.015;
   const FLIP_SPEED = 0.045;
   const FLIP_DURATION = 1;
-  const FLIP_RATIO = 0.62;
   const LAST_PAGE_INDEX = pages.length - 1;
   const LAST_LEFT_INDEX = LAST_PAGE_INDEX % 2 === 0
     ? Math.max(0, LAST_PAGE_INDEX - 1)
@@ -142,10 +143,6 @@ export function createBookFlip3D(THREE, options) {
 
   function emitState() {
     onStateChange?.(snapshotState());
-  }
-
-  function closedCenterX(face) {
-    return face === 'front' ? -pageWidth / 2 : pageWidth / 2;
   }
 
   function disposeObject(object) {
@@ -379,17 +376,12 @@ export function createBookFlip3D(THREE, options) {
     bookState = 'closed';
     closedFace = face;
     coverLeaf = createClosedCover(face);
-    coverLeaf.position.x = closedCenterX(face);
     pageRoot.add(coverLeaf);
     emitState();
   }
 
   function easeInOutQuad(t) {
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-  }
-
-  function lerp(a, b, t) {
-    return a + (b - a) * t;
   }
 
   function beginAnim(kind) {
@@ -424,7 +416,6 @@ export function createBookFlip3D(THREE, options) {
 
     leftLeaf = createLeaf(0, 'front', false);
     leftLeaf.rotation.y = Math.PI;
-    leftLeaf.position.x = closedCenterX('front');
     pageRoot.add(leftLeaf);
 
     beginAnim('openFront');
@@ -443,7 +434,6 @@ export function createBookFlip3D(THREE, options) {
       // 홀수 장: 닫힌 cover_back → 왼쪽 마지막 페이지로 펼침
       leftLeaf = createLeaf(LAST_PAGE_INDEX, 'back', false);
       leftLeaf.rotation.y = Math.PI;
-      leftLeaf.position.x = closedCenterX('front');
       pageRoot.add(leftLeaf);
       beginAnim('openBackFromLeft');
       return;
@@ -454,7 +444,6 @@ export function createBookFlip3D(THREE, options) {
 
     rightLeaf = createLeaf(LAST_PAGE_INDEX, 'back', true);
     rightLeaf.rotation.y = -Math.PI;
-    rightLeaf.position.x = closedCenterX('back');
     pageRoot.add(rightLeaf);
 
     beginAnim('openBack');
@@ -537,97 +526,37 @@ export function createBookFlip3D(THREE, options) {
       leftLeaf.rotation.y = t * Math.PI;
       leftLeaf.position.z = 0.02;
     } else if (animKind === 'closeFront' && leftLeaf) {
-      if (raw < FLIP_RATIO) {
-        const tf = easeInOutQuad(raw / FLIP_RATIO);
-        leftLeaf.rotation.y = tf * Math.PI;
-        leftLeaf.position.x = 0;
-        leftLeaf.position.z = 0.02;
-        if (rightLeaf) setGroupOpacity(rightLeaf, 1 - tf);
-        if (underLeft) setGroupOpacity(underLeft, 1 - tf);
-        if (underRight) setGroupOpacity(underRight, 1 - tf);
-      } else {
-        const tc = easeInOutQuad((raw - FLIP_RATIO) / (1 - FLIP_RATIO));
-        leftLeaf.rotation.y = Math.PI;
-        leftLeaf.position.x = lerp(0, closedCenterX('front'), tc);
-        leftLeaf.position.z = 0.02;
-        if (rightLeaf) setGroupOpacity(rightLeaf, 0);
-        if (underLeft) setGroupOpacity(underLeft, 0);
-        if (underRight) setGroupOpacity(underRight, 0);
-      }
+      leftLeaf.rotation.y = t * Math.PI;
+      leftLeaf.position.x = 0;
+      leftLeaf.position.z = 0.02;
+      if (rightLeaf) setGroupOpacity(rightLeaf, 1 - t);
+      if (underLeft) setGroupOpacity(underLeft, 1 - t);
+      if (underRight) setGroupOpacity(underRight, 1 - t);
     } else if (animKind === 'closeBack' && rightLeaf) {
-      if (raw < FLIP_RATIO) {
-        const tf = easeInOutQuad(raw / FLIP_RATIO);
-        rightLeaf.rotation.y = -tf * Math.PI;
-        rightLeaf.position.x = 0;
-        rightLeaf.position.z = 0.02;
-        if (leftLeaf) setGroupOpacity(leftLeaf, 1 - tf);
-        if (underLeft) setGroupOpacity(underLeft, 1 - tf);
-        if (underRight) setGroupOpacity(underRight, 1 - tf);
-      } else {
-        const tc = easeInOutQuad((raw - FLIP_RATIO) / (1 - FLIP_RATIO));
-        rightLeaf.rotation.y = -Math.PI;
-        rightLeaf.position.x = lerp(0, closedCenterX('back'), tc);
-        rightLeaf.position.z = 0.02;
-        if (leftLeaf) setGroupOpacity(leftLeaf, 0);
-        if (underLeft) setGroupOpacity(underLeft, 0);
-        if (underRight) setGroupOpacity(underRight, 0);
-      }
+      rightLeaf.rotation.y = -t * Math.PI;
+      rightLeaf.position.x = 0;
+      rightLeaf.position.z = 0.02;
+      if (leftLeaf) setGroupOpacity(leftLeaf, 1 - t);
+      if (underLeft) setGroupOpacity(underLeft, 1 - t);
+      if (underRight) setGroupOpacity(underRight, 1 - t);
     } else if (animKind === 'closeBackFromLeft' && leftLeaf) {
-      if (raw < FLIP_RATIO) {
-        const tf = easeInOutQuad(raw / FLIP_RATIO);
-        leftLeaf.rotation.y = tf * Math.PI;
-        leftLeaf.position.x = 0;
-        leftLeaf.position.z = 0.02;
-        if (underLeft) setGroupOpacity(underLeft, 1 - tf);
-        if (underRight) setGroupOpacity(underRight, 1 - tf);
-      } else {
-        const tc = easeInOutQuad((raw - FLIP_RATIO) / (1 - FLIP_RATIO));
-        leftLeaf.rotation.y = Math.PI;
-        // 왼→오른쪽으로 넘긴 뒤 중앙 정렬 (front 닫힘과 동일 오프셋)
-        leftLeaf.position.x = lerp(0, closedCenterX('front'), tc);
-        leftLeaf.position.z = 0.02;
-        if (underLeft) setGroupOpacity(underLeft, 0);
-        if (underRight) setGroupOpacity(underRight, 0);
-      }
+      leftLeaf.rotation.y = t * Math.PI;
+      leftLeaf.position.x = 0;
+      leftLeaf.position.z = 0.02;
+      if (underLeft) setGroupOpacity(underLeft, 1 - t);
+      if (underRight) setGroupOpacity(underRight, 1 - t);
     } else if (animKind === 'openFront' && leftLeaf) {
-      const uncenterRatio = 1 - FLIP_RATIO;
-      if (raw < uncenterRatio) {
-        const tu = easeInOutQuad(raw / uncenterRatio);
-        leftLeaf.rotation.y = Math.PI;
-        leftLeaf.position.x = lerp(closedCenterX('front'), 0, tu);
-        leftLeaf.position.z = 0.02;
-      } else {
-        const tf = easeInOutQuad((raw - uncenterRatio) / FLIP_RATIO);
-        leftLeaf.position.x = 0;
-        leftLeaf.rotation.y = Math.PI * (1 - tf);
-        leftLeaf.position.z = 0.02;
-      }
+      leftLeaf.rotation.y = Math.PI * (1 - t);
+      leftLeaf.position.x = 0;
+      leftLeaf.position.z = 0.02;
     } else if (animKind === 'openBack' && rightLeaf) {
-      const uncenterRatio = 1 - FLIP_RATIO;
-      if (raw < uncenterRatio) {
-        const tu = easeInOutQuad(raw / uncenterRatio);
-        rightLeaf.rotation.y = -Math.PI;
-        rightLeaf.position.x = lerp(closedCenterX('back'), 0, tu);
-        rightLeaf.position.z = 0.02;
-      } else {
-        const tf = easeInOutQuad((raw - uncenterRatio) / FLIP_RATIO);
-        rightLeaf.position.x = 0;
-        rightLeaf.rotation.y = -Math.PI * (1 - tf);
-        rightLeaf.position.z = 0.02;
-      }
+      rightLeaf.rotation.y = -Math.PI * (1 - t);
+      rightLeaf.position.x = 0;
+      rightLeaf.position.z = 0.02;
     } else if (animKind === 'openBackFromLeft' && leftLeaf) {
-      const uncenterRatio = 1 - FLIP_RATIO;
-      if (raw < uncenterRatio) {
-        const tu = easeInOutQuad(raw / uncenterRatio);
-        leftLeaf.rotation.y = Math.PI;
-        leftLeaf.position.x = lerp(closedCenterX('front'), 0, tu);
-        leftLeaf.position.z = 0.02;
-      } else {
-        const tf = easeInOutQuad((raw - uncenterRatio) / FLIP_RATIO);
-        leftLeaf.position.x = 0;
-        leftLeaf.rotation.y = Math.PI * (1 - tf);
-        leftLeaf.position.z = 0.02;
-      }
+      leftLeaf.rotation.y = Math.PI * (1 - t);
+      leftLeaf.position.x = 0;
+      leftLeaf.position.z = 0.02;
     }
 
     if (animProgress >= FLIP_DURATION) finishAnim();

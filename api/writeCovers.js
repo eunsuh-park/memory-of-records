@@ -95,7 +95,8 @@ function signParams(params, apiSecret) {
 
 /**
  * 앞표지 리소스 context에 첫/마지막 장이 PDF 표지인지 저장한다.
- * 뷰어는 false일 때만 업로드한 표지 이미지를 양 끝에 끼워 넣는다.
+ * 뷰어는 true이면 그 PDF 장을 표지로 표시하고 본문 번호에서 빼고,
+ * false일 때만 업로드한 표지 이미지를 양 끝에 끼워 넣는다.
  */
 async function handleCoverFlags(req, res, body, credentials) {
   const firstFlag = toCoverFlagString(body.firstPageIsCover);

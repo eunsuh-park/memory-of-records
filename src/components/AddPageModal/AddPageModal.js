@@ -811,6 +811,9 @@ export async function openAddPageModal(options = {}) {
       if (input.name === 'lastPageIsCover') lastPageIsCover = input.checked;
       if (input.name === 'appendToEnd') appendToEnd = input.checked;
       if (input.name === 'allPagesPrivate') allPagesPrivate = input.checked;
+      if (input.name === 'firstPageIsCover' || input.name === 'lastPageIsCover') {
+        renderPreviewList();
+      }
       return;
     }
     if (input.type !== 'file') return;
