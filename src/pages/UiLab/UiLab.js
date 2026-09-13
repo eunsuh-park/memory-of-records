@@ -167,6 +167,7 @@ const RESPONSIVE_MATRIX = [
       'fixed · max-width 1200px · width calc(100% - 3rem) · padding 1rem 2rem',
       '하단 모서리 48px 라운드',
       '로고 | 테마·Login/Logout·(새 노트 추가, 로그인 시)',
+      'Ctrl+Shift+N 새 노트 모달 (헤더 버튼과 동일. Chrome/Edge는 시크릿 창에 가로채일 수 있음)',
       '새 노트 추가 높이 44px · 라벨 1줄',
       '우측 부모 열이 라벨 폭보다 좁으면(컨테이너) + 아이콘만',
       '햄버거·드로어 display none'
@@ -217,7 +218,8 @@ const RESPONSIVE_MATRIX = [
       '갤러리 padding 40vh 0 · top 50% · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on(다크). 라이트는 반사·하단 그라데이션 없음',
       '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
-      '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
+      '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달',
+      'PC ←/→ 로 카드 한 장씩 이동 (모달·입력·드롭다운이 열려 있으면 무시)'
     ]
   },
   {
@@ -1075,7 +1077,7 @@ export function renderUiLab() {
             <li>공유 버튼은 보고 있는 장의 <code>/note/{slug}?p=N</code> 링크를 복사합니다. 주크박스 포커스 공유는 노트 전체 링크입니다</li>
             <li>다음 버튼은 마지막 페이지에서 <code>is-at-end</code>만 붙고 클릭 시 토스트를 띄웁니다</li>
             <li>공유 링크로 연 전체 페이지 뷰어는 오른쪽 위 닫기(X)·ESC·여백 클릭으로 주크박스에 돌아갑니다</li>
-            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구 · Esc 닫기</li>
+            <li>키보드: ←/→ 페이지 이동 · S 양면 · +/− 확대·축소 · 0 원상복구 · Esc 닫기. 주크박스는 ←/→ 로 노트 한 권씩, Ctrl+Shift+N 으로 새 노트</li>
           </ul>
         </section>
 

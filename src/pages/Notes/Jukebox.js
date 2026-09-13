@@ -9,6 +9,7 @@
  * 1. 스크롤 연동 Cover Flow: 가로 스크롤 시 카드별 뷰포트 위치에 따라
  *    rotateY·scale·translateZ·z-index 갱신 (scroll 이벤트 + updateCardAngles).
  * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
+ * 3. PC 좌우 화살표: 이전/다음 버튼과 같이 카드 한 장씩 중앙으로 이동.
  */
 
 import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
@@ -21,6 +22,7 @@ import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotesCaches } from '../../utils/notesCatalog.js';
 import { consumeJukeboxFocus } from '../../utils/jukeboxFocus.js';
+import { isAppOverlayOpen, isJukeboxStepKey, isTypingTarget } from '../../utils/keyboard.js';
 import { escapeHtml } from '../../utils/html.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
 import { isAuthenticated, onAuthChange } from '../../services/auth.js';
@@ -307,10 +309,10 @@ function enableCenterPerspective(gallery) {
 }
 
 /**
- * PC 사용성: 가장자리 호버 스크롤 + 이전/다음 버튼
+ * PC 사용성: 가장자리 호버 스크롤 + 이전/다음 버튼 + 좌우 화살표
  * - 가장자리만 반응: 화면 왼쪽 12% / 오른쪽 12% 안에 마우스가 있을 때만 스크롤. 중앙 76%는 정지.
  * - EDGE_HOVER_DELAY_MS 동안 가장자리에 머물렀을 때만 스크롤 시작 (지나가기만 하면 동작 안 함).
- * - 이전/다음 버튼: 클릭 시 카드 한 장씩 이동.
+ * - 이전/다음 버튼·←/→: 클릭/키 시 카드 한 장씩 이동. 모달·입력 중에는 키를 무시.
  * 반응형: 터치 기기에서는 mousemove가 없어 호버 스크롤은 동작하지 않음. 스와이프·버튼·휠만 사용.
  */
 function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: false }) {
@@ -488,18 +490,32 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
   /* 카드 클릭 핸들러(renderJukeboxWithFilter)에서 재사용할 수 있도록 노출 */
   gallery.jukeboxScrollCardToCenter = scrollCardToCenter;
 
+  function stepCards(delta) {
+    const metrics = getCardMetrics(gallery);
+    const idx = getClosestCardIndex(gallery);
+    const next = idx + delta;
+    if (next < 0 || next >= metrics.length) return;
+    scrollCardToCenter(metrics[next].el);
+  }
+
   /* 이전 버튼: 중앙에 가장 가까운 카드의 이전 카드로 스크롤 */
-  prevBtn?.addEventListener('click', () => {
-    const metrics = getCardMetrics(gallery);
-    const idx = getClosestCardIndex(gallery);
-    if (idx > 0) scrollCardToCenter(metrics[idx - 1].el);
-  });
+  prevBtn?.addEventListener('click', () => stepCards(-1));
   /* 다음 버튼: 중앙에 가장 가까운 카드의 다음 카드로 스크롤 */
-  nextBtn?.addEventListener('click', () => {
-    const metrics = getCardMetrics(gallery);
-    const idx = getClosestCardIndex(gallery);
-    if (idx >= 0 && idx < metrics.length - 1) scrollCardToCenter(metrics[idx + 1].el);
-  });
+  nextBtn?.addEventListener('click', () => stepCards(1));
+
+  function handleKeydown(event) {
+    if (!gallery.isConnected) {
+      document.removeEventListener('keydown', handleKeydown);
+      return;
+    }
+    if (event.defaultPrevented) return;
+    if (!isJukeboxStepKey(event)) return;
+    if (isTypingTarget(event.target)) return;
+    if (isAppOverlayOpen()) return;
+    event.preventDefault();
+    stepCards(event.key === 'ArrowLeft' ? -1 : 1);
+  }
+  document.addEventListener('keydown', handleKeydown);
 
   updateJukeboxNavButtons(gallery);
 }

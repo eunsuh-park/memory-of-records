@@ -19,6 +19,7 @@ import { showToast } from '../../components/Toast/Toast.js';
 import { router } from '../../router.js';
 import { FAVORITES_PATH } from '../../utils/noteFavorites.js';
 import { PAGE_SCRAP_PATH } from '../../utils/bookmarksNote.js';
+import { isNewNoteShortcut } from '../../utils/keyboard.js';
 
 const BASE_URL = import.meta.env.BASE_URL || '/';
 const COMPACT_HEADER_MQ = '(max-height: 768px), (max-width: 768px)';
@@ -309,6 +310,20 @@ export function renderPageHeader() {
       if (e.key === 'Escape' && document.body.classList.contains('nav-drawer-open')) {
         closeDrawer();
       }
+    });
+  }
+
+  if (!window.__pageHeaderNewNoteShortcutBound) {
+    window.__pageHeaderNewNoteShortcutBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (!isNewNoteShortcut(e)) return;
+      e.preventDefault();
+      closeDrawer();
+      void openAddNoteModal({
+        onCreated: () => {
+          router.handleRoute();
+        }
+      });
     });
   }
 
