@@ -10,6 +10,7 @@ import { render as renderField, setStatus as setFormStatus } from '../FormField/
 import { showToast } from '../Toast/Toast.js';
 import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
 import { recognizePageImage } from '../../services/ocr.js';
+import { normalizeIsoDate, yearFromIsoDate } from '../../utils/entryDate.js';
 import { requireAuth } from '../../services/auth.js';
 import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
@@ -283,6 +284,16 @@ export function openPageMetaModal(options = {}) {
     setStatus('저장된 값으로 되돌렸습니다');
   });
 
+  async function loadPreviousEntryDate() {
+    if (pageNumber <= 1) return '';
+    try {
+      const prev = await fetchPageMeta({ folder, page: pageNumber - 1 });
+      return normalizeIsoDate(prev?.entry_date);
+    } catch {
+      return '';
+    }
+  }
+
   ocrBtn?.addEventListener('click', async () => {
     if (mode !== 'edit' || ocrRunning || saving || !imageUrl) return;
     ocrRunning = true;
@@ -294,23 +305,36 @@ export function openPageMetaModal(options = {}) {
     setStatus('OCR 준비 중…');
 
     try {
+      const previousDate = await loadPreviousEntryDate();
       const result = await recognizePageImage(imageUrl, {
+        fallbackYear: yearFromIsoDate(previousDate),
         onProgress: ({ status, progress }) => {
           setStatus(ocrProgressLabel(status, progress));
         }
       });
 
       if (ocrInput) ocrInput.value = result.text || '';
-      if (result.entry_date && dateInput) {
-        dateInput.value = result.entry_date;
+      const filledDate = result.entry_date || previousDate;
+      if (filledDate && dateInput) {
+        dateInput.value = filledDate;
       }
 
       if (result.text && result.entry_date) {
         setStatus(`인식 완료 · 날짜 ${result.entry_date} (저장을 눌러 반영)`);
         showToast('텍스트와 날짜를 채웠습니다');
+      } else if (result.text && previousDate) {
+        setStatus(
+          `인식 완료 · 날짜는 없어 이전 장 ${previousDate}를 넣었습니다 (저장을 눌러 반영)`
+        );
+        showToast('텍스트를 채우고 이전 장 날짜를 넣었습니다');
       } else if (result.text) {
         setStatus('인식 완료 · 날짜는 찾지 못했습니다 (저장을 눌러 반영)');
         showToast('텍스트를 채웠습니다');
+      } else if (previousDate) {
+        setStatus(
+          `인식된 텍스트가 없어 이전 장 날짜 ${previousDate}를 넣었습니다 (저장을 눌러 반영)`
+        );
+        showToast('이전 장 날짜를 넣었습니다');
       } else {
         setStatus('인식된 텍스트가 없습니다', true);
         showToast('인식된 텍스트가 없습니다');

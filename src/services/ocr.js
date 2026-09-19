@@ -4,6 +4,10 @@
  * - 한국어+영어 인식 → ocr_text / entry_date 후보 추출
  */
 
+import { extractEntryDateFromOcr } from '../utils/entryDate.js';
+
+export { extractEntryDateFromOcr } from '../utils/entryDate.js';
+
 const TESSERACT_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 
 /** @type {Promise<any> | null} */
@@ -86,74 +90,12 @@ async function fetchImageAsObjectUrl(imageUrl) {
   return URL.createObjectURL(blob);
 }
 
-function pad2(n) {
-  return String(n).padStart(2, '0');
-}
-
-/**
- * @param {number|string} year
- * @param {number|string} month
- * @param {number|string} day
- * @returns {string} YYYY-MM-DD 또는 ''
- */
-function toIsoDate(year, month, day) {
-  const y = Number(year);
-  const m = Number(month);
-  const d = Number(day);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return '';
-  if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return '';
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  if (
-    dt.getUTCFullYear() !== y ||
-    dt.getUTCMonth() !== m - 1 ||
-    dt.getUTCDate() !== d
-  ) {
-    return '';
-  }
-  return `${y}-${pad2(m)}-${pad2(d)}`;
-}
-
-function expandTwoDigitYear(yy) {
-  const n = Number(yy);
-  if (!Number.isFinite(n) || n < 0 || n > 99) return null;
-  /* 일기/노트 맥락: 50 이상 → 19xx, 미만 → 20xx */
-  return n >= 50 ? 1900 + n : 2000 + n;
-}
-
-/**
- * OCR 텍스트에서 첫 번째 유효 날짜를 YYYY-MM-DD로 추출
- * @param {string} text
- * @returns {string}
- */
-export function extractEntryDateFromOcr(text) {
-  const raw = String(text || '');
-  if (!raw.trim()) return '';
-
-  for (const m of raw.matchAll(/(19|20)\d{2}\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/g)) {
-    const year = m[0].match(/(19|20)\d{2}/)?.[0];
-    const iso = toIsoDate(year, m[2], m[3]);
-    if (iso) return iso;
-  }
-
-  for (const m of raw.matchAll(/(19|20)\d{2}\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})/g)) {
-    const year = m[0].match(/(19|20)\d{2}/)?.[0];
-    const iso = toIsoDate(year, m[2], m[3]);
-    if (iso) return iso;
-  }
-
-  for (const m of raw.matchAll(/(?<!\d)(\d{2})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})(?!\d)/g)) {
-    const y = expandTwoDigitYear(m[1]);
-    if (y == null) continue;
-    const iso = toIsoDate(y, m[2], m[3]);
-    if (iso) return iso;
-  }
-
-  return '';
-}
-
 /**
  * @param {string} imageUrl - 페이지 이미지 URL (Cloudinary delivery 등)
- * @param {{ onProgress?: (info: { status: string, progress: number }) => void }} [options]
+ * @param {{
+ *   onProgress?: (info: { status: string, progress: number }) => void,
+ *   fallbackYear?: number|null
+ * }} [options]
  * @returns {Promise<{ text: string, entry_date: string }>}
  */
 export async function recognizePageImage(imageUrl, options = {}) {
@@ -180,7 +122,7 @@ export async function recognizePageImage(imageUrl, options = {}) {
 
     return {
       text,
-      entry_date: extractEntryDateFromOcr(text)
+      entry_date: extractEntryDateFromOcr(text, { fallbackYear: options.fallbackYear })
     };
   } finally {
     progressHandler = null;
