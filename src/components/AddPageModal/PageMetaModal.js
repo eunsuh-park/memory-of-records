@@ -10,6 +10,7 @@ import { render as renderField, setStatus as setFormStatus } from '../FormField/
 import { showToast } from '../Toast/Toast.js';
 import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
 import { recognizePageImage } from '../../services/ocr.js';
+import { normalizeIsoDate, yearFromIsoDate } from '../../utils/entryDate.js';
 import { requireAuth } from '../../services/auth.js';
 import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
@@ -131,14 +132,8 @@ export function openPageMetaModal(options = {}) {
     setStatus('수정 후 저장을 눌러 반영하세요');
   }
 
-  function ocrProgressLabel(status, progress) {
-    const pct = Math.round(Math.max(0, Math.min(1, progress)) * 100);
-    if (status === 'loading tesseract core') return `OCR 엔진 로드 중… ${pct}%`;
-    if (status === 'initializing tesseract') return `OCR 초기화 중… ${pct}%`;
-    if (status === 'loading language traineddata') return `언어 데이터 로드 중… ${pct}%`;
-    if (status === 'initializing api') return `OCR 준비 중… ${pct}%`;
-    if (status === 'recognizing text') return `텍스트 인식 중… ${pct}%`;
-    return `OCR 실행 중… ${pct}%`;
+  function ocrProgressLabel() {
+    return 'Gemini가 OCR 중';
   }
 
   const dialog = openDialog({
@@ -184,7 +179,7 @@ export function openPageMetaModal(options = {}) {
             </div>
           </div>
           <textarea class="field__textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
-          <span class="page-meta-date-hint page-meta-edit-hint" hidden>손글씨는 정확도가 낮을 수 있습니다. 인식 후 수정·저장하세요.</span>
+          <span class="page-meta-date-hint page-meta-edit-hint" hidden>Gemini가 글자를 읽습니다. 인식 후 확인하고 저장하세요.</span>
         </div>
         <label class="form-check">
           <input type="checkbox" name="visible" checked disabled />
@@ -283,34 +278,57 @@ export function openPageMetaModal(options = {}) {
     setStatus('저장된 값으로 되돌렸습니다');
   });
 
+  async function loadPreviousEntryDate() {
+    if (pageNumber <= 1) return '';
+    try {
+      const prev = await fetchPageMeta({ folder, page: pageNumber - 1 });
+      return normalizeIsoDate(prev?.entry_date);
+    } catch {
+      return '';
+    }
+  }
+
   ocrBtn?.addEventListener('click', async () => {
     if (mode !== 'edit' || ocrRunning || saving || !imageUrl) return;
     ocrRunning = true;
     setEditEnabled(false);
     if (ocrBtn) {
       ocrBtn.disabled = true;
-      ocrBtn.textContent = '인식 중…';
+      ocrBtn.textContent = 'Gemini가 OCR 중';
     }
-    setStatus('OCR 준비 중…');
+    setStatus('Gemini가 OCR 중');
 
     try {
+      const previousDate = await loadPreviousEntryDate();
       const result = await recognizePageImage(imageUrl, {
+        fallbackYear: yearFromIsoDate(previousDate),
         onProgress: ({ status, progress }) => {
           setStatus(ocrProgressLabel(status, progress));
         }
       });
 
       if (ocrInput) ocrInput.value = result.text || '';
-      if (result.entry_date && dateInput) {
-        dateInput.value = result.entry_date;
+      const filledDate = result.entry_date || previousDate;
+      if (filledDate && dateInput) {
+        dateInput.value = filledDate;
       }
 
       if (result.text && result.entry_date) {
         setStatus(`인식 완료 · 날짜 ${result.entry_date} (저장을 눌러 반영)`);
         showToast('텍스트와 날짜를 채웠습니다');
+      } else if (result.text && previousDate) {
+        setStatus(
+          `인식 완료 · 날짜는 없어 이전 장 ${previousDate}를 넣었습니다 (저장을 눌러 반영)`
+        );
+        showToast('텍스트를 채우고 이전 장 날짜를 넣었습니다');
       } else if (result.text) {
         setStatus('인식 완료 · 날짜는 찾지 못했습니다 (저장을 눌러 반영)');
         showToast('텍스트를 채웠습니다');
+      } else if (previousDate) {
+        setStatus(
+          `인식된 텍스트가 없어 이전 장 날짜 ${previousDate}를 넣었습니다 (저장을 눌러 반영)`
+        );
+        showToast('이전 장 날짜를 넣었습니다');
       } else {
         setStatus('인식된 텍스트가 없습니다', true);
         showToast('인식된 텍스트가 없습니다');
