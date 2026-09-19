@@ -134,11 +134,7 @@ export function openPageMetaModal(options = {}) {
 
   function ocrProgressLabel(status, progress) {
     const pct = Math.round(Math.max(0, Math.min(1, progress)) * 100);
-    if (status === 'loading tesseract core') return `OCR 엔진 로드 중… ${pct}%`;
-    if (status === 'initializing tesseract') return `OCR 초기화 중… ${pct}%`;
-    if (status === 'loading language traineddata') return `언어 데이터 로드 중… ${pct}%`;
-    if (status === 'initializing api') return `OCR 준비 중… ${pct}%`;
-    if (status === 'recognizing text') return `텍스트 인식 중… ${pct}%`;
+    if (status === 'recognizing text') return `Gemini로 글자를 읽는 중… ${pct}%`;
     return `OCR 실행 중… ${pct}%`;
   }
 
@@ -185,7 +181,7 @@ export function openPageMetaModal(options = {}) {
             </div>
           </div>
           <textarea class="field__textarea" name="ocr_text" rows="5" placeholder="이 페이지의 텍스트/메모" disabled></textarea>
-          <span class="page-meta-date-hint page-meta-edit-hint" hidden>손글씨는 정확도가 낮을 수 있습니다. 인식 후 수정·저장하세요.</span>
+          <span class="page-meta-date-hint page-meta-edit-hint" hidden>Gemini가 글자를 읽습니다. 인식 후 확인하고 저장하세요.</span>
         </div>
         <label class="form-check">
           <input type="checkbox" name="visible" checked disabled />

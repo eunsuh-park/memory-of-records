@@ -9,24 +9,26 @@
  * - OCR 텍스트(ocr_text) · 이미 있는 entry_date에서 날짜를 뽑고,
  *   없는 장은 직전 날짜를 Forward Fill 한다
  *
- * 페이지에 ocr_text가 아직 없으면 뷰어 페이지 정보 모달에서
- * 「이미지에서 인식」을 한 뒤 이 스크립트를 다시 돌린다.
+ * ocr_text가 없으면 뷰어 「이미지에서 인식」 또는 --ocr 로 Gemini에 맡긴다.
  *
  * 사용법:
  *   node scripts/fill-page-entry-dates.mjs --note DIRY-2025-0001
  *   node scripts/fill-page-entry-dates.mjs --folder "notebooks/DIRY-2025-0001/pages"
  *   node scripts/fill-page-entry-dates.mjs --note DIRY-2025-0001 --apply
  *   node scripts/fill-page-entry-dates.mjs --note DIRY-2025-0001 --overwrite --apply
+ *   node scripts/fill-page-entry-dates.mjs --note DIRY-2025-0001 --ocr --apply
  */
 
 import crypto from 'node:crypto';
 import { getCloudinaryCredentials } from '../api/_lib/cloudinaryAuth.js';
+import { getGeminiConfig, recognizeImageWithGemini } from '../api/_lib/geminiOcr.js';
 import { pagesFolderForNote, sanitizeNotePublicId } from '../api/_lib/notePagesFolder.js';
 import { forwardFillEntryDates, normalizeIsoDate } from '../src/utils/entryDate.js';
 
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
 const OVERWRITE = args.includes('--overwrite');
+const RUN_OCR = args.includes('--ocr');
 
 function argValue(flag) {
   const idx = args.indexOf(flag);
@@ -107,16 +109,28 @@ function resourceToPage(resource) {
     readMetaValue(context, 'ocr_text', 'ocrtext', 'ocr');
   return {
     publicId: resource?.public_id,
+    url: String(resource?.secure_url || resource?.url || '').trim(),
     pageNumber,
     entry_date: entryDate == null ? '' : String(entryDate),
     ocr_text: ocrText == null ? '' : String(ocrText)
   };
 }
 
-async function updateEntryDate(credentials, { publicId, entry_date, fill_status }) {
+function sanitizeMetaValue(value) {
+  return String(value ?? '')
+    .replace(/\|/g, '/')
+    .replace(/=/g, ':')
+    .slice(0, 4000);
+}
+
+async function updateEntryDate(credentials, { publicId, entry_date, fill_status, ocr_text }) {
   const timestamp = Math.floor(Date.now() / 1000);
-  const metadata = entry_date ? `entry_date=${entry_date}` : '';
+  const metadataParts = [];
+  if (entry_date) metadataParts.push(`entry_date=${entry_date}`);
+  if (ocr_text !== undefined) metadataParts.push(`ocr_text=${sanitizeMetaValue(ocr_text)}`);
+  const metadata = metadataParts.join('|');
   const contextParts = [`entry_date=${entry_date || ''}`, `fill_status=${fill_status}`];
+  if (ocr_text !== undefined) contextParts.push(`ocr_text=${sanitizeMetaValue(ocr_text)}`);
   const context = contextParts.join('|');
   const paramsToSign = {
     context,
@@ -186,6 +200,27 @@ if (!pages.length) {
   process.exit(1);
 }
 
+if (RUN_OCR) {
+  if (!getGeminiConfig()) {
+    console.error('--ocr 에는 GEMINI_API_KEY 환경변수가 필요합니다.');
+    process.exit(1);
+  }
+  for (const page of pages) {
+    if (page.ocr_text && !OVERWRITE) continue;
+    if (!page.url) {
+      console.warn(`건너뜀 ${page.pageNumber}: 이미지 URL 없음`);
+      continue;
+    }
+    process.stdout.write(`OCR ${page.pageNumber} … `);
+    try {
+      page.ocr_text = await recognizeImageWithGemini({ imageUrl: page.url });
+      console.log(page.ocr_text ? `${page.ocr_text.length}자` : '글자 없음');
+    } catch (error) {
+      console.log(`실패: ${error.message}`);
+    }
+  }
+}
+
 const filled = forwardFillEntryDates(pages, { overwrite: OVERWRITE });
 const changes = filled.filter((page, idx) => {
   const before = normalizeIsoDate(pages[idx].entry_date);
@@ -194,7 +229,8 @@ const changes = filled.filter((page, idx) => {
 
 console.log(
   `${APPLY ? '적용' : '미리보기'} · ${folder} · ${filled.length}장 · 변경 ${changes.length}장` +
-    (OVERWRITE ? ' · overwrite' : '')
+    (OVERWRITE ? ' · overwrite' : '') +
+    (RUN_OCR ? ' · ocr' : '')
 );
 for (const page of filled) {
   const before = normalizeIsoDate(pages.find((p) => p.publicId === page.publicId)?.entry_date);
@@ -219,7 +255,8 @@ for (const page of changes) {
   await updateEntryDate(credentials, {
     publicId: page.publicId,
     entry_date: page.entry_date,
-    fill_status: page.fill_status
+    fill_status: page.fill_status,
+    ocr_text: RUN_OCR ? page.ocr_text : undefined
   });
   console.log(`저장 ${page.pageNumber} → ${page.entry_date} (${page.fill_status})`);
 }

@@ -1,6 +1,6 @@
 /**
  * 페이지 텍스트에서 일기 날짜를 뽑고, 날짜 없는 장은 직전 날짜로 채운다.
- * OCR(Tesseract) · PDF 추출 텍스트 · 이미 저장된 entry_date 모두 같은 규칙을 쓴다.
+ * Gemini OCR 텍스트 · 이미 저장된 entry_date 모두 같은 규칙을 쓴다.
  */
 
 function pad2(n) {

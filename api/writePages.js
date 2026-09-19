@@ -2,10 +2,11 @@
  * POST /api/writePages
  * 장 쓰기: 업로드 · 메타 · 폴더 이름 · 번호 이동 · 삭제
  *
- * POST { op: 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage', ... }
+ * POST { op: 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' | 'ocr', ... }
  */
 import crypto from 'crypto';
 import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
+import { handlePageOcr } from './_lib/handlers/pageOcr.js';
 import { pagesFolderForNote as cloudinaryPagesFolder, sanitizeNotePublicId } from './_lib/notePagesFolder.js';
 import {
   NOTEBOOK_DB_ID,
@@ -819,11 +820,12 @@ export default async function handler(req, res) {
     if (op === 'renameFolder') return await handleRenameFolder(req, res, body);
     if (op === 'shiftPages') return await handleShiftPages(req, res, body);
     if (op === 'deletePage') return await handleDeletePage(req, res, body);
+    if (op === 'ocr') return await handlePageOcr(req, res, body);
 
     return res.status(400).json({
       error: 'Validation failed',
       message:
-        "op은 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' 중 하나여야 합니다"
+        "op은 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' | 'ocr' 중 하나여야 합니다"
     });
   } catch (error) {
     return res.status(error.status || 500).json({
