@@ -6,11 +6,16 @@
 import { stripCloudinaryTransforms } from './ogImage.js';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-export const OCR_TRANSFORM = 'w_1600,c_limit,q_auto:good,f_jpg';
+export const OCR_TRANSFORM = 'w_2400,c_limit,q_90,f_jpg';
+export const OCR_SYSTEM =
+  '당신은 한국어 일기 페이지를 그대로 옮기는 OCR이다. ' +
+  '기본 언어는 한글이다. 영어 단어·고유명사는 가끔 나온다. ' +
+  '한글과 영어 이외의 언어로 읽거나 번역하지 않는다.';
 export const OCR_PROMPT =
-  '이 일기 페이지 이미지에서 보이는 글자만 그대로 옮겨 적으세요. ' +
-  '인쇄·손글씨·숫자·날짜를 모두 포함합니다. ' +
-  '설명, 요약, 추측, 마크다운 제목은 쓰지 마세요. ' +
+  '이 일기 페이지의 보이는 글자를 처음부터 끝까지 그대로 옮겨 적으세요. ' +
+  '날짜·제목만이 아니라 본문 전체를 빠짐없이 적습니다. 한 줄도 건너뛰지 마세요. ' +
+  '인쇄·손글씨·숫자·날짜·영문 고유명사를 보이는 대로 둡니다. ' +
+  '설명, 요약, 추측, 다른 언어 번역, 마크다운 제목은 쓰지 마세요. ' +
   '글자가 없으면 빈 응답만 보내세요.';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -135,6 +140,9 @@ export async function recognizeImageWithGemini(options = {}) {
       'x-goog-api-key': config.apiKey
     },
     body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: OCR_SYSTEM }]
+      },
       contents: [
         {
           parts: [
@@ -145,7 +153,7 @@ export async function recognizeImageWithGemini(options = {}) {
       ],
       generationConfig: {
         temperature: 0,
-        maxOutputTokens: 4096
+        maxOutputTokens: 8192
       }
     })
   });

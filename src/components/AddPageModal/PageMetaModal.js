@@ -132,10 +132,8 @@ export function openPageMetaModal(options = {}) {
     setStatus('수정 후 저장을 눌러 반영하세요');
   }
 
-  function ocrProgressLabel(status, progress) {
-    const pct = Math.round(Math.max(0, Math.min(1, progress)) * 100);
-    if (status === 'recognizing text') return `Gemini로 글자를 읽는 중… ${pct}%`;
-    return `OCR 실행 중… ${pct}%`;
+  function ocrProgressLabel() {
+    return 'Gemini가 OCR 중';
   }
 
   const dialog = openDialog({
@@ -296,9 +294,9 @@ export function openPageMetaModal(options = {}) {
     setEditEnabled(false);
     if (ocrBtn) {
       ocrBtn.disabled = true;
-      ocrBtn.textContent = '인식 중…';
+      ocrBtn.textContent = 'Gemini가 OCR 중';
     }
-    setStatus('OCR 준비 중…');
+    setStatus('Gemini가 OCR 중');
 
     try {
       const previousDate = await loadPreviousEntryDate();

@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  OCR_PROMPT,
+  OCR_SYSTEM,
   normalizeOcrText,
   textFromGeminiResponse,
   withOcrTransform
@@ -11,7 +13,7 @@ test('withOcrTransform은 Cloudinary 장에 OCR용 리사이즈를 끼운다', (
     withOcrTransform(
       'https://res.cloudinary.com/demo/image/upload/v1/notebooks/DIRY-2025-0001/pages/page-000003.jpg'
     ),
-    'https://res.cloudinary.com/demo/image/upload/w_1600,c_limit,q_auto:good,f_jpg/v1/notebooks/DIRY-2025-0001/pages/page-000003.jpg'
+    'https://res.cloudinary.com/demo/image/upload/w_2400,c_limit,q_90,f_jpg/v1/notebooks/DIRY-2025-0001/pages/page-000003.jpg'
   );
 });
 
@@ -20,7 +22,7 @@ test('withOcrTransform은 이미 있는 변환을 걷어 낸 뒤 OCR 변환만 �
     withOcrTransform(
       'https://res.cloudinary.com/demo/image/upload/w_800,f_auto/notebooks/DIRY-2025-0001/pages/page-000003.jpg'
     ),
-    'https://res.cloudinary.com/demo/image/upload/w_1600,c_limit,q_auto:good,f_jpg/notebooks/DIRY-2025-0001/pages/page-000003.jpg'
+    'https://res.cloudinary.com/demo/image/upload/w_2400,c_limit,q_90,f_jpg/notebooks/DIRY-2025-0001/pages/page-000003.jpg'
   );
 });
 
@@ -46,4 +48,11 @@ test('textFromGeminiResponse는 candidates 텍스트만 모은다', () => {
 
 test('normalizeOcrText는 빈 줄과 줄 끝 공백을 정리한다', () => {
   assert.equal(normalizeOcrText('안녕  \n\n\n세계\r\n'), '안녕\n\n세계');
+});
+
+test('OCR 프롬프트는 한글 기본·본문 전체·다른 언어 번역 금지를 넣는다', () => {
+  assert.match(OCR_SYSTEM, /한글/);
+  assert.match(OCR_SYSTEM, /영어/);
+  assert.match(OCR_SYSTEM, /이외의 언어/);
+  assert.match(OCR_PROMPT, /본문 전체/);
 });
