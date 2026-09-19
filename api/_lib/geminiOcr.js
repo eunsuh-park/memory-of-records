@@ -5,7 +5,7 @@
  */
 import { stripCloudinaryTransforms } from './ogImage.js';
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash';
 export const OCR_TRANSFORM = 'w_2400,c_limit,q_90,f_jpg';
 export const OCR_SYSTEM =
   '당신은 한국어 일기 페이지를 그대로 옮기는 OCR이다. ' +

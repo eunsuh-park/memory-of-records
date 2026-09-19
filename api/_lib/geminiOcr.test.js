@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  DEFAULT_GEMINI_MODEL,
   OCR_PROMPT,
   OCR_SYSTEM,
   normalizeOcrText,
@@ -48,6 +49,10 @@ test('textFromGeminiResponse는 candidates 텍스트만 모은다', () => {
 
 test('normalizeOcrText는 빈 줄과 줄 끝 공백을 정리한다', () => {
   assert.equal(normalizeOcrText('안녕  \n\n\n세계\r\n'), '안녕\n\n세계');
+});
+
+test('기본 Gemini 모델은 신규 키에서 쓰는 3.6 flash다', () => {
+  assert.equal(DEFAULT_GEMINI_MODEL, 'gemini-3.6-flash');
 });
 
 test('OCR 프롬프트는 한글 기본·본문 전체·다른 언어 번역 금지를 넣는다', () => {
