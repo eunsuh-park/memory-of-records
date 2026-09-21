@@ -202,7 +202,7 @@ const RESPONSIVE_MATRIX = [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '포커스 정보 min-height(--jukebox-focus-info-min-h)를 먼저 잡고, 갤러리 wrap은 min-height 0으로 남는 높이만 쓴다',
-      '페이지 스크롤 없음(html/body 100svh · overflow hidden). 바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%',
+      '페이지 스크롤 없음(html/body 100svh · overflow hidden). 바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%. 펼쳐 보기는 2열 그리드 + 하단 .grid-focus-info 고정',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -210,7 +210,7 @@ const RESPONSIVE_MATRIX = [
       '너비 769–1024px이면 모바일과 같이 갤러리·정보 패널을 세로로 쌓고 메모를 숨긴다',
       '정보 패널 min-height가 갤러리보다 우선. 갤러리 wrap min-height 0 · overflow hidden',
       '바닥 반사 off, 카드 min(34vh, 360px)·이미지 min(38vw, 280px)·스케일 ×0.92',
-      '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지',
+      '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지. 펼쳐 보기는 2열 + 상하 화살표 + .grid-focus-info',
       '.notes-container padding-top 90px',
       '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
@@ -219,7 +219,7 @@ const RESPONSIVE_MATRIX = [
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on(다크). 라이트는 반사·하단 그라데이션 없음',
       '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달',
-      '펼쳐 보기(grid): 3D·반사·좌우 스크롤 없음. 표지를 한 화면 너비에 space-evenly로 펼침(max 7rem / 22vh). Timeline/By type만'
+      '펼쳐 보기(grid): 태그별 한 줄·고정 gap·가운데 정렬. 세로 스크롤/상하 화살표로 태그 이동, 이웃 행은 opacity 15%. 하단 정보 패널 숨김, 호버 시 .grid-note-tooltip. 선택 카드는 그림자 강화. Timeline/By type만'
     ]
   },
   {
@@ -1027,7 +1027,7 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             Timeline·By type 헤더에서 테마 토글 왼쪽에 두는 갤러리 레이아웃 pill입니다. ThemeSwitch와 같은 스위치 컴포넌트
             (64×32 · 썸 슬라이드)이고, 아이콘만 column(주크박스 Cover Flow) / grid(펼쳐 보기)입니다.
-            펼쳐 보기는 표지를 더 작게, 3D 없이 한 화면 너비에 늘어 놓습니다. Favorites·Page Scrap에는 나오지 않습니다.
+            펼쳐 보기는 태그별 한 줄로 가운데 정렬하고, 스크롤·상하 화살표로 태그를 넘깁니다. Favorites·Page Scrap에는 나오지 않습니다.
             아래 데모는 저장하지 않고 스위치만 뒤집습니다.
           </p>
           <p class="ui-lab__files">
@@ -1053,6 +1053,7 @@ export function renderUiLab() {
             노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 제목 1줄·도구모음·메모 3줄이 잘리지 않게 고정되고 내용은 상단부터 쌓입니다.
             모바일에서는 + 토글 없이 도구모음을 기본으로 보여 주고, 메모는 숨깁니다(표시 위치는 Backlog).
             패널 최소 높이는 제목+도구모음이며 그 아래로 줄지 않습니다. 패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
+            그리드 보기 데스크톱은 <code>.grid-note-tooltip</code>(호버), 모바일·타블렛은 <code>.grid-focus-info</code>(하단 고정)를 씁니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(
@@ -1081,6 +1082,34 @@ export function renderUiLab() {
               { canEdit: true }
             )}
           </div>
+          ${renderVariantRow(
+            '그리드 툴팁 (.grid-note-tooltip) — 카드 상단 호버 정보',
+            `<div class="ui-lab__grid-tooltip-demo jukebox-card">
+              ${renderNoteInfoPanel(
+                {
+                  id: 'ui-lab-demo-note-tooltip',
+                  title: '03_2024-25_카툰연습장',
+                  description: '툴팁에서는 메모를 숨긴다'
+                },
+                'period',
+                { canEdit: true, variant: 'tooltip' }
+              )}
+            </div>`,
+            { stageClass: 'ui-lab__demo-stage--info' }
+          )}
+          ${renderVariantRow(
+            '그리드 시트 (.grid-focus-info) — 모바일·타블렛 하단 고정',
+            renderNoteInfoPanel(
+              {
+                id: 'ui-lab-demo-note-sheet',
+                title: '03_2024-25_카툰연습장',
+                description: '시트에서는 메모를 숨긴다'
+              },
+              'period',
+              { canEdit: true, variant: 'sheet' }
+            ),
+            { stageClass: 'ui-lab__demo-stage--info' }
+          )}
         </section>
 
         <section class="ui-lab__section" id="viewer-chrome">

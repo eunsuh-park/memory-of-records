@@ -400,7 +400,7 @@ body.jukebox-active.loading-active #sub-menu {
  * 회전/확대 중인 카드가 스냅 대상이면 정지 위치가 중앙에서 어긋난다(왼쪽 쏠림의 원인).
  * 3D 변환은 자식 .jukebox-card-3d 에서 수행.
  */
-.jukebox-gallery > div.jukebox-card {
+.jukebox-gallery .jukebox-card {
   white-space: normal;
   width: auto;
   height: auto;
@@ -418,7 +418,7 @@ body.jukebox-active.loading-active #sub-menu {
 }
 
 /* 새로 추가된 노트 우상단 빨간 점 — 카드 클릭 시 사라짐 */
-.jukebox-gallery > div.jukebox-card .jukebox-new-badge {
+.jukebox-gallery .jukebox-card .jukebox-new-badge {
   position: absolute;
   top: var(--space-1);
   right: var(--space-1);
@@ -438,17 +438,17 @@ body.jukebox-active.loading-active #sub-menu {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .jukebox-gallery > div.jukebox-card .jukebox-new-badge:hover {
+  .jukebox-gallery .jukebox-card .jukebox-new-badge:hover {
     filter: brightness(1.08);
   }
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-new-badge:focus-visible {
+.jukebox-gallery .jukebox-card .jukebox-new-badge:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+.jukebox-gallery .jukebox-card .jukebox-card-3d {
   position: relative;
   display: inline-block;
   transform-origin: center center;
@@ -465,15 +465,15 @@ body.jukebox-active.loading-active #sub-menu {
  * 반사는 3D 변환되는 요소에 붙여 카드 회전을 자연스럽게 따라가게 한다.
  * (스냅 대상인 .jukebox-card에 붙이면 box-reflect가 preserve-3d를 무효화해 원근이 사라짐)
  */
-.jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d {
+.jukebox-gallery .jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d {
   -webkit-box-reflect: below 0.5em var(--color-reflect);
 }
 
-.jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d {
+.jukebox-gallery .jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d {
   -webkit-box-reflect: below 0.5em var(--color-reflect-mid);
 }
 
-.jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+.jukebox-gallery .jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
   -webkit-box-reflect: below 0.5em var(--color-reflect-far);
 }
 
@@ -486,11 +486,11 @@ body.jukebox-active.loading-active #sub-menu {
  * `none`은 마스크만 지워 below 오프셋 반사가 그대로 남는다.
  * initial로 속성 전체를 리셋해야 바닥 반사가 꺼진다.
  */
-[data-theme='light'] .jukebox-gallery > div.jukebox-card,
-[data-theme='light'] .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
-[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
-[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
-[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+[data-theme='light'] .jukebox-gallery .jukebox-card,
+[data-theme='light'] .jukebox-gallery .jukebox-card .jukebox-card-3d,
+[data-theme='light'] .jukebox-gallery .jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
+[data-theme='light'] .jukebox-gallery .jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
+[data-theme='light'] .jukebox-gallery .jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
   -webkit-box-reflect: initial !important;
 }
 
@@ -504,21 +504,21 @@ body.jukebox-active.loading-active #sub-menu {
  * (호버로 카드를 이동/확대하면 위치 재계산과 맞물려 카드가 흔들림.
  *  중앙 카드는 스냅으로 이미 정중앙·정면·최대 배율 상태이므로 플립만 수행)
  */
-.jukebox-gallery > div.jukebox-card.jukebox-card--centered:active {
+.jukebox-gallery .jukebox-card.jukebox-card--centered:active {
   z-index: 101;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover {
+  .jukebox-gallery .jukebox-card.jukebox-card--centered:hover {
     z-index: 101;
   }
 
-  .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover::after {
+  .jukebox-gallery .jukebox-card.jukebox-card--centered:hover::after {
     opacity: 0;
   }
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-card-inner {
+.jukebox-gallery .jukebox-card .jukebox-card-inner {
   position: relative;
   display: inline-block;
   transform-style: preserve-3d;
@@ -528,21 +528,21 @@ body.jukebox-active.loading-active #sub-menu {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
+  .jukebox-gallery .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
     transform: rotateY(180deg);
   }
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-card-face {
+.jukebox-gallery .jukebox-card .jukebox-card-face {
   backface-visibility: hidden;
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-card-face--front {
+.jukebox-gallery .jukebox-card .jukebox-card-face--front {
   display: block;
   transform-style: preserve-3d;
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-card-face--back {
+.jukebox-gallery .jukebox-card .jukebox-card-face--back {
   position: absolute;
   inset: 0;
   transform: rotateY(180deg);
@@ -554,7 +554,7 @@ body.jukebox-active.loading-active #sub-menu {
 }
 
 /* 뒷표지는 앞면이 만든 카드 박스에 맞춰 채움 (해상도별 max 값 불일치 방지) */
-.jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
+.jukebox-gallery .jukebox-card .jukebox-card-back-cover {
   display: block;
   width: 100%;
   height: 100%;
@@ -570,7 +570,7 @@ body.jukebox-active.loading-active #sub-menu {
     );
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+.jukebox-gallery .jukebox-card .jukebox-card-face--front img {
   display: block;
   z-index: 1;
   position: relative;
@@ -595,20 +595,20 @@ body.jukebox-active.loading-active #sub-menu {
 }
 
 /* 라이트 모드: 비포커스 노트를 어둡게 하지 않고 배경색으로 허옇게 페이드 */
-[data-theme='light'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+[data-theme='light'] .jukebox-gallery .jukebox-card .jukebox-card-face--front img {
   filter: opacity(var(--jukebox-opacity, 1)) var(--color-drop-shadow);
 }
 
-[data-theme='light'] .jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
+[data-theme='light'] .jukebox-gallery .jukebox-card .jukebox-card-back-cover {
   filter: var(--color-drop-shadow);
 }
 
-.jukebox-gallery > div.jukebox-card .jukebox-cover-image--error {
+.jukebox-gallery .jukebox-card .jukebox-cover-image--error {
   outline: 2px dashed var(--color-error);
   background: var(--color-error-bg);
 }
 
-.jukebox-gallery > div.jukebox-card::after {
+.jukebox-gallery .jukebox-card::after {
   position: absolute;
   display: block;
   left: 0;
@@ -660,28 +660,28 @@ body.jukebox-active.loading-active #sub-menu {
     -webkit-overflow-scrolling: touch;
   }
 
-  .jukebox-gallery > div.jukebox-card,
-  .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
-  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
-  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
-  .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+  .jukebox-gallery .jukebox-card,
+  .jukebox-gallery .jukebox-card .jukebox-card-3d,
+  .jukebox-gallery .jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
+  .jukebox-gallery .jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
+  .jukebox-gallery .jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
     -webkit-box-reflect: none !important;
     box-reflect: none !important;
   }
 
-  .jukebox-gallery > div.jukebox-card,
-  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+  .jukebox-gallery .jukebox-card,
+  .jukebox-gallery .jukebox-card .jukebox-card-face--front img {
     max-height: min(34vh, 360px);
     max-width: min(38vw, 280px);
   }
 
-  .jukebox-gallery > div.jukebox-card {
+  .jukebox-gallery .jukebox-card {
     margin-left: -2.5vw;
   }
 
   /* transform에 transition을 두면 스크롤 중 JS가 매 프레임 갱신하는
    * rotateY/scale과 싸워 카드가 흔들린다 → 트랜지션 없음(담백한 스냅). */
-  .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+  .jukebox-gallery .jukebox-card .jukebox-card-3d {
     transform:
       translate3d(0, 0, var(--jukebox-translate-z, 0))
       rotateY(var(--jukebox-rotate-y, 0deg))
@@ -696,13 +696,13 @@ body.jukebox-active.loading-active #sub-menu {
   }
 
   /* 현재 표시 사이즈의 80% */
-  .jukebox-gallery > div.jukebox-card,
-  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+  .jukebox-gallery .jukebox-card,
+  .jukebox-gallery .jukebox-card .jukebox-card-face--front img {
     max-height: min(33.6vh, 256px);
     max-width: min(44.8vw, 176px);
   }
 
-  .jukebox-gallery > div.jukebox-card .jukebox-card-3d {
+  .jukebox-gallery .jukebox-card .jukebox-card-3d {
     transform:
       translate3d(0, 0, var(--jukebox-translate-z, 0))
       rotateY(var(--jukebox-rotate-y, 0deg))
@@ -716,13 +716,13 @@ body.jukebox-active.loading-active #sub-menu {
   }
 
   /* 현재 표시 사이즈의 80% */
-  .jukebox-gallery > div.jukebox-card,
-  .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+  .jukebox-gallery .jukebox-card,
+  .jukebox-gallery .jukebox-card .jukebox-card-face--front img {
     max-height: min(36.8vh, 272px);
     max-width: min(49.6vw, 192px);
   }
 
-  .jukebox-gallery > div.jukebox-card {
+  .jukebox-gallery .jukebox-card {
     margin-left: -2vw;
   }
 }
@@ -824,37 +824,36 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 }
 
 /* =============================================================================
-   Grid (펼쳐 보기) — 3D 없이 표지를 한 화면 너비에 펼침. Timeline/By Type만.
+   Grid (펼쳐 보기) — 태그별 한 줄 + 세로 스냅. Timeline/By Type만.
    ============================================================================= */
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.jukebox-fullscreen[data-gallery-layout='grid'] {
+  --jukebox-grid-gap: var(--space-3);
+  --jukebox-grid-card-max-w: 7rem;
+  --jukebox-grid-card-max-h: 22vh;
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-nav-prev,
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-nav-next {
-  display: none !important;
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap {
+  display: block;
+}
+
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-focus-slot {
+  display: none;
 }
 
 .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery,
 .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery.centerized {
-  position: relative;
-  left: auto;
-  right: auto;
-  top: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   transform: none;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-  align-items: flex-end;
-  align-content: center;
-  gap: var(--space-5) var(--space-3);
+  display: block;
   width: 100%;
   height: 100%;
   max-height: 100%;
-  padding: var(--space-8) var(--space-6);
+  padding: 28vh var(--space-6);
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: auto;
@@ -862,7 +861,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   perspective: none;
   white-space: normal;
   text-align: center;
-  scroll-snap-type: none;
+  scroll-snap-type: y mandatory;
   touch-action: pan-y;
 }
 
@@ -870,22 +869,56 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   display: none;
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card {
-  flex: 1 1 4.5rem;
-  min-width: 3.5rem;
-  max-width: 7rem;
+.jukebox-grid-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36vh;
+  padding: 5.5rem 0 var(--space-8);
+  box-sizing: border-box;
+  scroll-snap-align: center;
+  opacity: 0.15;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.jukebox-grid-row.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.jukebox-grid-row:not(.is-active) .jukebox-empty {
+  display: none;
+}
+
+.jukebox-grid-row__notes {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: var(--jukebox-grid-gap);
+  width: 100%;
+}
+
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card {
+  position: relative;
+  overflow: visible;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  max-width: var(--jukebox-grid-card-max-w);
   min-height: 0;
-  max-height: 22vh;
+  max-height: var(--jukebox-grid-card-max-h);
   margin-left: 0;
   scroll-snap-align: none;
   transform-style: flat;
   cursor: pointer;
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-3d,
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-3d,
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--reflect-0 .jukebox-card-3d,
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--reflect-1 .jukebox-card-3d,
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--reflect-2 .jukebox-card-3d {
   display: block;
   width: 100%;
   transform: none;
@@ -893,70 +926,143 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   -webkit-box-reflect: initial !important;
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card.jukebox-card--centered .jukebox-card-3d {
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--centered {
+  z-index: 4;
+}
+
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--centered .jukebox-card-3d {
   transform: scale(1.06);
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-inner {
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-inner {
   display: block;
   width: 100%;
   transform: none !important;
   transform-style: flat;
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--back {
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-face--back {
   display: none;
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img,
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-back-cover {
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-face--front img,
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-back-cover {
   width: 100%;
   height: auto;
   max-width: 100%;
-  max-height: 22vh;
+  max-height: var(--jukebox-grid-card-max-h);
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
 }
 
-[data-theme='light'] .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--centered .jukebox-card-face--front img {
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.52));
+}
+
+[data-theme='light'] .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-face--front img {
   filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.12));
 }
 
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card::after {
+[data-theme='light'] .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--centered .jukebox-card-face--front img {
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.28));
+}
+
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card::after {
   display: none;
 }
 
 .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-loading,
-.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-empty {
-  flex: 1 1 100%;
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-empty,
+.jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-empty {
+  flex: 1 1 auto;
   max-width: none;
   max-height: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card:hover {
+    z-index: 6;
+  }
+
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
     transform: none !important;
   }
 }
 
+/* 그리드: 좌우 화살표를 90° 돌려 상하 태그 이동으로 쓴다 */
+body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap .jukebox-nav-prev {
+  top: 9rem;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) rotate(90deg);
+}
+
+body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap .jukebox-nav-next {
+  top: auto;
+  bottom: 5.5rem;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%) rotate(90deg);
+}
+
 @media (max-width: 1024px) {
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery,
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery.centerized {
-    padding: var(--space-6) var(--space-4);
-    top: auto;
+  .jukebox-fullscreen[data-gallery-layout='grid'] {
+    --jukebox-grid-card-max-w: 6.25rem;
+    --jukebox-grid-card-max-h: 20vh;
   }
 
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card,
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
-    max-height: 20vh;
-    max-width: 6.25rem;
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-focus-slot {
+    display: flex;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 110;
+    width: 100%;
+    min-height: calc(
+      var(--jukebox-focus-info-min-h)
+      + var(--space-3)
+      + max(var(--space-4), env(safe-area-inset-bottom, 0px))
+    );
+    padding: var(--space-3) var(--space-4) max(var(--space-4), env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    background: linear-gradient(transparent, var(--color-bg) 28%);
+  }
+
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery,
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery.centerized {
+    padding: 18vh var(--space-4) calc(var(--jukebox-focus-info-min-h) + 18vh);
+    top: 0;
+  }
+
+  .jukebox-grid-row {
+    min-height: 72%;
+    padding: var(--space-6) 0;
+    scroll-snap-align: start;
+  }
+
+  .jukebox-grid-row__notes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, var(--jukebox-grid-card-max-w)));
+    justify-content: center;
+    justify-items: center;
+    align-items: end;
+    gap: var(--jukebox-grid-gap);
+  }
+
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card,
+  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-face--front img {
+    max-width: var(--jukebox-grid-card-max-w);
+    max-height: var(--jukebox-grid-card-max-h);
+  }
+
+  body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap .jukebox-nav-next {
+    bottom: calc(var(--jukebox-focus-info-min-h) + var(--space-8));
   }
 }
 
 @media (max-width: 768px) {
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card,
-  .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery > div.jukebox-card .jukebox-card-face--front img {
-    max-height: 18vh;
-    max-width: 5.5rem;
+  .jukebox-fullscreen[data-gallery-layout='grid'] {
+    --jukebox-grid-card-max-w: 5.5rem;
+    --jukebox-grid-card-max-h: 18vh;
   }
 }
 
