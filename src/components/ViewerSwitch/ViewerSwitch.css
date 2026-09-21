@@ -1,0 +1,52 @@
+/**
+ * ViewerSwitch — ThemeSwitch와 같은 pill. 레이아웃 상태만 다룬다.
+ *
+ * 트랙·핸들은 html[data-theme]를 따른다(페이지 테마). 썸은 주크박스=좌, 펼쳐 보기=우.
+ * 모양의 기본값은 ThemeSwitch.css, 이 파일은 레이아웃 상태·페이지 테마 연동만.
+ */
+
+button.theme-switch.viewer-switch[role='switch'][data-layout='jukebox'] .theme-switch__thumb {
+  transform: translateX(0);
+}
+
+button.theme-switch.viewer-switch[role='switch'][data-layout='grid'] .theme-switch__thumb {
+  transform: translateX(var(--theme-switch-size));
+}
+
+.theme-switch.viewer-switch .theme-switch__icon--column {
+  left: var(--theme-switch-inset);
+}
+
+.theme-switch.viewer-switch .theme-switch__icon--grid {
+  right: var(--theme-switch-inset);
+}
+
+button.theme-switch.viewer-switch[role='switch'][data-layout='jukebox'] .theme-switch__icon--column {
+  color: var(--primary-2);
+  opacity: 1;
+}
+
+button.theme-switch.viewer-switch[role='switch'][data-layout='grid'] .theme-switch__icon--grid {
+  color: var(--primary-2);
+  opacity: 1;
+}
+
+html[data-theme='light'] button.theme-switch.viewer-switch[role='switch'] {
+  --theme-switch-track: var(--grey-light-4);
+  --theme-switch-handle: var(--grey-light-2);
+  --theme-switch-handle-hover: var(--grey-light-1);
+}
+
+html[data-theme='light'] button.theme-switch.viewer-switch[role='switch'] .theme-switch__icon {
+  color: var(--grey-light-9);
+}
+
+html[data-theme='light'] button.theme-switch.viewer-switch[role='switch'][data-layout='jukebox'] .theme-switch__icon--column {
+  color: var(--primary-3);
+  opacity: 1;
+}
+
+html[data-theme='light'] button.theme-switch.viewer-switch[role='switch'][data-layout='grid'] .theme-switch__icon--grid {
+  color: var(--primary-3);
+  opacity: 1;
+}

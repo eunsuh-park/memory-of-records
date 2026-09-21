@@ -22,6 +22,7 @@ description: >-
 | --- | --- | --- |
 | 폼 제출·아이콘 액션 | `Button` | `Button.css` (`.btn`) |
 | 라이트/다크 토글 | `ThemeSwitch` | `ThemeSwitch.css` |
+| 갤러리 레이아웃 토글 | `ViewerSwitch` | `ViewerSwitch.css` (pill은 ThemeSwitch.css) |
 | 필터 칩 | `FilterChip` | `FilterChip.css` (`.chip`) |
 | 드롭다운 트리거 | `DropdownChip` | `DropdownChip.css` |
 | 드롭다운 항목 | `DropdownMenu` | `DropdownMenu.css` |

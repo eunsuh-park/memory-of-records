@@ -7,6 +7,7 @@
  * hover는 핸들(썸)만 한 단계 밝아진다. 트랙·아이콘은 그대로.
  *
  * 모양은 이 파일이 정한다. 전역 button 규칙은 두지 않는다.
+ * ViewerSwitch가 같은 pill 마크업(.theme-switch)을 재사용한다.
  */
 
 button.theme-switch[role='switch'] {

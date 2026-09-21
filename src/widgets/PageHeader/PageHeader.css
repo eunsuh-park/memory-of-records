@@ -1,6 +1,6 @@
 /**
  * PageHeader 스타일
- * 데스크톱: [로고 + Intro] --- [테마 + Login/Logout + 새 노트 추가]
+ * 데스크톱: [로고 + Intro] --- [(뷰어 토글) + 테마 + Login/Logout + 새 노트 추가]
  * 모바일·낮은 화면(높이 ≤768px 또는 너비 ≤768px): 로고 좌측 + 햄버거 우측, 우측 드로어
  * 갤러리 필터는 FilterSubMenu(.gallery-filter)가 헤더 밖에서 담당한다.
  * 데스크톱은 상단 중앙, 컴팩트 헤더에서는 헤더(로고·햄버거) 바로 아래.
@@ -516,9 +516,16 @@
     gap: var(--space-2);
   }
 
+  .nav-drawer__switches {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 var(--space-5) var(--space-2);
+  }
+
   .nav-drawer__theme {
     align-self: flex-start;
-    margin: 0 var(--space-5) var(--space-2);
+    margin: 0;
   }
 }
 

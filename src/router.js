@@ -125,6 +125,10 @@ class Router {
         'filter-nav-collapsed',
         'filter-nav-open'
       );
+      if (typeof mainContent._unsubGalleryLayout === 'function') {
+        mainContent._unsubGalleryLayout();
+        mainContent._unsubGalleryLayout = null;
+      }
       mainContent._jukeboxSession = null;
       mainContent?.classList.remove('jukebox-active');
       mainContent?.closest('.main-wrapper')?.classList.remove('jukebox-active');

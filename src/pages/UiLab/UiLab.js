@@ -5,6 +5,7 @@
 
 import { render as renderButton, renderIconButton } from '../../components/Button/Button.js';
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
+import { render as renderViewerSwitch, bind as bindViewerSwitches } from '../../components/ViewerSwitch/ViewerSwitch.js';
 import { render as renderChip } from '../../components/FilterChip/FilterChip.js';
 import { render as renderDropdownChip } from '../../components/DropdownChip/DropdownChip.js';
 import {
@@ -155,7 +156,7 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
       '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
-      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite·Page Scrap), Intro, Logout 아래 테마 토글',
+      '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite·Page Scrap), Intro, Logout 아래 뷰어(해당 시)·테마 토글',
       '높이 ≤768px에서도 동일(햄버거 + 우측 드로어)'
     ],
     tablet: [
@@ -166,7 +167,7 @@ const RESPONSIVE_MATRIX = [
     desktop: [
       'fixed · max-width 1200px · width calc(100% - 3rem) · padding 1rem 2rem',
       '하단 모서리 48px 라운드',
-      '로고 | 테마·Login/Logout·(새 노트 추가, 로그인 시)',
+      '로고 | (Timeline/By type만) 뷰어 토글 · 테마 · Login/Logout · (새 노트 추가, 로그인 시)',
       '새 노트 추가 높이 44px · 라벨 1줄',
       '우측 부모 열이 라벨 폭보다 좁으면(컨테이너) + 아이콘만',
       '햄버거·드로어 display none'
@@ -217,7 +218,8 @@ const RESPONSIVE_MATRIX = [
       '갤러리 padding 40vh 0 · top 50% · perspective 60em · scroll-snap x mandatory',
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on(다크). 라이트는 반사·하단 그라데이션 없음',
       '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
-      '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달'
+      '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달',
+      '펼쳐 보기(grid): 3D·반사·좌우 스크롤 없음. 표지를 한 화면 너비에 space-evenly로 펼침(max 7rem / 22vh). Timeline/By type만'
     ]
   },
   {
@@ -365,6 +367,14 @@ const RESPONSIVE_MATRIX = [
     mobile: ['모든 폭에서 동일 (헤더 대신 드로어)'],
     tablet: ['모든 폭에서 동일'],
     desktop: ['64×32 pill · 썸 24 · 트랙은 모드 bg와 같은 grey · hover는 핸들만']
+  },
+  {
+    name: 'ViewerSwitch',
+    files: 'src/components/ViewerSwitch/ViewerSwitch.js · ViewerSwitch.css',
+    points: '없음',
+    mobile: ['모든 폭에서 동일 (헤더 대신 드로어, Timeline/By type만)'],
+    tablet: ['모든 폭에서 동일'],
+    desktop: ['ThemeSwitch와 같은 64×32 pill · 좌 column(주크박스) · 우 grid(펼쳐 보기)']
   },
   {
     name: 'Toast',
@@ -1012,6 +1022,30 @@ export function renderUiLab() {
           )}
         </section>
 
+        <section class="ui-lab__section" id="viewer-switch">
+          <h2 class="ui-lab__section-title">ViewerSwitch</h2>
+          <p class="ui-lab__section-desc">
+            Timeline·By type 헤더에서 테마 토글 왼쪽에 두는 갤러리 레이아웃 pill입니다. ThemeSwitch와 같은 스위치 컴포넌트
+            (64×32 · 썸 슬라이드)이고, 아이콘만 column(주크박스 Cover Flow) / grid(펼쳐 보기)입니다.
+            펼쳐 보기는 표지를 더 작게, 3D 없이 한 화면 너비에 늘어 놓습니다. Favorites·Page Scrap에는 나오지 않습니다.
+            아래 데모는 저장하지 않고 스위치만 뒤집습니다.
+          </p>
+          <p class="ui-lab__files">
+            참조:
+            <code>src/components/ViewerSwitch/ViewerSwitch.js</code>,
+            <code>src/components/ViewerSwitch/ViewerSwitch.css</code>,
+            <code>src/components/ThemeSwitch/ThemeSwitch.css</code>
+          </p>
+          ${renderVariantRow(
+            '주크박스 (column 활성)',
+            renderViewerSwitch({ layout: 'jukebox' })
+          )}
+          ${renderVariantRow(
+            '펼쳐 보기 (grid 활성)',
+            renderViewerSwitch({ layout: 'grid' })
+          )}
+        </section>
+
         <section class="ui-lab__section" id="note-info">
           <h2 class="ui-lab__section-title">NoteInfoPanel</h2>
           <p class="ui-lab__section-desc">
@@ -1328,6 +1362,7 @@ export function renderUiLab() {
   watchThemeChange(root);
   attachViewportReadout(root);
   bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
+  bindViewerSwitches(root.querySelector('#viewer-switch'), { persist: false });
   bindLabChips(root.querySelector('#filter-chip'));
   bindLabDropdownChips(root.querySelector('#dropdown-chip'));
   bindLabDropdownMenu(root.querySelector('#dropdown-menu'));
