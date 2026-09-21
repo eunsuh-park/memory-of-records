@@ -11,7 +11,10 @@
  * 2. 마우스 위치 기반 자동 스크롤: 갤러리 위 마우스가 왼쪽/오른쪽이면 해당 방향 스크롤, 중앙이면 정지.
  */
 
-import { renderFilterSubMenu } from '../../components/FilterSubMenu/FilterSubMenu.js';
+import {
+  optionsForFilterList,
+  renderFilterSubMenu
+} from '../../components/FilterSubMenu/FilterSubMenu.js';
 import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImageViewer.js';
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
@@ -123,6 +126,281 @@ function getCardMetrics(gallery) {
  */
 function isGridGallery(gallery) {
   return gallery?.closest?.('[data-gallery-layout="grid"]') != null;
+}
+
+/** 그리드 보기에서 2열·하단 시트를 쓰는 모바일·타블렛 */
+function isCompactGridViewport() {
+  return (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches
+  );
+}
+
+function gridRowEls(gallery) {
+  return Array.from(gallery?.querySelectorAll(':scope > .jukebox-grid-row') || []);
+}
+
+function getActiveGridRowIndex(gallery) {
+  const rows = gridRowEls(gallery);
+  if (rows.length === 0) return -1;
+  const marked = rows.findIndex((row) => row.classList.contains('is-active'));
+  if (gallery.clientHeight <= 0) return marked >= 0 ? marked : 0;
+  const mid = gallery.scrollTop + gallery.clientHeight / 2;
+  let best = 0;
+  let bestDist = Infinity;
+  rows.forEach((row, i) => {
+    const dist = Math.abs(row.offsetTop + row.offsetHeight / 2 - mid);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
+  });
+  return best;
+}
+
+function updateGridRowActiveState(gallery, idx) {
+  const rows = gridRowEls(gallery);
+  rows.forEach((row, i) => {
+    const active = i === idx;
+    const peek = i === idx - 1 || i === idx + 1;
+    row.classList.toggle('is-active', active);
+    row.classList.toggle('is-peek', peek);
+    if (active) row.setAttribute('aria-current', 'true');
+    else row.removeAttribute('aria-current');
+  });
+}
+
+function scrollGridRowToCenter(gallery, row, behavior = 'smooth') {
+  if (!gallery || !row) return;
+  const top = row.offsetTop + row.offsetHeight / 2 - gallery.clientHeight / 2;
+  gallery.scrollTo({
+    top: Math.max(0, top),
+    behavior
+  });
+}
+
+function scrollGridToFilter(gallery, filterValue, behavior = 'auto') {
+  if (!gallery || !filterValue) return;
+  const row = gallery.querySelector(
+    `.jukebox-grid-row[data-filter="${CSS.escape(filterValue)}"]`
+  );
+  if (!row) return;
+  scrollGridRowToCenter(gallery, row, behavior);
+}
+
+function syncFilterChipActive(selectedValue) {
+  const container = document.getElementById('sub-menu');
+  if (!container) return;
+  container.querySelectorAll('.chip[href]').forEach((chip) => {
+    const href = chip.getAttribute('href') || '';
+    const active = href === selectedValue || href.endsWith(`/${selectedValue}`);
+    chip.classList.toggle('is-active', active);
+    if (active) chip.setAttribute('aria-current', 'page');
+    else chip.removeAttribute('aria-current');
+  });
+}
+
+function replaceFilterPath(basePath, selectedValue) {
+  const path = `${basePath}/${selectedValue}`;
+  const base = import.meta.env.BASE_URL || '/';
+  const fullPath = base === '/' ? path : `${base.replace(/\/$/, '')}${path}`;
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (current === fullPath) return;
+  window.history.replaceState({}, '', fullPath);
+}
+
+function renderJukeboxCardHtml(note, index, options = {}) {
+  const layout = options.layout === 'grid' ? 'grid' : 'jukebox';
+  const covers = resolveNoteCoverUrls(note);
+  const frontUrl = covers.front || note.coverFrontUrl || '';
+  const backUrl = covers.back || note.coverBackUrl || '';
+  const thumbWidth = layout === 'grid' ? 400 : 800;
+  const optimizedFront = optimizeThumbnailUrl(frontUrl, thumbWidth);
+  const optimizedBack = optimizeThumbnailUrl(backUrl, thumbWidth);
+  const coverSrc = optimizedFront || frontUrl || TRANSPARENT_PIXEL;
+  const backCoverSrc = optimizedBack || backUrl || TRANSPARENT_PIXEL;
+  const eager = index < 4;
+  const title = escapeHtml(note.title);
+  const noteId = escapeHtml(note.id || '');
+  const showBadge = Boolean(
+    note.id &&
+      !isBookmarksNoteId(note.id) &&
+      !isDemoNoteId(note.id) &&
+      isNoteUnseen(note.id)
+  );
+  const tooltip =
+    layout === 'grid'
+      ? renderNoteInfoPanel(note, options.filterMode, {
+          canEdit: Boolean(options.canEdit),
+          variant: 'tooltip'
+        })
+      : '';
+  return `
+        <div class="jukebox-card" data-note-id="${noteId}">
+          ${
+            showBadge
+              ? `<button type="button" class="jukebox-new-badge" aria-label="새 노트 표시 지우기" title="새 노트"></button>`
+              : ''
+          }
+          <div class="jukebox-card-3d">
+            <div class="jukebox-card-inner">
+              <div class="jukebox-card-face jukebox-card-face--front">
+                <img src="${escapeHtml(coverSrc)}" alt="${title}" decoding="async"${eager ? ' fetchpriority="high"' : ''} referrerpolicy="no-referrer" />
+              </div>
+              ${
+                layout === 'grid'
+                  ? ''
+                  : `<div class="jukebox-card-face jukebox-card-face--back">
+                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" decoding="async" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
+              </div>`
+              }
+            </div>
+          </div>
+          ${tooltip}
+        </div>
+      `;
+}
+
+function bindCoverImageErrors(gallery) {
+  gallery
+    .querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover')
+    .forEach((img) => {
+      img.addEventListener(
+        'error',
+        () => img.classList.add('jukebox-cover-image--error'),
+        { once: true }
+      );
+    });
+}
+
+function markCenteredCard(gallery, noteId) {
+  const cards = Array.from(gallery.querySelectorAll('div.jukebox-card'));
+  let target = noteId
+    ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(noteId)}"]`)
+    : null;
+  if (!target) {
+    const activeRow = gallery.querySelector('.jukebox-grid-row.is-active') || gallery;
+    target = activeRow.querySelector('.jukebox-card') || cards[0] || null;
+  }
+  cards.forEach((card) => card.classList.toggle('jukebox-card--centered', card === target));
+  if (target) {
+    gallery.dispatchEvent(
+      new CustomEvent('jukebox:centered', {
+        detail: {
+          noteId: target.getAttribute('data-note-id'),
+          index: cards.indexOf(target)
+        }
+      })
+    );
+  }
+}
+
+function enableGridTagScroll(gallery, prevBtn, nextBtn, hooks = {}) {
+  gallery._jukeboxGridHooks = hooks;
+  if (gallery._jukeboxGridScrollEnabled) return;
+  gallery._jukeboxGridScrollEnabled = true;
+  let rafId = null;
+  let settleTimer = null;
+
+  const currentHooks = () => gallery._jukeboxGridHooks || {};
+
+  const applyClosest = ({ commit = false } = {}) => {
+    if (!gallery.isConnected || !isGridGallery(gallery)) return;
+    const idx = getActiveGridRowIndex(gallery);
+    if (idx < 0) return;
+    updateGridRowActiveState(gallery, idx);
+    updateJukeboxNavButtons(gallery);
+    if (!commit) return;
+    const row = gridRowEls(gallery)[idx];
+    const value = row?.getAttribute('data-filter') || '';
+    if (value) currentHooks().onTagChange?.(value, idx);
+  };
+
+  const onScroll = () => {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      applyClosest({ commit: false });
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => applyClosest({ commit: true }), 140);
+    });
+  };
+
+  gallery.addEventListener('scroll', onScroll, { passive: true });
+  gallery.addEventListener('scrollend', () => applyClosest({ commit: true }));
+
+  gallery.jukeboxScrollGridBy = (delta) => {
+    const rows = gridRowEls(gallery);
+    const idx = getActiveGridRowIndex(gallery);
+    const next = idx + delta;
+    if (next < 0 || next >= rows.length) return;
+    currentHooks().userMoved?.();
+    scrollGridRowToCenter(gallery, rows[next], 'smooth');
+  };
+
+  prevBtn?.addEventListener('click', () => {
+    if (!isGridGallery(gallery)) return;
+    gallery.jukeboxScrollGridBy?.(-1);
+  });
+  nextBtn?.addEventListener('click', () => {
+    if (!isGridGallery(gallery)) return;
+    gallery.jukeboxScrollGridBy?.(1);
+  });
+}
+
+function fillGridGallery(gallery, prevBtn, nextBtn, rows, options = {}) {
+  const selectedValue = options.selectedValue || rows[0]?.value || '';
+  const requestedFocusId = options.focusNoteId || consumeJukeboxFocus();
+  gallery._jukeboxNavPrev = prevBtn;
+  gallery._jukeboxNavNext = nextBtn;
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
+    updateJukeboxNavButtons(gallery);
+    return;
+  }
+
+  gallery.innerHTML = rows
+    .map((row) => {
+      const isActive = row.value === selectedValue;
+      const cards = row.notes.length
+        ? row.notes
+            .map((note, index) =>
+              renderJukeboxCardHtml(note, index, {
+                layout: 'grid',
+                canEdit: options.canEdit,
+                filterMode: options.filterMode
+              })
+            )
+            .join('')
+        : '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
+      return `
+        <section
+          class="jukebox-grid-row${isActive ? ' is-active' : ''}"
+          data-filter="${escapeHtml(row.value)}"
+          role="group"
+          aria-label="${escapeHtml(row.label || row.value)}"
+          ${isActive ? 'aria-current="true"' : ''}
+        >
+          <div class="jukebox-grid-row__notes">${cards}</div>
+        </section>
+      `;
+    })
+    .join('');
+
+  bindCoverImageErrors(gallery);
+  const activeIdx = Math.max(
+    0,
+    rows.findIndex((row) => row.value === selectedValue)
+  );
+  updateGridRowActiveState(gallery, activeIdx);
+  markCenteredCard(gallery, requestedFocusId);
+  enableGridTagScroll(gallery, prevBtn, nextBtn, options.gridHooks || {});
+  requestAnimationFrame(() => {
+    if (!gallery.isConnected) return;
+    scrollGridToFilter(gallery, selectedValue, 'auto');
+    updateGridRowActiveState(gallery, getActiveGridRowIndex(gallery));
+    updateJukeboxNavButtons(gallery);
+  });
 }
 
 function updateCardAngles(gallery) {
@@ -238,8 +516,17 @@ function updateJukeboxNavButtons(gallery) {
   if (!prevBtn && !nextBtn) return;
 
   if (isGridGallery(gallery)) {
-    prevBtn?.setAttribute('hidden', '');
-    nextBtn?.setAttribute('hidden', '');
+    const rows = gridRowEls(gallery);
+    if (rows.length === 0) {
+      prevBtn?.setAttribute('hidden', '');
+      nextBtn?.setAttribute('hidden', '');
+      return;
+    }
+    const idx = getActiveGridRowIndex(gallery);
+    if (idx <= 0) prevBtn?.setAttribute('hidden', '');
+    else prevBtn?.removeAttribute('hidden');
+    if (idx >= rows.length - 1) nextBtn?.setAttribute('hidden', '');
+    else nextBtn?.removeAttribute('hidden');
     return;
   }
 
@@ -510,12 +797,14 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
 
   /* 이전 버튼: 중앙에 가장 가까운 카드의 이전 카드로 스크롤 */
   prevBtn?.addEventListener('click', () => {
+    if (isGridGallery(gallery)) return;
     const metrics = getCardMetrics(gallery);
     const idx = getClosestCardIndex(gallery);
     if (idx > 0) scrollCardToCenter(metrics[idx - 1].el);
   });
   /* 다음 버튼: 중앙에 가장 가까운 카드의 다음 카드로 스크롤 */
   nextBtn?.addEventListener('click', () => {
+    if (isGridGallery(gallery)) return;
     const metrics = getCardMetrics(gallery);
     const idx = getClosestCardIndex(gallery);
     if (idx >= 0 && idx < metrics.length - 1) scrollCardToCenter(metrics[idx + 1].el);
@@ -531,7 +820,15 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
  * @param {HTMLElement|null} prevBtn - 이전 버튼
  * @param {HTMLElement|null} nextBtn - 다음 버튼
  * @param {Array<{id, title, coverFrontUrl?, coverBackUrl?}>} allNotes - 노트 목록
- * @param {{ layout?: 'jukebox'|'grid', focusNoteId?: string }} [options]
+ * @param {{
+ *   layout?: 'jukebox'|'grid',
+ *   focusNoteId?: string,
+ *   rows?: Array<{ value: string, label?: string, notes: Array }>,
+ *   selectedValue?: string,
+ *   canEdit?: boolean,
+ *   filterMode?: string,
+ *   gridHooks?: { onTagChange?: Function, userMoved?: Function }
+ * }} [options]
  */
 export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes, options = {}) {
   if (!gallery) return;
@@ -540,91 +837,29 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes, options 
   gallery._jukeboxNavPrev = prevBtn;
   gallery._jukeboxNavNext = nextBtn;
 
+  if (layout === 'grid') {
+    fillGridGallery(gallery, prevBtn, nextBtn, options.rows || [], {
+      ...options,
+      focusNoteId: requestedFocusId
+    });
+    return;
+  }
+
   if (!Array.isArray(allNotes) || allNotes.length === 0) {
     gallery.innerHTML = '<div class="jukebox-empty">표시할 노트가 없습니다.</div>';
     updateJukeboxNavButtons(gallery);
     return;
   }
   const itemsHtml = allNotes
-    .map((note, index) => {
-      /* 필터 전환 후에도 Cloudinary 표지 캐시(publicId)에서 다시 고른다 */
-      const covers = resolveNoteCoverUrls(note);
-      const frontUrl = covers.front || note.coverFrontUrl || '';
-      const backUrl = covers.back || note.coverBackUrl || '';
-      const thumbWidth = layout === 'grid' ? 400 : 800;
-      const optimizedFront = optimizeThumbnailUrl(frontUrl, thumbWidth);
-      const optimizedBack = optimizeThumbnailUrl(backUrl, thumbWidth);
-      const coverSrc = optimizedFront || frontUrl || TRANSPARENT_PIXEL;
-      const backCoverSrc = optimizedBack || backUrl || TRANSPARENT_PIXEL;
-      const eager = index < 4;
-      const title = escapeHtml(note.title);
-      const noteId = escapeHtml(note.id || '');
-      const showBadge = Boolean(
-        note.id &&
-          !isBookmarksNoteId(note.id) &&
-          !isDemoNoteId(note.id) &&
-          isNoteUnseen(note.id)
-      );
-      /*
-       * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
-       * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
-       * .jukebox-card-inner: 호버 플립 + 그림자
-       */
-      return `
-        <div class="jukebox-card" data-note-id="${noteId}">
-          ${
-            showBadge
-              ? `<button type="button" class="jukebox-new-badge" aria-label="새 노트 표시 지우기" title="새 노트"></button>`
-              : ''
-          }
-          <div class="jukebox-card-3d">
-            <div class="jukebox-card-inner">
-              <div class="jukebox-card-face jukebox-card-face--front">
-                <img src="${escapeHtml(coverSrc)}" alt="${title}" decoding="async"${eager ? ' fetchpriority="high"' : ''} referrerpolicy="no-referrer" />
-              </div>
-              ${
-                layout === 'grid'
-                  ? ''
-                  : `<div class="jukebox-card-face jukebox-card-face--back">
-                <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" decoding="async" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
-              </div>`
-              }
-            </div>
-          </div>
-        </div>
-      `;
-    })
+    .map((note, index) => renderJukeboxCardHtml(note, index, { layout: 'jukebox' }))
     .join('');
 
-  function markCenteredCard(noteId) {
-    const cards = Array.from(gallery.querySelectorAll(':scope > div.jukebox-card'));
-    let target = noteId
-      ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(noteId)}"]`)
-      : null;
-    if (!target) target = cards[0] || null;
-    cards.forEach((card) => card.classList.toggle('jukebox-card--centered', card === target));
-    if (target) {
-      gallery.dispatchEvent(
-        new CustomEvent('jukebox:centered', {
-          detail: {
-            noteId: target.getAttribute('data-note-id'),
-            index: cards.indexOf(target)
-          }
-        })
-      );
-    }
-  }
-
   gallery.innerHTML =
-    layout === 'grid'
-      ? itemsHtml
-      : '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
-        itemsHtml +
-        '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
+    '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
+    itemsHtml +
+    '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
 
-  gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
-    img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
-  });
+  bindCoverImageErrors(gallery);
 
   /*
    * 신규 배지 제거:
@@ -653,14 +888,6 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes, options 
       },
       true
     );
-  }
-
-  if (layout === 'grid') {
-    gallery.scrollLeft = 0;
-    gallery.style.removeProperty('scroll-snap-type');
-    markCenteredCard(requestedFocusId);
-    updateJukeboxNavButtons(gallery);
-    return;
   }
 
   /* 사용자가 스크롤을 시작하기 전까지만 첫 카드 자동 재정렬을 허용하는 플래그 */
@@ -971,6 +1198,7 @@ export function renderJukeboxWithFilter(options) {
     </div>
   `;
 
+  const fullscreen = mainContent.querySelector('#jukebox-fullscreen');
   const galleryWrap = mainContent.querySelector('.jukebox-gallery-wrap');
   const gallery = mainContent.querySelector('.jukebox-gallery');
   const focusSlot = mainContent.querySelector('.jukebox-focus-slot');
@@ -978,6 +1206,7 @@ export function renderJukeboxWithFilter(options) {
   const nextBtn = galleryWrap?.querySelector('.jukebox-nav-next');
   gallery._jukeboxNavPrev = prevBtn;
   gallery._jukeboxNavNext = nextBtn;
+  syncNavLabels();
   updateJukeboxNavButtons(gallery);
 
   /** @type {Array} */
@@ -999,12 +1228,20 @@ export function renderJukeboxWithFilter(options) {
     if (!allowsGalleryLayout(filterMode)) return;
     if (!gallery?.isConnected) return;
     syncLayoutAttr();
-    updateJukeboxNavButtons(gallery);
-    if (boundNotes.length) bindGallery(boundNotes);
+    syncNavLabels();
+    if (allNotesCache) applyFiltersAndRender();
+    else updateJukeboxNavButtons(gallery);
   }
   document.addEventListener(GALLERY_LAYOUT_EVENT, onGalleryLayoutChange);
+  const compactMq = window.matchMedia('(max-width: 1024px)');
+  const onCompactViewportChange = () => {
+    if (!gallery?.isConnected) return;
+    if (currentLayout() === 'grid') updateFocusInfo(boundNotes);
+  };
+  compactMq.addEventListener('change', onCompactViewportChange);
   mainContent._unsubGalleryLayout = () => {
     document.removeEventListener(GALLERY_LAYOUT_EVENT, onGalleryLayoutChange);
+    compactMq.removeEventListener('change', onCompactViewportChange);
   };
 
   function currentLayout() {
@@ -1012,17 +1249,53 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function syncLayoutAttr() {
-    mainContent
-      .querySelector('#jukebox-fullscreen')
-      ?.setAttribute('data-gallery-layout', currentLayout());
+    fullscreen?.setAttribute('data-gallery-layout', currentLayout());
+  }
+
+  function syncNavLabels() {
+    const grid = currentLayout() === 'grid';
+    prevBtn?.setAttribute('aria-label', grid ? '이전 태그' : '이전');
+    nextBtn?.setAttribute('aria-label', grid ? '다음 태그' : '다음');
+    prevBtn?.setAttribute('title', grid ? '이전 태그' : '이전');
+    nextBtn?.setAttribute('title', grid ? '다음 태그' : '다음');
+  }
+
+  function notesForFilterValue(value) {
+    const list = sortNotes(
+      (allNotesCache || []).filter((note) => resolveFilterKey(note) === value),
+      sortKey
+    );
+    if ((filterMode === 'period' || filterMode === 'type') && isLocalDemoEnabled()) {
+      const demo = createDemoNote();
+      if (resolveFilterKey(demo) === value) return [demo, ...list];
+    }
+    return list;
+  }
+
+  function buildGridRows() {
+    const counts = getNotesCount(allNotesCache || []);
+    const visible = optionsForFilterList(filterOptions, counts, viewModeToggle);
+    return visible.map((opt) => ({
+      value: opt.value,
+      label: opt.label,
+      notes: notesForFilterValue(opt.value)
+    }));
   }
 
   function getFilteredSortedNotes() {
-    if (!allNotesCache) return [];
-    const byPeriodOrType = (allNotesCache || []).filter(
-      (note) => resolveFilterKey(note) === selectedValue
+    return sortNotes(
+      (allNotesCache || []).filter((note) => resolveFilterKey(note) === selectedValue),
+      sortKey
     );
-    return sortNotes(byPeriodOrType, sortKey);
+  }
+
+  function getGalleryNotes() {
+    const extras = [];
+    if ((filterMode === 'period' || filterMode === 'type') && isLocalDemoEnabled()) {
+      extras.push(createDemoNote());
+    }
+    const sorted = getFilteredSortedNotes();
+    return extras.length ? [...extras, ...sorted] : sorted;
   }
 
   function findNoteById(noteId) {
@@ -1038,13 +1311,23 @@ export function renderJukeboxWithFilter(options) {
     let index = list.findIndex((n) => n.id === noteId);
     if (index < 0) index = 0;
     const note = list[index] || list[0] || null;
-    if (focusSlot) {
+    if (!focusSlot) return;
+    if (currentLayout() === 'grid') {
+      if (!isCompactGridViewport()) {
+        focusSlot.innerHTML = '';
+        return;
+      }
       focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
-        index,
-        total: list.length,
+        variant: 'sheet',
         canEdit
       });
+      return;
     }
+    focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
+      index,
+      total: list.length,
+      canEdit
+    });
   }
 
   function refreshAfterNoteEdit() {
@@ -1060,9 +1343,9 @@ export function renderJukeboxWithFilter(options) {
       });
   }
 
-  if (focusSlot && !focusSlot._jukeboxEditBound) {
-    focusSlot._jukeboxEditBound = true;
-    focusSlot.addEventListener('click', (e) => {
+  if (fullscreen && !fullscreen._jukeboxEditBound) {
+    fullscreen._jukeboxEditBound = true;
+    fullscreen.addEventListener('click', (e) => {
       const shareBtn = e.target?.closest?.('.jukebox-focus-info__share');
       if (shareBtn) {
         e.preventDefault();
@@ -1093,7 +1376,7 @@ export function renderJukeboxWithFilter(options) {
         const next = !note.favorites;
         const syncFavoriteButtons = (value, { disabled = false } = {}) => {
           const label = value ? '즐겨찾기 해제' : '즐겨찾기 추가';
-          focusSlot
+          fullscreen
             .querySelectorAll(`.jukebox-focus-info__favorite[data-note-id="${CSS.escape(noteId)}"]`)
             .forEach((btn) => {
               btn.innerHTML = value ? MINGCUTE.starFill : MINGCUTE.starLine;
@@ -1188,23 +1471,45 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function bindGallery(notes) {
-    boundNotes = notes || [];
+    const layout = currentLayout();
     const preserveId = gallery.querySelector('.jukebox-card--centered')?.getAttribute('data-note-id') || '';
-    fillJukeboxGallery(gallery, prevBtn, nextBtn, notes, {
-      layout: currentLayout(),
-      focusNoteId: preserveId
+    const rows = layout === 'grid' ? buildGridRows() : [];
+    boundNotes = layout === 'grid' ? rows.flatMap((row) => row.notes) : notes || [];
+
+    fillJukeboxGallery(gallery, prevBtn, nextBtn, boundNotes, {
+      layout,
+      focusNoteId: preserveId,
+      rows,
+      selectedValue,
+      canEdit,
+      filterMode,
+      gridHooks: {
+        onTagChange: (value) => {
+          if (!value || value === selectedValue) return;
+          selectedValue = value;
+          replaceFilterPath(basePath, value);
+          syncFilterChipActive(value);
+          const counts = getNotesCount(allNotesCache || []);
+          renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle, {
+            sortKey,
+            onSortChange: (next) => {
+              sortKey = next;
+              applyFiltersAndRender();
+            }
+          });
+        }
+      }
     });
+    syncNavLabels();
 
-    const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
-    cards.forEach((card, i) => {
-      const note = notes[i];
+    const cards = gallery.querySelectorAll('div.jukebox-card');
+    cards.forEach((card) => {
+      const note = findNoteById(card.getAttribute('data-note-id'));
       if (!note) return;
-      card.setAttribute('data-note-id', note.id);
       card.addEventListener('click', (e) => {
-        /* 빨간 점 클릭은 캡처 핸들러가 처리 — 여기서는 카드 동작만 */
         if (e.target?.closest?.('.jukebox-new-badge')) return;
+        if (e.target?.closest?.('.grid-note-tooltip, .grid-focus-info')) return;
 
-        /* 카드 클릭 시에도 신규 배지는 제거 */
         if (note.id && isNoteUnseen(note.id)) {
           clearNoteUnseen(note.id);
           card.querySelector('.jukebox-new-badge')?.remove();
@@ -1217,7 +1522,7 @@ export function renderJukeboxWithFilter(options) {
           }
           cards.forEach((el) => el.classList.toggle('jukebox-card--centered', el === card));
           gallery.dispatchEvent(
-            new CustomEvent('jukebox:centered', { detail: { noteId: note.id, index: i } })
+            new CustomEvent('jukebox:centered', { detail: { noteId: note.id } })
           );
           return;
         }
@@ -1240,26 +1545,15 @@ export function renderJukeboxWithFilter(options) {
       gallery.removeEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
     }
     gallery._jukeboxFocusHandler = () => {
-      updateFocusInfo(notes);
+      updateFocusInfo(boundNotes);
     };
     gallery.addEventListener('jukebox:centered', gallery._jukeboxFocusHandler);
-    updateFocusInfo(notes);
+    updateFocusInfo(boundNotes);
   }
 
   function applyFiltersAndRender() {
     if (!allNotesCache) return;
-    const byPeriodOrType = (allNotesCache || []).filter(
-      (note) => resolveFilterKey(note) === selectedValue
-    );
-    const sorted = sortNotes(byPeriodOrType, sortKey);
-    /* Timeline/By type만 로컬 Demo Note를 맨 앞에 붙인다.
-     * Bookmark Note는 Page Scrap 페이지에만 둔다. */
-    const extras = [];
-    if ((filterMode === 'period' || filterMode === 'type') && isLocalDemoEnabled()) {
-      extras.push(createDemoNote());
-    }
-    const galleryNotes = extras.length ? [...extras, ...sorted] : sorted;
-    bindGallery(galleryNotes);
+    bindGallery(getGalleryNotes());
 
     const counts = getNotesCount(allNotesCache);
     renderFilterSubMenu(selectedValue, basePath, filterOptions, counts, viewModeToggle, {

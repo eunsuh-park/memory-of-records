@@ -85,11 +85,19 @@ export function renderNoteIndicator(index, total) {
 /**
  * @param {Object|null} note - 포커스된 노트. null이면 빈 문자열
  * @param {'period'|'type'} [_filterMode]
- * @param {{ index?: number, total?: number, compact?: boolean, canEdit?: boolean }} [opts]
+ * @param {{
+ *   index?: number,
+ *   total?: number,
+ *   compact?: boolean,
+ *   canEdit?: boolean,
+ *   variant?: 'default'|'tooltip'|'sheet'
+ * }} [opts]
+ *   variant tooltip: 그리드 보기 데스크톱 호버 툴팁 (.grid-note-tooltip)
+ *   variant sheet: 그리드 보기 모바일·타블렛 하단 고정 패널 (.grid-focus-info)
  * @returns {string} HTML 문자열
  */
 export function render(note, _filterMode, opts = {}) {
-  const { canEdit = false, compact = false } = opts;
+  const { canEdit = false, compact = false, variant = 'default' } = opts;
 
   if (!note) return '';
 
@@ -151,22 +159,25 @@ export function render(note, _filterMode, opts = {}) {
     .filter(Boolean)
     .join('');
 
+  const hideMemo = compact || variant === 'tooltip' || variant === 'sheet';
   const details = [
     actions ? `<div class="jukebox-focus-info__actions">${actions}</div>` : '',
-    memo ? `<p class="jukebox-focus-info__memo">${memo}</p>` : ''
+    hideMemo || !memo ? '' : `<p class="jukebox-focus-info__memo">${memo}</p>`
   ]
     .filter(Boolean)
     .join('');
 
-  const classes = [
-    'jukebox-focus-info',
-    compact ? 'jukebox-focus-info--compact' : ''
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const rootClass =
+    variant === 'tooltip'
+      ? 'grid-note-tooltip'
+      : variant === 'sheet'
+        ? 'grid-focus-info'
+        : ['jukebox-focus-info', compact ? 'jukebox-focus-info--compact' : '']
+            .filter(Boolean)
+            .join(' ');
 
   return `
-    <div class="${classes}" aria-live="polite">
+    <div class="${rootClass}" aria-live="${variant === 'tooltip' ? 'off' : 'polite'}">
       <div class="jukebox-focus-info__main">
         <h2 class="jukebox-focus-info__title">${title}</h2>
       </div>

@@ -512,3 +512,19 @@
   border: 1px solid var(--color-border);
   background: var(--color-glass);
 }
+
+.ui-lab__grid-tooltip-demo {
+  position: relative;
+  width: 7rem;
+  height: 4.5rem;
+  margin: 5rem auto 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+}
+
+.ui-lab__grid-tooltip-demo > .grid-note-tooltip {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}

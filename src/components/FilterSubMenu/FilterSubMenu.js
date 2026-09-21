@@ -34,7 +34,7 @@ const SORT_OPTIONS = [
  * @param {{ current?: string }|null} viewModeToggle
  * @returns {Array<{value: string}>}
  */
-function optionsForFilterList(filterOptions, countsByFilter, viewModeToggle) {
+export function optionsForFilterList(filterOptions, countsByFilter, viewModeToggle) {
   if (!Array.isArray(filterOptions)) return [];
   if (viewModeToggle?.current !== 'type') return filterOptions;
   const counts = countsByFilter || {};

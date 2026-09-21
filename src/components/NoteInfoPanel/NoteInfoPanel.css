@@ -144,6 +144,107 @@
 }
 
 /*
+ * 그리드 보기 데스크톱 호버 툴팁
+ * 카드 위쪽에 뜨는 짧은 정보. 액션 클래스는 jukebox-focus-info__* 를 그대로 쓴다.
+ */
+.grid-note-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--space-2));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  max-width: min(14rem, 70vw);
+  padding: var(--space-2) var(--space-3);
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  background: var(--color-overlay-dark);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.grid-note-tooltip .jukebox-focus-info__main,
+.grid-note-tooltip .jukebox-focus-info__details,
+.grid-focus-info .jukebox-focus-info__main,
+.grid-focus-info .jukebox-focus-info__details {
+  width: 100%;
+  align-items: center;
+}
+
+.grid-note-tooltip .jukebox-focus-info__title {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.04em;
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.grid-note-tooltip .jukebox-focus-info__actions {
+  min-height: 0;
+}
+
+.grid-note-tooltip .jukebox-focus-info__memo {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jukebox-card:hover > .grid-note-tooltip,
+  .jukebox-card:focus-within > .grid-note-tooltip {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .grid-note-tooltip {
+    display: none;
+  }
+}
+
+/*
+ * 그리드 보기 모바일·타블렛 하단 고정 패널
+ * 주크박스 .jukebox-focus-info 와 역할은 같되 클래스를 분리한다.
+ */
+.grid-focus-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--jukebox-focus-info-min-h);
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.grid-focus-info .jukebox-focus-info__title {
+  margin: 0;
+  width: 100%;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.grid-focus-info .jukebox-focus-info__memo {
+  display: none;
+}
+
+/*
  * 노트 인디케이터 (UiLab)
  * focused는 항상 정중앙. 좌·우 사이드가 flex:1 로 대칭을 유지한다.
  */
