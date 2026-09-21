@@ -21,6 +21,11 @@ import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotesCaches } from '../../utils/notesCatalog.js';
 import { consumeJukeboxFocus } from '../../utils/jukeboxFocus.js';
+import {
+  GALLERY_LAYOUT_EVENT,
+  allowsGalleryLayout,
+  galleryLayoutForFilter
+} from '../../utils/galleryLayout.js';
 import { escapeHtml } from '../../utils/html.js';
 import { updateNoteFavorite } from '../../services/createNote.js';
 import { isAuthenticated, onAuthChange } from '../../services/auth.js';
@@ -116,8 +121,12 @@ function getCardMetrics(gallery) {
  * - z-index: 중앙에 가까울수록 높게 (겹침 시 중앙 카드가 위로)
  * - 바닥 반사: 중앙 카드와 좌우 2장까지만, 멀수록 옅게
  */
+function isGridGallery(gallery) {
+  return gallery?.closest?.('[data-gallery-layout="grid"]') != null;
+}
+
 function updateCardAngles(gallery) {
-  if (!gallery) return;
+  if (!gallery || isGridGallery(gallery)) return;
   const metrics = getCardMetrics(gallery);
   if (metrics.length === 0) return;
   const halfWidth = gallery.clientWidth / 2;
@@ -227,6 +236,12 @@ function updateJukeboxNavButtons(gallery) {
   const prevBtn = gallery?._jukeboxNavPrev;
   const nextBtn = gallery?._jukeboxNavNext;
   if (!prevBtn && !nextBtn) return;
+
+  if (isGridGallery(gallery)) {
+    prevBtn?.setAttribute('hidden', '');
+    nextBtn?.setAttribute('hidden', '');
+    return;
+  }
 
   const count = getCardMetrics(gallery).length;
   if (count === 0) {
@@ -428,6 +443,10 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
   }
 
   gallery.addEventListener('mousemove', (e) => {
+    if (isGridGallery(gallery)) {
+      stopEdgeScroll();
+      return;
+    }
     const pageX = e.clientX ?? e.screenX ?? 0;
     const ratio = pageX / window.innerWidth;
     let direction = 0;
@@ -458,6 +477,7 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
   gallery.addEventListener(
     'wheel',
     (e) => {
+      if (isGridGallery(gallery)) return;
       const maxScroll = maxScrollLeft();
       if (maxScroll <= 0) return;
       const delta = e.deltaY * WHEEL_SCROLL_SPEED;
@@ -511,9 +531,12 @@ function enableGalleryScroll(gallery, prevBtn, nextBtn, state = { userScrolled: 
  * @param {HTMLElement|null} prevBtn - 이전 버튼
  * @param {HTMLElement|null} nextBtn - 다음 버튼
  * @param {Array<{id, title, coverFrontUrl?, coverBackUrl?}>} allNotes - 노트 목록
+ * @param {{ layout?: 'jukebox'|'grid', focusNoteId?: string }} [options]
  */
-export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
+export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes, options = {}) {
   if (!gallery) return;
+  const layout = options.layout === 'grid' ? 'grid' : 'jukebox';
+  const requestedFocusId = options.focusNoteId || consumeJukeboxFocus();
   gallery._jukeboxNavPrev = prevBtn;
   gallery._jukeboxNavNext = nextBtn;
 
@@ -528,8 +551,9 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
       const covers = resolveNoteCoverUrls(note);
       const frontUrl = covers.front || note.coverFrontUrl || '';
       const backUrl = covers.back || note.coverBackUrl || '';
-      const optimizedFront = optimizeThumbnailUrl(frontUrl, 800);
-      const optimizedBack = optimizeThumbnailUrl(backUrl, 800);
+      const thumbWidth = layout === 'grid' ? 400 : 800;
+      const optimizedFront = optimizeThumbnailUrl(frontUrl, thumbWidth);
+      const optimizedBack = optimizeThumbnailUrl(backUrl, thumbWidth);
       const coverSrc = optimizedFront || frontUrl || TRANSPARENT_PIXEL;
       const backCoverSrc = optimizedBack || backUrl || TRANSPARENT_PIXEL;
       const eager = index < 4;
@@ -558,9 +582,13 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
               <div class="jukebox-card-face jukebox-card-face--front">
                 <img src="${escapeHtml(coverSrc)}" alt="${title}" decoding="async"${eager ? ' fetchpriority="high"' : ''} referrerpolicy="no-referrer" />
               </div>
-              <div class="jukebox-card-face jukebox-card-face--back">
+              ${
+                layout === 'grid'
+                  ? ''
+                  : `<div class="jukebox-card-face jukebox-card-face--back">
                 <img src="${escapeHtml(backCoverSrc)}" alt="${title} (뒷표지)" decoding="async" referrerpolicy="no-referrer" class="jukebox-card-back-cover" />
-              </div>
+              </div>`
+              }
             </div>
           </div>
         </div>
@@ -568,10 +596,31 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     })
     .join('');
 
+  function markCenteredCard(noteId) {
+    const cards = Array.from(gallery.querySelectorAll(':scope > div.jukebox-card'));
+    let target = noteId
+      ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(noteId)}"]`)
+      : null;
+    if (!target) target = cards[0] || null;
+    cards.forEach((card) => card.classList.toggle('jukebox-card--centered', card === target));
+    if (target) {
+      gallery.dispatchEvent(
+        new CustomEvent('jukebox:centered', {
+          detail: {
+            noteId: target.getAttribute('data-note-id'),
+            index: cards.indexOf(target)
+          }
+        })
+      );
+    }
+  }
+
   gallery.innerHTML =
-    '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
-    itemsHtml +
-    '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
+    layout === 'grid'
+      ? itemsHtml
+      : '<div class="jukebox-spacer jukebox-spacer--left" aria-hidden="true"></div>' +
+        itemsHtml +
+        '<div class="jukebox-spacer jukebox-spacer--right" aria-hidden="true"></div>';
 
   gallery.querySelectorAll('.jukebox-card-face--front img, .jukebox-card-back-cover').forEach((img) => {
     img.addEventListener('error', () => img.classList.add('jukebox-cover-image--error'), { once: true });
@@ -606,6 +655,14 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
     );
   }
 
+  if (layout === 'grid') {
+    gallery.scrollLeft = 0;
+    gallery.style.removeProperty('scroll-snap-type');
+    markCenteredCard(requestedFocusId);
+    updateJukeboxNavButtons(gallery);
+    return;
+  }
+
   /* 사용자가 스크롤을 시작하기 전까지만 첫 카드 자동 재정렬을 허용하는 플래그 */
   const state = gallery._jukeboxScrollState || { userScrolled: false };
   gallery._jukeboxScrollState = state;
@@ -622,9 +679,8 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes) {
   enableCenterPerspective(gallery);
   enableGalleryScroll(gallery, prevBtn, nextBtn, state);
 
-  const focusId = consumeJukeboxFocus();
-  const focusCard = focusId
-    ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(focusId)}"]`)
+  const focusCard = requestedFocusId
+    ? gallery.querySelector(`.jukebox-card[data-note-id="${CSS.escape(requestedFocusId)}"]`)
     : null;
 
   /* 첫 카드(또는 포커스 요청 카드)를 정확히 중앙에 */
@@ -900,7 +956,7 @@ export function renderJukeboxWithFilter(options) {
   );
 
   mainContent.innerHTML = `
-    <div class="jukebox-fullscreen" id="jukebox-fullscreen">
+    <div class="jukebox-fullscreen" id="jukebox-fullscreen" data-gallery-layout="${galleryLayoutForFilter(filterMode)}">
       <div class="jukebox-gallery-wrap">
         ${renderButton({ shape: 'circle', size: 'm', role: 'navPrev', ariaLabel: '이전', content: MINGCUTE.leftLine, className: 'jukebox-nav-prev' })}
         ${renderButton({ shape: 'circle', size: 'm', role: 'navNext', ariaLabel: '다음', content: MINGCUTE.leftLine, className: 'jukebox-nav-next' })}
@@ -935,6 +991,31 @@ export function renderJukeboxWithFilter(options) {
     canEdit = authed;
     updateFocusInfo(boundNotes);
   });
+
+  if (typeof mainContent._unsubGalleryLayout === 'function') {
+    mainContent._unsubGalleryLayout();
+  }
+  function onGalleryLayoutChange() {
+    if (!allowsGalleryLayout(filterMode)) return;
+    if (!gallery?.isConnected) return;
+    syncLayoutAttr();
+    updateJukeboxNavButtons(gallery);
+    if (boundNotes.length) bindGallery(boundNotes);
+  }
+  document.addEventListener(GALLERY_LAYOUT_EVENT, onGalleryLayoutChange);
+  mainContent._unsubGalleryLayout = () => {
+    document.removeEventListener(GALLERY_LAYOUT_EVENT, onGalleryLayoutChange);
+  };
+
+  function currentLayout() {
+    return galleryLayoutForFilter(filterMode);
+  }
+
+  function syncLayoutAttr() {
+    mainContent
+      .querySelector('#jukebox-fullscreen')
+      ?.setAttribute('data-gallery-layout', currentLayout());
+  }
 
   function getFilteredSortedNotes() {
     if (!allNotesCache) return [];
@@ -1108,7 +1189,11 @@ export function renderJukeboxWithFilter(options) {
 
   function bindGallery(notes) {
     boundNotes = notes || [];
-    fillJukeboxGallery(gallery, prevBtn, nextBtn, notes);
+    const preserveId = gallery.querySelector('.jukebox-card--centered')?.getAttribute('data-note-id') || '';
+    fillJukeboxGallery(gallery, prevBtn, nextBtn, notes, {
+      layout: currentLayout(),
+      focusNoteId: preserveId
+    });
 
     const cards = gallery.querySelectorAll(':scope > div.jukebox-card');
     cards.forEach((card, i) => {
@@ -1123,6 +1208,18 @@ export function renderJukeboxWithFilter(options) {
         if (note.id && isNoteUnseen(note.id)) {
           clearNoteUnseen(note.id);
           card.querySelector('.jukebox-new-badge')?.remove();
+        }
+
+        if (currentLayout() === 'grid') {
+          if (card.classList.contains('jukebox-card--centered')) {
+            openNoteModal(note);
+            return;
+          }
+          cards.forEach((el) => el.classList.toggle('jukebox-card--centered', el === card));
+          gallery.dispatchEvent(
+            new CustomEvent('jukebox:centered', { detail: { noteId: note.id, index: i } })
+          );
+          return;
         }
 
         if (card.classList.contains('jukebox-card--centered')) {

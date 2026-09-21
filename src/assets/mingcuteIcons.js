@@ -90,6 +90,14 @@ export const MINGCUTE = {
   moonFill:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M13.574 3.137a1.01 1.01 0 0 0-1.097 1.408a6 6 0 0 1-7.931 7.931c-.747-.335-1.548.307-1.409 1.098A9 9 0 0 0 21 12c0-4.435-3.206-8.118-7.426-8.863' clip-rule='evenodd'/></svg>",
 
+  /** 갤러리 레이아웃 · 주크박스(Cover Flow) · mingcute:column-fill */
+  columnFill:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M16 3v18h3a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3V3zm5 18h4V3h-4z'/></svg>",
+
+  /** 갤러리 레이아웃 · 펼쳐 보기 · mingcute:layout-grid-fill */
+  layoutGridFill:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M11 21H5a2 2 0 0 1-2-2v-6h8zm10-2a2 2 0 0 1-2 2h-6v-8h8zM11 3v8H3V5a2 2 0 0 1 2-2zm8 0a2 2 0 0 1 2 2v6h-8V3z'/></svg>",
+
   /** 이미지 플레이스홀더 · mingcute:pic-2-fill */
   pic2Fill:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' fill-rule='evenodd' d='M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm18 8.686l-4.172-4.171a1 1 0 0 0-1.414 0L4.93 19H4V5h16zM6 8.5a1.5 1.5 0 1 1 3 0a1.5 1.5 0 0 1-3 0' clip-rule='evenodd'/></svg>",

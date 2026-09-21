@@ -1,16 +1,18 @@
 /**
  * PageHeader
- * 데스크톱: 로고 + Intro(좌) | 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
+ * 데스크톱: 로고 + Intro(좌) | (Timeline/By type만 뷰어 토글) + 테마 + Login/Logout + 새 노트 추가(우, 로그인 시)
  * 모바일·낮은 화면(높이 ≤768px 또는 너비 ≤768px): 로고(좌) | 햄버거(우) + 우측 드로어
- *          (Notes 하위: Timeline / By type / Favorite / Page Scrap, 테마 토글은 Logout 아래)
+ *          (Notes 하위: Timeline / By type / Favorite / Page Scrap, 뷰어·테마 토글은 Logout 아래)
  * 갤러리 필터는 #sub-menu.gallery-filter (헤더 밖. 데스크톱 상단 중앙, 컴팩트 헤더에서는 헤더 아래)
  */
 
 import './PageHeader.css';
 import logo from '../../assets/logo.png';
 import { getStoredTheme } from '../../utils/theme.js';
+import { getStoredGalleryLayout, isGalleryLayoutPath } from '../../utils/galleryLayout.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderThemeSwitch, bind as bindThemeSwitches } from '../../components/ThemeSwitch/ThemeSwitch.js';
+import { render as renderViewerSwitch, bind as bindViewerSwitches } from '../../components/ViewerSwitch/ViewerSwitch.js';
 import { render as renderButton } from '../../components/Button/Button.js';
 import { render as renderDim } from '../../components/Dim/Dim.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
@@ -85,6 +87,9 @@ export function renderPageHeader() {
 
   const currentPath = getActualPath(window.location.pathname);
   const theme = getStoredTheme();
+  const showViewerSwitch = isGalleryLayoutPath(currentPath);
+  const galleryLayout = showViewerSwitch ? getStoredGalleryLayout() : 'jukebox';
+  const viewerSwitchHtml = showViewerSwitch ? renderViewerSwitch({ layout: galleryLayout }) : '';
   const notesActive = isNotesPath(currentPath);
   const timelineActive = isTimelinePath(currentPath);
   const byTypeActive = isByTypePath(currentPath);
@@ -122,6 +127,7 @@ export function renderPageHeader() {
           >${MINGCUTE.menuLine}</button>
         </div>
         <div class="page-header__right page-header__right--desktop">
+          ${viewerSwitchHtml}
           ${renderThemeSwitch({ theme })}
           <span class="page-header__auth" data-auth-slot></span>
         </div>
@@ -200,13 +206,17 @@ export function renderPageHeader() {
         >Intro</a>
         <div class="nav-drawer__account">
           <div class="nav-drawer__auth" data-auth-slot-drawer></div>
-          ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
+          <div class="nav-drawer__switches">
+            ${showViewerSwitch ? renderViewerSwitch({ layout: galleryLayout, className: 'nav-drawer__theme' }) : ''}
+            ${renderThemeSwitch({ theme, className: 'nav-drawer__theme' })}
+          </div>
         </div>
       </nav>
     </aside>
   `;
 
   bindThemeSwitches(container);
+  if (showViewerSwitch) bindViewerSwitches(container);
 
   function onAddNoteClick(e) {
     e.preventDefault();
