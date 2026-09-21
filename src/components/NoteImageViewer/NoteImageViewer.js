@@ -41,6 +41,7 @@ import {
   decodeRouteParam,
   findNoteByRouteParam,
   noteHref,
+  notePath,
   normalizeSharePage,
   parseSharePageParam
 } from '../../utils/noteSlug.js';
@@ -192,6 +193,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   const lastBtn = targetEl.querySelector('.niv-nav-last');
   const toggleSpreadBtn = targetEl.querySelector('.niv-toggle-spread');
   const pageInfoBtn = targetEl.querySelector('.niv-page-info');
+  const sourceNoteBtn = targetEl.querySelector('.niv-source-note');
   const addPageBtn = targetEl.querySelector('.niv-add-page');
   const shareNoteBtn = targetEl.querySelector('.niv-share-note');
   const resetViewBtn = targetEl.querySelector('.niv-reset-view');
@@ -267,6 +269,12 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   if ((isAlbumMode || isBookmarksAlbum || isDemoNote) && addPageBtn) {
     addPageBtn.hidden = true;
     addPageBtn.setAttribute('aria-hidden', 'true');
+  }
+
+  if (sourceNoteBtn) {
+    const showSource = isBookmarksAlbum;
+    sourceNoteBtn.hidden = !showSource;
+    sourceNoteBtn.setAttribute('aria-hidden', showSource ? 'false' : 'true');
   }
 
   function albumEntry(num) {
@@ -675,6 +683,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         btn.disabled = !ready || st.bookState === 'closed';
       });
       if (pageInfoBtn) pageInfoBtn.disabled = !ready || st.bookState === 'closed';
+      if (sourceNoteBtn) sourceNoteBtn.disabled = !ready || st.bookState === 'closed';
       syncShareUrl();
       return;
     }
@@ -739,6 +748,7 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       btn.disabled = !ready || isCoverDisplay(pageNum);
     });
     if (pageInfoBtn) pageInfoBtn.disabled = !ready || isCoverDisplay(pageNum);
+    if (sourceNoteBtn) sourceNoteBtn.disabled = !ready || isCoverDisplay(pageNum);
     syncShareUrl();
   }
 
@@ -1078,19 +1088,14 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
       return;
     }
     const entry = isAlbumMode ? albumEntry(pageNum) : null;
-    let sourceNote = entry?.sourceNote || null;
-    if (isAlbumMode && !sourceNote && entry) {
-      const enriched = await attachSourceNotes([entry]);
-      sourceNote = enriched[0]?.sourceNote || null;
-      if (sourceNote && albumPages?.[pageNum - 1]) {
-        albumPages[pageNum - 1] = { ...albumPages[pageNum - 1], sourceNote };
-      }
-    }
+    const sourceNote = await resolveCurrentSourceNote();
     openPageMetaModal({
       folder: ref.folder,
       pageNumber: ref.pageNumber,
       imageUrl: pageImageSrc(pageNum),
       sourceNote,
+      bookmarkedAt: entry?.bookmarkedAt || null,
+      showBookmarkedAt: isBookmarksAlbum,
       onSaved: async (meta) => {
         if (isAlbumMode) {
           if (meta?.visible === false) {
@@ -1117,6 +1122,41 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         refreshCurrentView(pageNum);
       }
     });
+  }
+
+  async function resolveCurrentSourceNote() {
+    const entry = isAlbumMode ? albumEntry(pageNum) : null;
+    let sourceNote = entry?.sourceNote || null;
+    if (isAlbumMode && !sourceNote && entry) {
+      const enriched = await attachSourceNotes([entry]);
+      sourceNote = enriched[0]?.sourceNote || null;
+      if (sourceNote && albumPages?.[pageNum - 1]) {
+        albumPages[pageNum - 1] = { ...albumPages[pageNum - 1], sourceNote };
+      }
+    }
+    return sourceNote;
+  }
+
+  async function openSourceNote() {
+    if (!isBookmarksAlbum) return;
+    if (isCoverDisplay(pageNum)) {
+      showToast('표지 페이지는 원본 노트가 없습니다');
+      return;
+    }
+    const ref = sourceRef(pageNum);
+    if (!ref?.folder || !ready) {
+      showToast('페이지를 불러온 뒤 이동할 수 있습니다');
+      return;
+    }
+    const sourceNote = await resolveCurrentSourceNote();
+    if (!sourceNote?.id) {
+      showToast('원본 노트를 찾을 수 없습니다');
+      return;
+    }
+    const href = notePath(sourceNote, ref.pageNumber);
+    document.querySelector('.pdf-modal-overlay .pdf-modal-close')?.click();
+    const { router } = await import('../../router.js');
+    router.navigate(href);
   }
 
   async function refreshAfterPageInsert(result) {
@@ -1649,6 +1689,9 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
   });
   toggleSpreadBtn?.addEventListener('click', toggleSpreadMode);
   pageInfoBtn?.addEventListener('click', () => openCurrentPageMeta());
+  sourceNoteBtn?.addEventListener('click', () => {
+    void openSourceNote();
+  });
   addPageBtn?.addEventListener('click', () => {
     void openInsertPageModal();
   });

@@ -271,7 +271,8 @@
 /* 뷰어 크롬 데모: 실제 뷰어처럼 어두운 면 위에 컨트롤을 절대배치로 얹는다 */
 .ui-lab__viewer-stage {
   position: relative;
-  min-height: 18rem;
+  /* 원본 노트 버튼을 포함해 액션 열 6개가 잘리지 않게 */
+  min-height: 24rem;
   border-radius: var(--radius-lg);
   border: 1px dashed var(--color-border);
   background: var(--color-chrome-strong);

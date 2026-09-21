@@ -5,7 +5,7 @@
  * 아이콘은 공용 MingCute 세트(src/assets/mingcuteIcons.js)에서만 가져온다.
  *  - 좌우 페이지 이동: circle M · role navPrev/navNext
  *  - 하단 시트      : 처음·현재/전체·마지막 · 뷰 원상복구
- *  - 우측 액션 열   : 정보·추가·북마크·공유 + 2페이지 토글 (기존 FAB 위치)
+ *  - 우측 액션 열   : 원본 노트 · 정보·추가·북마크·공유 + 2페이지 토글 (기존 FAB 위치)
  *  - 시트·액션 아이콘: circle S · role toolbar · tone ghost
  *
  * 뷰어와 /ui-lab 예시가 같은 마크업을 쓰도록 여기로 분리했다.
@@ -111,10 +111,20 @@ export function renderBottomSheet() {
   `;
 }
 
-/** 시트에서 뺀 앞 버튼 4개 + 2페이지 토글. 기존 2페이지 FAB 위치에 세로로 둔다 */
+/** 시트에서 뺀 앞 버튼 + 2페이지 토글. 기존 2페이지 FAB 위치에 세로로 둔다 */
 export function renderSheetActions() {
   return `
     <div class="niv-sheet-actions" role="toolbar" aria-label="페이지 액션">
+      ${renderButton({
+        shape: 'circle',
+        size: 's',
+        role: 'toolbar',
+        tone: 'ghost',
+        ariaLabel: '원본 노트에서 보기',
+        title: '원본 노트에서 보기',
+        content: MINGCUTE.notebookLine,
+        className: 'niv-sheet-btn niv-source-note'
+      })}
       ${renderButton({
         shape: 'circle',
         size: 's',

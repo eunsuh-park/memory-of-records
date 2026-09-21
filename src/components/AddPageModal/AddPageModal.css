@@ -122,6 +122,16 @@
   gap: var(--space-1);
 }
 
+.page-meta-bookmarked {
+  gap: var(--space-1);
+}
+
+.page-meta-bookmarked-date {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
 .page-meta-source-link {
   display: inline-flex;
   align-items: center;

@@ -1053,7 +1053,8 @@ export function renderUiLab() {
           <h2 class="ui-lab__section-title">NoteImageViewer · 뷰어 크롬</h2>
           <p class="ui-lab__section-desc">
             뷰어 버튼은 좌우 페이지 이동(circle M · navPrev/navNext)과 하단 시트(circle S · ghost)이고
-            모두 공통 Button 컴포넌트로 만듭니다. 시트 앞 액션 4개는 2페이지 토글과 묶어 기존 FAB 자리에 세로로 둡니다.
+            모두 공통 Button 컴포넌트로 만듭니다. 시트 앞 액션은 2페이지 토글과 묶어 기존 FAB 자리에 세로로 둡니다.
+            북마크 노트에서는 페이지 정보 위에 「원본 노트에서 보기」가 같은 디자인으로 붙습니다.
             아래는 실제 뷰어와 같은 마크업(<code>renderViewerChrome()</code>)을 그대로 얹은 정적 데모라 눌러도 동작하지 않습니다.
           </p>
           <p class="ui-lab__files">
@@ -1067,7 +1068,7 @@ export function renderUiLab() {
           </div>
           <ul class="ui-lab__list">
             <li>하단 시트: (처음 · 현재/전체 · 마지막) · 뷰 원상복구. 배경은 surface-hover</li>
-            <li>우측 액션 열(기존 2페이지 FAB 자리): 페이지 정보 · 페이지 추가 · 북마크 · 현재 페이지 링크 복사 · 2페이지 보기. 아이콘 hover는 surface-active</li>
+            <li>우측 액션 열(기존 2페이지 FAB 자리): 원본 노트에서 보기(북마크 노트) · 페이지 정보 · 페이지 추가 · 북마크 · 현재 페이지 링크 복사 · 2페이지 보기. 아이콘 hover는 surface-active</li>
             <li>모바일 북마크는 액션 열 위 FAB로 표시되고, 열 안 북마크는 숨깁니다</li>
             <li>북마크는 Cloudinary <code>is_bookmarked</code>와 연결되며, 변경 시 토스트를 띄웁니다</li>
             <li>양면 토글(2페이지로 보기)을 누르면 3D 책장(BookFlip3D)으로 바뀝니다. 기본은 1페이지 보기이고, WebGL을 쓸 수 없으면 기존 2D 양면 붙이기를 씁니다</li>
@@ -1148,7 +1149,7 @@ export function renderUiLab() {
             <li>모달 공통: <code>dialog__title</code> 24px(<code>--text-xl</code>) · 푸터 위 상태는 가운데 · 액션은 보조 위·주요 아래 1열</li>
             <li>페이지 추가: 소스 선택은 Confirm 레이아웃(설명 + PDF/이미지) · 폼은 PDF/이미지 공통 · 파일명 옆 변환 칩</li>
             <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
-            <li>페이지 정보: 뷰어 하단 시트 정보 버튼</li>
+            <li>페이지 정보: 뷰어 하단 시트 정보 버튼. 북마크 노트에서는 북마크한 날짜도 표시</li>
           </ul>
           ${renderVariantRow(
             'AddNoteFab · 표지 (이름·파일·미리보기·크기·색상 채움)',

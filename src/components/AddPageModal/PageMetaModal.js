@@ -11,6 +11,7 @@ import { showToast } from '../Toast/Toast.js';
 import { fetchPageMeta, updatePageMeta, buildPageImageUrl } from '../../services/pages.js';
 import { recognizePageImage } from '../../services/ocr.js';
 import { normalizeIsoDate, yearFromIsoDate } from '../../utils/entryDate.js';
+import { formatBookmarkedDate } from '../../utils/bookmarkedAt.js';
 import { requireAuth } from '../../services/auth.js';
 import { escapeHtml } from '../../utils/html.js';
 import './AddPageModal.css';
@@ -21,6 +22,8 @@ import './AddPageModal.css';
  *   pageNumber: number,
  *   imageUrl?: string,
  *   sourceNote?: { id: string, title: string }|null,
+ *   bookmarkedAt?: string|null,
+ *   showBookmarkedAt?: boolean,
  *   onSaved?: (meta: { entry_date: string, ocr_text: string, visible: boolean, pageNumber: number }) => void
  * }} options
  */
@@ -55,6 +58,18 @@ export function openPageMetaModal(options = {}) {
             data-link
           >${escapeHtml(sourceNote.title)}</a>
           <span class="page-meta-date-hint">이 페이지가 속한 원래 노트입니다</span>
+        </div>`
+    : '';
+
+  const showBookmarkedAt = Boolean(options.showBookmarkedAt);
+  const bookmarkedAtHtml = showBookmarkedAt
+    ? `
+        <div class="field page-meta-bookmarked">
+          <span class="field__label">북마크한 날짜</span>
+          <p class="page-meta-bookmarked-date">${escapeHtml(
+            formatBookmarkedDate(options.bookmarkedAt) || '기록 없음'
+          )}</p>
+          <span class="page-meta-date-hint">이 페이지를 북마크 노트에 넣은 날짜입니다</span>
         </div>`
     : '';
 
@@ -153,6 +168,7 @@ export function openPageMetaModal(options = {}) {
       <form class="form page-meta-form" novalidate>
         <p class="form-status page-meta-status" role="status">불러오는 중…</p>
         ${sourceNoteHtml}
+        ${bookmarkedAtHtml}
         ${renderField({
           type: 'custom',
           label: '날짜',
@@ -248,6 +264,13 @@ export function openPageMetaModal(options = {}) {
       };
       applyFields(snapshot);
       loaded = true;
+      if (showBookmarkedAt) {
+        const dateEl = overlay.querySelector('.page-meta-bookmarked-date');
+        if (dateEl) {
+          dateEl.textContent =
+            formatBookmarkedDate(meta.bookmarked_at || options.bookmarkedAt) || '기록 없음';
+        }
+      }
       if (editBtn) editBtn.disabled = false;
       if (deleteBtn) deleteBtn.disabled = false;
       enterViewMode();
