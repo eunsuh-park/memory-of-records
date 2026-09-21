@@ -16,10 +16,11 @@ import { renderNoteImageViewer } from '../../components/NoteImageViewer/NoteImag
 import { showToast } from '../../components/Toast/Toast.js';
 import { render as renderButton } from '../../components/Button/Button.js';
 import { render as renderNoteInfoPanel, openDeleteNoteDialog } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
-import { clearNoteUnseen, isNoteUnseen } from '../../utils/unseenNotes.js';
+import { clearNoteUnseen, isNoteUnseen, markNoteUnseen } from '../../utils/unseenNotes.js';
 import { openAddNoteModal } from '../../components/AddNoteFab/AddNoteFab.js';
 import { openAddPageModal } from '../../components/AddPageModal/AddPageModal.js';
 import { clearNotesCaches } from '../../utils/notesCatalog.js';
+import { clearBookmarkNotesCache } from '../../services/bookmarkNotes.js';
 import { consumeJukeboxFocus } from '../../utils/jukeboxFocus.js';
 import {
   GALLERY_LAYOUT_EVENT,
@@ -31,9 +32,18 @@ import { updateNoteFavorite } from '../../services/createNote.js';
 import { isAuthenticated, onAuthChange } from '../../services/auth.js';
 import { getBookmarkedPages } from '../../services/bookmarkedPages.js';
 import {
+  createAddBookmarkNoteCard,
   ensureBookmarkNoteCovers,
-  isBookmarksNoteId
+  isAddBookmarkNoteId,
+  isBookmarksNoteId,
+  isCustomBookmarkNoteId,
+  isDefaultBookmarksNoteId
 } from '../../utils/bookmarksNote.js';
+import { MAX_CUSTOM_BOOKMARK_NOTES, customBookmarkNoteCount, filterPagesForBookmarkNote } from '../../utils/bookmarkNotes.js';
+import {
+  openAddBookmarkNoteModal,
+  openDeleteBookmarkNoteDialog
+} from '../../components/AddBookmarkNoteModal/AddBookmarkNoteModal.js';
 import {
   createDemoNote,
   demoNoteViewerOptions,
@@ -561,10 +571,34 @@ export function fillJukeboxGallery(gallery, prevBtn, nextBtn, allNotes, options 
       const noteId = escapeHtml(note.id || '');
       const showBadge = Boolean(
         note.id &&
-          !isBookmarksNoteId(note.id) &&
+          !isDefaultBookmarksNoteId(note.id) &&
+          !isAddBookmarkNoteId(note.id) &&
           !isDemoNoteId(note.id) &&
           isNoteUnseen(note.id)
       );
+      if (isAddBookmarkNoteId(note.id)) {
+        return `
+        <div class="jukebox-card jukebox-card--add-bookmark" data-note-id="${noteId}">
+          <div class="jukebox-card-3d">
+            <div class="jukebox-card-inner">
+              <div class="jukebox-card-face jukebox-card-face--front">
+                <div class="jukebox-add-bookmark">
+                  ${renderButton({
+                    shape: 'circle',
+                    size: 'l',
+                    role: 'toolbar',
+                    ariaLabel: '새 북마크 노트 추가',
+                    title: '새 북마크 노트 추가',
+                    content: MINGCUTE.addFill,
+                    className: 'jukebox-add-bookmark__btn'
+                  })}
+                  <span class="jukebox-add-bookmark__label">새 북마크 노트 추가 +</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
       /*
        * .jukebox-card: 스크롤 스냅 대상. transform을 주지 않아 스냅 좌표가 항상 정확함.
        * .jukebox-card-3d: Cover Flow 3D 변환 + 바닥 반사 (스냅 박스와 분리)
@@ -769,7 +803,8 @@ async function openBookmarksNoteModal(note) {
 
   try {
     const rawPages = Array.isArray(note?.pages) ? note.pages : await getBookmarkedPages({ force: true });
-    const pages = await attachSourceNotes(rawPages);
+    const scoped = filterPagesForBookmarkNote(rawPages, note?.id);
+    const pages = await attachSourceNotes(scoped);
     content.innerHTML = '';
     cleanupViewer = renderNoteImageViewer(content, note?.id || 'virtual:bookmarks', {
       mode: 'modal',
@@ -1049,6 +1084,7 @@ export function renderJukeboxWithFilter(options) {
 
   function refreshAfterNoteEdit() {
     clearNotesCaches();
+    clearBookmarkNotesCache();
     allNotesCache = null;
     loadNotes()
       .then((allNotes) => {
@@ -1069,7 +1105,7 @@ export function renderJukeboxWithFilter(options) {
         e.stopPropagation();
         const noteId = shareBtn.getAttribute('data-note-id');
         const note = findNoteById(noteId);
-        if (!note || isBookmarksNoteId(note.id) || isDemoNoteId(note.id)) return;
+        if (!note || isBookmarksNoteId(note.id) || isAddBookmarkNoteId(note.id) || isDemoNoteId(note.id)) return;
         void copyNoteShareUrl(note)
           .then(() => {
             showToast('노트 링크를 복사했습니다');
@@ -1153,7 +1189,14 @@ export function renderJukeboxWithFilter(options) {
         if (deleteBtn.disabled) return;
         const noteId = deleteBtn.getAttribute('data-note-id');
         const note = findNoteById(noteId);
-        if (!note || isBookmarksNoteId(note.id) || isDemoNoteId(note.id)) return;
+        if (!note || isDefaultBookmarksNoteId(note.id) || isAddBookmarkNoteId(note.id) || isDemoNoteId(note.id)) return;
+        if (isCustomBookmarkNoteId(note.id)) {
+          void openDeleteBookmarkNoteDialog({
+            note,
+            onDeleted: refreshAfterNoteEdit
+          });
+          return;
+        }
         openDeleteNoteDialog({
           note,
           onDeleted: refreshAfterNoteEdit
@@ -1171,7 +1214,16 @@ export function renderJukeboxWithFilter(options) {
       e.stopPropagation();
       const noteId = (editPill || editBtn || addBtn).getAttribute('data-note-id');
       const note = findNoteById(noteId);
-      if (!note || isBookmarksNoteId(note.id) || isDemoNoteId(note.id)) return;
+      if (!note || isDefaultBookmarksNoteId(note.id) || isAddBookmarkNoteId(note.id) || isDemoNoteId(note.id)) return;
+      if (isCustomBookmarkNoteId(note.id)) {
+        if (addBtn) return;
+        void openAddBookmarkNoteModal({
+          mode: 'edit',
+          note,
+          onUpdated: refreshAfterNoteEdit
+        });
+        return;
+      }
       if (addBtn) {
         openAddPageModal({
           note,
@@ -1203,6 +1255,17 @@ export function renderJukeboxWithFilter(options) {
       card.addEventListener('click', (e) => {
         /* 빨간 점 클릭은 캡처 핸들러가 처리 — 여기서는 카드 동작만 */
         if (e.target?.closest?.('.jukebox-new-badge')) return;
+
+        if (isAddBookmarkNoteId(note.id)) {
+          e.preventDefault();
+          void openAddBookmarkNoteModal({
+            onCreated: (created) => {
+              if (created?.id) markNoteUnseen(created.id);
+              refreshAfterNoteEdit();
+            }
+          });
+          return;
+        }
 
         /* 카드 클릭 시에도 신규 배지는 제거 */
         if (note.id && isNoteUnseen(note.id)) {
@@ -1258,7 +1321,13 @@ export function renderJukeboxWithFilter(options) {
     if ((filterMode === 'period' || filterMode === 'type') && isLocalDemoEnabled()) {
       extras.push(createDemoNote());
     }
-    const galleryNotes = extras.length ? [...extras, ...sorted] : sorted;
+    let galleryNotes = extras.length ? [...extras, ...sorted] : sorted;
+    if (filterMode === 'scrap') {
+      const customCount = customBookmarkNoteCount(galleryNotes);
+      if (customCount < MAX_CUSTOM_BOOKMARK_NOTES) {
+        galleryNotes = [...galleryNotes, createAddBookmarkNoteCard()];
+      }
+    }
     bindGallery(galleryNotes);
 
     const counts = getNotesCount(allNotesCache);

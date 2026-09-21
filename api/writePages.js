@@ -2,11 +2,12 @@
  * POST /api/writePages
  * 장 쓰기: 업로드 · 메타 · 폴더 이름 · 번호 이동 · 삭제
  *
- * POST { op: 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' | 'ocr', ... }
+ * POST { op: 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' | 'ocr' | 'saveBookmarkNotes', ... }
  */
 import crypto from 'crypto';
 import { getCloudinaryCredentials } from './_lib/cloudinaryAuth.js';
 import { handlePageOcr } from './_lib/handlers/pageOcr.js';
+import { handleSaveBookmarkNotes } from './_lib/handlers/bookmarkNotesStore.js';
 import { pagesFolderForNote as cloudinaryPagesFolder, sanitizeNotePublicId } from './_lib/notePagesFolder.js';
 import {
   NOTEBOOK_DB_ID,
@@ -156,7 +157,14 @@ function sanitizeContextValue(value) {
     .replace(/=/g, ':');
 }
 
-function buildContextString({ entry_date, ocr_text, visible, is_bookmarked, bookmarked_at }) {
+function buildContextString({
+  entry_date,
+  ocr_text,
+  visible,
+  is_bookmarked,
+  bookmarked_at,
+  bookmark_note_id
+}) {
   const parts = [];
   if (entry_date !== undefined) parts.push(`entry_date=${trimOrEmpty(entry_date).slice(0, 10)}`);
   if (ocr_text !== undefined) {
@@ -172,9 +180,15 @@ function buildContextString({ entry_date, ocr_text, visible, is_bookmarked, book
     if (bookmarked_at === undefined) {
       parts.push(`bookmarked_at=${on ? new Date().toISOString() : ''}`);
     }
+    if (bookmark_note_id === undefined && !on) {
+      parts.push('bookmark_note_id=');
+    }
   }
   if (bookmarked_at !== undefined) {
     parts.push(`bookmarked_at=${sanitizeContextValue(bookmarked_at)}`);
+  }
+  if (bookmark_note_id !== undefined) {
+    parts.push(`bookmark_note_id=${sanitizeContextValue(bookmark_note_id).slice(0, 80)}`);
   }
   return parts.join('|');
 }
@@ -416,11 +430,12 @@ async function handleUpdateMeta(req, res, body) {
     body.entry_date === undefined &&
     body.ocr_text === undefined &&
     body.visible === undefined &&
-    body.is_bookmarked === undefined
+    body.is_bookmarked === undefined &&
+    body.bookmark_note_id === undefined
   ) {
     return res.status(400).json({
       error: 'Validation failed',
-      message: '수정할 필드(entry_date, ocr_text, visible, is_bookmarked)가 없습니다'
+      message: '수정할 필드(entry_date, ocr_text, visible, is_bookmarked, bookmark_note_id)가 없습니다'
     });
   }
 
@@ -435,7 +450,8 @@ async function handleUpdateMeta(req, res, body) {
     ocr_text: body.ocr_text,
     visible: body.visible,
     is_bookmarked: body.is_bookmarked,
-    bookmarked_at: body.bookmarked_at
+    bookmarked_at: body.bookmarked_at,
+    bookmark_note_id: body.bookmark_note_id
   });
   if (!metadata && !context) {
     return res.status(400).json({
@@ -832,11 +848,12 @@ export default async function handler(req, res) {
     if (op === 'shiftPages') return await handleShiftPages(req, res, body);
     if (op === 'deletePage') return await handleDeletePage(req, res, body);
     if (op === 'ocr') return await handlePageOcr(req, res, body);
+    if (op === 'saveBookmarkNotes') return await handleSaveBookmarkNotes(req, res, body);
 
     return res.status(400).json({
       error: 'Validation failed',
       message:
-        "op은 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' | 'ocr' 중 하나여야 합니다"
+        "op은 'upload' | 'updateMeta' | 'renameFolder' | 'shiftPages' | 'deletePage' | 'ocr' | 'saveBookmarkNotes' 중 하나여야 합니다"
     });
   } catch (error) {
     return res.status(error.status || 500).json({

@@ -9,7 +9,12 @@
 import { renderIconButton, render as renderButton } from '../Button/Button.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { isFavoriteNote } from '../../utils/noteFavorites.js';
-import { isBookmarksNoteId } from '../../utils/bookmarksNote.js';
+import {
+  isAddBookmarkNoteId,
+  isBookmarksNoteId,
+  isCustomBookmarkNoteId,
+  isDefaultBookmarksNoteId
+} from '../../utils/bookmarksNote.js';
 import { isDemoNoteId } from '../../utils/demoNote.js';
 import { escapeHtml } from '../../utils/html.js';
 import { open as openDialog } from '../Dialog/Dialog.js';
@@ -96,10 +101,14 @@ export function render(note, _filterMode, opts = {}) {
   const title = escapeHtml(note.title || '제목 없음');
   const memo = formatMemo(note.description || '');
   const noteId = note.id || '';
-  const isVirtual = isBookmarksNoteId(note.id) || isDemoNoteId(note.id);
+  const isAddCard = isAddBookmarkNoteId(note.id) || note.isAddBookmarkNote;
+  const isDefaultBookmark = isDefaultBookmarksNoteId(note.id);
+  const isCustomBookmark = isCustomBookmarkNoteId(note.id);
+  const isVirtual = isBookmarksNoteId(note.id) || isDemoNoteId(note.id) || isAddCard;
   const favorited = isFavoriteNote(note);
   const showShareFav = !isVirtual;
-  const showEditActions = Boolean(canEdit) && !isVirtual;
+  const showEditActions = Boolean(canEdit) && !isDefaultBookmark && !isAddCard && !isDemoNoteId(note.id);
+  const showPageAdd = showEditActions && !isCustomBookmark;
 
   const actions = [
     showShareFav
@@ -129,7 +138,7 @@ export function render(note, _filterMode, opts = {}) {
           extraClass: 'auth-only'
         })
       : '',
-    showEditActions
+    showPageAdd
       ? iconAction({
           action: 'add',
           label: '페이지 추가',

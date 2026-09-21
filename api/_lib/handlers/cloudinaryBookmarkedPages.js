@@ -11,7 +11,8 @@
  *       "pageNumber": 3,
  *       "noteFolder": "NoteA",
  *       "entryDate": "2024-01-01",
- *       "bookmarkedAt": "2026-09-21T09:32:00.000Z"
+ *       "bookmarkedAt": "2026-09-21T09:32:00.000Z",
+ *       "bookmarkNoteId": "virtual:bookmarks"
  *     }
  *   ]
  * }
@@ -75,6 +76,15 @@ function extractBookmarkedAt(resource) {
     readMetaValue(meta, 'bookmarked_at', 'bookmarkedat') ??
     readMetaValue(ctx, 'bookmarked_at', 'bookmarkedat');
   return normalizeBookmarkedAt(raw);
+}
+
+function extractBookmarkNoteId(resource) {
+  const meta = resource?.metadata || {};
+  const ctx = resource?.context?.custom || resource?.context || {};
+  const raw =
+    readMetaValue(meta, 'bookmark_note_id', 'bookmarknoteid') ??
+    readMetaValue(ctx, 'bookmark_note_id', 'bookmarknoteid');
+  return raw != null && String(raw).trim() ? String(raw).trim() : '';
 }
 
 function folderPathFromPublicId(publicId) {
@@ -223,7 +233,8 @@ export async function handleBookmarkedPages(req, res) {
         pageNumber,
         noteFolder,
         entryDate: extractEntryDate(resource),
-        bookmarkedAt: extractBookmarkedAt(resource)
+        bookmarkedAt: extractBookmarkedAt(resource),
+        bookmarkNoteId: extractBookmarkNoteId(resource)
       });
     }
 

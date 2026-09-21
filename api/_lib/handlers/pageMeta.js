@@ -1,6 +1,6 @@
 /**
  * GET /api/readPages?op=meta
- * 장 메타 (entry_date, ocr_text, visible, is_bookmarked, bookmarked_at)
+ * 장 메타 (entry_date, ocr_text, visible, is_bookmarked, bookmarked_at, bookmark_note_id)
  */
 import { getCloudinaryCredentials } from '../cloudinaryAuth.js';
 import { normalizeBookmarkedAt } from '../bookmarkedAt.js';
@@ -135,6 +135,9 @@ export async function handlePageMeta(req, res) {
   const bookmarkedAtRaw =
     readMetaValue(meta, 'bookmarked_at', 'bookmarkedat') ??
     readMetaValue(context, 'bookmarked_at', 'bookmarkedat');
+  const bookmarkNoteIdRaw =
+    readMetaValue(meta, 'bookmark_note_id', 'bookmarknoteid') ??
+    readMetaValue(context, 'bookmark_note_id', 'bookmarknoteid');
 
   res.setHeader('Cache-Control', 'no-store');
   return res.status(200).json({
@@ -145,6 +148,7 @@ export async function handlePageMeta(req, res) {
     ocr_text: ocrText == null ? '' : String(ocrText),
     visible: normalizeVisible(visibleRaw),
     is_bookmarked: normalizeBookmarked(bookmarkedRaw),
-    bookmarked_at: normalizeBookmarkedAt(bookmarkedAtRaw)
+    bookmarked_at: normalizeBookmarkedAt(bookmarkedAtRaw),
+    bookmark_note_id: bookmarkNoteIdRaw == null ? '' : String(bookmarkNoteIdRaw).trim()
   });
 }
