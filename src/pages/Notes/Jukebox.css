@@ -887,6 +887,10 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   pointer-events: auto;
 }
 
+.jukebox-grid-row:not(.is-active) .jukebox-empty {
+  display: none;
+}
+
 .jukebox-grid-row__notes {
   display: flex;
   flex-wrap: nowrap;
@@ -986,7 +990,7 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
 
 /* 그리드: 좌우 화살표를 90° 돌려 상하 태그 이동으로 쓴다 */
 body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap .jukebox-nav-prev {
-  top: 6.75rem;
+  top: 9rem;
   left: 50%;
   right: auto;
   transform: translateX(-50%) rotate(90deg);
@@ -994,7 +998,7 @@ body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gal
 
 body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery-wrap .jukebox-nav-next {
   top: auto;
-  bottom: 6.5rem;
+  bottom: 5.5rem;
   left: 50%;
   right: auto;
   transform: translateX(-50%) rotate(90deg);

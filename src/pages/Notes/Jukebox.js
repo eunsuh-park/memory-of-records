@@ -1275,11 +1275,13 @@ export function renderJukeboxWithFilter(options) {
   function buildGridRows() {
     const counts = getNotesCount(allNotesCache || []);
     const visible = optionsForFilterList(filterOptions, counts, viewModeToggle);
-    return visible.map((opt) => ({
-      value: opt.value,
-      label: opt.label,
-      notes: notesForFilterValue(opt.value)
-    }));
+    return visible
+      .map((opt) => ({
+        value: opt.value,
+        label: opt.label,
+        notes: notesForFilterValue(opt.value)
+      }))
+      .filter((row) => row.notes.length > 0 || row.value === selectedValue);
   }
 
   function getFilteredSortedNotes() {
