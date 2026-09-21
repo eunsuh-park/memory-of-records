@@ -28,6 +28,7 @@ const ICONS = [
   { key: 'downLine', name: 'down-line', desc: '아래 화살표 (접힌 필터 네비 열기)', size: 16 },
   { key: 'upSmallFill', name: 'up-small-fill', desc: '드롭다운 칩 화살표' },
   { key: 'eye2Line', name: 'eye-2-line', desc: '보기 (눈, line)' },
+  { key: 'notebookLine', name: 'notebook-line', desc: '원본 노트에서 보기' },
   { key: 'eye2Fill', name: 'eye-2-fill', desc: '보기 (눈, fill)' },
   { key: 'leftLine', name: 'left-line', desc: '왼쪽 화살표 (이전 페이지 · 오른쪽은 CSS scaleX(-1)로 반전)' },
   { key: 'arrowsLeftLine', name: 'arrows-left-line', desc: '맨 앞으로 (겹친 왼쪽 화살표)' },

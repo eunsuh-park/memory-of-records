@@ -10,13 +10,15 @@
  *       "folderUrl": "https://res.cloudinary.com/.../NoteA",
  *       "pageNumber": 3,
  *       "noteFolder": "NoteA",
- *       "entryDate": "2024-01-01"
+ *       "entryDate": "2024-01-01",
+ *       "bookmarkedAt": "2026-09-21T09:32:00.000Z"
  *     }
  *   ]
  * }
  */
 import { isCloudinaryResourceVisible } from '../visibility.js';
 import { getCloudinaryCredentials } from '../cloudinaryAuth.js';
+import { compareBookmarkedPages, normalizeBookmarkedAt } from '../bookmarkedAt.js';
 
 const CONTENT_ROOT = process.env.CLOUDINARY_NOTEBOOKS_FOLDER || 'notebooks';
 
@@ -64,6 +66,15 @@ function extractEntryDate(resource) {
     readMetaValue(meta, 'entry_date', 'entrydate', 'date') ??
     readMetaValue(ctx, 'entry_date', 'entrydate', 'date');
   return raw != null && String(raw).trim() ? String(raw).trim() : null;
+}
+
+function extractBookmarkedAt(resource) {
+  const meta = resource?.metadata || {};
+  const ctx = resource?.context?.custom || resource?.context || {};
+  const raw =
+    readMetaValue(meta, 'bookmarked_at', 'bookmarkedat') ??
+    readMetaValue(ctx, 'bookmarked_at', 'bookmarkedat');
+  return normalizeBookmarkedAt(raw);
 }
 
 function folderPathFromPublicId(publicId) {
@@ -211,17 +222,12 @@ export async function handleBookmarkedPages(req, res) {
         folderUrl,
         pageNumber,
         noteFolder,
-        entryDate: extractEntryDate(resource)
+        entryDate: extractEntryDate(resource),
+        bookmarkedAt: extractBookmarkedAt(resource)
       });
     }
 
-    pages.sort((a, b) => {
-      const da = a.entryDate || '';
-      const db = b.entryDate || '';
-      if (da && db && da !== db) return da < db ? -1 : 1;
-      if (a.noteFolder !== b.noteFolder) return a.noteFolder.localeCompare(b.noteFolder, 'ko');
-      return a.pageNumber - b.pageNumber;
-    });
+    pages.sort(compareBookmarkedPages);
 
     res.setHeader('Cache-Control', 'private, no-store');
     return res.status(200).json({ pages });

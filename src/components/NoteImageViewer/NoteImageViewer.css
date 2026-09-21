@@ -5,7 +5,7 @@
  * 가로/세로: 2비율(단페이지·양면 스캔) 고정 사용
  * 확대/축소·패닝: .niv-zoom-stage transform
  * 하단 시트: 프로그레스 | 원상복구
- * 우측 액션 열: 정보 · 추가 · 북마크 · 공유 · 2페이지 (기존 FAB 위치)
+ * 우측 액션 열: 원본 노트 · 정보 · 추가 · 북마크 · 공유 · 2페이지 (기존 FAB 위치)
  * 모바일 북마크: 액션 열 위 떠 있는 FAB
  *
  * 버튼은 모두 공통 Button 컴포넌트(circle)로 만들고,
@@ -156,7 +156,7 @@
   min-height: 2.35rem;
 }
 
-.note-image-viewer .btn.niv-share-note[hidden] {
+.note-image-viewer .btn.niv-sheet-btn[hidden] {
   display: none;
 }
 

@@ -13,7 +13,8 @@ let inflight = null;
  *   folderUrl: string,
  *   pageNumber: number,
  *   noteFolder?: string,
- *   entryDate?: string|null
+ *   entryDate?: string|null,
+ *   bookmarkedAt?: string|null
  * }>>}
  */
 export async function getBookmarkedPages({ force = false } = {}) {

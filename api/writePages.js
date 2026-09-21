@@ -150,21 +150,31 @@ function buildMetadataString({ entry_date, ocr_text, visible, is_bookmarked }) {
   return parts.join('|');
 }
 
-function buildContextString({ entry_date, ocr_text, visible, is_bookmarked }) {
+function sanitizeContextValue(value) {
+  return String(value ?? '')
+    .replace(/\|/g, '/')
+    .replace(/=/g, ':');
+}
+
+function buildContextString({ entry_date, ocr_text, visible, is_bookmarked, bookmarked_at }) {
   const parts = [];
   if (entry_date !== undefined) parts.push(`entry_date=${trimOrEmpty(entry_date).slice(0, 10)}`);
   if (ocr_text !== undefined) {
-    const text = String(ocr_text ?? '')
-      .replace(/\|/g, '/')
-      .replace(/=/g, ':')
-      .slice(0, 4000);
+    const text = sanitizeContextValue(ocr_text).slice(0, 4000);
     parts.push(`ocr_text=${text}`);
   }
   if (visible !== undefined) {
     parts.push(`visible=${toMetaBoolFlag(visible) ? 'true' : 'false'}`);
   }
   if (is_bookmarked !== undefined) {
-    parts.push(`is_bookmarked=${toMetaBoolFlag(is_bookmarked) ? 'true' : 'false'}`);
+    const on = toMetaBoolFlag(is_bookmarked);
+    parts.push(`is_bookmarked=${on ? 'true' : 'false'}`);
+    if (bookmarked_at === undefined) {
+      parts.push(`bookmarked_at=${on ? new Date().toISOString() : ''}`);
+    }
+  }
+  if (bookmarked_at !== undefined) {
+    parts.push(`bookmarked_at=${sanitizeContextValue(bookmarked_at)}`);
   }
   return parts.join('|');
 }
@@ -424,7 +434,8 @@ async function handleUpdateMeta(req, res, body) {
     entry_date: body.entry_date,
     ocr_text: body.ocr_text,
     visible: body.visible,
-    is_bookmarked: body.is_bookmarked
+    is_bookmarked: body.is_bookmarked,
+    bookmarked_at: body.bookmarked_at
   });
   if (!metadata && !context) {
     return res.status(400).json({

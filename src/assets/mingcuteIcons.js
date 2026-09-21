@@ -34,6 +34,10 @@ export const MINGCUTE = {
   eye2Line:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='2' d='M21 12c0 1.5-4.03 6-9 6s-9-4.5-9-6s4.03-6 9-6s9 4.5 9 6Z'/><path fill='none' stroke='currentColor' stroke-width='2' d='M14 12a2 2 0 1 1-4 0a2 2 0 0 1 4 0Z'/></svg>",
 
+  /** 원본 노트에서 보기 · mingcute:notebook-line */
+  notebookLine:
+    "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-width='2' d='M9 20.88V3M6 21h11a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1Z'/></svg>",
+
   /** 보기 (눈, fill) · mingcute:eye-2-fill */
   eye2Fill:
     "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M12 5c3.679 0 8.162 2.417 9.73 5.901c.147.328.27.711.27 1.099s-.123.771-.27 1.099C20.162 16.583 15.679 19 12 19s-8.162-2.417-9.73-5.901C2.124 12.77 2 12.388 2 12s.123-.771.27-1.099C3.839 7.417 8.322 5 12 5m0 3a4 4 0 1 0 0 8a4 4 0 0 0 0-8m0 2a2 2 0 1 1 0 4a2 2 0 0 1 0-4'/></svg>",
