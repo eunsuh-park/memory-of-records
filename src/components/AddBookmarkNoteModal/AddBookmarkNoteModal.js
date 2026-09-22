@@ -18,9 +18,9 @@ import {
   ADD_BOOKMARK_NOTE_ID,
   createCustomBookmarkNoteId,
   defaultBookmarkCovers,
-  isCustomBookmarkNoteId,
-  isDemoNoteId
+  isCustomBookmarkNoteId
 } from '../../utils/bookmarksNote.js';
+import { isDemoNoteId } from '../../utils/demoNote.js';
 import {
   MAX_CUSTOM_BOOKMARK_NOTES,
   canCreateBookmarkNote,
