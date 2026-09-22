@@ -332,42 +332,76 @@ function markCenteredCard(gallery, noteId) {
 }
 
 /**
- * PC(>1024) 그리드 한 줄: 카드 너비 합이 행을 넘치면 gap을 줄여 겹친다.
- * CSS `--jukebox-grid-gap`은 최대값. 여유 있으면 그 값을 쓰고, 부족하면 음수까지 허용.
- * 컴팩트 뷰포트는 2열 CSS 그리드에 맡기고 인라인 gap을 지운다.
+ * PC(>1024) 그리드 한 줄: 카드 너비 합이 행을 넘치면 간격을 줄여 겹친다.
+ * CSS `--jukebox-grid-gap`은 최대값. 여유 있으면 그 값을 쓰고, 부족하면 음수 마진으로 겹친다.
+ * (flex `gap`은 음수를 받지 않아 margin-left로 간격을 제어한다.)
+ * 컴팩트 뷰포트는 2열 CSS 그리드에 맡기고 인라인 스타일을 지운다.
  */
+function readGridGapMaxPx(gallery) {
+  const host = gallery.closest('.jukebox-fullscreen') || document.documentElement;
+  const probe = document.createElement('div');
+  probe.setAttribute('aria-hidden', 'true');
+  probe.style.cssText =
+    'position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden;display:flex;gap:var(--jukebox-grid-gap)';
+  host.appendChild(probe);
+  const px = parseFloat(getComputedStyle(probe).columnGap || getComputedStyle(probe).gap);
+  probe.remove();
+  return Number.isFinite(px) ? px : 0;
+}
+
+function clearGridRowNoteSpacing(notesEl) {
+  notesEl.style.removeProperty('gap');
+  notesEl.querySelectorAll(':scope > .jukebox-card').forEach((card) => {
+    card.style.removeProperty('margin-left');
+  });
+}
+
 function updateGridRowNoteGaps(gallery) {
   if (!gallery) return;
   const rows = gallery.querySelectorAll('.jukebox-grid-row__notes');
   if (rows.length === 0) return;
 
   if (!isGridGallery(gallery) || isCompactGridViewport()) {
-    rows.forEach((el) => el.style.removeProperty('gap'));
+    rows.forEach((el) => clearGridRowNoteSpacing(el));
     return;
   }
 
-  rows.forEach((notesEl) => {
-    notesEl.style.removeProperty('gap');
-    const cards = Array.from(notesEl.querySelectorAll(':scope > .jukebox-card'));
-    if (cards.length <= 1) return;
+  const maxGap = readGridGapMaxPx(gallery);
 
-    const maxGap = parseFloat(getComputedStyle(notesEl).columnGap || getComputedStyle(notesEl).gap) || 0;
+  rows.forEach((notesEl) => {
+    const cards = Array.from(notesEl.querySelectorAll(':scope > .jukebox-card'));
+    if (cards.length <= 1) {
+      clearGridRowNoteSpacing(notesEl);
+      return;
+    }
+
     const available = notesEl.clientWidth;
     if (available <= 0) return;
 
     const totalCardWidth = cards.reduce((sum, card) => sum + card.offsetWidth, 0);
-    const gap = Math.min(maxGap, (available - totalCardWidth) / (cards.length - 1));
-    notesEl.style.gap = `${gap}px`;
+    const spacing = Math.min(maxGap, (available - totalCardWidth) / (cards.length - 1));
+
+    if (spacing >= maxGap - 0.01) {
+      clearGridRowNoteSpacing(notesEl);
+      return;
+    }
+
+    notesEl.style.gap = '0px';
+    cards.forEach((card, i) => {
+      card.style.marginLeft = i === 0 ? '0px' : `${spacing}px`;
+    });
   });
 }
 
 function enableGridRowNoteGaps(gallery) {
   if (!gallery) return;
   updateGridRowNoteGaps(gallery);
+  gallery._jukeboxUpdateGridGaps = () => updateGridRowNoteGaps(gallery);
   if (gallery._jukeboxGridGapEnabled) return;
   gallery._jukeboxGridGapEnabled = true;
 
   let rafId = null;
+  const compactMq = window.matchMedia('(max-width: 1024px)');
   const schedule = () => {
     if (rafId !== null) return;
     rafId = requestAnimationFrame(() => {
@@ -386,7 +420,6 @@ function enableGridRowNoteGaps(gallery) {
     schedule();
   };
 
-  const compactMq = window.matchMedia('(max-width: 1024px)');
   window.addEventListener('resize', onResize);
   compactMq.addEventListener('change', onResize);
 
@@ -397,6 +430,12 @@ function enableGridRowNoteGaps(gallery) {
     },
     true
   );
+
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(() => schedule());
+    ro.observe(gallery);
+    gallery._jukeboxGridGapRo = ro;
+  }
 }
 
 function enableGridTagScroll(gallery, prevBtn, nextBtn, hooks = {}) {

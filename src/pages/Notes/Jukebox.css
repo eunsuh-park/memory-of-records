@@ -907,10 +907,11 @@ body.jukebox-active .jukebox-gallery-wrap .jukebox-nav-next[hidden] {
   align-items: center;
   justify-content: center;
   /*
-   * 행 중심 간격을 뷰포트 절반(50vh)으로 둬서, 스냅된 활성 행 기준으로
-   * 위·아래 이웃 노트 카드가 각각 절반 정도만 보이도록 한다.
+   * 행 중심 간격을 뷰포트 절반으로 둬 위·아래 이웃 카드가 절반만 보이게 한다.
+   * 상단 패딩(툴팁)이 하단보다 커서 카드 중심이 행 중심보다 아래로 밀리므로
+   * 그 오프셋(약 (5.5rem - space-8)/2)만큼 min-height에 더한다.
    */
-  min-height: 50vh;
+  min-height: calc(50vh + 1.75rem);
   padding: 5.5rem 0 var(--space-8);
   box-sizing: border-box;
   scroll-snap-align: center;
