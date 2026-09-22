@@ -106,10 +106,12 @@ export function render(note, _filterMode, opts = {}) {
 
   if (!note) return '';
 
+  const isAddCard = isAddBookmarkNoteId(note.id) || note.isAddBookmarkNote;
+  if (isAddCard) return '';
+
   const title = escapeHtml(note.title || '제목 없음');
   const memo = formatMemo(note.description || '');
   const noteId = note.id || '';
-  const isAddCard = isAddBookmarkNoteId(note.id) || note.isAddBookmarkNote;
   const isDefaultBookmark = isDefaultBookmarksNoteId(note.id);
   const isCustomBookmark = isCustomBookmarkNoteId(note.id);
   const isVirtual = isBookmarksNoteId(note.id) || isDemoNoteId(note.id) || isAddCard;

@@ -232,26 +232,17 @@ function renderJukeboxCardHtml(note, index, options = {}) {
 
   if (isAddBookmarkNoteId(note.id)) {
     return `
-        <div class="jukebox-card jukebox-card--add-bookmark" data-note-id="${noteId}">
+        <div class="jukebox-card jukebox-card--add-bookmark" data-note-id="${noteId}" role="button" tabindex="0" aria-label="새 북마크 노트 추가하기">
           <div class="jukebox-card-3d">
             <div class="jukebox-card-inner">
               <div class="jukebox-card-face jukebox-card-face--front">
-                <div class="jukebox-add-bookmark">
-                  ${renderButton({
-                    shape: 'circle',
-                    size: 'l',
-                    role: 'toolbar',
-                    ariaLabel: '새 북마크 노트 추가',
-                    title: '새 북마크 노트 추가',
-                    content: MINGCUTE.addFill,
-                    className: 'jukebox-add-bookmark__btn'
-                  })}
-                  <span class="jukebox-add-bookmark__label">새 북마크 노트 추가 +</span>
+                <div class="jukebox-add-bookmark" aria-hidden="true">
+                  <span class="jukebox-add-bookmark__icon">${MINGCUTE.addFill}</span>
+                  <span class="jukebox-add-bookmark__label">새 북마크 노트 추가하기</span>
                 </div>
               </div>
             </div>
           </div>
-          ${tooltip}
         </div>`;
   }
 
@@ -1360,6 +1351,10 @@ export function renderJukeboxWithFilter(options) {
     if (index < 0) index = 0;
     const note = list[index] || list[0] || null;
     if (!focusSlot) return;
+    if (isAddBookmarkNoteId(note?.id)) {
+      focusSlot.innerHTML = '';
+      return;
+    }
     if (currentLayout() === 'grid') {
       if (!isCompactGridViewport()) {
         focusSlot.innerHTML = '';

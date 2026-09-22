@@ -1,8 +1,7 @@
 /**
  * 북마크 노트 추가·수정 모달
  *
- * 1) 이름(필수) · 표지(선택, 기본 Bookmark Note 표지)
- * 2) 모을 노트 복수 선택(필수)
+ * 이름(필수) · 표지(선택) · 메모(선택, 최대 100자)
  */
 
 import { render as renderButton } from '../Button/Button.js';
@@ -12,15 +11,12 @@ import { render as renderField, setStatus as setFormStatus } from '../FormField/
 import { renderPicker as renderFilePicker, setPickerMeta } from '../FileUploadPreview/FileUploadPreview.js';
 import { showToast } from '../Toast/Toast.js';
 import { requireAuth } from '../../services/auth.js';
-import { loadAllNotes } from '../../utils/notesCatalog.js';
 import { escapeHtml } from '../../utils/html.js';
 import {
-  ADD_BOOKMARK_NOTE_ID,
   createCustomBookmarkNoteId,
   defaultBookmarkCovers,
   isCustomBookmarkNoteId
 } from '../../utils/bookmarksNote.js';
-import { isDemoNoteId } from '../../utils/demoNote.js';
 import {
   MAX_CUSTOM_BOOKMARK_NOTES,
   canCreateBookmarkNote,
@@ -36,8 +32,8 @@ import { getBookmarkedPages, clearBookmarkedPagesCache } from '../../services/bo
 import { updatePageMeta } from '../../services/pages.js';
 import './AddBookmarkNoteModal.css';
 
-const FORM_STEPS = 2;
 const NAME_MAX = 40;
+const MEMO_MAX = 100;
 
 function coverPreviewHtml(kind, url) {
   if (url) return `<img src="${escapeHtml(url)}" alt="" />`;
@@ -45,73 +41,24 @@ function coverPreviewHtml(kind, url) {
   return `<span class="add-bookmark-preview-placeholder">${label}</span>`;
 }
 
-function sourceNoteOptions(notes, selectedIds) {
-  const selected = new Set((selectedIds || []).map((id) => String(id)));
-  return (notes || [])
-    .filter((note) => note?.id && !isCustomBookmarkNoteId(note.id) && !isDemoNoteId(note.id))
-    .filter((note) => note.id !== ADD_BOOKMARK_NOTE_ID)
-    .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko'))
-    .map((note) => {
-      const id = String(note.id);
-      const title = escapeHtml(note.title || '제목 없음');
-      const checked = selected.has(id) ? 'checked' : '';
-      return `
-        <li class="add-bookmark-source-item" data-title="${title.toLowerCase()}">
-          <label class="form-check">
-            <input type="checkbox" name="sourceNote" value="${escapeHtml(id)}" ${checked} />
-            <span>${title}</span>
-          </label>
-        </li>`;
-    })
-    .join('');
-}
-
 /**
  * @param {{
  *   mode?: 'create'|'edit',
- *   step?: 1|2,
- *   seed?: { name?: string, sourceNoteIds?: string[] },
+ *   seed?: { name?: string, memo?: string },
  *   coverFrontPreviewUrl?: string,
  *   coverBackPreviewUrl?: string,
- *   sourceNotes?: Array,
- *   idPrefix?: string,
- *   nextDisabled?: boolean
+ *   submitDisabled?: boolean
  * }} [options]
  */
 export function renderAddBookmarkNoteForm(options = {}) {
   const isEdit = options.mode === 'edit';
-  const currentStep = Math.min(FORM_STEPS, Math.max(1, Number(options.step) || 1));
   const seed = options.seed || {};
   const defaults = defaultBookmarkCovers();
-  const idPrefix = options.idPrefix || 'add-bookmark';
-  const nextDisabled = options.nextDisabled !== false;
+  const submitDisabled = options.submitDisabled !== false;
   const name = String(seed.name || '').slice(0, NAME_MAX);
+  const memo = String(seed.memo || '').slice(0, MEMO_MAX);
   const frontUrl = options.coverFrontPreviewUrl || defaults.coverFrontUrl;
   const backUrl = options.coverBackPreviewUrl || defaults.coverBackUrl;
-
-  const progressHtml = [
-    [1, '이름'],
-    [2, '모을 노트']
-  ]
-    .map(([n, label]) => {
-      const current = n === currentStep;
-      const done = n < currentStep;
-      const cls = [current ? 'is-current' : '', done ? 'is-done' : ''].filter(Boolean).join(' ');
-      return `
-          <li data-progress="${n}"${cls ? ` class="${cls}"` : ''}${
-            current ? ' aria-current="step"' : ''
-          }>
-            <span class="add-bookmark-progress__index">${n}</span>${label}
-          </li>`;
-    })
-    .join('');
-
-  const stepAttrs = (n) => {
-    const active = n === currentStep;
-    return `class="add-bookmark-step${active ? ' is-active' : ''}" data-step="${n}"${
-      active ? '' : ' inert aria-hidden="true"'
-    }`;
-  };
 
   const coverFieldHtml = (kind) => {
     const label = kind === 'back' ? '표지 뒷면' : '표지 앞면';
@@ -137,64 +84,36 @@ export function renderAddBookmarkNoteForm(options = {}) {
 
   return `
       <form class="form add-bookmark-form" novalidate>
-        <ol class="add-bookmark-progress" aria-label="북마크 노트 작성 단계">
-          ${progressHtml}
-        </ol>
-
-        <div class="add-bookmark-steps">
-        <div ${stepAttrs(1)}>
-          ${renderField({
-            label: '이름',
-            name: 'name',
-            required: true,
-            placeholder: '예: 여행 스크랩',
-            value: name,
-            maxLength: NAME_MAX
-          })}
-          <div class="add-bookmark-covers">
-            ${coverFieldHtml('front')}
-            ${coverFieldHtml('back')}
-          </div>
+        ${renderField({
+          label: '이름',
+          name: 'name',
+          required: true,
+          placeholder: '예: 여행 스크랩',
+          value: name,
+          maxLength: NAME_MAX
+        })}
+        <div class="add-bookmark-covers">
+          ${coverFieldHtml('front')}
+          ${coverFieldHtml('back')}
         </div>
-
-        <div ${stepAttrs(2)}>
-          ${renderField({
-            type: 'custom',
-            label: '모을 노트',
-            required: true,
-            hint: '이 북마크 노트에 담을 원본 노트를 고르세요',
-            children: `
-              <input class="field__input add-bookmark-source-search" type="search" placeholder="노트 이름 검색" autocomplete="off" />
-              <ul class="add-bookmark-source-list" data-source-list>
-                ${sourceNoteOptions(options.sourceNotes || [], seed.sourceNoteIds || [])}
-              </ul>`
-          })}
-        </div>
-        </div>
-
+        ${renderField({
+          type: 'textarea',
+          label: '메모',
+          name: 'memo',
+          placeholder: '이 북마크 노트에 대한 짧은 메모 (선택)',
+          value: memo,
+          maxLength: MEMO_MAX,
+          rows: 3
+        })}
         <p class="form-status form-status--footer add-bookmark-status" hidden></p>
-
-        <div class="add-bookmark-nav is-step-${currentStep}">
-          ${renderButton({
-            shape: 'text',
-            block: true,
-            content: '이전',
-            className: 'add-bookmark-back',
-            dataset: { action: 'back' }
-          })}
-          ${renderButton({
-            shape: 'solid',
-            type: 'button',
-            content: '다음',
-            className: 'add-bookmark-next',
-            dataset: { action: 'next' },
-            disabled: nextDisabled
-          })}
+        <div class="dialog-actions dialog-actions--stack add-bookmark-footer">
           ${renderButton({
             shape: 'solid',
             type: 'submit',
+            block: true,
             content: isEdit ? '북마크 노트 수정하기' : '북마크 노트 만들기',
-            className: 'add-bookmark-submit'
+            className: 'add-bookmark-submit',
+            disabled: submitDisabled
           })}
         </div>
       </form>
@@ -211,15 +130,14 @@ export function renderAddBookmarkNoteModal(options = {}) {
   });
 }
 
-function selectedSourceNotes(form, catalog) {
-  const ids = [...(form?.querySelectorAll('input[name="sourceNote"]:checked') || [])].map(
-    (input) => input.value
-  );
-  const byId = new Map((catalog || []).map((note) => [note.id, note]));
-  return ids.map((id) => {
-    const note = byId.get(id);
-    return { id, title: note?.title || note?.name || id };
-  });
+function readMemo(form) {
+  return String(form?.querySelector('textarea[name="memo"]')?.value || '')
+    .trim()
+    .slice(0, MEMO_MAX);
+}
+
+function isFormReady(form) {
+  return Boolean(String(form?.querySelector('input[name="name"]')?.value || '').trim());
 }
 
 /**
@@ -241,16 +159,13 @@ export async function openAddBookmarkNoteModal(options = {}) {
     return;
   }
 
-  const catalog = (await loadAllNotes().catch(() => [])).filter(
-    (note) => note?.id && !isCustomBookmarkNoteId(note.id) && !isDemoNoteId(note.id)
-  );
   const defaults = defaultBookmarkCovers();
   const seed = isEdit
     ? {
         name: options.note.title,
-        sourceNoteIds: options.note.sourceNoteIds || (options.note.sourceNotes || []).map((n) => n.id)
+        memo: options.note.description || ''
       }
-    : { name: '', sourceNoteIds: [] };
+    : { name: '', memo: '' };
 
   const dialog = openDialog({
     title: isEdit ? '북마크 노트 수정' : '새 북마크 노트 추가',
@@ -259,7 +174,6 @@ export async function openAddBookmarkNoteModal(options = {}) {
     bodyHtml: renderAddBookmarkNoteForm({
       mode: isEdit ? 'edit' : 'create',
       seed,
-      sourceNotes: catalog,
       coverFrontPreviewUrl: options.note?.coverFrontUrl || defaults.coverFrontUrl,
       coverBackPreviewUrl: options.note?.coverBackUrl || defaults.coverBackUrl
     })
@@ -268,62 +182,18 @@ export async function openAddBookmarkNoteModal(options = {}) {
   const overlay = dialog.overlay;
   const form = overlay.querySelector('.add-bookmark-form');
   const statusEl = overlay.querySelector('.add-bookmark-status');
-  const nextBtn = overlay.querySelector('.add-bookmark-next');
-  const backBtn = overlay.querySelector('.add-bookmark-back');
-  const navEl = overlay.querySelector('.add-bookmark-nav');
-  const searchInput = overlay.querySelector('.add-bookmark-source-search');
-  let currentStep = 1;
+  const submitBtn = overlay.querySelector('.add-bookmark-submit');
   let frontDataUrl = '';
   let backDataUrl = '';
 
   const setStatus = (message, isError = false) => setFormStatus(statusEl, message, isError);
 
-  const isStepReady = (step) => {
-    if (!form) return false;
-    if (step === 1) return Boolean(String(form.querySelector('input[name="name"]')?.value || '').trim());
-    return selectedSourceNotes(form, catalog).length > 0;
+  const syncSubmit = () => {
+    if (submitBtn) submitBtn.disabled = !isFormReady(form);
   };
 
-  const setStep = (step, { clearStatus = true } = {}) => {
-    currentStep = Math.min(FORM_STEPS, Math.max(1, step));
-    form?.querySelectorAll('.add-bookmark-step').forEach((el) => {
-      const n = Number(el.dataset.step);
-      const active = n === currentStep;
-      el.classList.toggle('is-active', active);
-      el.toggleAttribute('inert', !active);
-      el.setAttribute('aria-hidden', active ? 'false' : 'true');
-    });
-    form?.querySelectorAll('[data-progress]').forEach((el) => {
-      const n = Number(el.dataset.progress);
-      el.classList.toggle('is-current', n === currentStep);
-      el.classList.toggle('is-done', n < currentStep);
-      if (n === currentStep) el.setAttribute('aria-current', 'step');
-      else el.removeAttribute('aria-current');
-    });
-    navEl?.classList.remove('is-step-1', 'is-step-2');
-    navEl?.classList.add(`is-step-${currentStep}`);
-    if (clearStatus) setStatus('', false);
-    if (nextBtn) nextBtn.disabled = !isStepReady(currentStep);
-    const focus =
-      currentStep === 1
-        ? form?.querySelector('input[name="name"]')
-        : form?.querySelector('.add-bookmark-source-search');
-    focus?.focus();
-  };
-
-  const syncNext = () => {
-    if (nextBtn) nextBtn.disabled = !isStepReady(currentStep);
-  };
-
-  form?.addEventListener('input', syncNext);
-  form?.addEventListener('change', syncNext);
-  searchInput?.addEventListener('input', () => {
-    const q = String(searchInput.value || '').trim().toLowerCase();
-    overlay.querySelectorAll('.add-bookmark-source-item').forEach((item) => {
-      const title = item.getAttribute('data-title') || '';
-      item.hidden = Boolean(q) && !title.includes(q);
-    });
-  });
+  form?.addEventListener('input', syncSubmit);
+  form?.addEventListener('change', syncSubmit);
 
   overlay.querySelectorAll('input[type="file"]').forEach((input) => {
     input.addEventListener('change', () => {
@@ -360,38 +230,22 @@ export async function openAddBookmarkNoteModal(options = {}) {
     });
   });
 
-  backBtn?.addEventListener('click', () => setStep(currentStep - 1));
-  nextBtn?.addEventListener('click', () => {
-    if (!isStepReady(currentStep)) {
-      setStatus(currentStep === 1 ? '이름은 필수입니다.' : '모을 노트를 한 권 이상 고르세요.', true);
-      return;
-    }
-    setStep(currentStep + 1);
-  });
-
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (currentStep < FORM_STEPS) {
-      nextBtn?.click();
-      return;
-    }
     const name = String(form.querySelector('input[name="name"]')?.value || '').trim().slice(0, NAME_MAX);
-    const sourceNotes = selectedSourceNotes(form, catalog);
+    const memo = readMemo(form);
     if (!name) {
-      setStep(1, { clearStatus: false });
       setStatus('이름은 필수입니다.', true);
-      return;
-    }
-    if (!sourceNotes.length) {
-      setStatus('모을 노트를 한 권 이상 고르세요.', true);
+      form.querySelector('input[name="name"]')?.focus();
       return;
     }
 
     const nextNote = {
       id: isEdit ? options.note.id : createCustomBookmarkNoteId(),
       title: name,
-      sourceNoteIds: sourceNotes.map((note) => note.id),
-      sourceNotes,
+      description: memo,
+      sourceNoteIds: isEdit ? options.note.sourceNoteIds || [] : [],
+      sourceNotes: isEdit ? options.note.sourceNotes || [] : [],
       coverFrontUrl: frontDataUrl || options.note?.coverFrontUrl || '',
       coverBackUrl: backDataUrl || options.note?.coverBackUrl || '',
       createdAt: isEdit ? options.note.createdAt || new Date().toISOString() : new Date().toISOString()
@@ -413,6 +267,7 @@ export async function openAddBookmarkNoteModal(options = {}) {
     }
   });
 
+  syncSubmit();
   form?.querySelector('input[name="name"]')?.focus();
 }
 

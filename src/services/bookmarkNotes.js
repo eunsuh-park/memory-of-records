@@ -126,7 +126,9 @@ export async function loadPageScrapNotes() {
         id: note.id,
         title: note.title,
         pageCount: counts[note.id] || 0,
-        description: formatSourceNotesDescription(note.sourceNotes),
+        description:
+          String(note.description || '').trim() ||
+          formatSourceNotesDescription(note.sourceNotes),
         sourceNoteIds: note.sourceNoteIds,
         sourceNotes: note.sourceNotes,
         coverFrontUrl: note.coverFrontUrl || defaults.coverFrontUrl,

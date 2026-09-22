@@ -1277,32 +1277,14 @@ export function renderUiLab() {
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}
           ${renderVariantRow(
-            'AddBookmarkNoteModal · 이름·선택 표지',
+            'AddBookmarkNoteModal · 이름·표지·메모',
             renderAddBookmarkNoteModal({
-              titleId: 'lab-add-bookmark-name',
-              idPrefix: 'lab-add-bookmark-1',
+              titleId: 'lab-add-bookmark',
               className: 'dialog--inline',
-              step: 1,
-              seed: { name: '여행 스크랩' },
+              seed: { name: '여행 스크랩', memo: '여행 중 마음에 든 페이지만 모아 둡니다.' },
               coverFrontPreviewUrl: bookmarksCoverFront,
               coverBackPreviewUrl: bookmarksCoverBack,
-              nextDisabled: false
-            }),
-            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
-          )}
-          ${renderVariantRow(
-            'AddBookmarkNoteModal · 모을 노트',
-            renderAddBookmarkNoteModal({
-              titleId: 'lab-add-bookmark-sources',
-              idPrefix: 'lab-add-bookmark-2',
-              className: 'dialog--inline',
-              step: 2,
-              seed: { name: '여행 스크랩', sourceNoteIds: ['lab-note-1'] },
-              sourceNotes: [
-                { id: 'lab-note-1', title: '2024 여행 기록' },
-                { id: 'lab-note-2', title: '카툰 연습장' }
-              ],
-              nextDisabled: false
+              submitDisabled: false
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}

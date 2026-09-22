@@ -81,7 +81,7 @@ export function createBookmarksNote(overrides = {}) {
     description:
       overrides.description ||
       (isCustom
-        ? '선택한 노트에서 북마크한 페이지를 모읍니다.'
+        ? '북마크한 페이지를 모읍니다.'
         : '이곳에서 북마크한 페이지들을 모아볼 수 있습니다.'),
     type: 'Bookmarks',
     notebookType: 'Bookmarks',
@@ -107,7 +107,7 @@ export function createAddBookmarkNoteCard() {
     pdfUrl: null,
     pageCount: null,
     size: null,
-    description: '이름과 모을 노트를 정해 새 북마크 노트를 만듭니다.',
+    description: '',
     type: 'Bookmarks',
     notebookType: 'Bookmarks',
     color: null,
