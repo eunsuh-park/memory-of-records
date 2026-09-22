@@ -337,6 +337,30 @@ Memory of Records — 요청·아이디어 누적 목록.
 
 ## Inbox
 
+- [ ] **주크박스/그리드 보기 클래스 분리 폴리싱** `(수집 260922)`
+  - 요청 요지: 콘텐츠 영역 div를 jukebox와 grid 보기로 클래스를 나눠, 같은 노트 리소스를 보기만 다르게 관리한다. 이번 작업에서는 구현하지 않고 플랜만 세운다.
+  - 맥락/화면: Timeline / By type의 `.jukebox-fullscreen[data-gallery-layout]` 한 그루트가 Cover Flow와 펼쳐 보기를 같이 씀.
+  - 원문 메모: 「이 콘텐츠 영역의 div를 jukebox 와 grid 보기로 클래스를 나눠서 동일한 리소스를 보기만 다르게 관리할 수 있게 하면 좋겟는데 이건 지금 작업하지말고 한 번 코드 폴리싱할 플랜을 세워보자.」
+  - 현재 문제:
+    - 마크업은 `.jukebox-gallery` · `.jukebox-card` · `.jukebox-focus-slot` 하나이고, 보기 전환은 `data-gallery-layout="grid"` CSS 덮어쓰기로만 이뤄진다.
+    - Cover Flow용 3D(`perspective` · `rotateY` · box-reflect · spacer · 가로 스냅)를 그리드에서 전부 무효화한다. 선택자가 길고, 컴팩트 2열 규칙이 주크박스 반응형 `max-width`와 싸운다.
+    - JS는 `fillJukeboxGallery` / `fillGridGallery`로 이미 갈라졌지만, 클릭·포커스·네비·갭 계산이 같은 갤러리 엘리먼트와 `.jukebox-card--centered`에 붙어 있다.
+    - 정보 패널은 variant(`default` / `tooltip` / `sheet`)로 반은 갈라졌고, 슬롯 DOM은 여전히 공용이다.
+  - 목표: 노트 목록·필터·커버 URL 같은 데이터는 한 번만 두고, **프레젠터(마크업·CSS·포인터 동작)** 만 jukebox / grid 두 벌로 나눈다. 동작(태그 이동, 노트 열기, 즐겨찾기)은 바꾸지 않는다.
+  - 제안 구조:
+    1. 루트 클래스를 `.gallery-stage.gallery-stage--jukebox` / `.gallery-stage.gallery-stage--grid` 로 두고, `data-gallery-layout` 의존을 단계적으로 제거한다. 공용 래퍼(`.jukebox-fullscreen` 이름)는 나중에 `.notes-stage` 정도로 rename.
+    2. 갤러리 본문: `.jukebox-gallery`(가로 Cover Flow, 스페이서, 3D 카드) vs `.grid-gallery`(세로 스냅, `.grid-row` · `.grid-row__notes`). 카드는 공통 프리미티브 `.note-cover-card` + 보기 수식 클래스(`.jukebox-card` / `.grid-card`)로 나눈다. 뒷표지·반사는 jukebox 전용.
+    3. 정보 UI는 지금 variant를 유지하되 슬롯도 분리한다. jukebox 하단 `.jukebox-focus-slot` / 그리드 데스크톱 툴팁 / 그리드 컴팩트 시트(`.grid-focus-info`, 클릭 시 오픈)가 서로의 CSS를 덮지 않게.
+    4. JS 진입을 `renderGallery(notes, { layout })` 한 곳으로 모으고 안에서 `bindJukeboxView` / `bindGridView`만 고른다. `boundNotes` · `selectedValue` · `updateFocusInfo` 액션 핸들러는 공유. 그리드 전용 상태(`gridInfoOpen`, 행 갭 겹침)는 grid binder 안으로.
+    5. CSS 파일도 `Jukebox.css`(Cover Flow + 주크박스 포커스)와 `GridGallery.css`(행·2열·시트)로 나눈다. `[data-gallery-layout='grid'] .jukebox-card .jukebox-card-3d` 같은 무효화 블록을 없애는 것이 성공 기준.
+  - 작업 순서(구현 시 PR을 쪼갠다):
+    1. 그리드 마크업만 `.grid-gallery` / `.grid-row` / `.grid-card`로 옮기고, 기존 그리드 CSS를 그 클래스에 복사. 동작 동일.
+    2. 주크박스 규칙에서 그리드 예외를 삭제해 회귀가 없는지 확인.
+    3. 포커스 슬롯·시트·툴팁 소유권을 클래스 기준으로 정리.
+    4. (선택) 공용 루트·카드 프리미티브 rename. 이름만 바꾸는 커밋은 별도.
+  - 하지 말 것: 필터/데이터 로딩 리팩터, Favorites·Page Scrap까지 그리드 도입, 한 PR에 rename+동작 변경 섞기.
+  - 열린 질문: `.jukebox-*` 이름을 공용 프리미티브로 남길지, `.note-cover-*`로 바로 갈지. UiLab 섹션을 Jukebox / Grid 로 나눌지.
+
 - [ ] **모바일 포커스 패널 메모 위치** `(수집 260823)`
   - 요청 요지: 모바일 `jukebox-focus-info`에서 노트 메모를 어디에 표시할지 정한다. 이번 개편에서는 + 버튼을 없애고 도구모음만 기본 노출하며, 메모 배치는 보류한다.
   - 맥락/화면: 주크박스 모바일 하단 정보 패널(노트명 · 공유/즐겨찾기/수정/페이지 추가/삭제). 데스크톱은 패널 안 메모 3줄·70자를 유지한다.
