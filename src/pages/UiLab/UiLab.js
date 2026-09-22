@@ -205,7 +205,7 @@ const RESPONSIVE_MATRIX = [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '포커스 정보 min-height(--jukebox-focus-info-min-h)를 먼저 잡고, 갤러리 wrap은 min-height 0으로 남는 높이만 쓴다',
-      '페이지 스크롤 없음(html/body 100svh · overflow hidden). 바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%. 펼쳐 보기는 2열 너비 가득 + 하단 .grid-focus-info는 카드 클릭 시 표시',
+      '펼쳐 보기는 2열 너비 가득 · 카드 패딩 24px · 하단 .grid-focus-info는 카드 클릭 시 표시 · 선택 카드가 화면 밖으로 스크롤되면 시트 닫힘. 헤더가 유형 칩까지 덮어 커버가 비치지 않음',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -213,7 +213,7 @@ const RESPONSIVE_MATRIX = [
       '너비 769–1024px이면 모바일과 같이 갤러리·정보 패널을 세로로 쌓고 메모를 숨긴다',
       '정보 패널 min-height가 갤러리보다 우선. 갤러리 wrap min-height 0 · overflow hidden',
       '바닥 반사 off, 카드 min(34vh, 360px)·이미지 min(38vw, 280px)·스케일 ×0.92',
-      '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지. 펼쳐 보기는 2열 너비 가득 + 상하 화살표 + .grid-focus-info는 카드 클릭 시 표시',
+      '펼쳐 보기는 2열 너비 가득 · 카드 패딩 24px · .grid-focus-info는 카드 클릭 시 표시 · 선택 카드가 화면 밖으로 나가면 시트 닫힘. 헤더가 유형 칩까지 덮음',
       '.notes-container padding-top 90px',
       '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
@@ -222,7 +222,7 @@ const RESPONSIVE_MATRIX = [
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on(다크). 라이트는 반사·하단 그라데이션 없음',
       '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달',
-      '펼쳐 보기(grid): 태그별 한 줄·가운데 정렬. 행 min-height calc(50vh + 1.75rem)로 위·아래 이웃이 절반만 보임. PC는 gap 최대(--jukebox-grid-gap)·넘치면 겹침. 세로 스크롤/상하 화살표로 태그 이동, 이웃 행 opacity 15%. 하단 정보 패널 숨김, 호버 시 .grid-note-tooltip. Timeline/By type만'
+      '펼쳐 보기(grid): 태그별 한 줄·가운데 정렬. 행 min-height calc(50vh + 1.75rem)로 위·아래 이웃이 절반만 보임. PC는 gap 최대(--jukebox-grid-gap)·넘치면 겹침. 세로 스크롤/상하 화살표로 태그 이동, 이웃 행 opacity 15%. 하단 정보 패널 숨김, 호버 시 .grid-note-tooltip. 헤더가 유형 칩 행까지 배경을 덮음. Timeline/By type만'
     ]
   },
   {

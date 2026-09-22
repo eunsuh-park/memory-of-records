@@ -145,6 +145,36 @@ function isCompactGridViewport() {
   );
 }
 
+function disconnectCenteredCardObserver(gallery) {
+  gallery?._jukeboxCenteredIo?.disconnect();
+  if (gallery) gallery._jukeboxCenteredIo = null;
+}
+
+/**
+ * 선택된 그리드 카드가 갤러리 밖으로 스크롤되면 onExit.
+ * 처음 한 번은 보이는 상태를 확인한 뒤에만 나감을 알린다.
+ */
+function observeCenteredCardExit(gallery, card, onExit) {
+  disconnectCenteredCardObserver(gallery);
+  if (!gallery || !card || typeof onExit !== 'function') return;
+  let seenVisible = false;
+  const io = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      if (entry.intersectionRatio >= 0.2) {
+        seenVisible = true;
+        return;
+      }
+      if (!seenVisible) return;
+      onExit();
+    },
+    { root: gallery, threshold: [0, 0.1, 0.2, 0.35, 0.5, 1] }
+  );
+  io.observe(card);
+  gallery._jukeboxCenteredIo = io;
+}
+
 function gridRowEls(gallery) {
   return Array.from(gallery?.querySelectorAll(':scope > .jukebox-grid-row') || []);
 }
@@ -1368,6 +1398,19 @@ export function renderJukeboxWithFilter(options) {
   function setGridInfoOpen(open) {
     gridInfoOpen = Boolean(open);
     fullscreen?.classList.toggle('is-grid-info-open', gridInfoOpen);
+    if (!gridInfoOpen) disconnectCenteredCardObserver(gallery);
+  }
+
+  function dismissGridSelection() {
+    disconnectCenteredCardObserver(gallery);
+    const hadInfo = gridInfoOpen;
+    const hadCentered = Boolean(gallery.querySelector('.jukebox-card--centered'));
+    if (!hadInfo && !hadCentered) return;
+    setGridInfoOpen(false);
+    gallery.querySelectorAll('.jukebox-card--centered').forEach((el) => {
+      el.classList.remove('jukebox-card--centered');
+    });
+    if (hadInfo) updateFocusInfo(boundNotes);
   }
 
   function onGalleryLayoutChange() {
@@ -1390,6 +1433,7 @@ export function renderJukeboxWithFilter(options) {
   mainContent._unsubGalleryLayout = () => {
     document.removeEventListener(GALLERY_LAYOUT_EVENT, onGalleryLayoutChange);
     compactMq.removeEventListener('change', onCompactViewportChange);
+    disconnectCenteredCardObserver(gallery);
   };
 
   function currentLayout() {
@@ -1659,6 +1703,7 @@ export function renderJukeboxWithFilter(options) {
   }
 
   function bindGallery(notes) {
+    disconnectCenteredCardObserver(gallery);
     const layout = currentLayout();
     const preserveId = gallery.querySelector('.jukebox-card--centered')?.getAttribute('data-note-id') || '';
     const rows = layout === 'grid' ? buildGridRows() : [];
@@ -1673,6 +1718,16 @@ export function renderJukeboxWithFilter(options) {
       filterMode,
       gridHooks: {
         onTagChange: (value) => {
+          const centered = gallery.querySelector('.jukebox-card--centered');
+          const activeRow = gallery.querySelector('.jukebox-grid-row.is-active');
+          if (
+            isCompactGridViewport() &&
+            centered &&
+            activeRow &&
+            !activeRow.contains(centered)
+          ) {
+            dismissGridSelection();
+          }
           if (!value || value === selectedValue) return;
           selectedValue = value;
           replaceFilterPath(basePath, value);
@@ -1724,6 +1779,7 @@ export function renderJukeboxWithFilter(options) {
             }
             cards.forEach((el) => el.classList.toggle('jukebox-card--centered', el === card));
             setGridInfoOpen(true);
+            observeCenteredCardExit(gallery, card, dismissGridSelection);
             gallery.dispatchEvent(
               new CustomEvent('jukebox:centered', { detail: { noteId: note.id } })
             );

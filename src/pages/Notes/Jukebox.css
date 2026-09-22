@@ -1080,6 +1080,7 @@ body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gal
 
 @media (max-width: 1024px) {
   .jukebox-fullscreen[data-gallery-layout='grid'] {
+    --jukebox-grid-gap: 0px;
     --jukebox-grid-card-max-w: none;
     --jukebox-grid-card-max-h: none;
   }
@@ -1107,7 +1108,7 @@ body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gal
 
   .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery,
   .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gallery.centerized {
-    padding: 12vh var(--space-4) 12vh;
+    padding: max(12vh, 9.5rem) 0 12vh;
     top: 0;
   }
 
@@ -1125,12 +1126,16 @@ body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gal
     align-items: end;
     gap: var(--jukebox-grid-gap);
     width: 100%;
+    padding: 0;
+    box-sizing: border-box;
   }
 
   .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card {
     width: 100%;
     max-width: none;
     max-height: none;
+    padding: var(--space-6);
+    box-sizing: border-box;
   }
 
   .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-grid-row .jukebox-card .jukebox-card-face--front img,
@@ -1146,6 +1151,36 @@ body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'] .jukebox-gal
 
   body.jukebox-active .jukebox-fullscreen[data-gallery-layout='grid'].is-grid-info-open .jukebox-gallery-wrap .jukebox-nav-next {
     bottom: calc(var(--jukebox-focus-info-min-h) + var(--space-8));
+  }
+}
+
+/*
+ * 그리드 보기: 상단 바를 유형 칩 아래까지 내려 커버가 칩 사이로 비치지 않게 한다.
+ * 필터는 헤더 위에 그대로 두고, 헤더 배경만 칩 높이만큼 늘린다.
+ */
+body.jukebox-active:has([data-gallery-layout='grid']) .page-header {
+  padding-bottom: calc(var(--space-4) + 3.5rem);
+}
+
+body.jukebox-active:has([data-gallery-layout='grid']) .gallery-filter {
+  background-color: var(--color-bg);
+}
+
+@media (max-height: 768px), (max-width: 768px) {
+  body.jukebox-active:has([data-gallery-layout='grid']) .page-header {
+    padding-bottom: calc(var(--space-3) + 4.75rem);
+  }
+
+  body.jukebox-active:has([data-gallery-layout='grid']) .gallery-filter {
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  body.jukebox-active.loading-active:has([data-gallery-layout='grid']) #sub-menu {
+    transform: translateY(8px);
   }
 }
 
