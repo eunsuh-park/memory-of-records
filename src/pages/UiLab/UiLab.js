@@ -205,7 +205,7 @@ const RESPONSIVE_MATRIX = [
       'padding-top 80px, 갤러리 padding 16vh 0 20vh',
       '카드 min(33.6vh, 256px) · 이미지 min(44.8vw, 176px) · 스케일 ×0.88',
       '포커스 정보 min-height(--jukebox-focus-info-min-h)를 먼저 잡고, 갤러리 wrap은 min-height 0으로 남는 높이만 쓴다',
-      '페이지 스크롤 없음(html/body 100svh · overflow hidden). 바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%. 펼쳐 보기는 2열 그리드 + 하단 .grid-focus-info 고정',
+      '페이지 스크롤 없음(html/body 100svh · overflow hidden). 바닥 반사 off, 포커스 정보(노트명 + 도구모음, 메모 숨김). 갤러리 top 60%. 펼쳐 보기는 2열 너비 가득 + 하단 .grid-focus-info는 카드 클릭 시 표시',
       '중앙 카드 탭 → 뷰어 모달 (데스크톱과 동일)',
       '≤480px에서 padding-top 70px, 카드 소폭 확대'
     ],
@@ -213,7 +213,7 @@ const RESPONSIVE_MATRIX = [
       '너비 769–1024px이면 모바일과 같이 갤러리·정보 패널을 세로로 쌓고 메모를 숨긴다',
       '정보 패널 min-height가 갤러리보다 우선. 갤러리 wrap min-height 0 · overflow hidden',
       '바닥 반사 off, 카드 min(34vh, 360px)·이미지 min(38vw, 280px)·스케일 ×0.92',
-      '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지. 펼쳐 보기는 2열 + 상하 화살표 + .grid-focus-info',
+      '갤러리 top 60%, 포커스 슬롯 z-index 110 · safe-area 하단 패딩. 좌우 화살표는 유지. 펼쳐 보기는 2열 너비 가득 + 상하 화살표 + .grid-focus-info는 카드 클릭 시 표시',
       '.notes-container padding-top 90px',
       '필터 칩 수평 스크롤 · FilterChip PC 레이아웃 유지'
     ],
@@ -1075,7 +1075,7 @@ export function renderUiLab() {
             노션 memo(최대 3줄 · 70자)를 세로로 쌓습니다. 데스크톱 패널 높이는 제목 1줄·도구모음·메모 3줄이 잘리지 않게 고정되고 내용은 상단부터 쌓입니다.
             모바일에서는 + 토글 없이 도구모음을 기본으로 보여 주고, 메모는 숨깁니다(표시 위치는 Backlog).
             패널 최소 높이는 제목+도구모음이며 그 아래로 줄지 않습니다. 패널 <code>margin-bottom</code>은 데스크톱 48px, 모바일 12px입니다.
-            그리드 보기 데스크톱은 <code>.grid-note-tooltip</code>(호버), 모바일·타블렛은 <code>.grid-focus-info</code>(하단 고정)를 씁니다.
+            그리드 보기 데스크톱은 <code>.grid-note-tooltip</code>(호버), 모바일·타블렛은 <code>.grid-focus-info</code>(하단 시트, 기본 숨김 · 카드 클릭 시 표시)를 씁니다.
           </p>
           <p class="ui-lab__files">참조: <code>src/components/NoteInfoPanel/NoteInfoPanel.js</code>, <code>src/components/NoteInfoPanel/NoteInfoPanel.css</code></p>
           ${renderVariantRow(
@@ -1120,7 +1120,7 @@ export function renderUiLab() {
             { stageClass: 'ui-lab__demo-stage--info' }
           )}
           ${renderVariantRow(
-            '그리드 시트 (.grid-focus-info) — 모바일·타블렛 하단 고정',
+            '그리드 시트 (.grid-focus-info) — 모바일·타블렛, 카드 클릭 시 표시',
             renderNoteInfoPanel(
               {
                 id: 'ui-lab-demo-note-sheet',

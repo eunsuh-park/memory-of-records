@@ -249,7 +249,8 @@ function renderJukeboxCardHtml(note, index, options = {}) {
   const covers = resolveNoteCoverUrls(note);
   const frontUrl = covers.front || note.coverFrontUrl || '';
   const backUrl = covers.back || note.coverBackUrl || '';
-  const thumbWidth = layout === 'grid' ? 400 : 800;
+  /* 그리드 2열도 커버 너비를 채우므로 Cover Flow와 같은 800을 쓴다 */
+  const thumbWidth = 800;
   const optimizedFront = optimizeThumbnailUrl(frontUrl, thumbWidth);
   const optimizedBack = optimizeThumbnailUrl(backUrl, thumbWidth);
   const coverSrc = optimizedFront || frontUrl || TRANSPARENT_PIXEL;
@@ -1350,6 +1351,8 @@ export function renderJukeboxWithFilter(options) {
   /** @type {Array} */
   let boundNotes = [];
   let canEdit = isAuthenticated();
+  /** 타블렛·모바일 그리드: 하단 정보 시트는 카드 클릭 전까지 숨긴다 */
+  let gridInfoOpen = false;
 
   if (typeof mainContent._unsubJukeboxAuth === 'function') {
     mainContent._unsubJukeboxAuth();
@@ -1362,9 +1365,15 @@ export function renderJukeboxWithFilter(options) {
   if (typeof mainContent._unsubGalleryLayout === 'function') {
     mainContent._unsubGalleryLayout();
   }
+  function setGridInfoOpen(open) {
+    gridInfoOpen = Boolean(open);
+    fullscreen?.classList.toggle('is-grid-info-open', gridInfoOpen);
+  }
+
   function onGalleryLayoutChange() {
     if (!allowsGalleryLayout(filterMode)) return;
     if (!gallery?.isConnected) return;
+    setGridInfoOpen(false);
     syncLayoutAttr();
     syncNavLabels();
     if (allNotesCache) applyFiltersAndRender();
@@ -1374,6 +1383,7 @@ export function renderJukeboxWithFilter(options) {
   const compactMq = window.matchMedia('(max-width: 1024px)');
   const onCompactViewportChange = () => {
     if (!gallery?.isConnected) return;
+    if (!isCompactGridViewport()) setGridInfoOpen(false);
     if (currentLayout() === 'grid') updateFocusInfo(boundNotes);
   };
   compactMq.addEventListener('change', onCompactViewportChange);
@@ -1462,10 +1472,17 @@ export function renderJukeboxWithFilter(options) {
     if (!focusSlot) return;
     if (isAddBookmarkNoteId(note?.id)) {
       focusSlot.innerHTML = '';
+      fullscreen?.classList.remove('is-grid-info-open');
       return;
     }
     if (currentLayout() === 'grid') {
       if (!isCompactGridViewport()) {
+        setGridInfoOpen(false);
+        focusSlot.innerHTML = '';
+        return;
+      }
+      if (!gridInfoOpen) {
+        fullscreen?.classList.remove('is-grid-info-open');
         focusSlot.innerHTML = '';
         return;
       }
@@ -1473,8 +1490,10 @@ export function renderJukeboxWithFilter(options) {
         variant: 'sheet',
         canEdit
       });
+      fullscreen?.classList.add('is-grid-info-open');
       return;
     }
+    setGridInfoOpen(false);
     focusSlot.innerHTML = renderNoteInfoPanel(note, filterMode, {
       index,
       total: list.length,
@@ -1696,6 +1715,20 @@ export function renderJukeboxWithFilter(options) {
         }
 
         if (currentLayout() === 'grid') {
+          if (isCompactGridViewport()) {
+            const alreadyOpen =
+              card.classList.contains('jukebox-card--centered') && gridInfoOpen;
+            if (alreadyOpen) {
+              openNoteModal(note);
+              return;
+            }
+            cards.forEach((el) => el.classList.toggle('jukebox-card--centered', el === card));
+            setGridInfoOpen(true);
+            gallery.dispatchEvent(
+              new CustomEvent('jukebox:centered', { detail: { noteId: note.id } })
+            );
+            return;
+          }
           if (card.classList.contains('jukebox-card--centered')) {
             openNoteModal(note);
             return;

@@ -98,7 +98,7 @@ export function renderNoteIndicator(index, total) {
  *   variant?: 'default'|'tooltip'|'sheet'
  * }} [opts]
  *   variant tooltip: 그리드 보기 데스크톱 호버 툴팁 (.grid-note-tooltip)
- *   variant sheet: 그리드 보기 모바일·타블렛 하단 고정 패널 (.grid-focus-info)
+ *   variant sheet: 그리드 보기 모바일·타블렛 하단 패널 (.grid-focus-info). 카드 클릭 시 표시.
  * @returns {string} HTML 문자열
  */
 export function render(note, _filterMode, opts = {}) {

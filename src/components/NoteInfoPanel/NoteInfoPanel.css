@@ -210,8 +210,9 @@
 }
 
 /*
- * 그리드 보기 모바일·타블렛 하단 고정 패널
+ * 그리드 보기 모바일·타블렛 하단 패널
  * 주크박스 .jukebox-focus-info 와 역할은 같되 클래스를 분리한다.
+ * 위치·표시(기본 숨김, 카드 클릭 시 .is-grid-info-open)는 Jukebox.css가 맡는다.
  */
 .grid-focus-info {
   display: flex;
