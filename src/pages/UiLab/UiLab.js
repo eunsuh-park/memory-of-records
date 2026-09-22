@@ -26,6 +26,9 @@ import {
   renderAddNoteModal,
   renderAddNoteViewConfirm
 } from '../../components/AddNoteFab/AddNoteFab.js';
+import { renderAddBookmarkNoteModal } from '../../components/AddBookmarkNoteModal/AddBookmarkNoteModal.js';
+import { renderBookmarkNotePicker } from '../../components/BookmarkNotePicker/BookmarkNotePicker.js';
+import { BOOKMARKS_NOTE_ID } from '../../utils/bookmarksNote.js';
 import { MINGCUTE } from '../../assets/mingcuteIcons.js';
 import { render as renderNoteInfoPanel, renderNoteIndicator } from '../../components/NoteInfoPanel/NoteInfoPanel.js';
 import {
@@ -251,6 +254,25 @@ const RESPONSIVE_MATRIX = [
       '캔버스 min-height 70vh · padding 8px',
       '우하단 줌 컨트롤 32px, 하단 중앙 페이지 인디케이터'
     ]
+  },
+  {
+    name: 'AddBookmarkNoteModal',
+    files: 'src/components/AddBookmarkNoteModal/AddBookmarkNoteModal.js · AddBookmarkNoteModal.css',
+    points: '640px',
+    mobile: ['≤640px 표지 미리보기 2열 축소 · 모을 노트 목록 스크롤'],
+    tablet: ['데스크톱과 동일'],
+    desktop: [
+      '2스텝: 이름·선택 표지 → 모을 노트 복수 선택',
+      '표지는 기본 Bookmark Note 커버를 쓰고 필수가 아님'
+    ]
+  },
+  {
+    name: 'BookmarkNotePicker',
+    files: 'src/components/BookmarkNotePicker/BookmarkNotePicker.js · BookmarkNotePicker.css',
+    points: '640px',
+    mobile: ['목적지 목록 1열 · 가득 찬 노트는 비활성'],
+    tablet: ['데스크톱과 동일'],
+    desktop: ['기본 Bookmark Note와 사용자 노트 목록에서 저장 위치를 고름']
   },
   {
     name: 'AddNoteFab',
@@ -1191,9 +1213,10 @@ export function renderUiLab() {
         </section>
 
         <section class="ui-lab__section" id="note-forms">
-          <h2 class="ui-lab__section-title">AddNoteFab · AddPageModal · PageMetaModal</h2>
+          <h2 class="ui-lab__section-title">AddNoteFab · AddBookmarkNoteModal · AddPageModal · PageMetaModal</h2>
           <p class="ui-lab__section-desc">
-            노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
+            노트 추가/수정 모달(3스텝: 표지 → 사용 정보 → 메모), 북마크 노트 추가(2스텝: 이름 → 모을 노트),
+            페이지 추가 모달, 페이지 정보(보기·수정) 모달입니다.
             생성 시 폼 입력으로 public_id를 배정한 뒤 Cloudinary 폴더명으로 쓰고 Notion DB에도 기록합니다.
             아래 AddNoteFab·AddPageModal은 실제 업로드 없이, 폼을 임시 데이터로 채운 정적 데모입니다.
           </p>
@@ -1201,6 +1224,8 @@ export function renderUiLab() {
             참조:
             <code>src/components/AddNoteFab/AddNoteFab.js</code>,
             <code>src/components/AddNoteFab/AddNoteFab.css</code>,
+            <code>src/components/AddBookmarkNoteModal/AddBookmarkNoteModal.js</code>,
+            <code>src/components/BookmarkNotePicker/BookmarkNotePicker.js</code>,
             <code>src/components/AddPageModal/AddPageModal.js</code>,
             <code>src/components/AddPageModal/AddPageModal.css</code>,
             <code>src/components/AddPageModal/PageMetaModal.js</code>,
@@ -1209,6 +1234,8 @@ export function renderUiLab() {
           </p>
           <ul class="ui-lab__list">
             <li>노트 추가/수정: 3스텝(표지 → 사용 정보 → 메모) · 헤더 우측(데스크톱) · 모바일 드로어 「새 노트 추가」 · 추가 후 Confirm(취소/확인)</li>
+            <li>북마크 노트 추가: Page Scrap에서 기본권 우측 + 카드 · 표지 선택 없음(기본 표지) · 이름 + 모을 노트 · 최대 10권 · 권당 50장</li>
+            <li>페이지 북마크 시 기본권과 만든 북마크 노트 중 저장 위치를 고름</li>
             <li>모달 공통: <code>dialog__title</code> 24px(<code>--text-xl</code>) · 푸터 위 상태는 가운데 · 액션은 보조 위·주요 아래 1열</li>
             <li>페이지 추가: 소스 선택은 Confirm 레이아웃(설명 + PDF/이미지) · 폼은 PDF/이미지 공통 · 파일명 옆 변환 칩</li>
             <li>표지가 아니면 뷰어가 업로드한 앞/뒤 표지 이미지를 첫/마지막 페이지로 끼워 넣음</li>
@@ -1246,6 +1273,62 @@ export function renderUiLab() {
             renderAddNoteViewConfirm({
               titleId: 'lab-add-note-view',
               className: 'dialog--inline'
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddBookmarkNoteModal · 이름·선택 표지',
+            renderAddBookmarkNoteModal({
+              titleId: 'lab-add-bookmark-name',
+              idPrefix: 'lab-add-bookmark-1',
+              className: 'dialog--inline',
+              step: 1,
+              seed: { name: '여행 스크랩' },
+              coverFrontPreviewUrl: bookmarksCoverFront,
+              coverBackPreviewUrl: bookmarksCoverBack,
+              nextDisabled: false
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'AddBookmarkNoteModal · 모을 노트',
+            renderAddBookmarkNoteModal({
+              titleId: 'lab-add-bookmark-sources',
+              idPrefix: 'lab-add-bookmark-2',
+              className: 'dialog--inline',
+              step: 2,
+              seed: { name: '여행 스크랩', sourceNoteIds: ['lab-note-1'] },
+              sourceNotes: [
+                { id: 'lab-note-1', title: '2024 여행 기록' },
+                { id: 'lab-note-2', title: '카툰 연습장' }
+              ],
+              nextDisabled: false
+            }),
+            { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
+          )}
+          ${renderVariantRow(
+            'BookmarkNotePicker · 저장 위치',
+            renderBookmarkNotePicker({
+              titleId: 'lab-bookmark-picker',
+              className: 'dialog--inline',
+              destinations: [
+                {
+                  id: BOOKMARKS_NOTE_ID,
+                  title: 'Bookmark Note',
+                  pageCount: 12,
+                  remaining: 38,
+                  full: false,
+                  isDefault: true
+                },
+                {
+                  id: `${BOOKMARKS_NOTE_ID}:trip`,
+                  title: '여행 스크랩',
+                  pageCount: 50,
+                  remaining: 0,
+                  full: true,
+                  isDefault: false
+                }
+              ]
             }),
             { flow: false, stageClass: 'ui-lab__demo-stage--dialog' }
           )}

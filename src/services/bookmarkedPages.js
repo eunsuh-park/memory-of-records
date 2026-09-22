@@ -14,7 +14,8 @@ let inflight = null;
  *   pageNumber: number,
  *   noteFolder?: string,
  *   entryDate?: string|null,
- *   bookmarkedAt?: string|null
+ *   bookmarkedAt?: string|null,
+ *   bookmarkNoteId?: string
  * }>>}
  */
 export async function getBookmarkedPages({ force = false } = {}) {

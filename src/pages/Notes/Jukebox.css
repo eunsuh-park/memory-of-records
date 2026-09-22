@@ -531,6 +531,39 @@ body.jukebox-active.loading-active #sub-menu {
   .jukebox-gallery .jukebox-card.jukebox-card--centered:hover .jukebox-card-inner {
     transform: rotateY(180deg);
   }
+
+  .jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark.jukebox-card--centered:hover .jukebox-card-inner {
+    transform: none;
+  }
+}
+
+.jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: min(28vw, 11rem);
+  height: min(38vh, 14.5rem);
+  aspect-ratio: 3 / 4;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--space-4);
+  box-sizing: border-box;
+}
+
+.jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark__btn {
+  color: var(--color-primary-on);
+  background: var(--color-primary);
+}
+
+.jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark__label {
+  font-size: var(--text-xs);
+  text-align: center;
+  line-height: 1.35;
+  color: var(--color-text-muted);
 }
 
 .jukebox-gallery .jukebox-card .jukebox-card-face {

@@ -32,6 +32,9 @@ import {
   createBookmarksNote,
   ensureBookmarkNoteCovers
 } from '../../utils/bookmarksNote.js';
+import { filterPagesForBookmarkNote } from '../../utils/bookmarkNotes.js';
+import { findBookmarkNote } from '../../services/bookmarkNotes.js';
+import { pickBookmarkDestination } from '../BookmarkNotePicker/BookmarkNotePicker.js';
 import { createDemoNote, demoNoteViewerOptions, isDemoNoteId } from '../../utils/demoNote.js';
 import { attachSourceNotes } from '../../utils/sourceNote.js';
 import { loadAllNotes } from '../../utils/notesCatalog.js';
@@ -843,13 +846,28 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
     bookmarkedByPage.set(targetPage, next);
     syncBookmarkButtons(next, { disabled: true });
 
+    let destination = null;
     try {
+      if (next) {
+        destination = await pickBookmarkDestination();
+        if (!destination) {
+          bookmarkedByPage.set(targetPage, current);
+          if (pageNum === targetPage) syncBookmarkButtons(current, { disabled: false });
+          return;
+        }
+      }
       await updatePageMeta({
         folder: ref.folder,
         pageNumber: ref.pageNumber,
-        is_bookmarked: next
+        is_bookmarked: next,
+        bookmark_note_id: next ? destination.id : ''
       });
-      showToast(next ? '북마크에 추가했습니다' : '북마크를 해제했습니다');
+      clearBookmarkedPagesCache();
+      showToast(
+        next
+          ? `${destination.title}에 추가했습니다`
+          : '북마크를 해제했습니다'
+      );
       if (isAlbumMode && !next) {
         await removeAlbumPageAt(targetPage);
         return;
@@ -1545,14 +1563,21 @@ export function renderNoteImageViewer(targetEl, id, options = {}) {
         await ensureBookmarkNoteCovers().catch(() => null);
         if (!isAlbumMode) {
           const pages = await getBookmarkedPages({ force: true });
-          albumPages = await attachSourceNotes(Array.isArray(pages) ? pages : []);
+          const scoped = filterPagesForBookmarkNote(Array.isArray(pages) ? pages : [], noteId);
+          albumPages = await attachSourceNotes(scoped);
           isAlbumMode = true;
-        } else if (Array.isArray(albumPages) && albumPages.some((p) => !p?.sourceNote)) {
-          albumPages = await attachSourceNotes(albumPages);
+        } else {
+          albumPages = filterPagesForBookmarkNote(albumPages, noteId);
+          if (Array.isArray(albumPages) && albumPages.some((p) => !p?.sourceNote)) {
+            albumPages = await attachSourceNotes(albumPages);
+          }
         }
         totalPages = albumPages.length;
         storedPageCount = albumPages.length;
-        noteTitle = noteTitle || BOOKMARKS_NOTE_TITLE;
+        if (!noteTitle || noteTitle === BOOKMARKS_NOTE_TITLE) {
+          const bookmarkNote = await findBookmarkNote(noteId).catch(() => null);
+          noteTitle = bookmarkNote?.title || noteTitle || BOOKMARKS_NOTE_TITLE;
+        }
         if (!isModal) syncDocumentTitle();
         hiddenPages = new Set();
         if (!albumPages.length) {
@@ -1865,12 +1890,12 @@ export function renderNoteDetailPage(id) {
   if (isBookmarksNoteId(id)) {
     void ensureBookmarkNoteCovers()
       .catch(() => null)
-      .then(() => {
-        const note = createBookmarksNote();
+      .then(() => findBookmarkNote(id))
+      .then((note) => {
         mainContent._routeCleanup = renderNoteImageViewer(mainContent, id, {
           mode: 'page',
-          title: note.title || BOOKMARKS_NOTE_TITLE,
-          note
+          title: note?.title || BOOKMARKS_NOTE_TITLE,
+          note: note || createBookmarksNote()
         });
       });
     return;
