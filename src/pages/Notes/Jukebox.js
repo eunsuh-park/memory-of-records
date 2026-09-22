@@ -331,6 +331,74 @@ function markCenteredCard(gallery, noteId) {
   }
 }
 
+/**
+ * PC(>1024) 그리드 한 줄: 카드 너비 합이 행을 넘치면 gap을 줄여 겹친다.
+ * CSS `--jukebox-grid-gap`은 최대값. 여유 있으면 그 값을 쓰고, 부족하면 음수까지 허용.
+ * 컴팩트 뷰포트는 2열 CSS 그리드에 맡기고 인라인 gap을 지운다.
+ */
+function updateGridRowNoteGaps(gallery) {
+  if (!gallery) return;
+  const rows = gallery.querySelectorAll('.jukebox-grid-row__notes');
+  if (rows.length === 0) return;
+
+  if (!isGridGallery(gallery) || isCompactGridViewport()) {
+    rows.forEach((el) => el.style.removeProperty('gap'));
+    return;
+  }
+
+  rows.forEach((notesEl) => {
+    notesEl.style.removeProperty('gap');
+    const cards = Array.from(notesEl.querySelectorAll(':scope > .jukebox-card'));
+    if (cards.length <= 1) return;
+
+    const maxGap = parseFloat(getComputedStyle(notesEl).columnGap || getComputedStyle(notesEl).gap) || 0;
+    const available = notesEl.clientWidth;
+    if (available <= 0) return;
+
+    const totalCardWidth = cards.reduce((sum, card) => sum + card.offsetWidth, 0);
+    const gap = Math.min(maxGap, (available - totalCardWidth) / (cards.length - 1));
+    notesEl.style.gap = `${gap}px`;
+  });
+}
+
+function enableGridRowNoteGaps(gallery) {
+  if (!gallery) return;
+  updateGridRowNoteGaps(gallery);
+  if (gallery._jukeboxGridGapEnabled) return;
+  gallery._jukeboxGridGapEnabled = true;
+
+  let rafId = null;
+  const schedule = () => {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      if (!gallery.isConnected) return;
+      updateGridRowNoteGaps(gallery);
+    });
+  };
+
+  const onResize = () => {
+    if (!gallery.isConnected) {
+      window.removeEventListener('resize', onResize);
+      compactMq.removeEventListener('change', onResize);
+      return;
+    }
+    schedule();
+  };
+
+  const compactMq = window.matchMedia('(max-width: 1024px)');
+  window.addEventListener('resize', onResize);
+  compactMq.addEventListener('change', onResize);
+
+  gallery.addEventListener(
+    'load',
+    (e) => {
+      if (e.target?.tagName === 'IMG') schedule();
+    },
+    true
+  );
+}
+
 function enableGridTagScroll(gallery, prevBtn, nextBtn, hooks = {}) {
   gallery._jukeboxGridHooks = hooks;
   if (gallery._jukeboxGridScrollEnabled) return;
@@ -432,11 +500,13 @@ function fillGridGallery(gallery, prevBtn, nextBtn, rows, options = {}) {
   updateGridRowActiveState(gallery, activeIdx);
   markCenteredCard(gallery, requestedFocusId);
   enableGridTagScroll(gallery, prevBtn, nextBtn, options.gridHooks || {});
+  enableGridRowNoteGaps(gallery);
   requestAnimationFrame(() => {
     if (!gallery.isConnected) return;
     scrollGridToFilter(gallery, selectedValue, 'auto');
     updateGridRowActiveState(gallery, getActiveGridRowIndex(gallery));
     updateJukeboxNavButtons(gallery);
+    updateGridRowNoteGaps(gallery);
   });
 }
 

@@ -222,7 +222,7 @@ const RESPONSIVE_MATRIX = [
       '카드 max-height 38vh · 이미지 max-width 28vw · 바닥 반사 on(다크). 라이트는 반사·하단 그라데이션 없음',
       '데스크톱 포커스 정보 블록 표시(제목 1줄·도구모음·메모 3줄 높이 · 노트명 · Icon Button 5 · 메모)',
       '네비 버튼 fixed 좌우 1rem, 중앙 카드 클릭 시 뷰어 모달',
-      '펼쳐 보기(grid): 태그별 한 줄·고정 gap·가운데 정렬. 세로 스크롤/상하 화살표로 태그 이동, 이웃 행은 opacity 15%. 하단 정보 패널 숨김, 호버 시 .grid-note-tooltip. 선택 카드는 그림자 강화. Timeline/By type만'
+      '펼쳐 보기(grid): 태그별 한 줄·가운데 정렬. 행 min-height 50vh로 위·아래 이웃이 절반만 보임. PC는 gap 최대(--jukebox-grid-gap)·넘치면 겹침. 세로 스크롤/상하 화살표로 태그 이동, 이웃 행 opacity 15%. 하단 정보 패널 숨김, 호버 시 .grid-note-tooltip. Timeline/By type만'
     ]
   },
   {
@@ -1049,7 +1049,7 @@ export function renderUiLab() {
           <p class="ui-lab__section-desc">
             Timeline·By type 헤더에서 테마 토글 왼쪽에 두는 갤러리 레이아웃 pill입니다. ThemeSwitch와 같은 스위치 컴포넌트
             (64×32 · 썸 슬라이드)이고, 아이콘만 column(주크박스 Cover Flow) / grid(펼쳐 보기)입니다.
-            펼쳐 보기는 태그별 한 줄로 가운데 정렬하고, 스크롤·상하 화살표로 태그를 넘깁니다. Favorites·Page Scrap에는 나오지 않습니다.
+            펼쳐 보기는 태그별 한 줄로 가운데 정렬하고, 스크롤·상하 화살표로 태그를 넘깁니다. PC에서는 카드가 많으면 gap을 줄여 겹칩니다. Favorites·Page Scrap에는 나오지 않습니다.
             아래 데모는 저장하지 않고 스위치만 뒤집습니다.
           </p>
           <p class="ui-lab__files">
