@@ -543,27 +543,54 @@ body.jukebox-active.loading-active #sub-menu {
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  width: min(28vw, 11rem);
-  height: min(38vh, 14.5rem);
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  max-height: 38vh;
+  max-width: 28vw;
   aspect-ratio: 3 / 4;
+  min-width: min(28vw, 11rem);
+  min-height: min(38vh, 14.5rem);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   color: var(--color-text);
   padding: var(--space-4);
-  box-sizing: border-box;
+  filter:
+    brightness(var(--jukebox-brightness, 1))
+    drop-shadow(
+      0 6px var(--jukebox-shadow-blur, 16px)
+      rgba(0, 0, 0, var(--jukebox-shadow-opacity, 0.16))
+    );
 }
 
-.jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark__btn {
-  color: var(--color-primary-on);
+.jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-circle);
   background: var(--color-primary);
+  color: var(--color-primary-on);
+}
+
+.jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark__icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark__label {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   text-align: center;
   line-height: 1.35;
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  max-width: 12rem;
+}
+
+[data-theme='light'] .jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark {
+  filter: opacity(var(--jukebox-opacity, 1)) var(--color-drop-shadow);
 }
 
 .jukebox-gallery .jukebox-card .jukebox-card-face {
@@ -706,6 +733,13 @@ body.jukebox-active.loading-active #sub-menu {
   .jukebox-gallery .jukebox-card .jukebox-card-face--front img {
     max-height: min(34vh, 360px);
     max-width: min(38vw, 280px);
+  }
+
+  .jukebox-gallery > div.jukebox-card.jukebox-card--add-bookmark .jukebox-add-bookmark {
+    max-height: min(34vh, 360px);
+    max-width: min(38vw, 280px);
+    min-width: min(38vw, 280px);
+    min-height: min(34vh, 360px);
   }
 
   .jukebox-gallery .jukebox-card {

@@ -2,87 +2,10 @@
  * 북마크 노트 추가/수정 모달
  */
 
-.add-bookmark-progress {
-  display: flex;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.add-bookmark-progress li {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--text-xs);
-  color: var(--color-text-dim);
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.add-bookmark-progress li.is-current {
-  color: var(--color-text);
-  font-weight: var(--font-semibold);
-}
-
-.add-bookmark-progress li.is-done {
-  color: var(--color-text-muted);
-}
-
-.add-bookmark-progress__index {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-  border-radius: var(--radius-circle);
-  border: 1px solid var(--color-border);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  font-variant-numeric: tabular-nums;
-}
-
-.add-bookmark-progress li.is-current .add-bookmark-progress__index {
-  color: var(--color-primary-on);
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.add-bookmark-progress li.is-done .add-bookmark-progress__index {
-  color: var(--color-text);
-  background: var(--color-surface-selected);
-  border-color: var(--color-border);
-}
-
-.add-bookmark-steps {
-  display: grid;
-}
-
-.add-bookmark-step {
-  grid-area: 1 / 1;
+.add-bookmark-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  min-width: 0;
-}
-
-.add-bookmark-step:not(.is-active) {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.add-bookmark-nav {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
-}
-
-.add-bookmark-nav.is-step-1 .add-bookmark-back,
-.add-bookmark-nav.is-step-1 .add-bookmark-submit,
-.add-bookmark-nav.is-step-2 .add-bookmark-next {
-  display: none;
 }
 
 .add-bookmark-covers {
@@ -127,23 +50,8 @@
   color: var(--color-text-dim);
 }
 
-.add-bookmark-source-list {
-  list-style: none;
-  margin: var(--space-2) 0 0;
-  padding: 0;
-  max-height: 14rem;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-2);
-  background: var(--color-bg);
-}
-
-.add-bookmark-source-item .form-check {
-  width: 100%;
+.add-bookmark-footer {
+  margin-top: var(--space-1);
 }
 
 @media (max-width: 640px) {

@@ -20,7 +20,7 @@ function sanitizeId(id) {
 
 /**
  * @param {unknown} raw
- * @returns {{ id: string, title: string, sourceNoteIds: string[], sourceNotes: Array, coverFrontUrl: string, coverBackUrl: string, createdAt: string }[]}
+ * @returns {{ id: string, title: string, description: string, sourceNoteIds: string[], sourceNotes: Array, coverFrontUrl: string, coverBackUrl: string, createdAt: string }[]}
  */
 export function normalizeBookmarkNotes(raw) {
   const list = Array.isArray(raw) ? raw : Array.isArray(raw?.notes) ? raw.notes : [];
@@ -44,11 +44,11 @@ export function normalizeBookmarkNotes(raw) {
       ? item.sourceNoteIds.map((value) => trimOrEmpty(value).slice(0, 80)).filter(Boolean)
       : sourceNotes.map((note) => note.id);
     const uniqueSourceIds = [...new Set(sourceNoteIds)];
-    if (!uniqueSourceIds.length) continue;
     seen.add(id);
     notes.push({
       id,
       title,
+      description: trimOrEmpty(item?.description).slice(0, 100),
       sourceNoteIds: uniqueSourceIds,
       sourceNotes: sourceNotes.length
         ? sourceNotes.filter((note) => uniqueSourceIds.includes(note.id))
