@@ -13,10 +13,12 @@
 }
 
 .dropdown-menu {
-  --dropdown-menu-pad: 4px;
-  --dropdown-menu-gap: 4px;
+  --dropdown-menu-pad: var(--space-1);
+  --dropdown-menu-gap: var(--space-1);
+  /* --radius-lg(12px)와 1px 차이. 스케일에 흡수하지 않음 */
   --dropdown-menu-radius: 13px;
   --dropdown-menu-min-width: 120px;
+  /* --space-2(8px)와 --space-3(12px) 사이 */
   --dropdown-menu-offset: 10px;
 
   box-sizing: border-box;
@@ -45,8 +47,10 @@
 }
 
 button.dropdown-menu__item[role='option'] {
-  --dropdown-item-pad: 7px 8px;
+  /* 7px는 space 스케일 밖. 가로는 --space-2 */
+  --dropdown-item-pad: 7px var(--space-2);
   --dropdown-item-radius: 13px;
+  /* line-height 토큰은 없다. 기본 루트에서 --text-xs와 같다 */
   --dropdown-item-line: 12px;
 
   display: flex;
@@ -54,7 +58,7 @@ button.dropdown-menu__item[role='option'] {
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
+  gap: var(--space-1);
   box-sizing: border-box;
   margin: 0;
   width: 100%;
@@ -65,7 +69,7 @@ button.dropdown-menu__item[role='option'] {
   background-color: transparent;
   color: var(--color-text-dim);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: var(--font-regular);
   line-height: var(--dropdown-item-line);
   text-align: left;
@@ -94,7 +98,7 @@ button.dropdown-menu__item[role='option'] .dropdown-menu__label {
   width: fit-content;
   height: var(--dropdown-item-line);
   color: inherit;
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: inherit;
   line-height: var(--dropdown-item-line);
   text-align: left;
