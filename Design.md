@@ -24,7 +24,7 @@ Memory of Records의 UI는 바닐라 JS 컴포넌트와 CSS 변수(토큰) 위�
 
 Atomic은 그레이를 테마별 전용 12단계로 나눠 `--grey-light-1`…`--grey-light-12`와 `--grey-dark-1`…`--grey-dark-12`를 두고, 브랜드 `--primary-1`…`--primary-6`과 상태 `--red-1`…`--red-6`을 두 테마가 나눠 씁니다. 두 그레이 스케일 모두 1이 배경에 가장 가까운 단계이고 12가 대비가 가장 큰 본문 텍스트 단계이며, 1–3 배경 / 4–6 서피스 / 7–9 라인·구분 / 10–12 텍스트 순으로 쓰면 됩니다. 원시 스케일은 전부 `:root`에 있어 어떤 테마에서도 값을 읽을 수 있고, `/ui-lab`의 Atomic tokens 섹션이 이 스케일을 그대로 보여 줍니다.
 
-Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에 `--grey-dark-12`/`11`/`10`, 라인에 `--grey-dark-8`을 쓰고, 라이트에서는 같은 자리에 `--grey-light-4`/`5`, `--grey-light-12`/`11`/`10`, `--grey-light-8`을 씁니다. Primary는 다크에서 `--primary-3`, 라이트에서 `--primary-5`이며 그 위 글자는 `--color-primary-on`(`--grey-dark-3`)입니다. 다만 이미지·모달 위에 겹쳐 깔리는 역할(`--color-surface-*`, `--color-overlay-*`, `--color-shadow-*`, `--color-chrome-*`)은 합성이 목적이므로 단색 단계 대신 알파 값을 그대로 둡니다. 라이트에서는 글자 `text-shadow`를 전역으로 끄고 바닥 반사는 쓰지 않습니다.
+Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에 `--grey-dark-12`/`11`/`10`, 라인에 `--grey-dark-8`을 쓰고, 라이트에서는 같은 자리에 `--grey-light-4`/`5`, `--grey-light-12`/`11`/`10`, `--grey-light-8`을 씁니다. Primary는 다크에서 `--primary-2`, 라이트에서 `--primary-4`이며 그 위 글자는 `--color-primary-on`(`--grey-dark-3`)입니다. 다만 이미지·모달 위에 겹쳐 깔리는 역할(`--color-surface-*`, `--color-overlay-*`, `--color-shadow-*`, `--color-chrome-*`)은 합성이 목적이므로 단색 단계 대신 알파 값을 그대로 둡니다. 라이트에서는 글자 `text-shadow`를 전역으로 끄고 바닥 반사는 쓰지 않습니다.
 
 ### 다크/라이트 전환 규칙
 
@@ -35,7 +35,7 @@ Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에
 | `--color-bg`, `--color-bg-alt` | 각 테마 grey 스케일의 배경대. 다크는 5·6, 라이트는 4·5 |
 | `--color-text`, `-muted`, `-dim` | 각 테마 grey 10·11·12 — 테마가 바뀌어도 스케일 내 상대 위치는 고정 |
 | `--color-border` | 두 테마 모두 grey 8단계 |
-| `--color-primary` | 다크 `primary-3`, 라이트 `primary-5`. `-on`은 두 테마 모두 `grey-dark-3` 고정 |
+| `--color-primary` | 다크 `primary-2`, 라이트 `primary-4`. `-on`은 두 테마 모두 `grey-dark-3` 고정 |
 | `--color-overlay-*`, `--color-shadow-*`, `--color-surface-*` | 합성이 목적이라 grey 참조 대신 테마별 알파값을 직접 정의 |
 | `--color-chrome-*` | 두 테마 값이 **동일**. 스캔 이미지 위에 얹혀 항상 어두운 배경을 전제하는 것들(뷰어 시트·화살표)의 의도적 예외 |
 
@@ -43,7 +43,7 @@ Semantic은 다크에서 배경에 `--grey-dark-5`/`--grey-dark-6`, 텍스트에
 
 ### Radius
 
-`src/styles/sizes.css`에 스케일을 두고 CSS의 `border-radius`는 전부 여기를 참조합니다. px를 유지하는 값입니다 — 글자 크기에 따라 라운드가 같이 커지면 오히려 부자연스럽습니다.
+`src/styles/sizes.css`에 스케일을 두고, 컴포넌트 `border-radius`는 여기를 먼저 씁니다. px를 유지하는 값입니다 — 글자 크기에 따라 라운드가 같이 커지면 오히려 부자연스럽습니다. 스케일 밖에 남겨 둔 값은 DropdownMenu 패널·항목의 `13px`와 PageHeader 하단 모서리 `48px`입니다. `13px`는 `--radius-lg`(12px)와 1px 차이라 흡수하지 않았고, `48px`는 `--space-12`와 숫자가 같지만 모서리라서 간격 토큰에 묶지 않습니다.
 
 | 토큰 | 값 | 쓰는 곳 |
 |---|---|---|
@@ -105,11 +105,11 @@ Shadow는 offset/blur를 px로 유지하고 색만 기존 `--color-shadow*`를 �
 
 Chip/Pill은 버튼이 아니라 필터·드롭다운 트리거를 나타내는 요소로 보고 Button에 넣지 않았습니다(아래 FilterChip · DropdownChip · DropdownMenu).
 
-**FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, Timeline / By type에서 시기·유형을 나누는 칩입니다. 라벨 + 개수이고 상태는 default · hover(`.is-hover` 또는 실제 hover) · selected(`.is-active`)입니다. PC는 가로 pill(padding 6×12, radius 999), 모바일(≤768px)은 세로 스택(padding 12×8, radius 8)입니다. 선택 시 배경은 `--color-surface-hover`, 라벨은 `--color-primary` semibold입니다. Lab에서 레이아웃을 고정하려면 `device: 'pc'|'mobile'`을 넘깁니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
+**FilterChip**은 `src/components/FilterChip/FilterChip.js` · `FilterChip.css`로, Timeline / By type에서 시기·유형을 나누는 칩입니다. 라벨 + 개수이고 상태는 default · hover(`.is-hover` 또는 실제 hover) · selected(`.is-active`)입니다. PC는 가로 pill(padding 6×12, radius 999), 모바일(≤768px)은 세로 스택(padding 12×8, radius 8)입니다. 선택 시 배경은 `--color-surface-hover`, 라벨은 `--color-text` semibold, 개수는 `--color-text` regular입니다. `label`과 `labelMobile`은 글자 스타일이 아니라 문구가 달라서 나뉩니다. Lab에서 레이아웃을 고정하려면 `device: 'pc'|'mobile'`을 넘깁니다. FilterSubMenu의 시기·타입 탭이 이걸 씁니다.
 
-**DropdownChip**은 `src/components/DropdownChip/DropdownChip.js` · `DropdownChip.css`로, 커스텀 드롭다운의 트리거 칩입니다. 라벨 + MingCute `upSmallFill`(닫힘에서 180° 회전해 아래를 가리킴)이고 상태는 default · hover · active(`.is-open`) · selected(`.is-selected`) · active-hover입니다. padding은 `1px 4px 1px 12px`, 아이콘 칸은 24px입니다. default/selected는 `--color-border` 0.5px, hover는 `--color-surface-hover`, 열림은 `--color-surface-active`이며 열림·선택의 글자는 `--color-primary` semibold입니다.
+**DropdownChip**은 `src/components/DropdownChip/DropdownChip.js` · `DropdownChip.css`로, 커스텀 드롭다운의 트리거 칩입니다. 라벨 + MingCute `upSmallFill`(닫힘에서 180° 회전해 아래를 가리킴)이고 상태는 default · hover · active(`.is-open`) · selected(`.is-selected`) · active-hover입니다. padding은 `1px var(--space-1) 1px var(--space-3)`, gap은 `--space-2`, 글자 크기는 `--text-xs`, 아이콘 칸은 24px입니다. `1px`, line-height `12px`, 아이콘 칸 `24px`, 최소 폭 `120px`는 토큰이 없습니다. default/selected는 `--color-border` 0.5px, hover는 `--color-surface-hover`, 열림은 `--color-surface-active`이며 열림·선택의 글자는 `--color-primary` semibold입니다.
 
-**DropdownMenu**는 `src/components/DropdownMenu/DropdownMenu.js` · `DropdownMenu.css`로, 열린 드롭다운의 드롭박스와 항목입니다. 패널은 padding·gap 4px, radius 18px, `--color-border` 0.5px, 배경은 `--color-bg`(#29323f)입니다. 항목은 26px pill(`padding 7px 12px`, `line-height 12px`)이고 상태는 default(`--color-text-dim` #94999f) · hover(`--color-surface-hover` + `--color-text` #eeeff0) · selected(`--color-primary` #ffe699 semibold) · active-hover(선택 + hover 필)입니다.
+**DropdownMenu**는 `src/components/DropdownMenu/DropdownMenu.js` · `DropdownMenu.css`로, 열린 드롭다운의 드롭박스와 항목입니다. 패널 padding·gap은 `--space-1`, radius는 스케일 밖 `13px`, 보더는 `--color-border` 0.5px, 배경은 `--color-bg`입니다. 항목은 `font-size: --text-xs`, `line-height: 12px`, padding `7px --space-2`, radius `13px`입니다. 상태는 default(`--color-text-dim`) · hover(`--color-surface-hover`와 `--color-text`) · selected(`--color-text` semibold) · active-hover(선택 + hover 배경)입니다.
 
 **Select**는 `src/components/Select/Select.js` · `Select.css`로 `<select>` 마크업을 통합했습니다. `render()`는 필드 하나를, `renderOptions()`는 옵션 문자열만 돌려주어 FormField가 자기 컨트롤 안에 끼워 쓸 수 있게 합니다. `tone: 'pill'`은 FilterSubMenu의 정렬 드롭다운용입니다.
 

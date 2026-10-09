@@ -14,7 +14,7 @@
   --chip-pad-inline: var(--space-3); /* 12px */
   --chip-label-size: var(--text-xs); /* 12px */
   --chip-label-line: 12px;
-  --chip-label-color: var(--color-text-muted); /* #bfc2c5 */
+  --chip-label-color: var(--color-text-muted);
   --chip-count-size: var(--text-2xs); /* ~9px */
   --chip-count-line: 14px;
   --chip-count-color: color-mix(in srgb, var(--color-text) 50%, transparent);

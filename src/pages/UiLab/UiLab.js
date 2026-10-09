@@ -157,7 +157,7 @@ const RESPONSIVE_MATRIX = [
     files: 'src/widgets/PageHeader/PageHeader.js · PageHeader.css',
     points: '1024 · 768px (높이·너비)',
     mobile: [
-      '세로 스택, width 100% · 라운드 0 · 배경 #2c333f (라이트 #eceff3)',
+      '세로 스택, width 100% · 라운드 0 · 배경 --color-bg',
       '로고 좌측 · 햄버거 2.5rem 우측(page-header__top 양끝), 데스크톱 우측 그룹 숨김',
       '우측 드로어 min(72vw, 300px): Notes 하위(Timeline·By type·Favorite·Page Scrap), Intro, Logout 아래 뷰어(해당 시)·테마 토글',
       '높이 ≤768px에서도 동일(햄버거 + 우측 드로어)'
@@ -168,7 +168,7 @@ const RESPONSIVE_MATRIX = [
       '높이 ≤768px이면 너비와 무관하게 모바일과 같은 햄버거·우측 드로어'
     ],
     desktop: [
-      'fixed · max-width 1200px · width calc(100% - 3rem) · padding 1rem 2rem',
+      'fixed · max-width 1920px · width calc(100% - 3rem) · padding 1rem 2rem',
       '하단 모서리 48px 라운드',
       '로고 | (Timeline/By type만) 뷰어 토글 · 테마 · Login/Logout · (새 노트 추가, 로그인 시)',
       '새 노트 추가 높이 44px · 라벨 1줄',
@@ -349,13 +349,13 @@ const RESPONSIVE_MATRIX = [
     mobile: [
       '세로 스택 · radius 8px · padding 12px 8px',
       '라벨 14px thin · 개수 10px · 기본 글자 50% 투명',
-      '선택 시 라벨 primary semibold · 개수 text regular · 배경 surface-hover'
+      '선택 시 라벨·개수 text. 라벨 semibold, 개수 regular · 배경 surface-hover'
     ],
     tablet: ['데스크톱과 동일 (가로 pill)'],
     desktop: [
       '가로 pill · radius 999px · padding 6px 12px',
       '라벨 12px muted thin · 개수 ~9px 50% 투명',
-      'hover/selected 배경 surface-hover, 선택은 라벨 primary'
+      'hover/selected 배경 surface-hover, 선택 라벨·개수는 text'
     ]
   },
   {
@@ -404,7 +404,7 @@ const RESPONSIVE_MATRIX = [
     points: '없음',
     mobile: ['모든 폭에서 동일'],
     tablet: ['모든 폭에서 동일'],
-    desktop: ['fixed bottom 3rem 중앙 · radius 999px · z-index 2000', '브레이크포인트 없이 내용 폭에 맞춰 늘어남']
+    desktop: ['fixed bottom 3rem 중앙 · radius 999px · z-index 5000', '브레이크포인트 없이 내용 폭에 맞춰 늘어남']
   }
 ];
 
