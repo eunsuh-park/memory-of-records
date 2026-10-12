@@ -105,24 +105,36 @@ function watchThemeChange(root) {
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 }
 
+function itemHas(item, id) {
+  return Boolean(item.children?.some((child) => child.id === id || itemHas(child, id)));
+}
+
+function renderNavItems(items, groupId, activeId) {
+  return items
+    .map((item) => {
+      const on = activeId === item.id;
+      const ancestor = !on && itemHas(item, activeId);
+      const cls = ['ui-lab__nav-link', on ? 'is-active' : '', ancestor ? 'is-ancestor' : '']
+        .filter(Boolean)
+        .join(' ');
+      const children = item.children?.length
+        ? `<ul class="ui-lab__nav-sub">${renderNavItems(item.children, groupId, activeId)}</ul>`
+        : '';
+      return `
+        <li>
+          <a class="${cls}" href="#${groupId}/${item.id}"${on ? ' aria-current="page"' : ''}>${item.label}</a>
+          ${children}
+        </li>`;
+    })
+    .join('');
+}
+
 function renderNav(active) {
   return LAB_NAV.map(
     (group) => `
       <div class="ui-lab__nav-group">
         <p class="ui-lab__nav-label">${group.label}</p>
-        <ul class="ui-lab__nav-list">
-          ${group.items
-            .map((item) => {
-              const on = active.group === group.id && active.id === item.id;
-              return `
-                <li>
-                  <a class="ui-lab__nav-link${on ? ' is-active' : ''}" href="#${group.id}/${item.id}"${
-                    on ? ' aria-current="page"' : ''
-                  }>${item.label}</a>
-                </li>`;
-            })
-            .join('')}
-        </ul>
+        <ul class="ui-lab__nav-list">${renderNavItems(group.items, group.id, active.group === group.id ? active.id : '')}</ul>
       </div>`
   ).join('');
 }
@@ -179,8 +191,9 @@ function paintUiLab() {
   bindThemeSwitches(root.querySelector('#theme-switch'), { persist: false });
   bindViewerSwitches(root.querySelector('#viewer-switch'), { persist: false });
   bindLabChips(root.querySelector('#filter-chip'));
-  bindLabDropdownMenu(root.querySelector('#dropdown-menu'));
-  bindLabDropdownMenu(root.querySelector('#filter'));
+  bindLabChips(root.querySelector('#menu'));
+  bindLabDropdownMenu(root.querySelector('#dropdown'));
+  bindLabDropdownMenu(root.querySelector('#menu'));
 
   root.querySelector('[data-lab="toast"]')?.addEventListener('click', () => {
     showToast('UI Component Lab · Toast 데모');
